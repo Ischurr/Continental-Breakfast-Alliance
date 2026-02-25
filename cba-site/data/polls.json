@@ -1,0 +1,26 @@
+{
+  "polls": [
+    {
+      "id": "poll-2",
+      "question": "Where should we host our fantasy league this year?",
+      "options": [
+        { "id": "opt-1", "text": "Stay with ESPN", "votes": 0 },
+        { "id": "opt-2", "text": "Switch to Fantrax", "votes": 0 }
+      ],
+      "createdAt": "2026-02-22",
+      "expiresAt": "2026-03-02",
+      "active": true
+    },
+    {
+      "id": "poll-3",
+      "question": "Should we expand the number of keepers to 6 for the 2026 season?",
+      "options": [
+        { "id": "opt-1", "text": "Yes, expand to 6", "votes": 0 },
+        { "id": "opt-2", "text": "No, keep it the same", "votes": 0 }
+      ],
+      "createdAt": "2026-02-22",
+      "expiresAt": "2026-03-02",
+      "active": true
+    }
+  ]
+}

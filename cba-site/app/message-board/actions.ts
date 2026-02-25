@@ -1,11 +1,8 @@
 'use server';
 
-import fs from 'fs';
-import path from 'path';
 import { revalidatePath } from 'next/cache';
 import { TrashTalkData } from '@/lib/types';
-
-const filePath = path.join(process.cwd(), 'data', 'trash-talk.json');
+import { getTrashTalk, setTrashTalk } from '@/lib/store';
 
 function revalidateAll() {
   revalidatePath('/message-board');
@@ -20,8 +17,7 @@ export async function postMessage(
   targetTeamId?: number,
   videoUrl?: string
 ): Promise<void> {
-  const raw = fs.readFileSync(filePath, 'utf-8');
-  const data: TrashTalkData = JSON.parse(raw);
+  const data: TrashTalkData = await getTrashTalk();
 
   data.posts.unshift({
     id: `post-${Date.now()}`,
@@ -33,7 +29,7 @@ export async function postMessage(
     createdAt: new Date().toISOString(),
   });
 
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+  await setTrashTalk(data);
   revalidateAll();
 }
 
@@ -45,8 +41,7 @@ export async function postTrade(
   tradeReceiving: string,
   message?: string
 ): Promise<void> {
-  const raw = fs.readFileSync(filePath, 'utf-8');
-  const data: TrashTalkData = JSON.parse(raw);
+  const data: TrashTalkData = await getTrashTalk();
 
   data.posts.unshift({
     id: `post-${Date.now()}`,
@@ -60,7 +55,7 @@ export async function postTrade(
     createdAt: new Date().toISOString(),
   });
 
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+  await setTrashTalk(data);
   revalidateAll();
 }
 
@@ -70,21 +65,19 @@ export async function editPost(
   tradeGiving?: string,
   tradeReceiving?: string
 ): Promise<void> {
-  const raw = fs.readFileSync(filePath, 'utf-8');
-  const data: TrashTalkData = JSON.parse(raw);
+  const data: TrashTalkData = await getTrashTalk();
   const post = data.posts.find(p => p.id === postId);
   if (!post) return;
   post.message = newMessage.trim();
   if (tradeGiving !== undefined) post.tradeGiving = tradeGiving.trim();
   if (tradeReceiving !== undefined) post.tradeReceiving = tradeReceiving.trim();
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+  await setTrashTalk(data);
   revalidateAll();
 }
 
 export async function deletePost(postId: string): Promise<void> {
-  const raw = fs.readFileSync(filePath, 'utf-8');
-  const data: TrashTalkData = JSON.parse(raw);
+  const data: TrashTalkData = await getTrashTalk();
   data.posts = data.posts.filter(p => p.id !== postId);
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
+  await setTrashTalk(data);
   revalidateAll();
 }

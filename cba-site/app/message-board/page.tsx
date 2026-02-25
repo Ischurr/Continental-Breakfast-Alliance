@@ -3,8 +3,7 @@ import MessageBoardForm from './MessageBoardForm';
 import PostCard from './PostCard';
 import PollCard from '../polls/PollCard';
 import { TrashTalkData, Poll } from '@/lib/types';
-import fs from 'fs';
-import path from 'path';
+import { getTrashTalk, getPolls } from '@/lib/store';
 import teamsRaw from '@/data/teams.json';
 
 function getTeamById(id: number) {
@@ -22,13 +21,11 @@ function timeAgo(iso: string): string {
   return `${days}d ago`;
 }
 
-export default function MessageBoardPage() {
-  const postsRaw = fs.readFileSync(path.join(process.cwd(), 'data', 'trash-talk.json'), 'utf-8');
-  const data: TrashTalkData = JSON.parse(postsRaw);
+export default async function MessageBoardPage() {
+  const data: TrashTalkData = await getTrashTalk();
   const posts = data.posts;
 
-  const pollsRaw = fs.readFileSync(path.join(process.cwd(), 'data', 'polls.json'), 'utf-8');
-  const allPolls: Poll[] = JSON.parse(pollsRaw).polls;
+  const allPolls: Poll[] = (await getPolls()).polls;
   const activePolls = allPolls.filter(p => p.active);
   const closedPolls = allPolls.filter(p => !p.active);
 

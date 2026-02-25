@@ -5,9 +5,8 @@ import teamsMetadata from '@/data/teams.json';
 import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import fs from 'fs';
-import path from 'path';
 import { TrashTalkData } from '@/lib/types';
+import { getTrashTalk } from '@/lib/store';
 
 interface Props {
   params: Promise<{ teamId: string }>;
@@ -37,8 +36,7 @@ export default async function TeamPage({ params }: Props) {
   const otherTeams = currentSeason.teams.filter(t => t.id !== id);
 
   // Message board posts for this team (authored by or targeting this team)
-  const boardRaw = fs.readFileSync(path.join(process.cwd(), 'data', 'trash-talk.json'), 'utf-8');
-  const boardData: TrashTalkData = JSON.parse(boardRaw);
+  const boardData: TrashTalkData = await getTrashTalk();
   const teamPosts = boardData.posts.filter(
     p => p.authorTeamId === id || p.targetTeamId === id
   );

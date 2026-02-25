@@ -1,0 +1,3657 @@
+{
+  "year": 2022,
+  "teams": [
+    {
+      "id": 1,
+      "name": "Sugar Land Space Cowboys",
+      "owner": "Ian Schurr",
+      "abbrev": "SLSC",
+      "logoUrl": "https://i.imgur.com/nguVo08.png",
+      "divisionId": 0
+    },
+    {
+      "id": 2,
+      "name": "Portland Chinook",
+      "owner": "Owen Hart",
+      "abbrev": "PDX",
+      "logoUrl": "https://imgur.com/8iNLFJK.png",
+      "divisionId": 1
+    },
+    {
+      "id": 3,
+      "name": "West Virginia Pepperoni Rolls",
+      "owner": "Douglas Weimer",
+      "abbrev": "WVPR",
+      "logoUrl": "https://cdn.ballotpedia.org/images/e/ef/Seal_of_West_Virginia.svg.png",
+      "divisionId": 0
+    },
+    {
+      "id": 4,
+      "name": "Manhattan Mega Rats",
+      "owner": "Caleb Tisdale",
+      "abbrev": "MMR",
+      "logoUrl": "https://i.postimg.cc/L5LPDmMF/Manhattan.jpg",
+      "divisionId": 1
+    },
+    {
+      "id": 6,
+      "name": "Delmarva Shureburds",
+      "owner": "Ben Pereboom",
+      "abbrev": "SHRM",
+      "logoUrl": "https://g.espncdn.com/lm-static/logo-packs/core/Mascots/mascots-5.svg",
+      "divisionId": 1
+    },
+    {
+      "id": 7,
+      "name": "Syracuse SaltyDogs",
+      "owner": "Michael Pugh",
+      "abbrev": "SSD",
+      "logoUrl": "https://upload.wikimedia.org/wikipedia/en/1/15/SyracuseSaltyDogs.jpg",
+      "divisionId": 0
+    },
+    {
+      "id": 8,
+      "name": "Ghent Whistlepigs",
+      "owner": "Luke Pontzer",
+      "abbrev": "GWP",
+      "logoUrl": "https://g.espncdn.com/lm-static/logo-packs/core/CatsAndDogs/cats_dogs-12.svg",
+      "divisionId": 1
+    },
+    {
+      "id": 9,
+      "name": "Mississippi Mudcats",
+      "owner": "Dugan Walker",
+      "abbrev": "MS",
+      "logoUrl": "https://as2.ftcdn.net/v2/jpg/01/20/23/91/1000_F_120239174_ubGLaHsj575bmAWjNYaMOuSqGnrDHBb2.jpg",
+      "divisionId": 0
+    },
+    {
+      "id": 10,
+      "name": "Dinwiddie Dinos",
+      "owner": "Jacob Tisdale",
+      "abbrev": "DINO",
+      "logoUrl": "https://as1.ftcdn.net/v2/jpg/02/50/50/78/1000_F_250507809_UagX4vWJlViiGiHwFnwD1Fimd6bE09JL.jpg",
+      "divisionId": 1
+    },
+    {
+      "id": 11,
+      "name": "Ft. Meade Folksy Ferrets",
+      "owner": "Daniel Nakasone",
+      "abbrev": "FFF",
+      "logoUrl": "https://i.imgur.com/cNtQjIA.png",
+      "divisionId": 0
+    }
+  ],
+  "standings": [
+    {
+      "teamId": 1,
+      "wins": 11,
+      "losses": 9,
+      "ties": 0,
+      "pointsFor": 8389.5,
+      "pointsAgainst": 8715.5
+    },
+    {
+      "teamId": 2,
+      "wins": 10,
+      "losses": 10,
+      "ties": 0,
+      "pointsFor": 8720.5,
+      "pointsAgainst": 8330.5
+    },
+    {
+      "teamId": 3,
+      "wins": 14,
+      "losses": 6,
+      "ties": 0,
+      "pointsFor": 9154.75,
+      "pointsAgainst": 8127.25
+    },
+    {
+      "teamId": 4,
+      "wins": 7,
+      "losses": 12,
+      "ties": 1,
+      "pointsFor": 7919.25,
+      "pointsAgainst": 8294.5
+    },
+    {
+      "teamId": 6,
+      "wins": 12,
+      "losses": 8,
+      "ties": 0,
+      "pointsFor": 8752.25,
+      "pointsAgainst": 8785.5
+    },
+    {
+      "teamId": 7,
+      "wins": 8,
+      "losses": 12,
+      "ties": 0,
+      "pointsFor": 8405.75,
+      "pointsAgainst": 8344.5
+    },
+    {
+      "teamId": 8,
+      "wins": 9,
+      "losses": 11,
+      "ties": 0,
+      "pointsFor": 8079.75,
+      "pointsAgainst": 8357
+    },
+    {
+      "teamId": 9,
+      "wins": 9,
+      "losses": 11,
+      "ties": 0,
+      "pointsFor": 8293,
+      "pointsAgainst": 8074.5
+    },
+    {
+      "teamId": 10,
+      "wins": 8,
+      "losses": 12,
+      "ties": 0,
+      "pointsFor": 7522.25,
+      "pointsAgainst": 8298.75
+    },
+    {
+      "teamId": 11,
+      "wins": 11,
+      "losses": 8,
+      "ties": 1,
+      "pointsFor": 7918,
+      "pointsAgainst": 7827
+    }
+  ],
+  "matchups": [
+    {
+      "id": "2022-0",
+      "week": 1,
+      "home": {
+        "teamId": 3,
+        "totalPoints": 569.25
+      },
+      "away": {
+        "teamId": 10,
+        "totalPoints": 510.5
+      },
+      "winner": 3
+    },
+    {
+      "id": "2022-1",
+      "week": 1,
+      "home": {
+        "teamId": 11,
+        "totalPoints": 407.5
+      },
+      "away": {
+        "teamId": 9,
+        "totalPoints": 599
+      },
+      "winner": 9
+    },
+    {
+      "id": "2022-2",
+      "week": 1,
+      "home": {
+        "teamId": 4,
+        "totalPoints": 519.5
+      },
+      "away": {
+        "teamId": 6,
+        "totalPoints": 561.75
+      },
+      "winner": 6
+    },
+    {
+      "id": "2022-3",
+      "week": 1,
+      "home": {
+        "teamId": 1,
+        "totalPoints": 468.5
+      },
+      "away": {
+        "teamId": 7,
+        "totalPoints": 551
+      },
+      "winner": 7
+    },
+    {
+      "id": "2022-4",
+      "week": 1,
+      "home": {
+        "teamId": 8,
+        "totalPoints": 573.75
+      },
+      "away": {
+        "teamId": 2,
+        "totalPoints": 498
+      },
+      "winner": 8
+    },
+    {
+      "id": "2022-5",
+      "week": 2,
+      "home": {
+        "teamId": 9,
+        "totalPoints": 267
+      },
+      "away": {
+        "teamId": 6,
+        "totalPoints": 309.5
+      },
+      "winner": 6
+    },
+    {
+      "id": "2022-6",
+      "week": 2,
+      "home": {
+        "teamId": 7,
+        "totalPoints": 367.25
+      },
+      "away": {
+        "teamId": 3,
+        "totalPoints": 358.5
+      },
+      "winner": 7
+    },
+    {
+      "id": "2022-7",
+      "week": 2,
+      "home": {
+        "teamId": 2,
+        "totalPoints": 383
+      },
+      "away": {
+        "teamId": 10,
+        "totalPoints": 278.75
+      },
+      "winner": 2
+    },
+    {
+      "id": "2022-8",
+      "week": 2,
+      "home": {
+        "teamId": 1,
+        "totalPoints": 343.75
+      },
+      "away": {
+        "teamId": 11,
+        "totalPoints": 345
+      },
+      "winner": 11
+    },
+    {
+      "id": "2022-9",
+      "week": 2,
+      "home": {
+        "teamId": 8,
+        "totalPoints": 431.25
+      },
+      "away": {
+        "teamId": 4,
+        "totalPoints": 321
+      },
+      "winner": 8
+    },
+    {
+      "id": "2022-10",
+      "week": 3,
+      "home": {
+        "teamId": 7,
+        "totalPoints": 482
+      },
+      "away": {
+        "teamId": 2,
+        "totalPoints": 365.75
+      },
+      "winner": 7
+    },
+    {
+      "id": "2022-11",
+      "week": 3,
+      "home": {
+        "teamId": 9,
+        "totalPoints": 420.25
+      },
+      "away": {
+        "teamId": 1,
+        "totalPoints": 433
+      },
+      "winner": 1
+    },
+    {
+      "id": "2022-12",
+      "week": 3,
+      "home": {
+        "teamId": 6,
+        "totalPoints": 400.5
+      },
+      "away": {
+        "teamId": 8,
+        "totalPoints": 424
+      },
+      "winner": 8
+    },
+    {
+      "id": "2022-13",
+      "week": 3,
+      "home": {
+        "teamId": 3,
+        "totalPoints": 502.25
+      },
+      "away": {
+        "teamId": 11,
+        "totalPoints": 308.75
+      },
+      "winner": 3
+    },
+    {
+      "id": "2022-14",
+      "week": 3,
+      "home": {
+        "teamId": 10,
+        "totalPoints": 322.75
+      },
+      "away": {
+        "teamId": 4,
+        "totalPoints": 281.75
+      },
+      "winner": 10
+    },
+    {
+      "id": "2022-15",
+      "week": 4,
+      "home": {
+        "teamId": 1,
+        "totalPoints": 393.25
+      },
+      "away": {
+        "teamId": 8,
+        "totalPoints": 394.5
+      },
+      "winner": 8
+    },
+    {
+      "id": "2022-16",
+      "week": 4,
+      "home": {
+        "teamId": 11,
+        "totalPoints": 401.5
+      },
+      "away": {
+        "teamId": 7,
+        "totalPoints": 370
+      },
+      "winner": 11
+    },
+    {
+      "id": "2022-17",
+      "week": 4,
+      "home": {
+        "teamId": 4,
+        "totalPoints": 354.25
+      },
+      "away": {
+        "teamId": 2,
+        "totalPoints": 352
+      },
+      "winner": 4
+    },
+    {
+      "id": "2022-18",
+      "week": 4,
+      "home": {
+        "teamId": 3,
+        "totalPoints": 376
+      },
+      "away": {
+        "teamId": 9,
+        "totalPoints": 268.5
+      },
+      "winner": 3
+    },
+    {
+      "id": "2022-19",
+      "week": 4,
+      "home": {
+        "teamId": 10,
+        "totalPoints": 407.5
+      },
+      "away": {
+        "teamId": 6,
+        "totalPoints": 382.25
+      },
+      "winner": 10
+    },
+    {
+      "id": "2022-20",
+      "week": 5,
+      "home": {
+        "teamId": 11,
+        "totalPoints": 313.75
+      },
+      "away": {
+        "teamId": 4,
+        "totalPoints": 246.5
+      },
+      "winner": 11
+    },
+    {
+      "id": "2022-21",
+      "week": 5,
+      "home": {
+        "teamId": 1,
+        "totalPoints": 444
+      },
+      "away": {
+        "teamId": 3,
+        "totalPoints": 313.5
+      },
+      "winner": 1
+    },
+    {
+      "id": "2022-22",
+      "week": 5,
+      "home": {
+        "teamId": 8,
+        "totalPoints": 399.5
+      },
+      "away": {
+        "teamId": 10,
+        "totalPoints": 401.25
+      },
+      "winner": 10
+    },
+    {
+      "id": "2022-23",
+      "week": 5,
+      "home": {
+        "teamId": 7,
+        "totalPoints": 431.75
+      },
+      "away": {
+        "teamId": 9,
+        "totalPoints": 341.75
+      },
+      "winner": 7
+    },
+    {
+      "id": "2022-24",
+      "week": 5,
+      "home": {
+        "teamId": 2,
+        "totalPoints": 395.75
+      },
+      "away": {
+        "teamId": 6,
+        "totalPoints": 464.75
+      },
+      "winner": 6
+    },
+    {
+      "id": "2022-25",
+      "week": 6,
+      "home": {
+        "teamId": 10,
+        "totalPoints": 341.75
+      },
+      "away": {
+        "teamId": 9,
+        "totalPoints": 480.25
+      },
+      "winner": 9
+    },
+    {
+      "id": "2022-26",
+      "week": 6,
+      "home": {
+        "teamId": 6,
+        "totalPoints": 389
+      },
+      "away": {
+        "teamId": 7,
+        "totalPoints": 501.75
+      },
+      "winner": 7
+    },
+    {
+      "id": "2022-27",
+      "week": 6,
+      "home": {
+        "teamId": 2,
+        "totalPoints": 522.5
+      },
+      "away": {
+        "teamId": 1,
+        "totalPoints": 419.75
+      },
+      "winner": 2
+    },
+    {
+      "id": "2022-28",
+      "week": 6,
+      "home": {
+        "teamId": 8,
+        "totalPoints": 350.75
+      },
+      "away": {
+        "teamId": 11,
+        "totalPoints": 333.5
+      },
+      "winner": 8
+    },
+    {
+      "id": "2022-29",
+      "week": 6,
+      "home": {
+        "teamId": 4,
+        "totalPoints": 366.75
+      },
+      "away": {
+        "teamId": 3,
+        "totalPoints": 428.25
+      },
+      "winner": 3
+    },
+    {
+      "id": "2022-30",
+      "week": 7,
+      "home": {
+        "teamId": 7,
+        "totalPoints": 464.5
+      },
+      "away": {
+        "teamId": 10,
+        "totalPoints": 259.5
+      },
+      "winner": 7
+    },
+    {
+      "id": "2022-31",
+      "week": 7,
+      "home": {
+        "teamId": 1,
+        "totalPoints": 418.25
+      },
+      "away": {
+        "teamId": 6,
+        "totalPoints": 415.75
+      },
+      "winner": 1
+    },
+    {
+      "id": "2022-32",
+      "week": 7,
+      "home": {
+        "teamId": 11,
+        "totalPoints": 302
+      },
+      "away": {
+        "teamId": 2,
+        "totalPoints": 501.5
+      },
+      "winner": 2
+    },
+    {
+      "id": "2022-33",
+      "week": 7,
+      "home": {
+        "teamId": 3,
+        "totalPoints": 533.5
+      },
+      "away": {
+        "teamId": 8,
+        "totalPoints": 377
+      },
+      "winner": 3
+    },
+    {
+      "id": "2022-34",
+      "week": 7,
+      "home": {
+        "teamId": 9,
+        "totalPoints": 400.5
+      },
+      "away": {
+        "teamId": 4,
+        "totalPoints": 371
+      },
+      "winner": 9
+    },
+    {
+      "id": "2022-35",
+      "week": 8,
+      "home": {
+        "teamId": 10,
+        "totalPoints": 482.25
+      },
+      "away": {
+        "teamId": 1,
+        "totalPoints": 378.25
+      },
+      "winner": 10
+    },
+    {
+      "id": "2022-36",
+      "week": 8,
+      "home": {
+        "teamId": 6,
+        "totalPoints": 413.5
+      },
+      "away": {
+        "teamId": 11,
+        "totalPoints": 315.25
+      },
+      "winner": 6
+    },
+    {
+      "id": "2022-37",
+      "week": 8,
+      "home": {
+        "teamId": 2,
+        "totalPoints": 432.5
+      },
+      "away": {
+        "teamId": 3,
+        "totalPoints": 556.75
+      },
+      "winner": 3
+    },
+    {
+      "id": "2022-38",
+      "week": 8,
+      "home": {
+        "teamId": 8,
+        "totalPoints": 487.25
+      },
+      "away": {
+        "teamId": 9,
+        "totalPoints": 351.75
+      },
+      "winner": 8
+    },
+    {
+      "id": "2022-39",
+      "week": 8,
+      "home": {
+        "teamId": 4,
+        "totalPoints": 522
+      },
+      "away": {
+        "teamId": 7,
+        "totalPoints": 400.5
+      },
+      "winner": 4
+    },
+    {
+      "id": "2022-40",
+      "week": 9,
+      "home": {
+        "teamId": 11,
+        "totalPoints": 406
+      },
+      "away": {
+        "teamId": 10,
+        "totalPoints": 389
+      },
+      "winner": 11
+    },
+    {
+      "id": "2022-41",
+      "week": 9,
+      "home": {
+        "teamId": 3,
+        "totalPoints": 445.75
+      },
+      "away": {
+        "teamId": 1,
+        "totalPoints": 521.5
+      },
+      "winner": 1
+    },
+    {
+      "id": "2022-42",
+      "week": 9,
+      "home": {
+        "teamId": 6,
+        "totalPoints": 356.25
+      },
+      "away": {
+        "teamId": 4,
+        "totalPoints": 426.25
+      },
+      "winner": 4
+    },
+    {
+      "id": "2022-43",
+      "week": 9,
+      "home": {
+        "teamId": 9,
+        "totalPoints": 350
+      },
+      "away": {
+        "teamId": 7,
+        "totalPoints": 297.25
+      },
+      "winner": 9
+    },
+    {
+      "id": "2022-44",
+      "week": 9,
+      "home": {
+        "teamId": 2,
+        "totalPoints": 373.5
+      },
+      "away": {
+        "teamId": 8,
+        "totalPoints": 346.25
+      },
+      "winner": 2
+    },
+    {
+      "id": "2022-45",
+      "week": 10,
+      "home": {
+        "teamId": 3,
+        "totalPoints": 420.75
+      },
+      "away": {
+        "teamId": 6,
+        "totalPoints": 423.5
+      },
+      "winner": 6
+    },
+    {
+      "id": "2022-46",
+      "week": 10,
+      "home": {
+        "teamId": 9,
+        "totalPoints": 327.75
+      },
+      "away": {
+        "teamId": 11,
+        "totalPoints": 375
+      },
+      "winner": 11
+    },
+    {
+      "id": "2022-47",
+      "week": 10,
+      "home": {
+        "teamId": 10,
+        "totalPoints": 429.5
+      },
+      "away": {
+        "teamId": 2,
+        "totalPoints": 476.5
+      },
+      "winner": 2
+    },
+    {
+      "id": "2022-48",
+      "week": 10,
+      "home": {
+        "teamId": 7,
+        "totalPoints": 390.5
+      },
+      "away": {
+        "teamId": 1,
+        "totalPoints": 418.75
+      },
+      "winner": 1
+    },
+    {
+      "id": "2022-49",
+      "week": 10,
+      "home": {
+        "teamId": 4,
+        "totalPoints": 427.75
+      },
+      "away": {
+        "teamId": 8,
+        "totalPoints": 391.5
+      },
+      "winner": 4
+    },
+    {
+      "id": "2022-50",
+      "week": 11,
+      "home": {
+        "teamId": 9,
+        "totalPoints": 355
+      },
+      "away": {
+        "teamId": 2,
+        "totalPoints": 412.25
+      },
+      "winner": 2
+    },
+    {
+      "id": "2022-51",
+      "week": 11,
+      "home": {
+        "teamId": 3,
+        "totalPoints": 518.75
+      },
+      "away": {
+        "teamId": 7,
+        "totalPoints": 402.75
+      },
+      "winner": 3
+    },
+    {
+      "id": "2022-52",
+      "week": 11,
+      "home": {
+        "teamId": 8,
+        "totalPoints": 344.5
+      },
+      "away": {
+        "teamId": 6,
+        "totalPoints": 482.25
+      },
+      "winner": 6
+    },
+    {
+      "id": "2022-53",
+      "week": 11,
+      "home": {
+        "teamId": 11,
+        "totalPoints": 524
+      },
+      "away": {
+        "teamId": 1,
+        "totalPoints": 331.75
+      },
+      "winner": 11
+    },
+    {
+      "id": "2022-54",
+      "week": 11,
+      "home": {
+        "teamId": 4,
+        "totalPoints": 440.75
+      },
+      "away": {
+        "teamId": 10,
+        "totalPoints": 272.25
+      },
+      "winner": 4
+    },
+    {
+      "id": "2022-55",
+      "week": 12,
+      "home": {
+        "teamId": 7,
+        "totalPoints": 381
+      },
+      "away": {
+        "teamId": 8,
+        "totalPoints": 424.75
+      },
+      "winner": 8
+    },
+    {
+      "id": "2022-56",
+      "week": 12,
+      "home": {
+        "teamId": 1,
+        "totalPoints": 410.25
+      },
+      "away": {
+        "teamId": 9,
+        "totalPoints": 399.25
+      },
+      "winner": 1
+    },
+    {
+      "id": "2022-57",
+      "week": 12,
+      "home": {
+        "teamId": 2,
+        "totalPoints": 441.5
+      },
+      "away": {
+        "teamId": 4,
+        "totalPoints": 323.75
+      },
+      "winner": 2
+    },
+    {
+      "id": "2022-58",
+      "week": 12,
+      "home": {
+        "teamId": 11,
+        "totalPoints": 434.5
+      },
+      "away": {
+        "teamId": 3,
+        "totalPoints": 487.75
+      },
+      "winner": 3
+    },
+    {
+      "id": "2022-59",
+      "week": 12,
+      "home": {
+        "teamId": 6,
+        "totalPoints": 478.5
+      },
+      "away": {
+        "teamId": 10,
+        "totalPoints": 432.25
+      },
+      "winner": 6
+    },
+    {
+      "id": "2022-60",
+      "week": 13,
+      "home": {
+        "teamId": 1,
+        "totalPoints": 418.75
+      },
+      "away": {
+        "teamId": 4,
+        "totalPoints": 404.75
+      },
+      "winner": 1
+    },
+    {
+      "id": "2022-61",
+      "week": 13,
+      "home": {
+        "teamId": 7,
+        "totalPoints": 305.25
+      },
+      "away": {
+        "teamId": 11,
+        "totalPoints": 404.75
+      },
+      "winner": 11
+    },
+    {
+      "id": "2022-62",
+      "week": 13,
+      "home": {
+        "teamId": 10,
+        "totalPoints": 323.5
+      },
+      "away": {
+        "teamId": 8,
+        "totalPoints": 294
+      },
+      "winner": 10
+    },
+    {
+      "id": "2022-63",
+      "week": 13,
+      "home": {
+        "teamId": 9,
+        "totalPoints": 485.5
+      },
+      "away": {
+        "teamId": 3,
+        "totalPoints": 394.25
+      },
+      "winner": 9
+    },
+    {
+      "id": "2022-64",
+      "week": 13,
+      "home": {
+        "teamId": 6,
+        "totalPoints": 485.25
+      },
+      "away": {
+        "teamId": 2,
+        "totalPoints": 483
+      },
+      "winner": 6
+    },
+    {
+      "id": "2022-65",
+      "week": 14,
+      "home": {
+        "teamId": 10,
+        "totalPoints": 662
+      },
+      "away": {
+        "teamId": 3,
+        "totalPoints": 622.75
+      },
+      "winner": 10
+    },
+    {
+      "id": "2022-66",
+      "week": 14,
+      "home": {
+        "teamId": 6,
+        "totalPoints": 656.75
+      },
+      "away": {
+        "teamId": 9,
+        "totalPoints": 610.75
+      },
+      "winner": 6
+    },
+    {
+      "id": "2022-67",
+      "week": 14,
+      "home": {
+        "teamId": 2,
+        "totalPoints": 704
+      },
+      "away": {
+        "teamId": 7,
+        "totalPoints": 653.75
+      },
+      "winner": 2
+    },
+    {
+      "id": "2022-68",
+      "week": 14,
+      "home": {
+        "teamId": 8,
+        "totalPoints": 666
+      },
+      "away": {
+        "teamId": 1,
+        "totalPoints": 583
+      },
+      "winner": 8
+    },
+    {
+      "id": "2022-69",
+      "week": 14,
+      "home": {
+        "teamId": 4,
+        "totalPoints": 640.25
+      },
+      "away": {
+        "teamId": 11,
+        "totalPoints": 640.25
+      }
+    },
+    {
+      "id": "2022-70",
+      "week": 15,
+      "home": {
+        "teamId": 9,
+        "totalPoints": 385
+      },
+      "away": {
+        "teamId": 10,
+        "totalPoints": 285.75
+      },
+      "winner": 9
+    },
+    {
+      "id": "2022-71",
+      "week": 15,
+      "home": {
+        "teamId": 7,
+        "totalPoints": 470.25
+      },
+      "away": {
+        "teamId": 6,
+        "totalPoints": 481.25
+      },
+      "winner": 6
+    },
+    {
+      "id": "2022-72",
+      "week": 15,
+      "home": {
+        "teamId": 1,
+        "totalPoints": 424.5
+      },
+      "away": {
+        "teamId": 2,
+        "totalPoints": 279
+      },
+      "winner": 1
+    },
+    {
+      "id": "2022-73",
+      "week": 15,
+      "home": {
+        "teamId": 11,
+        "totalPoints": 473
+      },
+      "away": {
+        "teamId": 8,
+        "totalPoints": 258.5
+      },
+      "winner": 11
+    },
+    {
+      "id": "2022-74",
+      "week": 15,
+      "home": {
+        "teamId": 3,
+        "totalPoints": 470.25
+      },
+      "away": {
+        "teamId": 4,
+        "totalPoints": 399.25
+      },
+      "winner": 3
+    },
+    {
+      "id": "2022-75",
+      "week": 16,
+      "home": {
+        "teamId": 10,
+        "totalPoints": 391.5
+      },
+      "away": {
+        "teamId": 7,
+        "totalPoints": 346.5
+      },
+      "winner": 10
+    },
+    {
+      "id": "2022-76",
+      "week": 16,
+      "home": {
+        "teamId": 6,
+        "totalPoints": 386.25
+      },
+      "away": {
+        "teamId": 1,
+        "totalPoints": 493.75
+      },
+      "winner": 1
+    },
+    {
+      "id": "2022-77",
+      "week": 16,
+      "home": {
+        "teamId": 2,
+        "totalPoints": 307.75
+      },
+      "away": {
+        "teamId": 11,
+        "totalPoints": 376.25
+      },
+      "winner": 11
+    },
+    {
+      "id": "2022-78",
+      "week": 16,
+      "home": {
+        "teamId": 8,
+        "totalPoints": 379.5
+      },
+      "away": {
+        "teamId": 3,
+        "totalPoints": 426.75
+      },
+      "winner": 3
+    },
+    {
+      "id": "2022-79",
+      "week": 16,
+      "home": {
+        "teamId": 4,
+        "totalPoints": 413
+      },
+      "away": {
+        "teamId": 9,
+        "totalPoints": 457.25
+      },
+      "winner": 9
+    },
+    {
+      "id": "2022-80",
+      "week": 17,
+      "home": {
+        "teamId": 1,
+        "totalPoints": 293.75
+      },
+      "away": {
+        "teamId": 10,
+        "totalPoints": 448
+      },
+      "winner": 10
+    },
+    {
+      "id": "2022-81",
+      "week": 17,
+      "home": {
+        "teamId": 11,
+        "totalPoints": 357
+      },
+      "away": {
+        "teamId": 6,
+        "totalPoints": 391.5
+      },
+      "winner": 6
+    },
+    {
+      "id": "2022-82",
+      "week": 17,
+      "home": {
+        "teamId": 3,
+        "totalPoints": 392
+      },
+      "away": {
+        "teamId": 2,
+        "totalPoints": 381.5
+      },
+      "winner": 3
+    },
+    {
+      "id": "2022-83",
+      "week": 17,
+      "home": {
+        "teamId": 9,
+        "totalPoints": 473
+      },
+      "away": {
+        "teamId": 8,
+        "totalPoints": 392.5
+      },
+      "winner": 9
+    },
+    {
+      "id": "2022-84",
+      "week": 17,
+      "home": {
+        "teamId": 7,
+        "totalPoints": 410.25
+      },
+      "away": {
+        "teamId": 4,
+        "totalPoints": 413.5
+      },
+      "winner": 4
+    },
+    {
+      "id": "2022-85",
+      "week": 18,
+      "home": {
+        "teamId": 10,
+        "totalPoints": 346.5
+      },
+      "away": {
+        "teamId": 11,
+        "totalPoints": 459
+      },
+      "winner": 11
+    },
+    {
+      "id": "2022-86",
+      "week": 18,
+      "home": {
+        "teamId": 6,
+        "totalPoints": 407.5
+      },
+      "away": {
+        "teamId": 3,
+        "totalPoints": 594.25
+      },
+      "winner": 3
+    },
+    {
+      "id": "2022-87",
+      "week": 18,
+      "home": {
+        "teamId": 2,
+        "totalPoints": 467.75
+      },
+      "away": {
+        "teamId": 9,
+        "totalPoints": 404.75
+      },
+      "winner": 2
+    },
+    {
+      "id": "2022-88",
+      "week": 18,
+      "home": {
+        "teamId": 8,
+        "totalPoints": 397.5
+      },
+      "away": {
+        "teamId": 7,
+        "totalPoints": 313
+      },
+      "winner": 8
+    },
+    {
+      "id": "2022-89",
+      "week": 18,
+      "home": {
+        "teamId": 4,
+        "totalPoints": 410
+      },
+      "away": {
+        "teamId": 1,
+        "totalPoints": 494.25
+      },
+      "winner": 1
+    },
+    {
+      "id": "2022-90",
+      "week": 19,
+      "home": {
+        "teamId": 3,
+        "totalPoints": 334.75
+      },
+      "away": {
+        "teamId": 10,
+        "totalPoints": 265.75
+      },
+      "winner": 3
+    },
+    {
+      "id": "2022-91",
+      "week": 19,
+      "home": {
+        "teamId": 9,
+        "totalPoints": 493.25
+      },
+      "away": {
+        "teamId": 6,
+        "totalPoints": 540
+      },
+      "winner": 6
+    },
+    {
+      "id": "2022-92",
+      "week": 19,
+      "home": {
+        "teamId": 7,
+        "totalPoints": 456
+      },
+      "away": {
+        "teamId": 2,
+        "totalPoints": 407
+      },
+      "winner": 7
+    },
+    {
+      "id": "2022-93",
+      "week": 19,
+      "home": {
+        "teamId": 1,
+        "totalPoints": 449
+      },
+      "away": {
+        "teamId": 8,
+        "totalPoints": 381.5
+      },
+      "winner": 1
+    },
+    {
+      "id": "2022-94",
+      "week": 19,
+      "home": {
+        "teamId": 11,
+        "totalPoints": 322.5
+      },
+      "away": {
+        "teamId": 4,
+        "totalPoints": 348.5
+      },
+      "winner": 4
+    },
+    {
+      "id": "2022-95",
+      "week": 20,
+      "home": {
+        "teamId": 10,
+        "totalPoints": 272
+      },
+      "away": {
+        "teamId": 9,
+        "totalPoints": 422.5
+      },
+      "winner": 9
+    },
+    {
+      "id": "2022-96",
+      "week": 20,
+      "home": {
+        "teamId": 6,
+        "totalPoints": 326.25
+      },
+      "away": {
+        "teamId": 7,
+        "totalPoints": 410.5
+      },
+      "winner": 7
+    },
+    {
+      "id": "2022-97",
+      "week": 20,
+      "home": {
+        "teamId": 2,
+        "totalPoints": 535.75
+      },
+      "away": {
+        "teamId": 1,
+        "totalPoints": 251.5
+      },
+      "winner": 2
+    },
+    {
+      "id": "2022-98",
+      "week": 20,
+      "home": {
+        "teamId": 8,
+        "totalPoints": 365.25
+      },
+      "away": {
+        "teamId": 11,
+        "totalPoints": 418.5
+      },
+      "winner": 11
+    },
+    {
+      "id": "2022-99",
+      "week": 20,
+      "home": {
+        "teamId": 4,
+        "totalPoints": 288.75
+      },
+      "away": {
+        "teamId": 3,
+        "totalPoints": 408.75
+      },
+      "winner": 3
+    },
+    {
+      "id": "2022-100",
+      "week": 21,
+      "home": {
+        "teamId": 3,
+        "totalPoints": 777
+      },
+      "away": {
+        "teamId": 1,
+        "totalPoints": 889.25
+      },
+      "winner": 1
+    },
+    {
+      "id": "2022-101",
+      "week": 21,
+      "home": {
+        "teamId": 6,
+        "totalPoints": 866
+      },
+      "away": {
+        "teamId": 11,
+        "totalPoints": 804.25
+      },
+      "winner": 6
+    },
+    {
+      "id": "2022-102",
+      "week": 21,
+      "home": {
+        "teamId": 2,
+        "totalPoints": 764
+      },
+      "away": {
+        "teamId": 9,
+        "totalPoints": 695.25
+      },
+      "winner": 2
+    },
+    {
+      "id": "2022-103",
+      "week": 21,
+      "home": {
+        "teamId": 8,
+        "totalPoints": 717.75
+      },
+      "away": {
+        "teamId": 7,
+        "totalPoints": 1009.25
+      },
+      "winner": 7
+    },
+    {
+      "id": "2022-104",
+      "week": 21,
+      "home": {
+        "teamId": 10,
+        "totalPoints": 751.5
+      },
+      "away": {
+        "teamId": 4,
+        "totalPoints": 670.25
+      },
+      "winner": 10
+    },
+    {
+      "id": "2022-105",
+      "week": 22,
+      "home": {
+        "teamId": 6,
+        "totalPoints": 874.75
+      },
+      "away": {
+        "teamId": 1,
+        "totalPoints": 931.5
+      },
+      "winner": 1
+    },
+    {
+      "id": "2022-106",
+      "week": 22,
+      "home": {
+        "teamId": 3,
+        "totalPoints": 864
+      },
+      "away": {
+        "teamId": 11,
+        "totalPoints": 868.5
+      },
+      "winner": 11
+    },
+    {
+      "id": "2022-107",
+      "week": 22,
+      "home": {
+        "teamId": 2,
+        "totalPoints": 995.75
+      },
+      "away": {
+        "teamId": 7,
+        "totalPoints": 873
+      },
+      "winner": 2
+    },
+    {
+      "id": "2022-108",
+      "week": 22,
+      "home": {
+        "teamId": 9,
+        "totalPoints": 789.5
+      },
+      "away": {
+        "teamId": 10,
+        "totalPoints": 882.5
+      },
+      "winner": 10
+    },
+    {
+      "id": "2022-109",
+      "week": 22,
+      "home": {
+        "teamId": 8,
+        "totalPoints": 702.5
+      },
+      "away": {
+        "teamId": 4,
+        "totalPoints": 809.75
+      },
+      "winner": 4
+    }
+  ],
+  "weeklyStats": [],
+  "rosters": [
+    {
+      "teamId": 1,
+      "players": [
+        {
+          "playerId": "32801",
+          "playerName": "Jose Ramirez",
+          "position": "3B",
+          "totalPoints": 717.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32801.png"
+        },
+        {
+          "playerId": "35241",
+          "playerName": "Sandy Alcantara",
+          "position": "SP",
+          "totalPoints": 714,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35241.png"
+        },
+        {
+          "playerId": "28976",
+          "playerName": "Max Scherzer",
+          "position": "SP",
+          "totalPoints": 469,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/28976.png"
+        },
+        {
+          "playerId": "32796",
+          "playerName": "Jacob deGrom",
+          "position": "SP",
+          "totalPoints": 227,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32796.png"
+        },
+        {
+          "playerId": "32129",
+          "playerName": "Francisco Lindor",
+          "position": "SS",
+          "totalPoints": 594.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32129.png"
+        },
+        {
+          "playerId": "33072",
+          "playerName": "Ryan Pressly",
+          "position": "SP",
+          "totalPoints": 292,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33072.png"
+        },
+        {
+          "playerId": "31283",
+          "playerName": "Christian Yelich",
+          "position": "UTIL",
+          "totalPoints": 484.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31283.png"
+        },
+        {
+          "playerId": "39961",
+          "playerName": "Brandon Lowe",
+          "position": "2B",
+          "totalPoints": 161.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39961.png"
+        },
+        {
+          "playerId": "6341",
+          "playerName": "Justin Verlander",
+          "position": "SP",
+          "totalPoints": 602,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/6341.png"
+        },
+        {
+          "playerId": "35394",
+          "playerName": "Edwin Diaz",
+          "position": "SP",
+          "totalPoints": 406,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35394.png"
+        },
+        {
+          "playerId": "32127",
+          "playerName": "Javier Baez",
+          "position": "2B",
+          "totalPoints": 347.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32127.png"
+        },
+        {
+          "playerId": "34895",
+          "playerName": "Dansby Swanson",
+          "position": "SS",
+          "totalPoints": 534,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/34895.png"
+        },
+        {
+          "playerId": "35291",
+          "playerName": "Rhys Hoskins",
+          "position": "1B",
+          "totalPoints": 478,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35291.png"
+        },
+        {
+          "playerId": "33867",
+          "playerName": "Eloy Jimenez",
+          "position": "UTIL",
+          "totalPoints": 285,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33867.png"
+        },
+        {
+          "playerId": "39105",
+          "playerName": "Myles Straw",
+          "position": "UTIL",
+          "totalPoints": 378,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39105.png"
+        },
+        {
+          "playerId": "32721",
+          "playerName": "Gio Urshela",
+          "position": "3B",
+          "totalPoints": 427.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32721.png"
+        },
+        {
+          "playerId": "34287",
+          "playerName": "Rowdy Tellez",
+          "position": "1B",
+          "totalPoints": 470,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/34287.png"
+        },
+        {
+          "playerId": "32078",
+          "playerName": "George Springer",
+          "position": "UTIL",
+          "totalPoints": 532.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32078.png"
+        },
+        {
+          "playerId": "38309",
+          "playerName": "Will Smith",
+          "position": "C",
+          "totalPoints": 496.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/38309.png"
+        },
+        {
+          "playerId": "4448736",
+          "playerName": "Lars Nootbaar",
+          "position": "UTIL",
+          "totalPoints": 288.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4448736.png"
+        },
+        {
+          "playerId": "32631",
+          "playerName": "Rafael Montero",
+          "position": "SP",
+          "totalPoints": 316,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32631.png"
+        },
+        {
+          "playerId": "41197",
+          "playerName": "Jake McCarthy",
+          "position": "UTIL",
+          "totalPoints": 301.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41197.png"
+        },
+        {
+          "playerId": "33660",
+          "playerName": "Domingo German",
+          "position": "SP",
+          "totalPoints": 139,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33660.png"
+        },
+        {
+          "playerId": "41225",
+          "playerName": "Sam Hentges",
+          "position": "SP",
+          "totalPoints": 198,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41225.png"
+        },
+        {
+          "playerId": "33677",
+          "playerName": "Adrian Sampson",
+          "position": "SP",
+          "totalPoints": 204,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33677.png"
+        },
+        {
+          "playerId": "42823",
+          "playerName": "Davis Martin",
+          "position": "SP",
+          "totalPoints": 74,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42823.png"
+        },
+        {
+          "playerId": "40934",
+          "playerName": "Aaron Civale",
+          "position": "SP",
+          "totalPoints": 182,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40934.png"
+        },
+        {
+          "playerId": "40360",
+          "playerName": "Tyler Alexander",
+          "position": "SP",
+          "totalPoints": 119,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40360.png"
+        }
+      ]
+    },
+    {
+      "teamId": 2,
+      "players": [
+        {
+          "playerId": "39878",
+          "playerName": "Corbin Burnes",
+          "position": "SP",
+          "totalPoints": 592,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39878.png"
+        },
+        {
+          "playerId": "32767",
+          "playerName": "Matt Olson",
+          "position": "1B",
+          "totalPoints": 540.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32767.png"
+        },
+        {
+          "playerId": "32175",
+          "playerName": "Robbie Ray",
+          "position": "SP",
+          "totalPoints": 464,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32175.png"
+        },
+        {
+          "playerId": "34848",
+          "playerName": "Joe Musgrove",
+          "position": "SP",
+          "totalPoints": 485,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/34848.png"
+        },
+        {
+          "playerId": "32422",
+          "playerName": "Whit Merrifield",
+          "position": "2B",
+          "totalPoints": 407.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32422.png"
+        },
+        {
+          "playerId": "32771",
+          "playerName": "Mitch Haniger",
+          "position": "UTIL",
+          "totalPoints": 179.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32771.png"
+        },
+        {
+          "playerId": "41221",
+          "playerName": "Logan Gilbert",
+          "position": "SP",
+          "totalPoints": 449,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41221.png"
+        },
+        {
+          "playerId": "39572",
+          "playerName": "Luis Arraez",
+          "position": "2B",
+          "totalPoints": 550.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39572.png"
+        },
+        {
+          "playerId": "33557",
+          "playerName": "Sean Murphy",
+          "position": "C",
+          "totalPoints": 428.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33557.png"
+        },
+        {
+          "playerId": "40963",
+          "playerName": "Daulton Varsho",
+          "position": "C",
+          "totalPoints": 437,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40963.png"
+        },
+        {
+          "playerId": "31606",
+          "playerName": "Xander Bogaerts",
+          "position": "SS",
+          "totalPoints": 523.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31606.png"
+        },
+        {
+          "playerId": "29607",
+          "playerName": "Justin Turner",
+          "position": "3B",
+          "totalPoints": 439.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/29607.png"
+        },
+        {
+          "playerId": "31065",
+          "playerName": "J.D. Martinez",
+          "position": "UTIL",
+          "totalPoints": 435,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31065.png"
+        },
+        {
+          "playerId": "33215",
+          "playerName": "Amed Rosario",
+          "position": "SS",
+          "totalPoints": 516.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33215.png"
+        },
+        {
+          "playerId": "32758",
+          "playerName": "Christian Walker",
+          "position": "1B",
+          "totalPoints": 537.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32758.png"
+        },
+        {
+          "playerId": "32145",
+          "playerName": "Jason Adam",
+          "position": "SP",
+          "totalPoints": 290,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32145.png"
+        },
+        {
+          "playerId": "33223",
+          "playerName": "Julio Urias",
+          "position": "SP",
+          "totalPoints": 528,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33223.png"
+        },
+        {
+          "playerId": "32269",
+          "playerName": "Brandon Drury",
+          "position": "UTIL",
+          "totalPoints": 477,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32269.png"
+        },
+        {
+          "playerId": "30193",
+          "playerName": "Freddie Freeman",
+          "position": "1B",
+          "totalPoints": 741.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/30193.png"
+        },
+        {
+          "playerId": "31037",
+          "playerName": "Jean Segura",
+          "position": "2B",
+          "totalPoints": 283,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31037.png"
+        },
+        {
+          "playerId": "36133",
+          "playerName": "A.J. Minter",
+          "position": "SP",
+          "totalPoints": 334,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36133.png"
+        },
+        {
+          "playerId": "34534",
+          "playerName": "Joey Meneses",
+          "position": "1B",
+          "totalPoints": 229.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/34534.png"
+        },
+        {
+          "playerId": "40715",
+          "playerName": "James Karinchak",
+          "position": "SP",
+          "totalPoints": 161,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40715.png"
+        },
+        {
+          "playerId": "42406",
+          "playerName": "George Kirby",
+          "position": "SP",
+          "totalPoints": 313,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42406.png"
+        },
+        {
+          "playerId": "32116",
+          "playerName": "Miles Mikolas",
+          "position": "SP",
+          "totalPoints": 476,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32116.png"
+        },
+        {
+          "playerId": "4301067",
+          "playerName": "Bryce Elder",
+          "position": "UTIL",
+          "totalPoints": 127,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4301067.png"
+        },
+        {
+          "playerId": "33263",
+          "playerName": "Luis Severino",
+          "position": "SP",
+          "totalPoints": 280,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33263.png"
+        }
+      ]
+    },
+    {
+      "teamId": 3,
+      "players": [
+        {
+          "playerId": "33710",
+          "playerName": "Trea Turner",
+          "position": "2B",
+          "totalPoints": 634.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33710.png"
+        },
+        {
+          "playerId": "34886",
+          "playerName": "Alex Bregman",
+          "position": "3B",
+          "totalPoints": 589.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/34886.png"
+        },
+        {
+          "playerId": "37498",
+          "playerName": "Pete Alonso",
+          "position": "1B",
+          "totalPoints": 670.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/37498.png"
+        },
+        {
+          "playerId": "32667",
+          "playerName": "Kevin Gausman",
+          "position": "SP",
+          "totalPoints": 442,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32667.png"
+        },
+        {
+          "playerId": "34982",
+          "playerName": "Austin Riley",
+          "position": "3B",
+          "totalPoints": 565.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/34982.png"
+        },
+        {
+          "playerId": "30782",
+          "playerName": "Anthony Rizzo",
+          "position": "1B",
+          "totalPoints": 444.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/30782.png"
+        },
+        {
+          "playerId": "30830",
+          "playerName": "Starling Marte",
+          "position": "UTIL",
+          "totalPoints": 452.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/30830.png"
+        },
+        {
+          "playerId": "33786",
+          "playerName": "Alex Verdugo",
+          "position": "UTIL",
+          "totalPoints": 529.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33786.png"
+        },
+        {
+          "playerId": "33712",
+          "playerName": "Kyle Schwarber",
+          "position": "UTIL",
+          "totalPoints": 524.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33712.png"
+        },
+        {
+          "playerId": "41199",
+          "playerName": "Shane McClanahan",
+          "position": "SP",
+          "totalPoints": 515,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41199.png"
+        },
+        {
+          "playerId": "36084",
+          "playerName": "Anthony Santander",
+          "position": "UTIL",
+          "totalPoints": 512.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36084.png"
+        },
+        {
+          "playerId": "41044",
+          "playerName": "Julio Rodriguez",
+          "position": "UTIL",
+          "totalPoints": 486.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41044.png"
+        },
+        {
+          "playerId": "41187",
+          "playerName": "Owen Miller",
+          "position": "2B",
+          "totalPoints": 292,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41187.png"
+        },
+        {
+          "playerId": "36364",
+          "playerName": "Jake Cronenworth",
+          "position": "1B",
+          "totalPoints": 495.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36364.png"
+        },
+        {
+          "playerId": "34954",
+          "playerName": "Triston McKenzie",
+          "position": "SP",
+          "totalPoints": 510,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/34954.png"
+        },
+        {
+          "playerId": "39909",
+          "playerName": "Ryan Helsley",
+          "position": "SP",
+          "totalPoints": 354,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39909.png"
+        },
+        {
+          "playerId": "42081",
+          "playerName": "Alejandro Kirk",
+          "position": "C",
+          "totalPoints": 460.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42081.png"
+        },
+        {
+          "playerId": "38958",
+          "playerName": "Tony Gonsolin",
+          "position": "SP",
+          "totalPoints": 412,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/38958.png"
+        },
+        {
+          "playerId": "33618",
+          "playerName": "Raisel Iglesias",
+          "position": "SP",
+          "totalPoints": 280,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33618.png"
+        },
+        {
+          "playerId": "35676",
+          "playerName": "Seth Brown",
+          "position": "UTIL",
+          "totalPoints": 390.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35676.png"
+        },
+        {
+          "playerId": "4905920",
+          "playerName": "Alexis Diaz",
+          "position": "SP",
+          "totalPoints": 280,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4905920.png"
+        },
+        {
+          "playerId": "32672",
+          "playerName": "Andrew Heaney",
+          "position": "SP",
+          "totalPoints": 205,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32672.png"
+        },
+        {
+          "playerId": "4089862",
+          "playerName": "Ha-Seong Kim",
+          "position": "2B",
+          "totalPoints": 401.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4089862.png"
+        },
+        {
+          "playerId": "34168",
+          "playerName": "Tyler O'Neill",
+          "position": "UTIL",
+          "totalPoints": 280.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/34168.png"
+        },
+        {
+          "playerId": "42404",
+          "playerName": "Corbin Carroll",
+          "position": "UTIL",
+          "totalPoints": 86.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42404.png"
+        },
+        {
+          "playerId": "33599",
+          "playerName": "Manuel Margot",
+          "position": "UTIL",
+          "totalPoints": 274.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33599.png"
+        },
+        {
+          "playerId": "32517",
+          "playerName": "Josh Bell",
+          "position": "1B",
+          "totalPoints": 505.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32517.png"
+        },
+        {
+          "playerId": "39875",
+          "playerName": "Cal Quantrill",
+          "position": "SP",
+          "totalPoints": 406,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39875.png"
+        },
+        {
+          "playerId": "29155",
+          "playerName": "Charlie Morton",
+          "position": "SP",
+          "totalPoints": 385,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/29155.png"
+        }
+      ]
+    },
+    {
+      "teamId": 4,
+      "players": [
+        {
+          "playerId": "37515",
+          "playerName": "Brandon Woodruff",
+          "position": "SP",
+          "totalPoints": 454,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/37515.png"
+        },
+        {
+          "playerId": "32146",
+          "playerName": "Marcus Semien",
+          "position": "2B",
+          "totalPoints": 572.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32146.png"
+        },
+        {
+          "playerId": "36018",
+          "playerName": "Yordan Alvarez",
+          "position": "UTIL",
+          "totalPoints": 631,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36018.png"
+        },
+        {
+          "playerId": "36185",
+          "playerName": "Ronald Acuna Jr.",
+          "position": "UTIL",
+          "totalPoints": 394,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36185.png"
+        },
+        {
+          "playerId": "31755",
+          "playerName": "Liam Hendriks",
+          "position": "SP",
+          "totalPoints": 339,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31755.png"
+        },
+        {
+          "playerId": "41216",
+          "playerName": "Logan Webb",
+          "position": "SP",
+          "totalPoints": 470,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41216.png"
+        },
+        {
+          "playerId": "31174",
+          "playerName": "Nathan Eovaldi",
+          "position": "SP",
+          "totalPoints": 266,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31174.png"
+        },
+        {
+          "playerId": "33377",
+          "playerName": "Teoscar Hernandez",
+          "position": "UTIL",
+          "totalPoints": 433.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33377.png"
+        },
+        {
+          "playerId": "33148",
+          "playerName": "Chris Bassitt",
+          "position": "SP",
+          "totalPoints": 446,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33148.png"
+        },
+        {
+          "playerId": "42403",
+          "playerName": "Bobby Witt Jr.",
+          "position": "SS",
+          "totalPoints": 472,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42403.png"
+        },
+        {
+          "playerId": "32655",
+          "playerName": "Byron Buxton",
+          "position": "UTIL",
+          "totalPoints": 305,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32655.png"
+        },
+        {
+          "playerId": "36050",
+          "playerName": "Giovanny Gallegos",
+          "position": "SP",
+          "totalPoints": 235,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36050.png"
+        },
+        {
+          "playerId": "32367",
+          "playerName": "Eugenio Suarez",
+          "position": "3B",
+          "totalPoints": 417,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32367.png"
+        },
+        {
+          "playerId": "31670",
+          "playerName": "Mark Canha",
+          "position": "UTIL",
+          "totalPoints": 404.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31670.png"
+        },
+        {
+          "playerId": "33247",
+          "playerName": "Ryan McMahon",
+          "position": "2B",
+          "totalPoints": 376.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33247.png"
+        },
+        {
+          "playerId": "39674",
+          "playerName": "Garrett Whitlock",
+          "position": "SP",
+          "totalPoints": 227,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39674.png"
+        },
+        {
+          "playerId": "29951",
+          "playerName": "Travis d'Arnaud",
+          "position": "C",
+          "totalPoints": 348,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/29951.png"
+        },
+        {
+          "playerId": "35073",
+          "playerName": "Brendan Rodgers",
+          "position": "2B",
+          "totalPoints": 424.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35073.png"
+        },
+        {
+          "playerId": "35268",
+          "playerName": "Jose Trevino",
+          "position": "C",
+          "totalPoints": 249.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35268.png"
+        },
+        {
+          "playerId": "39957",
+          "playerName": "Jesus Sanchez",
+          "position": "UTIL",
+          "totalPoints": 214.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39957.png"
+        },
+        {
+          "playerId": "39915",
+          "playerName": "Eric Lauer",
+          "position": "SP",
+          "totalPoints": 364,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39915.png"
+        },
+        {
+          "playerId": "31399",
+          "playerName": "Randal Grichuk",
+          "position": "UTIL",
+          "totalPoints": 383,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31399.png"
+        },
+        {
+          "playerId": "41773",
+          "playerName": "Brendan Donovan",
+          "position": "3B",
+          "totalPoints": 359,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41773.png"
+        },
+        {
+          "playerId": "40937",
+          "playerName": "Dustin May",
+          "position": "SP",
+          "totalPoints": 51,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40937.png"
+        },
+        {
+          "playerId": "32769",
+          "playerName": "Mike Clevinger",
+          "position": "SP",
+          "totalPoints": 206,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32769.png"
+        },
+        {
+          "playerId": "34940",
+          "playerName": "Ryan Mountcastle",
+          "position": "1B",
+          "totalPoints": 411,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/34940.png"
+        },
+        {
+          "playerId": "35440",
+          "playerName": "Connor Joe",
+          "position": "UTIL",
+          "totalPoints": 302,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35440.png"
+        },
+        {
+          "playerId": "33190",
+          "playerName": "Tyler Glasnow",
+          "position": "SP",
+          "totalPoints": 22,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33190.png"
+        },
+        {
+          "playerId": "33205",
+          "playerName": "Hunter Renfroe",
+          "position": "UTIL",
+          "totalPoints": 428.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33205.png"
+        }
+      ]
+    },
+    {
+      "teamId": 6,
+      "players": [
+        {
+          "playerId": "39832",
+          "playerName": "Shohei Ohtani",
+          "position": "UTIL",
+          "totalPoints": 529,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39832.png"
+        },
+        {
+          "playerId": "33709",
+          "playerName": "Aaron Nola",
+          "position": "SP",
+          "totalPoints": 584,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33709.png"
+        },
+        {
+          "playerId": "33859",
+          "playerName": "Rafael Devers",
+          "position": "3B",
+          "totalPoints": 565.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33859.png"
+        },
+        {
+          "playerId": "32691",
+          "playerName": "Corey Seager",
+          "position": "SS",
+          "totalPoints": 543.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32691.png"
+        },
+        {
+          "playerId": "32055",
+          "playerName": "Yu Darvish",
+          "position": "SP",
+          "totalPoints": 561,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32055.png"
+        },
+        {
+          "playerId": "31187",
+          "playerName": "Nick Castellanos",
+          "position": "UTIL",
+          "totalPoints": 384.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31187.png"
+        },
+        {
+          "playerId": "33095",
+          "playerName": "Jose Abreu",
+          "position": "1B",
+          "totalPoints": 559.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33095.png"
+        },
+        {
+          "playerId": "33912",
+          "playerName": "Cody Bellinger",
+          "position": "UTIL",
+          "totalPoints": 347.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33912.png"
+        },
+        {
+          "playerId": "41743",
+          "playerName": "Emmanuel Clase",
+          "position": "SP",
+          "totalPoints": 419,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41743.png"
+        },
+        {
+          "playerId": "36006",
+          "playerName": "Yuli Gurriel",
+          "position": "1B",
+          "totalPoints": 396.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36006.png"
+        },
+        {
+          "playerId": "36488",
+          "playerName": "Randy Arozarena",
+          "position": "UTIL",
+          "totalPoints": 498.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36488.png"
+        },
+        {
+          "playerId": "33351",
+          "playerName": "Trey Mancini",
+          "position": "1B",
+          "totalPoints": 372,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33351.png"
+        },
+        {
+          "playerId": "39671",
+          "playerName": "Pablo Lopez",
+          "position": "SP",
+          "totalPoints": 396,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39671.png"
+        },
+        {
+          "playerId": "34986",
+          "playerName": "Andrew Benintendi",
+          "position": "UTIL",
+          "totalPoints": 417.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/34986.png"
+        },
+        {
+          "playerId": "28963",
+          "playerName": "Clayton Kershaw",
+          "position": "SP",
+          "totalPoints": 400,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/28963.png"
+        },
+        {
+          "playerId": "33900",
+          "playerName": "Jeff McNeil",
+          "position": "2B",
+          "totalPoints": 541.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33900.png"
+        },
+        {
+          "playerId": "36380",
+          "playerName": "Jordan Romano",
+          "position": "SP",
+          "totalPoints": 353,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36380.png"
+        },
+        {
+          "playerId": "32061",
+          "playerName": "Kolten Wong",
+          "position": "2B",
+          "totalPoints": 361.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32061.png"
+        },
+        {
+          "playerId": "33675",
+          "playerName": "Willy Adames",
+          "position": "SS",
+          "totalPoints": 455.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33675.png"
+        },
+        {
+          "playerId": "36581",
+          "playerName": "Framber Valdez",
+          "position": "SP",
+          "totalPoints": 594,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36581.png"
+        },
+        {
+          "playerId": "35383",
+          "playerName": "Luis Urias",
+          "position": "2B",
+          "totalPoints": 301.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35383.png"
+        },
+        {
+          "playerId": "30993",
+          "playerName": "Eric Hosmer",
+          "position": "1B",
+          "totalPoints": 303,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/30993.png"
+        },
+        {
+          "playerId": "31389",
+          "playerName": "Christian Vazquez",
+          "position": "C",
+          "totalPoints": 305.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31389.png"
+        },
+        {
+          "playerId": "31208",
+          "playerName": "Tommy Pham",
+          "position": "UTIL",
+          "totalPoints": 404,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31208.png"
+        },
+        {
+          "playerId": "30158",
+          "playerName": "Daniel Bard",
+          "position": "SP",
+          "totalPoints": 336,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/30158.png"
+        },
+        {
+          "playerId": "42450",
+          "playerName": "Joe Ryan",
+          "position": "SP",
+          "totalPoints": 366,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42450.png"
+        },
+        {
+          "playerId": "39706",
+          "playerName": "Isaac Paredes",
+          "position": "2B",
+          "totalPoints": 278,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39706.png"
+        },
+        {
+          "playerId": "36071",
+          "playerName": "Nick Pivetta",
+          "position": "SP",
+          "totalPoints": 324,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36071.png"
+        }
+      ]
+    },
+    {
+      "teamId": 7,
+      "players": [
+        {
+          "playerId": "32081",
+          "playerName": "Gerrit Cole",
+          "position": "SP",
+          "totalPoints": 577,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32081.png"
+        },
+        {
+          "playerId": "30951",
+          "playerName": "Bryce Harper",
+          "position": "UTIL",
+          "totalPoints": 394.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/30951.png"
+        },
+        {
+          "playerId": "39825",
+          "playerName": "Freddy Peralta",
+          "position": "SP",
+          "totalPoints": 187,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39825.png"
+        },
+        {
+          "playerId": "31267",
+          "playerName": "Zack Wheeler",
+          "position": "SP",
+          "totalPoints": 432,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31267.png"
+        },
+        {
+          "playerId": "33192",
+          "playerName": "Aaron Judge",
+          "position": "UTIL",
+          "totalPoints": 824.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33192.png"
+        },
+        {
+          "playerId": "32653",
+          "playerName": "Carlos Correa",
+          "position": "SS",
+          "totalPoints": 466.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32653.png"
+        },
+        {
+          "playerId": "32760",
+          "playerName": "Josh Hader",
+          "position": "SP",
+          "totalPoints": 272,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32760.png"
+        },
+        {
+          "playerId": "32833",
+          "playerName": "Jesse Winker",
+          "position": "UTIL",
+          "totalPoints": 352,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32833.png"
+        },
+        {
+          "playerId": "32177",
+          "playerName": "J.T. Realmuto",
+          "position": "C",
+          "totalPoints": 483.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32177.png"
+        },
+        {
+          "playerId": "41171",
+          "playerName": "Jonathan India",
+          "position": "2B",
+          "totalPoints": 261.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41171.png"
+        },
+        {
+          "playerId": "4142424",
+          "playerName": "Seiya Suzuki",
+          "position": "UTIL",
+          "totalPoints": 321,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4142424.png"
+        },
+        {
+          "playerId": "33857",
+          "playerName": "Matt Chapman",
+          "position": "3B",
+          "totalPoints": 416.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33857.png"
+        },
+        {
+          "playerId": "33184",
+          "playerName": "Tim Anderson",
+          "position": "SS",
+          "totalPoints": 268.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33184.png"
+        },
+        {
+          "playerId": "32155",
+          "playerName": "C.J. Cron",
+          "position": "1B",
+          "totalPoints": 482,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32155.png"
+        },
+        {
+          "playerId": "35537",
+          "playerName": "Adolis Garcia",
+          "position": "UTIL",
+          "totalPoints": 514.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35537.png"
+        },
+        {
+          "playerId": "31117",
+          "playerName": "Jurickson Profar",
+          "position": "1B",
+          "totalPoints": 498,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31117.png"
+        },
+        {
+          "playerId": "33224",
+          "playerName": "Devin Williams",
+          "position": "SP",
+          "totalPoints": 348,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33224.png"
+        },
+        {
+          "playerId": "40423",
+          "playerName": "Gavin Lux",
+          "position": "2B",
+          "totalPoints": 344.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40423.png"
+        },
+        {
+          "playerId": "32827",
+          "playerName": "Clay Holmes",
+          "position": "SP",
+          "totalPoints": 275,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32827.png"
+        },
+        {
+          "playerId": "39910",
+          "playerName": "Zac Gallen",
+          "position": "SP",
+          "totalPoints": 553,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39910.png"
+        },
+        {
+          "playerId": "34923",
+          "playerName": "Taylor Ward",
+          "position": "UTIL",
+          "totalPoints": 473.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/34923.png"
+        },
+        {
+          "playerId": "40538",
+          "playerName": "Nathaniel Lowe",
+          "position": "1B",
+          "totalPoints": 523.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40538.png"
+        },
+        {
+          "playerId": "32764",
+          "playerName": "Lance McCullers Jr.",
+          "position": "SP",
+          "totalPoints": 131,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32764.png"
+        },
+        {
+          "playerId": "32151",
+          "playerName": "Tyler Anderson",
+          "position": "SP",
+          "totalPoints": 480,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32151.png"
+        },
+        {
+          "playerId": "42180",
+          "playerName": "Pete Fairbanks",
+          "position": "SP",
+          "totalPoints": 146,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42180.png"
+        },
+        {
+          "playerId": "37237",
+          "playerName": "Luis Rengifo",
+          "position": "SS",
+          "totalPoints": 369.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/37237.png"
+        },
+        {
+          "playerId": "42507",
+          "playerName": "Gunnar Henderson",
+          "position": "SS",
+          "totalPoints": 95.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42507.png"
+        },
+        {
+          "playerId": "29515",
+          "playerName": "Elvis Andrus",
+          "position": "SS",
+          "totalPoints": 430.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/29515.png"
+        }
+      ]
+    },
+    {
+      "teamId": 8,
+      "players": [
+        {
+          "playerId": "31261",
+          "playerName": "Nolan Arenado",
+          "position": "3B",
+          "totalPoints": 628.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31261.png"
+        },
+        {
+          "playerId": "32697",
+          "playerName": "Lucas Giolito",
+          "position": "SP",
+          "totalPoints": 295,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32697.png"
+        },
+        {
+          "playerId": "30765",
+          "playerName": "DJ LeMahieu",
+          "position": "1B",
+          "totalPoints": 416,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/30765.png"
+        },
+        {
+          "playerId": "31127",
+          "playerName": "Salvador Perez",
+          "position": "C",
+          "totalPoints": 360.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31127.png"
+        },
+        {
+          "playerId": "31027",
+          "playerName": "Paul Goldschmidt",
+          "position": "1B",
+          "totalPoints": 678.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31027.png"
+        },
+        {
+          "playerId": "30820",
+          "playerName": "Lance Lynn",
+          "position": "SP",
+          "totalPoints": 281,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/30820.png"
+        },
+        {
+          "playerId": "33696",
+          "playerName": "Carlos Rodon",
+          "position": "SP",
+          "totalPoints": 554,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33696.png"
+        },
+        {
+          "playerId": "39907",
+          "playerName": "Tommy Edman",
+          "position": "2B",
+          "totalPoints": 498.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39907.png"
+        },
+        {
+          "playerId": "30583",
+          "playerName": "Giancarlo Stanton",
+          "position": "UTIL",
+          "totalPoints": 322,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/30583.png"
+        },
+        {
+          "playerId": "31084",
+          "playerName": "Charlie Blackmon",
+          "position": "UTIL",
+          "totalPoints": 447.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31084.png"
+        },
+        {
+          "playerId": "31668",
+          "playerName": "Marcell Ozuna",
+          "position": "UTIL",
+          "totalPoints": 326,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31668.png"
+        },
+        {
+          "playerId": "35124",
+          "playerName": "Luis Castillo",
+          "position": "SP",
+          "totalPoints": 414,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35124.png"
+        },
+        {
+          "playerId": "33671",
+          "playerName": "Taylor Rogers",
+          "position": "SP",
+          "totalPoints": 271,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33671.png"
+        },
+        {
+          "playerId": "30901",
+          "playerName": "Brandon Belt",
+          "position": "1B",
+          "totalPoints": 143.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/30901.png"
+        },
+        {
+          "playerId": "41996",
+          "playerName": "Steven Kwan",
+          "position": "UTIL",
+          "totalPoints": 564.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41996.png"
+        },
+        {
+          "playerId": "28968",
+          "playerName": "Carlos Carrasco",
+          "position": "SP",
+          "totalPoints": 331,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/28968.png"
+        },
+        {
+          "playerId": "32776",
+          "playerName": "Paul Blackburn",
+          "position": "SP",
+          "totalPoints": 196,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32776.png"
+        },
+        {
+          "playerId": "29172",
+          "playerName": "David Robertson",
+          "position": "SP",
+          "totalPoints": 260,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/29172.png"
+        },
+        {
+          "playerId": "31392",
+          "playerName": "Joc Pederson",
+          "position": "UTIL",
+          "totalPoints": 382.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31392.png"
+        },
+        {
+          "playerId": "36928",
+          "playerName": "Austin Hays",
+          "position": "UTIL",
+          "totalPoints": 425.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36928.png"
+        },
+        {
+          "playerId": "32968",
+          "playerName": "Merrill Kelly",
+          "position": "SP",
+          "totalPoints": 477,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32968.png"
+        },
+        {
+          "playerId": "33481",
+          "playerName": "Yandy Diaz",
+          "position": "1B",
+          "totalPoints": 487.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33481.png"
+        },
+        {
+          "playerId": "36485",
+          "playerName": "Thairo Estrada",
+          "position": "SS",
+          "totalPoints": 412.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36485.png"
+        },
+        {
+          "playerId": "41109",
+          "playerName": "Jhoan Duran",
+          "position": "SP",
+          "totalPoints": 286,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41109.png"
+        },
+        {
+          "playerId": "31258",
+          "playerName": "Jameson Taillon",
+          "position": "SP",
+          "totalPoints": 393,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31258.png"
+        },
+        {
+          "playerId": "32900",
+          "playerName": "Chris Taylor",
+          "position": "2B",
+          "totalPoints": 228,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32900.png"
+        },
+        {
+          "playerId": "30280",
+          "playerName": "Carlos Santana",
+          "position": "1B",
+          "totalPoints": 347.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/30280.png"
+        },
+        {
+          "playerId": "32815",
+          "playerName": "Marcus Stroman",
+          "position": "SP",
+          "totalPoints": 302,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32815.png"
+        },
+        {
+          "playerId": "31358",
+          "playerName": "Enrique Hernandez",
+          "position": "2B",
+          "totalPoints": 259.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31358.png"
+        },
+        {
+          "playerId": "33287",
+          "playerName": "Kyle Farmer",
+          "position": "SS",
+          "totalPoints": 398,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33287.png"
+        }
+      ]
+    },
+    {
+      "teamId": 9,
+      "players": [
+        {
+          "playerId": "33039",
+          "playerName": "Mookie Betts",
+          "position": "UTIL",
+          "totalPoints": 646,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33039.png"
+        },
+        {
+          "playerId": "31097",
+          "playerName": "Manny Machado",
+          "position": "3B",
+          "totalPoints": 631,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31097.png"
+        },
+        {
+          "playerId": "33783",
+          "playerName": "Ozzie Albies",
+          "position": "2B",
+          "totalPoints": 200,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33783.png"
+        },
+        {
+          "playerId": "38904",
+          "playerName": "Bo Bichette",
+          "position": "SS",
+          "totalPoints": 556.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/38904.png"
+        },
+        {
+          "playerId": "32156",
+          "playerName": "Scott Barlow",
+          "position": "SP",
+          "totalPoints": 329,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32156.png"
+        },
+        {
+          "playerId": "40718",
+          "playerName": "Josh Rojas",
+          "position": "2B",
+          "totalPoints": 379.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40718.png"
+        },
+        {
+          "playerId": "34945",
+          "playerName": "Ian Happ",
+          "position": "UTIL",
+          "totalPoints": 493.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/34945.png"
+        },
+        {
+          "playerId": "32159",
+          "playerName": "Brandon Nimmo",
+          "position": "UTIL",
+          "totalPoints": 547.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32159.png"
+        },
+        {
+          "playerId": "39652",
+          "playerName": "Kyle Wright",
+          "position": "SP",
+          "totalPoints": 485,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39652.png"
+        },
+        {
+          "playerId": "41219",
+          "playerName": "Nico Hoerner",
+          "position": "2B",
+          "totalPoints": 429.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41219.png"
+        },
+        {
+          "playerId": "35066",
+          "playerName": "Josh Naylor",
+          "position": "UTIL",
+          "totalPoints": 416.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35066.png"
+        },
+        {
+          "playerId": "31098",
+          "playerName": "Martin Perez",
+          "position": "SP",
+          "totalPoints": 488,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31098.png"
+        },
+        {
+          "playerId": "39895",
+          "playerName": "William Contreras",
+          "position": "C",
+          "totalPoints": 296.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39895.png"
+        },
+        {
+          "playerId": "4307825",
+          "playerName": "Spencer Strider",
+          "position": "SP",
+          "totalPoints": 442,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4307825.png"
+        },
+        {
+          "playerId": "30382",
+          "playerName": "Jose Iglesias",
+          "position": "SS",
+          "totalPoints": 345.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/30382.png"
+        },
+        {
+          "playerId": "42470",
+          "playerName": "Michael Harris II",
+          "position": "UTIL",
+          "totalPoints": 418.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42470.png"
+        },
+        {
+          "playerId": "28955",
+          "playerName": "Johnny Cueto",
+          "position": "SP",
+          "totalPoints": 324,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/28955.png"
+        },
+        {
+          "playerId": "39949",
+          "playerName": "John Schreiber",
+          "position": "SP",
+          "totalPoints": 276,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39949.png"
+        },
+        {
+          "playerId": "33372",
+          "playerName": "Nick Martinez",
+          "position": "SP",
+          "totalPoints": 265,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33372.png"
+        },
+        {
+          "playerId": "40610",
+          "playerName": "Ramon Urias",
+          "position": "2B",
+          "totalPoints": 302.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40610.png"
+        },
+        {
+          "playerId": "42394",
+          "playerName": "Andrew Vaughn",
+          "position": "UTIL",
+          "totalPoints": 424.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42394.png"
+        },
+        {
+          "playerId": "40948",
+          "playerName": "MJ Melendez",
+          "position": "C",
+          "totalPoints": 336.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40948.png"
+        },
+        {
+          "playerId": "32788",
+          "playerName": "Tyler Naquin",
+          "position": "UTIL",
+          "totalPoints": 230.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32788.png"
+        },
+        {
+          "playerId": "42503",
+          "playerName": "Vaughn Grissom",
+          "position": "SS",
+          "totalPoints": 124,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42503.png"
+        },
+        {
+          "playerId": "4109109",
+          "playerName": "Vinnie Pasquantino",
+          "position": "UTIL",
+          "totalPoints": 247.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4109109.png"
+        },
+        {
+          "playerId": "31086",
+          "playerName": "Alex Cobb",
+          "position": "SP",
+          "totalPoints": 305,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31086.png"
+        },
+        {
+          "playerId": "32082",
+          "playerName": "Sonny Gray",
+          "position": "SP",
+          "totalPoints": 294,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32082.png"
+        },
+        {
+          "playerId": "32675",
+          "playerName": "Eduardo Rodriguez",
+          "position": "SP",
+          "totalPoints": 172,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32675.png"
+        },
+        {
+          "playerId": "38295",
+          "playerName": "Dean Kremer",
+          "position": "SP",
+          "totalPoints": 265,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/38295.png"
+        }
+      ]
+    },
+    {
+      "teamId": 10,
+      "players": [
+        {
+          "playerId": "36969",
+          "playerName": "Juan Soto",
+          "position": "UTIL",
+          "totalPoints": 571,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36969.png"
+        },
+        {
+          "playerId": "40912",
+          "playerName": "Shane Bieber",
+          "position": "SP",
+          "totalPoints": 556,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40912.png"
+        },
+        {
+          "playerId": "40929",
+          "playerName": "Wander Franco",
+          "position": "SS",
+          "totalPoints": 294.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40929.png"
+        },
+        {
+          "playerId": "32685",
+          "playerName": "Max Fried",
+          "position": "SP",
+          "totalPoints": 526,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32685.png"
+        },
+        {
+          "playerId": "33172",
+          "playerName": "Kris Bryant",
+          "position": "3B",
+          "totalPoints": 156.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33172.png"
+        },
+        {
+          "playerId": "33303",
+          "playerName": "Max Muncy",
+          "position": "1B",
+          "totalPoints": 351.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33303.png"
+        },
+        {
+          "playerId": "42436",
+          "playerName": "Alek Manoah",
+          "position": "SP",
+          "totalPoints": 579,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42436.png"
+        },
+        {
+          "playerId": "32532",
+          "playerName": "Willson Contreras",
+          "position": "C",
+          "totalPoints": 357.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32532.png"
+        },
+        {
+          "playerId": "33984",
+          "playerName": "Yoan Moncada",
+          "position": "3B",
+          "totalPoints": 239.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33984.png"
+        },
+        {
+          "playerId": "5403",
+          "playerName": "Adam Wainwright",
+          "position": "SP",
+          "totalPoints": 369,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5403.png"
+        },
+        {
+          "playerId": "33804",
+          "playerName": "Gleyber Torres",
+          "position": "SS",
+          "totalPoints": 437,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33804.png"
+        },
+        {
+          "playerId": "38173",
+          "playerName": "Jordan Montgomery",
+          "position": "SP",
+          "totalPoints": 437,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/38173.png"
+        },
+        {
+          "playerId": "36480",
+          "playerName": "Nestor Cortes",
+          "position": "SP",
+          "totalPoints": 493,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36480.png"
+        },
+        {
+          "playerId": "41261",
+          "playerName": "Cristian Javier",
+          "position": "SP",
+          "totalPoints": 459,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41261.png"
+        },
+        {
+          "playerId": "28701",
+          "playerName": "Andrew McCutchen",
+          "position": "UTIL",
+          "totalPoints": 401.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/28701.png"
+        },
+        {
+          "playerId": "41337",
+          "playerName": "Camilo Doval",
+          "position": "SP",
+          "totalPoints": 293,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41337.png"
+        },
+        {
+          "playerId": "30627",
+          "playerName": "Wilmer Flores",
+          "position": "1B",
+          "totalPoints": 425.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/30627.png"
+        },
+        {
+          "playerId": "39631",
+          "playerName": "Luis Robert",
+          "position": "UTIL",
+          "totalPoints": 335.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39631.png"
+        },
+        {
+          "playerId": "32525",
+          "playerName": "Jorge Polanco",
+          "position": "2B",
+          "totalPoints": 315,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32525.png"
+        },
+        {
+          "playerId": "36040",
+          "playerName": "Lourdes Gurriel Jr.",
+          "position": "UTIL",
+          "totalPoints": 379.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36040.png"
+        },
+        {
+          "playerId": "42584",
+          "playerName": "Drew Rasmussen",
+          "position": "SP",
+          "totalPoints": 358,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42584.png"
+        },
+        {
+          "playerId": "30653",
+          "playerName": "Craig Kimbrel",
+          "position": "SP",
+          "totalPoints": 226,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/30653.png"
+        },
+        {
+          "playerId": "33748",
+          "playerName": "Blake Snell",
+          "position": "SP",
+          "totalPoints": 335,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33748.png"
+        },
+        {
+          "playerId": "30836",
+          "playerName": "Mike Trout",
+          "position": "UTIL",
+          "totalPoints": 496.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/30836.png"
+        },
+        {
+          "playerId": "31095",
+          "playerName": "Gary Sanchez",
+          "position": "C",
+          "totalPoints": 249,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31095.png"
+        },
+        {
+          "playerId": "30272",
+          "playerName": "Eduardo Escobar",
+          "position": "2B",
+          "totalPoints": 377,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/30272.png"
+        },
+        {
+          "playerId": "33341",
+          "playerName": "Mike Yastrzemski",
+          "position": "UTIL",
+          "totalPoints": 373.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33341.png"
+        },
+        {
+          "playerId": "33339",
+          "playerName": "Franmil Reyes",
+          "position": "UTIL",
+          "totalPoints": 224,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33339.png"
+        },
+        {
+          "playerId": "35020",
+          "playerName": "Ke'Bryan Hayes",
+          "position": "3B",
+          "totalPoints": 323,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35020.png"
+        },
+        {
+          "playerId": "29563",
+          "playerName": "Josh Donaldson",
+          "position": "3B",
+          "totalPoints": 305.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/29563.png"
+        }
+      ]
+    },
+    {
+      "teamId": 11,
+      "players": [
+        {
+          "playerId": "35002",
+          "playerName": "Vladimir Guerrero Jr.",
+          "position": "1B",
+          "totalPoints": 612.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35002.png"
+        },
+        {
+          "playerId": "34967",
+          "playerName": "Kyle Tucker",
+          "position": "UTIL",
+          "totalPoints": 595.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/34967.png"
+        },
+        {
+          "playerId": "31662",
+          "playerName": "Jose Altuve",
+          "position": "2B",
+          "totalPoints": 590.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31662.png"
+        },
+        {
+          "playerId": "35578",
+          "playerName": "Cedric Mullins",
+          "position": "UTIL",
+          "totalPoints": 527,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35578.png"
+        },
+        {
+          "playerId": "34943",
+          "playerName": "Dylan Cease",
+          "position": "SP",
+          "totalPoints": 573,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/34943.png"
+        },
+        {
+          "playerId": "35591",
+          "playerName": "Ty France",
+          "position": "1B",
+          "totalPoints": 487.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35591.png"
+        },
+        {
+          "playerId": "41273",
+          "playerName": "Jeremy Pena",
+          "position": "SS",
+          "totalPoints": 373.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41273.png"
+        },
+        {
+          "playerId": "29630",
+          "playerName": "Kenley Jansen",
+          "position": "SP",
+          "totalPoints": 365,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/29630.png"
+        },
+        {
+          "playerId": "37729",
+          "playerName": "Andres Gimenez",
+          "position": "2B",
+          "totalPoints": 453.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/37729.png"
+        },
+        {
+          "playerId": "41169",
+          "playerName": "Alec Bohm",
+          "position": "3B",
+          "totalPoints": 463.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41169.png"
+        },
+        {
+          "playerId": "39924",
+          "playerName": "Santiago Espinal",
+          "position": "3B",
+          "totalPoints": 353,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39924.png"
+        },
+        {
+          "playerId": "33259",
+          "playerName": "Harold Ramirez",
+          "position": "UTIL",
+          "totalPoints": 334.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33259.png"
+        },
+        {
+          "playerId": "41000",
+          "playerName": "Jose Miranda",
+          "position": "3B",
+          "totalPoints": 350.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41000.png"
+        },
+        {
+          "playerId": "38980",
+          "playerName": "Bryan Reynolds",
+          "position": "UTIL",
+          "totalPoints": 459.75,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/38980.png"
+        },
+        {
+          "playerId": "32512",
+          "playerName": "Ketel Marte",
+          "position": "2B",
+          "totalPoints": 394,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32512.png"
+        },
+        {
+          "playerId": "4684365",
+          "playerName": "Luis Garcia",
+          "position": "SP",
+          "totalPoints": 375,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4684365.png"
+        },
+        {
+          "playerId": "42178",
+          "playerName": "Adley Rutschman",
+          "position": "C",
+          "totalPoints": 374,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42178.png"
+        },
+        {
+          "playerId": "4905859",
+          "playerName": "Felix Bautista",
+          "position": "SP",
+          "totalPoints": 302,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4905859.png"
+        },
+        {
+          "playerId": "32789",
+          "playerName": "Ross Stripling",
+          "position": "SP",
+          "totalPoints": 340,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32789.png"
+        },
+        {
+          "playerId": "36063",
+          "playerName": "Jose Alvarado",
+          "position": "SP",
+          "totalPoints": 216,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36063.png"
+        },
+        {
+          "playerId": "36020",
+          "playerName": "TJ Friedl",
+          "position": "UTIL",
+          "totalPoints": 204.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36020.png"
+        },
+        {
+          "playerId": "35397",
+          "playerName": "Jeffrey Springs",
+          "position": "SP",
+          "totalPoints": 367,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35397.png"
+        },
+        {
+          "playerId": "33158",
+          "playerName": "Marco Gonzales",
+          "position": "SP",
+          "totalPoints": 281,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33158.png"
+        },
+        {
+          "playerId": "4705677",
+          "playerName": "Bailey Falter",
+          "position": "SP",
+          "totalPoints": 180,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4705677.png"
+        },
+        {
+          "playerId": "4916269",
+          "playerName": "Ryne Nelson",
+          "position": "SP",
+          "totalPoints": 56,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4916269.png"
+        },
+        {
+          "playerId": "41409",
+          "playerName": "Glenn Otto",
+          "position": "SP",
+          "totalPoints": 208,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41409.png"
+        },
+        {
+          "playerId": "41405",
+          "playerName": "Johan Oviedo",
+          "position": "SP",
+          "totalPoints": 117,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41405.png"
+        }
+      ]
+    }
+  ],
+  "playoffTeams": [
+    1,
+    3,
+    6,
+    11
+  ],
+  "loserBracket": [
+    4,
+    10
+  ],
+  "champion": 1
+}
