@@ -76,8 +76,13 @@ export async function editPost(
 }
 
 export async function deletePost(postId: string): Promise<void> {
-  const data: TrashTalkData = await getTrashTalk();
-  data.posts = data.posts.filter(p => p.id !== postId);
-  await setTrashTalk(data);
-  revalidateAll();
+  try {
+    const data: TrashTalkData = await getTrashTalk();
+    data.posts = data.posts.filter(p => p.id !== postId);
+    await setTrashTalk(data);
+    revalidateAll();
+  } catch (err) {
+    console.error('[deletePost] failed:', err);
+    throw err;
+  }
 }
