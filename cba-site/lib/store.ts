@@ -9,7 +9,7 @@ import path from 'path';
 import type { TrashTalkData, PollsData } from './types';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
-function useKV() { return !!process.env.KV_REST_API_URL; }
+function useKV() { return !!process.env['KV_REST_API_URL']; }
 
 async function kvGet<T>(key: string): Promise<T | null> {
   const { Redis } = await import('@upstash/redis');
@@ -33,6 +33,8 @@ export async function getTrashTalk(): Promise<TrashTalkData> {
 }
 
 export async function setTrashTalk(data: TrashTalkData): Promise<void> {
+  const kvUrl = process.env['KV_REST_API_URL'];
+  console.log('[store] KV_REST_API_URL at runtime:', kvUrl ? `SET: ${kvUrl.slice(0, 30)}` : 'MISSING');
   if (useKV()) {
     await kvSet('trash-talk', data);
     return;
