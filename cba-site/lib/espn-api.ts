@@ -18,8 +18,13 @@ export class ESPNFantasyAPI {
 
   private getHeaders() {
     if (this.config.swid && this.config.s2) {
+      // Strip any characters invalid in HTTP headers (non-printable, non-ASCII, quotes, whitespace)
+      const clean = (s: string) => s.replace(/[^\x20-\x7E]/g, '').replace(/["']/g, '').trim();
+      const swid = clean(this.config.swid);
+      const s2 = clean(this.config.s2);
+      console.log(`[espn] SWID length: ${swid.length}, S2 length: ${s2.length}`);
       return {
-        Cookie: `SWID=${this.config.swid}; espn_s2=${this.config.s2}`,
+        Cookie: `SWID=${swid}; espn_s2=${s2}`,
       };
     }
     return {};
