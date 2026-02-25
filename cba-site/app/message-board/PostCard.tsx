@@ -70,6 +70,7 @@ export default function PostCard({
   const [editTradeReceiving, setEditTradeReceiving] = useState(post.tradeReceiving ?? '');
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   async function handleSave() {
     setSaving(true);
@@ -85,7 +86,13 @@ export default function PostCard({
 
   async function handleDelete() {
     setDeleting(true);
-    await deletePost(post.id);
+    setDeleteError('');
+    try {
+      await deletePost(post.id);
+    } catch (e: any) {
+      setDeleting(false);
+      setDeleteError(e?.message ?? 'Delete failed');
+    }
   }
 
   const canSave = isTrade
@@ -190,7 +197,7 @@ export default function PostCard({
               </div>
             </div>
           ) : confirmDelete ? (
-            <div className="flex items-center gap-3 py-1">
+            <div className="flex items-center gap-3 py-1 flex-wrap">
               <span className="text-sm text-gray-500">Delete this trade?</span>
               <button
                 onClick={handleDelete}
@@ -205,6 +212,7 @@ export default function PostCard({
               >
                 Cancel
               </button>
+              {deleteError && <span className="text-xs text-red-500 w-full">{deleteError}</span>}
             </div>
           ) : (
             /* Display mode */
@@ -316,7 +324,7 @@ export default function PostCard({
             <p className="text-sm text-gray-700 leading-relaxed mb-3">{post.message}</p>
           )}
           {post.videoUrl && <VideoEmbed url={post.videoUrl} />}
-          <div className="flex items-center gap-3 mt-3">
+          <div className="flex items-center gap-3 mt-3 flex-wrap">
             <span className="text-sm text-gray-500">Delete this post?</span>
             <button
               onClick={handleDelete}
@@ -331,6 +339,7 @@ export default function PostCard({
             >
               Cancel
             </button>
+            {deleteError && <span className="text-xs text-red-500 w-full">{deleteError}</span>}
           </div>
         </div>
       ) : (
