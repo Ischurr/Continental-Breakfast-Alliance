@@ -253,7 +253,7 @@ export default function MessageBoardForm({ teams }: Props) {
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
                 {tradePartnerTeamId !== ''
-                  ? `${teams.find(t => t.id === Number(tradePartnerTeamId))?.owner ?? 'They'} send${tradePartnerTeamId !== '' ? 's' : ''}`
+                  ? `${teams.find(t => t.id === Number(tradePartnerTeamId))?.owner ?? 'They'} sends`
                   : 'They send'}
               </label>
               <textarea
