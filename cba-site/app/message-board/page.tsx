@@ -1,0 +1,102 @@
+import Header from '@/components/Header';
+import MessageBoardForm from './MessageBoardForm';
+import PostCard from './PostCard';
+import PollCard from '../polls/PollCard';
+import { TrashTalkData, Poll } from '@/lib/types';
+import fs from 'fs';
+import path from 'path';
+import teamsRaw from '@/data/teams.json';
+
+function getTeamById(id: number) {
+  return teamsRaw.teams.find(t => t.id === id);
+}
+
+function timeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
+export default function MessageBoardPage() {
+  const postsRaw = fs.readFileSync(path.join(process.cwd(), 'data', 'trash-talk.json'), 'utf-8');
+  const data: TrashTalkData = JSON.parse(postsRaw);
+  const posts = data.posts;
+
+  const pollsRaw = fs.readFileSync(path.join(process.cwd(), 'data', 'polls.json'), 'utf-8');
+  const allPolls: Poll[] = JSON.parse(pollsRaw).polls;
+  const activePolls = allPolls.filter(p => p.active);
+  const closedPolls = allPolls.filter(p => !p.active);
+
+  return (
+    <div className="min-h-screen bg-sky-50">
+      <Header />
+
+      <main className="container mx-auto px-4 py-12 max-w-4xl">
+        <h1 className="text-4xl font-bold mb-1">Message Board</h1>
+        <p className="text-gray-500 mb-10">The league bulletin board — polls, messages, and trash talk.</p>
+
+        {/* ── Polls ──────────────────────────────────────────────── */}
+        {allPolls.length > 0 && (
+          <section id="polls" className="mb-12">
+            {activePolls.length > 0 && (
+              <>
+                <h2 className="text-xl font-bold text-gray-700 mb-4">🗳️ Open Polls</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                  {activePolls.map(poll => <PollCard key={poll.id} poll={poll} />)}
+                </div>
+              </>
+            )}
+            {closedPolls.length > 0 && (
+              <>
+                <h2 className="text-xl font-bold text-gray-700 mb-4">🔒 Closed Polls</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {closedPolls.map(poll => <PollCard key={poll.id} poll={poll} showResults />)}
+                </div>
+              </>
+            )}
+          </section>
+        )}
+
+        {/* ── Divider ────────────────────────────────────────────── */}
+        <div className="border-t border-gray-200 mb-10" />
+
+        {/* ── Post form + feed (narrow column) ───────────────────── */}
+        <div className="max-w-2xl">
+          <h2 className="text-xl font-bold text-gray-700 mb-6">💬 Posts</h2>
+
+          <MessageBoardForm teams={teamsRaw.teams} />
+
+          {posts.length === 0 ? (
+            <div className="text-center py-16 text-gray-400">
+              <p className="text-4xl mb-3">🤫</p>
+              <p className="font-medium">Nothing posted yet. Someone be first.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {posts.map(post => {
+                const author = getTeamById(post.authorTeamId);
+                const target = post.targetTeamId ? getTeamById(post.targetTeamId) : null;
+                return (
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    authorDisplayName={author?.displayName ?? ''}
+                    authorColor={author?.primaryColor ?? '#e5e7eb'}
+                    targetDisplayName={target?.displayName}
+                    targetColor={target?.primaryColor}
+                    timeAgoStr={timeAgo(post.createdAt)}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
+  );
+}
