@@ -9,7 +9,19 @@ import path from 'path';
 import type { TrashTalkData, PollsData } from './types';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
+const IS_VERCEL = !!process.env['VERCEL'];
+
 function useKV() { return !!process.env['KV_REST_API_URL']; }
+
+function fsWrite(filePath: string, content: string) {
+  if (IS_VERCEL) {
+    throw new Error(
+      `KV_REST_API_URL is not set — cannot write to ${filePath} on Vercel (read-only filesystem). ` +
+      `Check that KV_REST_API_URL and KV_REST_API_TOKEN are set in your Vercel project's Environment Variables for the Production environment.`
+    );
+  }
+  fs.writeFileSync(filePath, content, 'utf-8');
+}
 
 async function kvGet<T>(key: string): Promise<T | null> {
   const { Redis } = await import('@upstash/redis');
@@ -34,12 +46,12 @@ export async function getTrashTalk(): Promise<TrashTalkData> {
 
 export async function setTrashTalk(data: TrashTalkData): Promise<void> {
   const kvUrl = process.env['KV_REST_API_URL'];
-  console.log('[store] KV_REST_API_URL at runtime:', kvUrl ? `SET: ${kvUrl.slice(0, 30)}` : 'MISSING');
+  console.log('[store] setTrashTalk — IS_VERCEL:', IS_VERCEL, '| KV_REST_API_URL:', kvUrl ? `SET(${kvUrl.slice(0, 30)})` : 'MISSING');
   if (useKV()) {
     await kvSet('trash-talk', data);
     return;
   }
-  fs.writeFileSync(path.join(DATA_DIR, 'trash-talk.json'), JSON.stringify(data, null, 2), 'utf-8');
+  fsWrite(path.join(DATA_DIR, 'trash-talk.json'), JSON.stringify(data, null, 2));
 }
 
 // ── Polls ─────────────────────────────────────────────────────────────────────
@@ -56,7 +68,7 @@ export async function setPolls(data: PollsData): Promise<void> {
     await kvSet('polls', data);
     return;
   }
-  fs.writeFileSync(path.join(DATA_DIR, 'polls.json'), JSON.stringify(data, null, 2));
+  fsWrite(path.join(DATA_DIR, 'polls.json'), JSON.stringify(data, null, 2));
 }
 
 // ── Rankings ──────────────────────────────────────────────────────────────────
@@ -77,5 +89,5 @@ export async function setRankings(data: { articles: any[] }): Promise<void> {
     await kvSet('rankings', data);
     return;
   }
-  fs.writeFileSync(path.join(DATA_DIR, 'rankings.json'), JSON.stringify(data, null, 2), 'utf-8');
+  fsWrite(path.join(DATA_DIR, 'rankings.json'), JSON.stringify(data, null, 2));
 }
