@@ -55,7 +55,7 @@ export default async function Home() {
       <div className="relative">
         <USMapHero />
         {/* Banner text overlay — top-left of the map */}
-        <div className="absolute top-0 left-0 right-0 z-10 container mx-auto px-6 pt-5 md:pt-8 text-white pointer-events-none">
+        <div className="absolute top-0 left-0 z-10 px-8 pt-5 md:pt-8 text-white pointer-events-none">
           <p className="text-teal-300 text-xs font-semibold uppercase tracking-widest mb-1 drop-shadow">Est. 2022 · 10 Teams · Keeper League · ESPN</p>
           <h1 className="text-2xl md:text-3xl font-bold drop-shadow-lg">
             Continental Breakfast Alliance
