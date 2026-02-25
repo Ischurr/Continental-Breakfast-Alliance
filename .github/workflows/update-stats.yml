@@ -31,17 +31,20 @@ jobs:
         env:
           ESPN_SWID_RAW: ${{ secrets.ESPN_SWID }}
           ESPN_S2_RAW: ${{ secrets.ESPN_S2 }}
-          ESPN_SEASON_ID: '2025'
+          ESPN_LEAGUE_ID: '1562795298'
+          ESPN_SEASON_ID: '2026'
         run: |
           export ESPN_SWID=$(echo "$ESPN_SWID_RAW" | tr -d '"' | tr -d "'" | tr -d '\n' | tr -d '\r')
           export ESPN_S2=$(echo "$ESPN_S2_RAW" | tr -d '"' | tr -d "'" | tr -d '\n' | tr -d '\r')
+          echo "SWID length: ${#ESPN_SWID}, S2 length: ${#ESPN_S2}"
           npm run fetch-current
 
       - name: Fetch free agents
         env:
           ESPN_SWID_RAW: ${{ secrets.ESPN_SWID }}
           ESPN_S2_RAW: ${{ secrets.ESPN_S2 }}
-          ESPN_SEASON_ID: '2025'
+          ESPN_LEAGUE_ID: '1562795298'
+          ESPN_SEASON_ID: '2026'
         run: |
           export ESPN_SWID=$(echo "$ESPN_SWID_RAW" | tr -d '"' | tr -d "'" | tr -d '\n' | tr -d '\r')
           export ESPN_S2=$(echo "$ESPN_S2_RAW" | tr -d '"' | tr -d "'" | tr -d '\n' | tr -d '\r')
