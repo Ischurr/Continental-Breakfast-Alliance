@@ -56,9 +56,35 @@ npm run build            # Production build
 - Images use Next.js `<Image unoptimized />` for ESPN CDN headshots
 - Styling: Tailwind utility classes only, no custom CSS files
 
+
+## Deployment & Infrastructure
+
+### Vercel
+- Site: `https://continental-breakfast-alliance.vercel.app`
+- Auto-deploys on every push to `main`
+- Filesystem is **read-only** — all writes go through Upstash Redis (KV)
+
+### Upstash Redis (KV)
+- `lib/store.ts` is the unified data access layer — detects `KV_REST_API_URL` env var at runtime
+- If set → reads/writes Redis; if not → reads/writes local JSON files (dev only)
+- Keys in Redis: `trash-talk`, `polls`, `rankings`
+- One-time seed script: `npm run seed-kv` (reads local JSON files, writes to Redis)
+- Diagnostic route: `/api/debug` — shows whether KV env vars are present in production
+- **Common gotcha**: Vercel env vars must be set for **Production** environment and require a redeploy to take effect. Entering token values with surrounding quotes will cause auth failures.
+
+### GitHub Actions (`.github/workflows/update-stats.yml`)
+- Runs daily at **5:30 AM EST** (10:30 UTC)
+- Fetches `data/current/2026.json` and `data/current/free-agents.json` from ESPN API
+- Commits changed files and pushes → triggers Vercel redeploy automatically
+- Required GitHub Secrets: `ESPN_SWID`, `ESPN_S2` (no quotes, raw values)
+- `ESPN_LEAGUE_ID` (1562795298) and `ESPN_SEASON_ID` (2026) are hardcoded in the workflow
+- Job has `permissions: contents: write` to allow the push back to main
+- Can be triggered manually: Actions tab → Update Stats → Run workflow
+
 ## Recent Work (Feb 2026)
 - **Playoff bracket** (`app/playoffs/page.tsx`): uses last 2 weeks of season as playoff rounds; lowest seed goes LEFT bracket; background photos use `minHeight: 500px` to normalize height across years
-- **BaseballFieldLeaders** (`components/BaseballFieldLeaders.tsx`): baseball field SVG with player pins, Ohtani special card, toggle for rostered vs FA view. ESPN has no 'RP' roster slot — all pitchers are 'SP'. Bullpen in rostered view uses `top('SP', 9).slice(4)` (ranks 5-9); FA view uses `top('RP', 5)`.
+- **BaseballFieldLeaders** (`components/BaseballFieldLeaders.tsx`): baseball field SVG with player pins, Ohtani special card, toggle for rostered vs FA view. ESPN has no 'RP' roster slot — all pitchers are 'SP'. Bullpen in rostered view uses `top('SP', 9).slice(4)` (ranks 5-9); FA view uses `top('RP', 5)`. **Mobile layout**: `flex-col md:flex-row` — field is full width, Ohtani/DH cards go horizontal above, side boxes use 2-col grid below.
+- **USMapHero** (`components/USMapHero.tsx`): SVG US map using `react-simple-maps` v3 with `geoAlbersUsa` projection. Stars mark team cities; leader lines connect to circular logo images; logos link to team pages. Navy (`bg-blue-950`) background.
 - **Message Board** (`app/message-board/`): renamed from Trash Talk. Includes polls (open + closed) above the post feed. Posts support `videoUrl` (YouTube embed or direct video). `/trash-talk` and `/polls` both redirect here permanently (see `next.config.ts`). "Polls" removed from Header nav.
 - **Polls merged into Message Board**: `app/polls/` still exists but `/polls` redirects to `/message-board`. `app/polls/actions.ts` revalidates both `/polls` and `/message-board` on vote. `PollCard` imported cross-route as `../polls/PollCard`.
 - **Posts on team pages**: `app/teams/[teamId]/page.tsx` filters `trash-talk.json` by `authorTeamId` or `targetTeamId` and renders a message board section at the bottom.
@@ -78,11 +104,19 @@ npm run build            # Production build
 - `getCurrentSeason()` returns 2025 until March 15 — use separate year computation for projection headings
 - CSV `nan` values come through as the string `"nan"` in TypeScript (truthy) — check `!== 'nan'` explicitly
 - Server Actions must call `revalidatePath` for every route that displays that data
+- Vercel env vars: no quotes around values, must be set for Production, require redeploy after adding
+- `espn-api.ts` `getHeaders()` sanitizes SWID/S2 with regex `[^\x20-\x7E]` to strip invalid HTTP header chars
 
 ## Environment Variables (`.env.local`)
 ```
-ESPN_LEAGUE_ID, ESPN_SEASON_ID, ESPN_SWID, ESPN_S2   # ESPN API auth
-ANTHROPIC_API_KEY                                     # Newsletter generation
-RESEND_API_KEY, NEWSLETTER_FROM_EMAIL                 # Email sending
-NEWSLETTER_SITE_URL                                   # Base URL for links
+ESPN_LEAGUE_ID=1562795298
+ESPN_SEASON_ID=2026
+ESPN_SWID={3EDEE307-...}     # From ESPN browser cookies
+ESPN_S2=AEB6FW...            # From ESPN browser cookies (long URL-encoded string)
+ANTHROPIC_API_KEY=...        # Newsletter generation
+RESEND_API_KEY=...           # Email sending
+NEWSLETTER_FROM_EMAIL=...
+NEWSLETTER_SITE_URL=http://localhost:3000
+KV_REST_API_URL=https://smiling-flamingo-54856.upstash.io
+KV_REST_API_TOKEN=...        # No quotes around this value
 ```
