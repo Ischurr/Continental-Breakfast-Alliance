@@ -12,13 +12,15 @@ const DATA_DIR = path.join(process.cwd(), 'data');
 const useKV = !!process.env.KV_REST_API_URL;
 
 async function kvGet<T>(key: string): Promise<T | null> {
-  const { kv } = await import('@vercel/kv');
-  return kv.get<T>(key);
+  const { Redis } = await import('@upstash/redis');
+  const redis = new Redis({ url: process.env.KV_REST_API_URL!, token: process.env.KV_REST_API_TOKEN! });
+  return redis.get<T>(key);
 }
 
 async function kvSet<T>(key: string, value: T): Promise<void> {
-  const { kv } = await import('@vercel/kv');
-  await kv.set(key, value);
+  const { Redis } = await import('@upstash/redis');
+  const redis = new Redis({ url: process.env.KV_REST_API_URL!, token: process.env.KV_REST_API_TOKEN! });
+  await redis.set(key, value);
 }
 
 // ── Trash talk ────────────────────────────────────────────────────────────────
