@@ -80,7 +80,7 @@ export default function USMapHero() {
         style={{ width: '100%', height: 'auto', display: 'block' }}
       >
         <Geographies geography={GEO_URL}>
-          {({ geographies }) =>
+          {({ geographies }: { geographies: any[] }) =>
             geographies.map((geo) => (
               <Geography
                 key={geo.rsmKey}
