@@ -8,6 +8,7 @@ import { notFound } from 'next/navigation';
 import { TrashTalkData } from '@/lib/types';
 import { getTrashTalk, getTeamContent } from '@/lib/store';
 import { TeamBioEditor, TeamStrengthsEditor } from './TeamContentEditor';
+import TeamBaseballField from '@/components/TeamBaseballField';
 
 interface Props {
   params: Promise<{ teamId: string }>;
@@ -32,6 +33,9 @@ export default async function TeamPage({ params }: Props) {
   const allTimeStats = calculateAllTimeStandings().find(t => t.teamId === id);
   const seasonHistory = getTeamSeasonHistory(id);
   const topPlayersAllTime = getTeamTopPlayersAllTime(id, 5);
+
+  // Current season roster for this team (for the field diagram)
+  const currentRoster = (currentSeason.rosters ?? []).find(r => r.teamId === id)?.players ?? [];
 
   // All teams except this one for H2H
   const otherTeams = currentSeason.teams.filter(t => t.id !== id);
@@ -150,6 +154,14 @@ export default async function TeamPage({ params }: Props) {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Current roster field diagram */}
+        {currentRoster.length > 0 && (
+          <div className="mb-10">
+            <h2 className="text-2xl font-bold mb-4">{currentSeason.year} Roster</h2>
+            <TeamBaseballField players={currentRoster} />
           </div>
         )}
 
