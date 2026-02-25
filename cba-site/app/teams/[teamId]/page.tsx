@@ -6,7 +6,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { TrashTalkData } from '@/lib/types';
-import { getTrashTalk } from '@/lib/store';
+import { getTrashTalk, getTeamContent } from '@/lib/store';
+import { TeamBioEditor, TeamStrengthsEditor } from './TeamContentEditor';
 
 interface Props {
   params: Promise<{ teamId: string }>;
@@ -34,6 +35,13 @@ export default async function TeamPage({ params }: Props) {
 
   // All teams except this one for H2H
   const otherTeams = currentSeason.teams.filter(t => t.id !== id);
+
+  // KV content overrides for team text fields (bio, strengths, weaknesses)
+  const contentOverrides = await getTeamContent();
+  const override = contentOverrides[id] ?? {};
+  const effectiveBio = override.bio ?? meta?.bio;
+  const effectiveStrengths = override.strengths ?? meta?.strengths;
+  const effectiveWeaknesses = override.weaknesses ?? meta?.weaknesses;
 
   // Message board posts for this team (authored by or targeting this team)
   const boardData: TrashTalkData = await getTrashTalk();
@@ -63,12 +71,10 @@ export default async function TeamPage({ params }: Props) {
                 className="w-20 h-20 object-cover rounded-full bg-white/10 flex-shrink-0"
               />
             )}
-            <div>
+            <div className="flex-1 min-w-0">
               <h1 className="text-4xl font-bold mb-1">{team.name}</h1>
               <p className="text-lg opacity-80 mb-4">{team.owner}</p>
-              {meta?.bio && (
-                <p className="italic opacity-75 text-sm">&ldquo;{meta.bio}&rdquo;</p>
-              )}
+              <TeamBioEditor teamId={id} bio={effectiveBio} />
             </div>
           </div>
 
@@ -110,28 +116,11 @@ export default async function TeamPage({ params }: Props) {
         )}
 
         {/* Strengths & Weaknesses */}
-        {(meta?.strengths || meta?.weaknesses) && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-            {meta?.strengths && (
-              <div className="bg-white rounded-xl border border-green-200 p-6 shadow-sm">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-green-500 text-lg">↑</span>
-                  <h2 className="text-lg font-bold text-gray-800">Strengths</h2>
-                </div>
-                <p className="text-sm text-gray-600 leading-relaxed">{meta.strengths}</p>
-              </div>
-            )}
-            {meta?.weaknesses && (
-              <div className="bg-white rounded-xl border border-red-200 p-6 shadow-sm">
-                <div className="flex items-center gap-2 mb-3">
-                  <span className="text-red-400 text-lg">↓</span>
-                  <h2 className="text-lg font-bold text-gray-800">Weaknesses</h2>
-                </div>
-                <p className="text-sm text-gray-600 leading-relaxed">{meta.weaknesses}</p>
-              </div>
-            )}
-          </div>
-        )}
+        <TeamStrengthsEditor
+          teamId={id}
+          strengths={effectiveStrengths}
+          weaknesses={effectiveWeaknesses}
+        />
 
         {/* Top Players All-Time */}
         {topPlayersAllTime.length > 0 && (

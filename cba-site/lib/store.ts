@@ -6,7 +6,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import type { TrashTalkData, PollsData } from './types';
+import type { TrashTalkData, PollsData, TeamContentOverrides } from './types';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const IS_VERCEL = !!process.env['VERCEL'];
@@ -90,4 +90,25 @@ export async function setRankings(data: { articles: any[] }): Promise<void> {
     return;
   }
   fsWrite(path.join(DATA_DIR, 'rankings.json'), JSON.stringify(data, null, 2));
+}
+
+// ── Team content overrides ─────────────────────────────────────────────────────
+
+export async function getTeamContent(): Promise<TeamContentOverrides> {
+  if (useKV()) {
+    return (await kvGet<TeamContentOverrides>('team-content')) ?? {};
+  }
+  try {
+    return JSON.parse(fs.readFileSync(path.join(DATA_DIR, 'team-content.json'), 'utf-8'));
+  } catch {
+    return {};
+  }
+}
+
+export async function setTeamContent(data: TeamContentOverrides): Promise<void> {
+  if (useKV()) {
+    await kvSet('team-content', data);
+    return;
+  }
+  fsWrite(path.join(DATA_DIR, 'team-content.json'), JSON.stringify(data, null, 2));
 }

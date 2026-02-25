@@ -133,3 +133,11 @@ export interface TeamMetadata {
   secondaryColor: string;
   bio?: string;
 }
+
+export interface TeamContentOverride {
+  bio?: string;
+  strengths?: string;
+  weaknesses?: string;
+}
+
+export type TeamContentOverrides = Record<number, TeamContentOverride>;
