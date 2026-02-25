@@ -249,7 +249,7 @@ export default async function TeamPage({ params }: Props) {
 
         {/* Head-to-Head records */}
         <h2 className="text-2xl font-bold mb-5">Head-to-Head Records</h2>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto overflow-y-hidden">
           <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
             <thead className="bg-gray-800 text-white text-sm">
               <tr>

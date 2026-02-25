@@ -31,7 +31,7 @@ export default function AllTimeStandingsPage() {
           </Link>
         </div>
 
-        <div className="overflow-x-auto mb-14">
+        <div className="overflow-x-auto overflow-y-hidden mb-14">
           <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
             <thead className="bg-gray-800 text-white text-sm">
               <tr>

@@ -44,7 +44,7 @@ export default function TeamStatsPage() {
         {/* Biggest wins */}
         <h2 className="text-2xl font-bold mb-5">Biggest Blowouts</h2>
         {biggestWins.length > 0 ? (
-          <div className="overflow-x-auto mb-12">
+          <div className="overflow-x-auto overflow-y-hidden mb-12">
             <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
               <thead className="bg-gray-800 text-white text-sm">
                 <tr>
@@ -83,7 +83,7 @@ export default function TeamStatsPage() {
         {/* Highest scores */}
         <h2 className="text-2xl font-bold mb-5">All-Time High Scores</h2>
         {highestScores.length > 0 ? (
-          <div className="overflow-x-auto mb-12">
+          <div className="overflow-x-auto overflow-y-hidden mb-12">
             <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
               <thead className="bg-gray-800 text-white text-sm">
                 <tr>
@@ -113,7 +113,7 @@ export default function TeamStatsPage() {
 
         {/* All-time scoring leaders */}
         <h2 className="text-2xl font-bold mb-5">All-Time Scoring Leaders</h2>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto overflow-y-hidden">
           <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
             <thead className="bg-gray-800 text-white text-sm">
               <tr>

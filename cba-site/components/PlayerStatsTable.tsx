@@ -12,7 +12,7 @@ export default function PlayerStatsTable({ stats, teams, title }: Props) {
   return (
     <div>
       {title && <h2 className="text-xl font-bold mb-4">{title}</h2>}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto overflow-y-hidden">
         <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
           <thead className="bg-gray-800 text-white">
             <tr>

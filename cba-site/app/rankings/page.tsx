@@ -1,5 +1,4 @@
 import Header from '@/components/Header';
-import AdminArticleForm from './AdminArticleForm';
 import { getRankings } from '@/lib/store';
 
 export default async function RankingsPage() {
@@ -13,11 +12,12 @@ export default async function RankingsPage() {
         <h1 className="text-4xl font-bold mb-2">Rankings</h1>
         <p className="text-gray-500 mb-8">Articles and commentary about where I view the teams during the season.</p>
 
-        <AdminArticleForm />
-
         <div className="space-y-8">
           {articles.length === 0 && (
-            <p className="text-gray-500">No articles yet.</p>
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 text-center">
+              <p className="text-gray-600 font-medium">No new rankings for the season yet.</p>
+              <p className="text-gray-400 text-sm mt-1">First ranking expected after the keepers deadline.</p>
+            </div>
           )}
 
           {articles.map(article => (
