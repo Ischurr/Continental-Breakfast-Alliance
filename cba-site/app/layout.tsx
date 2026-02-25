@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import EventTickerBanner, { type TickerItem } from '@/components/EventTickerBanner';
+import { getAllEventsWithin, formatCountdown, formatEventDate } from '@/lib/calendar';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,11 +28,23 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const upcomingEvents = getAllEventsWithin(7);
+  const tickerItems: TickerItem[] = upcomingEvents.map(e => {
+    const cd = formatCountdown(e.date);
+    return {
+      emoji: e.emoji,
+      title: e.title,
+      dateLabel: formatEventDate(e.date, e.timeLabel),
+      countdown: `${cd.number} ${cd.unit}`,
+    };
+  });
+
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <EventTickerBanner items={tickerItems} />
         {children}
       </body>
     </html>

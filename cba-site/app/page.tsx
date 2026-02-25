@@ -6,6 +6,7 @@ import { getAllSeasons, getCurrentSeason, getCompletedSeasons, calculateAllTimeS
 import { getHottestStory, timeAgo } from '@/lib/news-fetcher';
 import { Poll, TrashTalkData } from '@/lib/types';
 import { getPolls, getTrashTalk } from '@/lib/store';
+import { getNextEventWithin, formatCountdown, formatEventDate } from '@/lib/calendar';
 import teamsJson from '@/data/teams.json';
 import PollCard from './polls/PollCard';
 
@@ -37,6 +38,8 @@ export default async function Home() {
     Promise.resolve(getTopMatchupOfWeek()),
     Promise.resolve(getNotableAvailablePlayers(5)),
   ]);
+
+  const nextEvent = getNextEventWithin(7);
 
   const activePolls: Poll[] = (await getPolls()).polls.filter((p: Poll) => p.active);
 
@@ -112,7 +115,8 @@ export default async function Home() {
 
         {/* League Pulse */}
         <h2 className="text-xl font-bold text-gray-700 mb-4">League Pulse</h2>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">
+        <div className="mb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
           {/* Hot Story */}
           <div className="bg-white rounded-xl shadow-sm border p-6 flex flex-col">
@@ -236,6 +240,36 @@ export default async function Home() {
               <p className="text-sm text-gray-400 flex-1">No roster data available.</p>
             )}
           </div>
+        </div>
+
+        {/* Upcoming Event Banner — visible within 7 days of the next calendar event */}
+        {nextEvent && (() => {
+          const s = {
+            deadline: { bg: 'bg-amber-500',  border: 'border-amber-600',  dateColor: 'text-amber-100', countdownColor: 'text-amber-600',  label: 'Deadline'  },
+            cba:      { bg: 'bg-violet-600', border: 'border-violet-700', dateColor: 'text-violet-100', countdownColor: 'text-violet-600', label: 'CBA Event' },
+            mlb:      { bg: 'bg-sky-600',    border: 'border-sky-700',    dateColor: 'text-sky-100',    countdownColor: 'text-sky-600',    label: 'MLB Event' },
+          }[nextEvent.type];
+          const cd = formatCountdown(nextEvent.date);
+          const dl = formatEventDate(nextEvent.date, nextEvent.timeLabel);
+          return (
+            <div className={`mt-4 ${s.bg} border ${s.border} rounded-xl px-6 py-4 flex items-center justify-between gap-4`}>
+              <div className="flex items-center gap-4 min-w-0">
+                <span className="text-3xl" aria-hidden="true">{nextEvent.emoji}</span>
+                <div className="min-w-0">
+                  <span className="text-xs font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-white/20 text-white">
+                    {s.label}
+                  </span>
+                  <p className="font-bold text-white text-base leading-snug mt-1">{nextEvent.title}</p>
+                  <p className={`text-sm mt-0.5 ${s.dateColor}`}>{dl}</p>
+                </div>
+              </div>
+              <div className={`flex flex-col items-center justify-center bg-white ${s.countdownColor} rounded-xl px-4 py-2 min-w-[68px] text-center flex-shrink-0`}>
+                <span className="text-2xl font-bold leading-none">{cd.number}</span>
+                <span className="text-xs font-semibold uppercase tracking-wide mt-0.5">{cd.unit}</span>
+              </div>
+            </div>
+          );
+        })()}
         </div>
 
         {/* Active Polls */}
