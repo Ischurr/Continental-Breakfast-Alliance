@@ -283,10 +283,10 @@ export default function BaseballFieldLeaders({ rosteredPlayers, freeAgents }: Pr
       </div>
 
       {/* Field row */}
-      <div className="flex gap-3 items-stretch">
+      <div className="flex flex-col md:flex-row gap-3 md:items-stretch">
 
         {/* Left: Shohei + DH */}
-        <div className="flex-shrink-0 flex flex-col gap-2 justify-center" style={{ width: 100 }}>
+        <div className="flex flex-row md:flex-col gap-2 md:justify-center md:flex-shrink-0 md:w-[100px]">
           <OhtaniCard player={ohtani} />
           <DHCard player={dh} />
         </div>
@@ -404,7 +404,7 @@ export default function BaseballFieldLeaders({ rosteredPlayers, freeAgents }: Pr
         </div>
 
         {/* Right: Bullpen #3–5 + Rotation #2–4 */}
-        <div className="flex-shrink-0 flex flex-col gap-3" style={{ width: 185 }}>
+        <div className="grid grid-cols-2 md:grid-cols-1 gap-3 md:flex-shrink-0 md:w-[185px]">
           <SideBox
             title="Bullpen"
             players={[bullpen[2] ?? null, bullpen[3] ?? null, bullpen[4] ?? null]}
