@@ -29,17 +29,23 @@ jobs:
 
       - name: Fetch current season data
         env:
-          ESPN_SWID: ${{ secrets.ESPN_SWID }}
-          ESPN_S2: ${{ secrets.ESPN_S2 }}
+          ESPN_SWID_RAW: ${{ secrets.ESPN_SWID }}
+          ESPN_S2_RAW: ${{ secrets.ESPN_S2 }}
           ESPN_SEASON_ID: '2025'
-        run: npm run fetch-current
+        run: |
+          export ESPN_SWID=$(echo "$ESPN_SWID_RAW" | tr -d '"' | tr -d "'" | tr -d '\n' | tr -d '\r')
+          export ESPN_S2=$(echo "$ESPN_S2_RAW" | tr -d '"' | tr -d "'" | tr -d '\n' | tr -d '\r')
+          npm run fetch-current
 
       - name: Fetch free agents
         env:
-          ESPN_SWID: ${{ secrets.ESPN_SWID }}
-          ESPN_S2: ${{ secrets.ESPN_S2 }}
+          ESPN_SWID_RAW: ${{ secrets.ESPN_SWID }}
+          ESPN_S2_RAW: ${{ secrets.ESPN_S2 }}
           ESPN_SEASON_ID: '2025'
-        run: npm run fetch-free-agents
+        run: |
+          export ESPN_SWID=$(echo "$ESPN_SWID_RAW" | tr -d '"' | tr -d "'" | tr -d '\n' | tr -d '\r')
+          export ESPN_S2=$(echo "$ESPN_S2_RAW" | tr -d '"' | tr -d "'" | tr -d '\n' | tr -d '\r')
+          npm run fetch-free-agents
 
       - name: Commit and push if data changed
         run: |
