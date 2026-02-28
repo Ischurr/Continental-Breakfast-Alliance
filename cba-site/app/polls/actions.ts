@@ -40,6 +40,7 @@ export async function createPoll(
     id,
     question: question.trim(),
     options: options.map((text, i) => ({ id: `opt-${Date.now()}-${i}`, text: text.trim(), votes: 0 })),
+    createdAt: new Date().toISOString(),
     active,
     expiresAt,
   });
