@@ -15,7 +15,7 @@ export default function Header() {
       <div className="container mx-auto px-4 py-5">
         <div className="flex items-center justify-between">
           <Link href="/" className="text-2xl font-bold hover:text-teal-200 transition">
-            Continental Breakfast Alliance
+            The Continental Press Box
           </Link>
 
           {/* Desktop nav */}
