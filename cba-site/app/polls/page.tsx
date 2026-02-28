@@ -8,12 +8,15 @@ export default async function PollsPage() {
   const active = polls.filter(p => p.active);
   const closed = polls.filter(p => !p.active);
 
+  // admin state is client-side; we'll render server component normally then
+
   return (
     <div className="min-h-screen bg-sky-50">
       <Header />
       <main className="container mx-auto px-4 py-12">
         <h1 className="text-4xl font-bold mb-2">League Polls</h1>
         <p className="text-gray-500 mb-10">Vote on league decisions and rule changes</p>
+        {/* admin UI is now on /message-board; this page redirects there */}
 
         {polls.length === 0 && (
           <div className="bg-white rounded-xl shadow-sm border p-10 text-center text-gray-400">

@@ -7,9 +7,11 @@ import { castVote } from './actions';
 interface Props {
   poll: Poll;
   showResults?: boolean;
+  // optional callback when admin wants to edit this poll
+  onEdit?: () => void;
 }
 
-export default function PollCard({ poll, showResults = false }: Props) {
+export default function PollCard({ poll, showResults = false, onEdit }: Props) {
   const [voted, setVoted] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const [optimisticVotes, setOptimisticVotes] = useState(poll.options.map(o => o.votes));
@@ -30,7 +32,15 @@ export default function PollCard({ poll, showResults = false }: Props) {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border p-6 flex flex-col">
+    <div className="bg-white rounded-xl shadow-sm border p-6 flex flex-col relative">
+      {onEdit && poll.active && (
+        <button
+          onClick={onEdit}
+          className="absolute top-3 right-3 text-xs text-teal-600 hover:underline"
+        >
+          edit
+        </button>
+      )}
       <div className="flex justify-between items-start mb-1">
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
           {poll.active ? '🗳️ Open' : '🔒 Closed'}

@@ -4,8 +4,8 @@ import { revalidatePath } from 'next/cache';
 import { getRankings, setRankings } from '@/lib/store';
 
 export async function postArticle(title: string, content: string, password: string) {
-  const adminPass = process.env.RANKINGS_ADMIN_PASSWORD ?? '';
-  if (!adminPass || password !== adminPass) {
+  const adminPin = process.env.NEXT_PUBLIC_ADMIN_PIN ?? '';
+  if (!adminPin || password !== adminPin) {
     throw new Error('Unauthorized');
   }
 
@@ -26,8 +26,8 @@ export async function postArticle(title: string, content: string, password: stri
 }
 
 export async function deleteArticle(id: string, password: string) {
-  const adminPass = process.env.RANKINGS_ADMIN_PASSWORD ?? '';
-  if (!adminPass || password !== adminPass) {
+  const adminPin = process.env.NEXT_PUBLIC_ADMIN_PIN ?? '';
+  if (!adminPin || password !== adminPin) {
     throw new Error('Unauthorized');
   }
   const store = await getRankings();
@@ -37,8 +37,8 @@ export async function deleteArticle(id: string, password: string) {
 }
 
 export async function editArticle(id: string, title: string, content: string, password: string) {
-  const adminPass = process.env.RANKINGS_ADMIN_PASSWORD ?? '';
-  if (!adminPass || password !== adminPass) {
+  const adminPin = process.env.NEXT_PUBLIC_ADMIN_PIN ?? '';
+  if (!adminPin || password !== adminPin) {
     throw new Error('Unauthorized');
   }
   const store = await getRankings();

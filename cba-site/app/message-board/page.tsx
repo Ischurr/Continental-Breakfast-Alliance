@@ -1,7 +1,7 @@
 import Header from '@/components/Header';
 import MessageBoardForm from './MessageBoardForm';
 import PostCard from './PostCard';
-import PollCard from '../polls/PollCard';
+import PollsViewer from './PollsViewer';
 import { TrashTalkData, Poll } from '@/lib/types';
 import { getTrashTalk, getPolls } from '@/lib/store';
 import teamsRaw from '@/data/teams.json';
@@ -38,26 +38,7 @@ export default async function MessageBoardPage() {
         <p className="text-gray-500 mb-10">The league bulletin board — polls, messages, and trash talk.</p>
 
         {/* ── Polls ──────────────────────────────────────────────── */}
-        {allPolls.length > 0 && (
-          <section id="polls" className="mb-12">
-            {activePolls.length > 0 && (
-              <>
-                <h2 className="text-xl font-bold text-gray-700 mb-4">🗳️ Open Polls</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                  {activePolls.map(poll => <PollCard key={poll.id} poll={poll} />)}
-                </div>
-              </>
-            )}
-            {closedPolls.length > 0 && (
-              <>
-                <h2 className="text-xl font-bold text-gray-700 mb-4">🔒 Closed Polls</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {closedPolls.map(poll => <PollCard key={poll.id} poll={poll} showResults />)}
-                </div>
-              </>
-            )}
-          </section>
-        )}
+        <PollsViewer activePolls={activePolls} closedPolls={closedPolls} />
 
         {/* ── Divider ────────────────────────────────────────────── */}
         <div className="border-t border-gray-200 mb-10" />
@@ -66,7 +47,7 @@ export default async function MessageBoardPage() {
         <div className="max-w-2xl">
           <h2 className="text-xl font-bold text-gray-700 mb-6">💬 Posts</h2>
 
-          <MessageBoardForm teams={teamsRaw.teams} />
+          <MessageBoardForm teams={teamsRaw.teams} polls={allPolls} />
 
           {posts.length === 0 ? (
             <div className="text-center py-16 text-gray-400">

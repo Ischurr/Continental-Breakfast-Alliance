@@ -1,7 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { postMessage, postTrade } from './actions';
+import { postMessage, postTrade, postRanking } from './actions';
+import { useAdminMode } from '@/hooks/useAdminMode';
+import { Poll } from '@/lib/types';
+import PollAdminForm from '../polls/PollAdminForm';
 
 interface Team {
   id: number;
@@ -12,12 +15,14 @@ interface Team {
 
 interface Props {
   teams: Team[];
+  polls: Poll[];
 }
 
-type PostMode = 'message' | 'trade';
+type PostMode = 'message' | 'trade' | 'rankings' | 'polls';
 
-export default function MessageBoardForm({ teams }: Props) {
+export default function MessageBoardForm({ teams, polls }: Props) {
   const [mode, setMode] = useState<PostMode>('message');
+  const { isAdmin, unlock } = useAdminMode();
 
   // Shared
   const [authorTeamId, setAuthorTeamId] = useState<number | ''>('');
@@ -36,6 +41,11 @@ export default function MessageBoardForm({ teams }: Props) {
   const [tradeComment, setTradeComment] = useState('');
 
   const selectedAuthor = teams.find(t => t.id === authorTeamId);
+
+  // Rankings-specific
+  const [rankTitle, setRankTitle] = useState('');
+  const [rankContent, setRankContent] = useState('');
+  const [rankPass, setRankPass] = useState('');
 
   function handleModeSwitch(newMode: PostMode) {
     setMode(newMode);
@@ -82,8 +92,39 @@ export default function MessageBoardForm({ teams }: Props) {
     setTimeout(() => setSubmitted(false), 3000);
   }
 
+  async function handleSubmitRanking(e: React.FormEvent) {
+    e.preventDefault();
+    if (!isAdmin || !rankTitle.trim() || !rankContent.trim() || !rankPass) return;
+    setSubmitting(true);
+    try {
+      await postRanking(rankTitle, rankContent, rankPass);
+      setRankTitle('');
+      setRankContent('');
+      setRankPass('');
+      setSubmitted(true);
+      setTimeout(() => setSubmitted(false), 3000);
+    } catch (err: any) {
+      alert('Failed: ' + err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm mb-8">
+      {/* admin unlock */}
+      {!isAdmin && (
+        <div className="p-3 text-right">
+          <button
+            type="button"
+            onClick={unlock}
+            className="text-sm text-gray-500 hover:underline"
+          >
+            🔒 Admin login
+          </button>
+        </div>
+      )}
+
       {/* Mode tabs */}
       <div className="flex border-b border-gray-200">
         <button
@@ -100,7 +141,7 @@ export default function MessageBoardForm({ teams }: Props) {
         <button
           type="button"
           onClick={() => handleModeSwitch('trade')}
-          className={`flex-1 py-3 text-sm font-semibold rounded-tr-xl transition ${
+          className={`flex-1 py-3 text-sm font-semibold transition ${
             mode === 'trade'
               ? 'bg-white text-blue-700 border-b-2 border-blue-600'
               : 'bg-gray-50 text-gray-400 hover:text-gray-600'
@@ -108,6 +149,30 @@ export default function MessageBoardForm({ teams }: Props) {
         >
           🔄 Trade
         </button>
+        <button
+          type="button"
+          onClick={() => handleModeSwitch('polls')}
+          className={`flex-1 py-3 text-sm font-semibold transition ${
+            mode === 'polls'
+              ? 'bg-white text-green-700 border-b-2 border-green-600'
+              : 'bg-gray-50 text-gray-400 hover:text-gray-600'
+          }`}
+        >
+          🗳️ Polls
+        </button>
+        {isAdmin && (
+          <button
+            type="button"
+            onClick={() => handleModeSwitch('rankings')}
+            className={`flex-1 py-3 text-sm font-semibold rounded-tr-xl transition ${
+              mode === 'rankings'
+                ? 'bg-white text-purple-700 border-b-2 border-purple-600'
+                : 'bg-gray-50 text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            📰 Rankings
+          </button>
+        )}
       </div>
 
       {/* ── Message form ─────────────────────────────────── */}
@@ -295,6 +360,71 @@ export default function MessageBoardForm({ teams }: Props) {
           </div>
         </form>
       )}
+      {/** Polls tab: shows admin create/edit UI; voters use the polls above the fold */}
+      {mode === 'polls' && (
+        <div className="p-5">
+          {isAdmin ? (
+            <PollAdminForm existing={null} onSaved={() => {}} />
+          ) : (
+            <div className="text-sm text-gray-600">Vote in the polls above.</div>
+          )}
+        </div>
+      )}
+
+      {/* ── Rankings form (admin only) ───────────────────────────────────── */}
+      {mode === 'rankings' && isAdmin && (
+        <form onSubmit={handleSubmitRanking} className="p-5">
+          <div className="mb-4">
+            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+              Title
+            </label>
+            <input
+              value={rankTitle}
+              onChange={e => setRankTitle(e.target.value)}
+              required
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+              Content
+            </label>
+            <textarea
+              value={rankContent}
+              onChange={e => setRankContent(e.target.value)}
+              required
+              rows={5}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 resize-none"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+              Admin PIN
+            </label>
+            <input
+              type="password"
+              value={rankPass}
+              onChange={e => setRankPass(e.target.value)}
+              required
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              type="submit"
+              disabled={submitting || !rankTitle.trim() || !rankContent.trim() || !rankPass}
+              className="px-5 py-2 bg-purple-700 text-white text-sm font-semibold rounded-lg hover:bg-purple-800 transition disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {submitting ? 'Posting…' : 'Post Rankings'}
+            </button>
+            {submitted && (
+              <span className="text-sm text-purple-600 font-medium">Posted!</span>
+            )}
+          </div>
+        </form>
+      )}
+
+      {/* polls are shown above the post box; poll admin is available via the Polls tab */}
     </div>
   );
 }

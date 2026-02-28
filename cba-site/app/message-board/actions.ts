@@ -86,3 +86,13 @@ export async function deletePost(postId: string): Promise<void> {
     throw err;
   }
 }
+
+// ranking posts are stored separately in rankings.json; reuse existing action
+import { postArticle } from '../rankings/actions';
+
+export async function postRanking(title: string, content: string, password: string): Promise<void> {
+  // forward to rankings module (will revalidate its own path)
+  await postArticle(title, content, password);
+  // ensure message-board also revalidates in case it displays links
+  revalidateAll();
+}

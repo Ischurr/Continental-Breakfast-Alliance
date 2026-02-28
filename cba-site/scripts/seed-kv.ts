@@ -4,7 +4,8 @@
  *   KV_REST_API_URL=... KV_REST_API_TOKEN=... npx tsx scripts/seed-kv.ts
  */
 
-import 'dotenv/config';
+import dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
 import { Redis } from '@upstash/redis';
 const kv = new Redis({ url: process.env.KV_REST_API_URL!, token: process.env.KV_REST_API_TOKEN! });
 import fs from 'fs';
