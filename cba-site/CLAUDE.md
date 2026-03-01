@@ -139,3 +139,80 @@ NEWSLETTER_SITE_URL=http://localhost:3000
 KV_REST_API_URL=https://smiling-flamingo-54856.upstash.io
 KV_REST_API_TOKEN=...        # No quotes around this value
 ```
+
+## Used GitHub Copilot AI (March 1, 2026)
+
+### Changes Made
+Implemented admin-editable polls integrated into the message board with PIN protection, poll voting, and edit/delete capability directly from the UI.
+
+
+### New Files Created
+
+#### `hooks/useAdminMode.tsx`
+- Shared client-side admin authentication hook used across multiple features
+- Prompts user for PIN when `unlock()` is called
+- Stores `cba_admin_mode='1'` in localStorage when correct PIN entered
+- Hook returns `{ isAdmin: boolean, unlock: () => void }`
+- Used by: PollsViewer, MessageBoardForm, and team page editors
+
+#### `app/polls/PollAdminForm.tsx`
+- New client component for creating, editing, and deleting polls
+- Requires PIN verification on all submit actions (server-side validation)
+- Form fields: question (text), options (dynamic add/remove), active status (checkbox), expiration date (optional)
+- Actions called: `createPoll()`, `updatePoll()`, `deletePoll()`
+- Initial edit state passed via `initialPoll?` prop
+- After submit, shows success message and resets form (for create) or calls `onComplete()` callback (for edit)
+- Server-side PIN validation: `NEXT_PUBLIC_ADMIN_PIN` environment variable
+
+#### `app/message-boar#### `app/message-
+-------------com-------------com--- ful-------------com------------ility
+- Accepts `activePolls` and `closedPolls` arrays as props
+- Manages local- Manages local- Manages local- Manages local- ei- Manages local- Manages local- Manages local- Manages local- ei- Mann; shows edit buttons on active poll cards when admin is unl- Manages local- Manages local- Manages local- Manages local- onEdit` callback
+- Inline `PollAdminForm` appears below poll list when admin is editing a poll
+- On for- On for- On for- On for- On for- On for- On for- On for- On for- On for-le- On for- On for- On for- On for- On for- On for- On for- On for- On for- On for-le- On for- On for- On for- OAdmin- On for- On for- On for- On for- On for- On for- On for- On fo 'rankings' | 'polls'`
+- **Updated props**: now accept- **Updated props**: now accept- **Updated props**: now accept- **Updated props**: now accept- **Updated prop= - **Updated props**: now accept- **Updated props**: now accept- **Updateding polls
+  - If not admin: displays message  - If not admin: displays message  - If not admin: displays message  -fo  - If not admin: displays message  - If not admin: disdde  - If not admin: displays message  - If not admin: displays message  - If not admin: displays message  -fo  - If not admin: displays message  - If not admin: disdde  - If not admin: displays message  - If not admin: displays message  - If not admin: displays message  -e UI (once at top, once in post box); now consolidated
+- `PollsViewer` handles b- `PollsViewer` handles b- `PollsViewer` handles b- `PollsViewer` handles b- `PollsViewer` handles b- `PollsViewer` handles b- `PollsViewer` handles b- `PollsViewer` handles b- `PollsViewer` handles b- `PollsViewer` handles b- `PollsViewer` handles b- `PollsViewer` handles b- `Pollst `password` parameter
+  - Throws `'Unauthorized'` if PIN doesn't match
+  - Revalidates both `/polls` and `/message-board` paths after creation
+
+- **Updated `updatePoll()` function**:
+  - Added server-side PIN validation (same pattern as createPoll)
+  - Password parameter passed by client from PollAdminForm
+  - Revalidates `/polls` and `/message-board`
+
+- **Updated `deletePoll()` function**:
+  - Added server-side PIN validation
+  - Revalidates `/polls` and `/message-board`
+
+- **Unchanged**: `castVote()` action (voting remains open to all users, no PIN needed)
+
+#### `app/rankings/actions.ts`
+- **Updated all three functions**: `postArticle()`, `editArticle()`, `deleteArticle()`
+- **Changed auth mechanism**: now uses `NEXT_PUBLIC_ADMIN_PIN` (was previously checking a different env var)
+- **Added validation**: `const adminPin = process.env.NEXT_PUBLIC_ADMIN_PIN ?? ''; if (!adminPin || password !== adminPin) throw new Error('Unauthorized');`
+- Makes ranking posts consistent with polls — both now share the same PIN authentication schem- Makes ranking posts consistent with polls —` - Makes ranking posts consistent with polls — both now share the sations, but `Poll` interface already had required `createdAt: string` field
+- Confirms all poll objects must i- Confirms all poll objects must i- Confirms all poll oFlow- Confirms all poll objects must i- Confirms po- Confirms all poll objects mu→ `castVote()` server action
+2. Vote counts 2. Vote counts 2. Vote counts 2. Vote countstat2. Vote counts 2. Vote counts 2. Vote counts 2. Vote countstat2. Vote counts 2. Vote nly)**
+1. Click 🔒 Admin button on `/message-board` → prompted for PIN
+2. If correct PIN entered: button changes to s2. If correct PIN entered: button changes to s2. If correct PIN entered: button changes to s2. If correct  fo2. If correct PIN entered: button changes to s2. If correct PIN entered: button changes to s2. If correct PIN entered: button changes to s2. If correct  fo.j2. If correct PIN entered: button changes to s2. If correct PIN entered: button changes to s2. If correct PIN entered: button changes to s2. If correct  fo2. If correct PIN entered: button changes to s2. If correct PIN entered: button changes to s2. If correct PIN entered: button chanserv2. If correct PIN entered: button changes to s2. If correct PIN entered: button changes to s2. If correct PIN entered: button changes to s2. If correct  fo2. If correct PIN entered: button changes toed from feed
+
+### PIN Security Notes
+- PIN stored in `NEXT_PUBLIC_ADMIN_PIN` environment variable (same as team page editor PIN)
+- **Must be alphanumeric** - **Must be alphanumeric** - **Must be alphanumeric** - **Must be lient-side storage: localStorage key `cba_admin_mode` set to `'1'` after correct PIN entry
+- Server-side validation on all poll mutations (create, update, delete)
+- Ranking posts (articles) now use same PIN instead of separate auth method
+- No user database — PIN-based access is sufficient for trusted league group
+
+### Known Limitations & Notes
+- **`createdAt` field**: All polls now require this field. New polls auto-populate with current ISO timestamp. Existing polls in `polls.json` missing this field will cause TypeScript errors on edit/delete.
+- **Mobile responsive**: PollCard, PollAdminForm, and PollsViewer all use Tailwind responsive utilities (work on mobile)
+- **Closed polls**: Still appear in feed with results visible, but voting buttons are disabled (`active: false`)
+- **Concurrent edits**: No conflict prevention — if two admins edit the same poll simultaneously, last write wins
+- **Admin state**: Persists in localStorage; cleared when user closes browser or manually deletes localStorage
+
+### Deployment Status
+- Code pushed to `main` branch on GitHub
+- Vercel deployment triggered automatically
+- Build error fixed: added missing `createdAt` field to poll creation (commit `2855460`)
+- Site live at: `https://continental-breakfast-alliance.vercel.app/message-board`
