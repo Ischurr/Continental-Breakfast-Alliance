@@ -45,8 +45,8 @@ const TEAMS = [
   {
     id: 8, name: 'Whistlepigs',
     logo: 'https://i.pinimg.com/564x/4e/2e/88/4e2e880d6aa675473a8d3eb73b2064f1.jpg',
-    coordinates: [-73.62, 42.35] as [number, number],
-    dx: 55, dy: -22,
+    coordinates: [-76.29, 36.85] as [number, number],
+    dx: 55, dy: -20,
   },
   {
     id: 9, name: 'Fuzzy Bottoms',

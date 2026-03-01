@@ -87,7 +87,33 @@ export default async function PlayerStatsPage() {
     .slice(0, 25);
 
   // Expected fantasy points — use projections CSV if available, else fall back to ESPN 2025 data
-  const projectionsData = loadProjectionsCsv();
+  const rawProjections = loadProjectionsCsv();
+
+  // Merge duplicate rows for the same player (two-way players like Ohtani appear as TWP + SP).
+  // Sum ProjectedFP and FP_MostRecentYear; keep the non-pitcher position label.
+  const projectionsData = (() => {
+    const map = new Map<string, ProjectionRow>();
+    for (const row of rawProjections) {
+      const existing = map.get(row['Player Name']);
+      if (existing) {
+        existing.ProjectedFP += row.ProjectedFP;
+        existing.FP_MostRecentYear += row.FP_MostRecentYear;
+        if (row.Position !== 'SP' && row.Position !== 'RP' && row.Position !== 'nan') {
+          existing.Position = row.Position;
+        }
+      } else {
+        map.set(row['Player Name'], { ...row });
+      }
+    }
+    // Recalculate delta% after merging
+    for (const row of map.values()) {
+      row.Projection_vs_MostRecent = row.FP_MostRecentYear > 0
+        ? ((row.ProjectedFP - row.FP_MostRecentYear) / row.FP_MostRecentYear) * 100
+        : 0;
+    }
+    return [...map.values()];
+  })();
+
   const hasProjections = projectionsData.length > 0;
   // Projection year matches the CSV filename logic (same as generate_projections.py)
   const projectionYear = new Date().getMonth() >= 10

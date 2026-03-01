@@ -39,7 +39,7 @@ npm run build            # Production build
 ```
 
 ## Data Conventions
-- `getCurrentSeason()` returns the current-year JSON; switches to new year on **March 15**
+- `getCurrentSeason()` returns the current-year JSON; switches to new year on **March 20**
 - Season JSON shape: `{ year, teams, standings, matchups, weeklyStats, playoffTeams, loserBracket, champion?, backgroundPhotoUrl?, rosters? }`
 - ESPN roster positions: **UTIL = outfielders + DH** (no separate OF/DH labels in roster data)
 - Free agent data from ESPN API uses real position labels (OF, DH, SP, RP, etc.)
@@ -120,7 +120,7 @@ npm run build            # Production build
 ## Key Gotchas
 - ESPN roster data: all pitchers use 'SP' slot (no 'RP'), UTIL = OF + DH
 - MLB Stats API `fields` param: must list nested fields explicitly (e.g., `primaryPosition,abbreviation` not just `primaryPosition`)
-- `getCurrentSeason()` returns 2025 until March 15 — use separate year computation for projection headings
+- `getCurrentSeason()` returns 2025 until March 20 — use separate year computation for projection headings
 - CSV `nan` values come through as the string `"nan"` in TypeScript (truthy) — check `!== 'nan'` explicitly
 - Server Actions must call `revalidatePath` for every route that displays that data
 - Vercel env vars: no quotes around values, must be set for Production, require redeploy after adding
@@ -164,56 +164,73 @@ Implemented admin-editable polls integrated into the message board with PIN prot
 - After submit, shows success message and resets form (for create) or calls `onComplete()` callback (for edit)
 - Server-side PIN validation: `NEXT_PUBLIC_ADMIN_PIN` environment variable
 
-#### `app/message-boar#### `app/message-
--------------com-------------com--- ful-------------com------------ility
+#### `app/message-board/PollsViewer.tsx`
+- New `'use client'` component that renders the polls section on the message board
 - Accepts `activePolls` and `closedPolls` arrays as props
-- Manages local- Manages local- Manages local- Manages local- ei- Manages local- Manages local- Manages local- Manages local- ei- Mann; shows edit buttons on active poll cards when admin is unl- Manages local- Manages local- Manages local- Manages local- onEdit` callback
-- Inline `PollAdminForm` appears below poll list when admin is editing a poll
-- On for- On for- On for- On for- On for- On for- On for- On for- On for- On for-le- On for- On for- On for- On for- On for- On for- On for- On for- On for- On for-le- On for- On for- On for- OAdmin- On for- On for- On for- On for- On for- On for- On for- On fo 'rankings' | 'polls'`
-- **Updated props**: now accept- **Updated props**: now accept- **Updated props**: now accept- **Updated props**: now accept- **Updated prop= - **Updated props**: now accept- **Updated props**: now accept- **Updateding polls
-  - If not admin: displays message  - If not admin: displays message  - If not admin: displays message  -fo  - If not admin: displays message  - If not admin: disdde  - If not admin: displays message  - If not admin: displays message  - If not admin: displays message  -fo  - If not admin: displays message  - If not admin: disdde  - If not admin: displays message  - If not admin: displays message  - If not admin: displays message  -e UI (once at top, once in post box); now consolidated
-- `PollsViewer` handles b- `PollsViewer` handles b- `PollsViewer` handles b- `PollsViewer` handles b- `PollsViewer` handles b- `PollsViewer` handles b- `PollsViewer` handles b- `PollsViewer` handles b- `PollsViewer` handles b- `PollsViewer` handles b- `PollsViewer` handles b- `PollsViewer` handles b- `Pollst `password` parameter
-  - Throws `'Unauthorized'` if PIN doesn't match
-  - Revalidates both `/polls` and `/message-board` paths after creation
+- Uses `useAdminMode` hook; shows "🔒 Admin login" button when not authenticated
+- When admin is logged in, each active poll card gets an Edit button via `onEdit` prop on `PollCard`
+- Inline `PollAdminForm` appears when admin clicks Edit on a poll; dismissed via `onSaved` callback
+- Renders "Open Polls" grid then "Closed Polls" grid (results visible, voting disabled on closed)
 
-- **Updated `updatePoll()` function**:
-  - Added server-side PIN validation (same pattern as createPoll)
-  - Password parameter passed by client from PollAdminForm
-  - Revalidates `/polls` and `/message-board`
+#### `app/message-board/MessageBoardForm.tsx` (updated)
+- Added `'polls'` to `PostMode` type: `'message' | 'trade' | 'rankings' | 'polls'`
+- Added Polls tab (only visible when `isAdmin`) that renders inline `PollAdminForm` for creating new polls
+- Now uses `useAdminMode` hook (replaced duplicate local admin state logic)
+- Props updated: now receives `polls: Poll[]` in addition to `teams`
+- Admin lock button moved here (was previously duplicated); single unlock button in post form area
 
-- **Updated `deletePoll()` function**:
-  - Added server-side PIN validation
-  - Revalidates `/polls` and `/message-board`
+#### `app/polls/actions.ts` (updated)
+- Added `createPoll()`, `updatePoll()`, `deletePoll()` server actions
+- All three validate `password` param against `NEXT_PUBLIC_ADMIN_PIN`; throw `'Unauthorized'` if mismatch
+- `createPoll()` auto-sets `createdAt: new Date().toISOString()` and prepends to polls array
+- `updatePoll()` preserves existing vote counts when editing option text
+- All three `revalidatePath('/polls')` and `revalidatePath('/message-board')`
+- `castVote()` unchanged — voting remains open to all users, no PIN required
 
-- **Unchanged**: `castVote()` action (voting remains open to all users, no PIN needed)
+#### `app/rankings/actions.ts` (updated)
+- `postArticle()`, `editArticle()`, `deleteArticle()` now validate against `NEXT_PUBLIC_ADMIN_PIN`
+- Previously used a different env var; now consistent with polls auth
 
-#### `app/rankings/actions.ts`
-- **Updated all three functions**: `postArticle()`, `editArticle()`, `deleteArticle()`
-- **Changed auth mechanism**: now uses `NEXT_PUBLIC_ADMIN_PIN` (was previously checking a different env var)
-- **Added validation**: `const adminPin = process.env.NEXT_PUBLIC_ADMIN_PIN ?? ''; if (!adminPin || password !== adminPin) throw new Error('Unauthorized');`
-- Makes ranking posts consistent with polls — both now share the same PIN authentication schem- Makes ranking posts consistent with polls —` - Makes ranking posts consistent with polls — both now share the sations, but `Poll` interface already had required `createdAt: string` field
-- Confirms all poll objects must i- Confirms all poll objects must i- Confirms all poll oFlow- Confirms all poll objects must i- Confirms po- Confirms all poll objects mu→ `castVote()` server action
-2. Vote counts 2. Vote counts 2. Vote counts 2. Vote countstat2. Vote counts 2. Vote counts 2. Vote counts 2. Vote countstat2. Vote counts 2. Vote nly)**
-1. Click 🔒 Admin button on `/message-board` → prompted for PIN
-2. If correct PIN entered: button changes to s2. If correct PIN entered: button changes to s2. If correct PIN entered: button changes to s2. If correct  fo2. If correct PIN entered: button changes to s2. If correct PIN entered: button changes to s2. If correct PIN entered: button changes to s2. If correct  fo.j2. If correct PIN entered: button changes to s2. If correct PIN entered: button changes to s2. If correct PIN entered: button changes to s2. If correct  fo2. If correct PIN entered: button changes to s2. If correct PIN entered: button changes to s2. If correct PIN entered: button chanserv2. If correct PIN entered: button changes to s2. If correct PIN entered: button changes to s2. If correct PIN entered: button changes to s2. If correct  fo2. If correct PIN entered: button changes toed from feed
+#### `app/teams/[teamId]/TeamContentEditor.tsx` (updated)
+- Refactored to use shared `useAdminMode` hook instead of local admin state
+
+### How Polls Admin Works
+1. Go to `/message-board` (or `/polls`)
+2. Click "🔒 Admin login" → enter PIN → button disappears, admin mode active
+3. Edit buttons appear on each active poll card → click to open inline `PollAdminForm`
+4. New poll creation: unlock, switch to "Polls" tab in the post form, fill form + PIN field → Create
+5. Poll fields: question, options (dynamic add/remove), active checkbox, optional expiry date, PIN
 
 ### PIN Security Notes
-- PIN stored in `NEXT_PUBLIC_ADMIN_PIN` environment variable (same as team page editor PIN)
+- PIN stored in `NEXT_PUBLIC_ADMIN_PIN` environment variable (shared with team page editor)
 - **Must be alphanumeric** — special chars like `$` get shell-expanded by dotenv parser
-- Client-side storage: localStorage key `cba_admin_mode` set to `'1'` after correct PIN entry
-- Server-side validation on all poll mutations (create, update, delete)
-- Ranking posts (articles) now use same PIN instead of separate auth method
-- No user database — PIN-based access is sufficient for trusted league group
-
-### Known Limitations & Notes
-- **`createdAt` field**: All polls now require this field. New polls auto-populate with current ISO timestamp. Existing polls in `polls.json` missing this field will cause TypeScript errors on edit/delete.
-- **Mobile responsive**: PollCard, PollAdminForm, and PollsViewer all use Tailwind responsive utilities (work on mobile)
-- **Closed polls**: Still appear in feed with results visible, but voting buttons are disabled (`active: false`)
-- **Concurrent edits**: No conflict prevention — if two admins edit the same poll simultaneously, last write wins
-- **Admin state**: Persists in localStorage; cleared when user closes browser or manually deletes localStorage
+- Client-side: `useAdminMode` hook stores `cba_admin_mode='1'` in localStorage after correct PIN
+- Server-side: all poll and ranking mutations validate the PIN before writing
+- Admin state persists in localStorage until browser storage is cleared
 
 ### Deployment Status
-- Code pushed to `main` branch on GitHub
-- Vercel deployment triggered automatically
-- Build error fixed: added missing `createdAt` field to poll creation (commit `2855460`)
+- Code pushed to `main` branch on GitHub; Vercel auto-deployed
+- Build error fixed: missing `createdAt` field added to poll creation (commit `2855460`)
 - Site live at: `https://continental-breakfast-alliance.vercel.app/message-board`
+
+## Session Work (March 1, 2026 — Claude)
+
+### CLAUDE.md Cleanup
+- Fixed corrupted Copilot AI section (lines 167–198 were garbled from a bad write)
+- Fixed stale March 15 cutover date → March 20 in two places (Data Conventions + Key Gotchas)
+
+### Ghent Whistlepigs Map Fix (`components/USMapHero.tsx`, `data/teams.json`)
+- Corrected team coordinates from Ghent, Columbia County NY `[-73.62, 42.35]` → Ghent neighborhood, Norfolk VA `[-76.29, 36.85]`
+- Updated `cityPhotoUrl` seed from `ghent-new-york` → `ghent-norfolk-virginia`
+
+### Two-Way Player Projection Fix (`app/stats/players/page.tsx`)
+- The projections CSV generates two rows per two-way player (Ohtani: TWP batting + SP pitching; Max Muncy: 3B + nan-position row from team split)
+- Added deduplication step after `loadProjectionsCsv()`: groups by player name, sums `ProjectedFP` and `FP_MostRecentYear`, recalculates delta%, keeps non-pitcher/non-nan position label
+- Ohtani now shows once as TWP: combined 2025 actual ~875 (close to ESPN's 910) and 2026 projection ~1,348 (full pitching workload expected after TJ recovery)
+- Fixed position-override bug: `nan`-position row no longer overwrites a valid `3B` label
+- ~53 players have `nan` positions (multi-team splits); existing fallback to ESPN position data handles them
+- ~151 rows project under 50 pts (retired/unsigned players); sort to bottom, don't clutter table
+
+### Known Broken Map Logos (to fix later)
+- Emus (id=6) and Banshees (id=10) use `mystique-api.fantasy.espn.com` URLs — private ESPN auth-required API, won't load publicly
+- Fix: upload replacement logos to imgur and update `USMapHero.tsx`
