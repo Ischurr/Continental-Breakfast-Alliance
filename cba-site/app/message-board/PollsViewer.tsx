@@ -45,7 +45,7 @@ export default function PollsViewer({ activePolls, closedPolls }: Props) {
               <PollCard
                 key={poll.id}
                 poll={poll}
-                onEdit={isAdmin ? () => setEditing(poll) : undefined}
+                onEdit={isAdmin ? () => setEditing(poll) : unlock}
               />
             ))}
           </div>

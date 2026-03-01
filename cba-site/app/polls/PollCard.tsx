@@ -36,9 +36,10 @@ export default function PollCard({ poll, showResults = false, onEdit }: Props) {
       {onEdit && poll.active && (
         <button
           onClick={onEdit}
-          className="absolute top-3 right-3 text-xs text-teal-600 hover:underline"
+          className="absolute top-3 right-3 text-xs text-gray-300 hover:text-gray-600 transition border border-gray-200 hover:border-gray-400 rounded px-1.5 py-0.5"
+          title="Edit poll"
         >
-          edit
+          ✏️
         </button>
       )}
       <div className="flex justify-between items-start mb-1">

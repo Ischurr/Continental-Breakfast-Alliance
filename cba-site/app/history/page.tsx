@@ -10,6 +10,9 @@ const seasons = getAllSeasons();
 const allTimeStandings = calculateAllTimeStandings();
 const allTeams = getCurrentSeason().teams;
 
+const pfSortedAllTime = [...allTimeStandings].sort((a, b) => b.totalPointsFor - a.totalPointsFor);
+const pfRankMapAllTime = new Map(pfSortedAllTime.map((t, i) => [t.teamId, i + 1]));
+
 const getTeamName = (teamId: number) =>
   allTeams.find(t => t.id === teamId)?.name ?? `Team ${teamId}`;
 
@@ -77,12 +80,15 @@ export default function HistoryPage() {
                     <th className="px-4 py-3 text-center">Saccko Finishes</th>
                     <th className="px-4 py-3 text-center">Avg Finish</th>
                     <th className="px-4 py-3 text-right">Total PF</th>
+                    <th className="px-4 py-3 text-center">PF Rank</th>
                   </tr>
                 </thead>
                 <tbody>
                   {allTimeStandings.map((team, index) => {
                     const total = team.totalWins + team.totalLosses + team.totalTies;
                     const winPct = total > 0 ? team.totalWins / total : 0;
+                    const pfRank = pfRankMapAllTime.get(team.teamId) ?? (index + 1);
+                    const rankDiff = (index + 1) - pfRank;
                     return (
                       <tr key={team.teamId} className="border-b hover:bg-sky-50 transition text-sm">
                         <td className="px-4 py-3 font-semibold text-gray-500">{index + 1}</td>
@@ -109,6 +115,14 @@ export default function HistoryPage() {
                         <td className="px-4 py-3 text-center">{team.averageFinish.toFixed(1)}</td>
                         <td className="px-4 py-3 text-right font-medium">
                           {Math.round(team.totalPointsFor).toLocaleString()}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <span className="font-medium">{pfRank}</span>
+                          {rankDiff !== 0 && (
+                            <span className={`ml-1 text-xs ${rankDiff > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                              {rankDiff > 0 ? `↑${rankDiff}` : `↓${Math.abs(rankDiff)}`}
+                            </span>
+                          )}
                         </td>
                       </tr>
                     );

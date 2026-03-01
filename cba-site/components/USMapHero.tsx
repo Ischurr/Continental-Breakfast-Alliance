@@ -28,13 +28,13 @@ const TEAMS = [
     id: 4, name: 'Mega Rats',
     logo: 'https://i.imgur.com/H2nbUd4.jpg',
     coordinates: [-73.99, 40.75] as [number, number],
-    dx: 50, dy: 10,
+    dx: 50, dy: -25,
   },
   {
     id: 6, name: 'Emus',
     logo: 'https://mystique-api.fantasy.espn.com/apis/v1/domains/lm/images/91042200-9a25-11f0-b1c3-bf61c28fbeb9',
     coordinates: [-75.60, 38.36] as [number, number],
-    dx: 55, dy: 38,
+    dx: 55, dy: -20,
   },
   {
     id: 7, name: 'Sky Chiefs',
@@ -46,7 +46,7 @@ const TEAMS = [
     id: 8, name: 'Whistlepigs',
     logo: 'https://i.pinimg.com/564x/4e/2e/88/4e2e880d6aa675473a8d3eb73b2064f1.jpg',
     coordinates: [-76.29, 36.85] as [number, number],
-    dx: 55, dy: -20,
+    dx: 70, dy: 45,
   },
   {
     id: 9, name: 'Fuzzy Bottoms',
@@ -64,7 +64,7 @@ const TEAMS = [
     id: 11, name: 'Folksy Ferrets',
     logo: 'https://i.imgur.com/cNtQjIA.png',
     coordinates: [-76.75, 39.11] as [number, number],
-    dx: -55, dy: 16,
+    dx: -40, dy: -35,
   },
 ];
 
