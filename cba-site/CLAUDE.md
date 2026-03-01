@@ -199,7 +199,8 @@ Implemented admin-editable polls integrated into the message board with PIN prot
 
 ### PIN Security Notes
 - PIN stored in `NEXT_PUBLIC_ADMIN_PIN` environment variable (same as team page editor PIN)
-- **Must be alphanumeric** - **Must be alphanumeric** - **Must be alphanumeric** - **Must be lient-side storage: localStorage key `cba_admin_mode` set to `'1'` after correct PIN entry
+- **Must be alphanumeric** — special chars like `$` get shell-expanded by dotenv parser
+- Client-side storage: localStorage key `cba_admin_mode` set to `'1'` after correct PIN entry
 - Server-side validation on all poll mutations (create, update, delete)
 - Ranking posts (articles) now use same PIN instead of separate auth method
 - No user database — PIN-based access is sufficient for trusted league group
