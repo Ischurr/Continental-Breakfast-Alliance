@@ -234,3 +234,27 @@ Implemented admin-editable polls integrated into the message board with PIN prot
 ### Known Broken Map Logos (to fix later)
 - Emus (id=6) and Banshees (id=10) use `mystique-api.fantasy.espn.com` URLs — private ESPN auth-required API, won't load publicly
 - Fix: upload replacement logos to imgur and update `USMapHero.tsx`
+
+## Session Work (March 1, 2026 — Claude, second session)
+
+### Poll Edit Button Restyled (`app/polls/PollCard.tsx`, `app/message-board/PollsViewer.tsx`)
+- Edit button changed from plain teal "edit" text → faint ✏️ icon with subtle gray border (`text-gray-300 hover:text-gray-600 border border-gray-200 hover:border-gray-400 rounded px-1.5 py-0.5`) — matches the 🔒 lock button pattern on team pages
+- Button is now always visible on active polls (not just when admin is authenticated)
+- In `PollsViewer`: `onEdit` prop is now always passed — routes to `unlock()` when not authenticated, to `setEditing()` when authenticated
+- Clicking the ✏️ on an active poll prompts for the admin PIN if not logged in, or opens the edit form immediately if already logged in
+
+### PF Rank Column (`components/StandingsTable.tsx`, `app/history/page.tsx`)
+- **StandingsTable**: Added "PF Rank" column between PF and PA on all per-season standings tables (current standings, every-season history view, single-season history view)
+  - Computed by sorting a copy of standings by `pointsFor` descending, building a `Map<teamId, rank>`
+  - Shows rank number + a small ↑/↓ delta in green/red if PF rank differs from W-L rank (positive delta = better in PF than wins; negative = worse)
+  - Column widths also widened: W/L/T `w-10 px-4` → `w-16 px-6`; PF/PA/DIFF/PF Rank `w-20` → `w-24`
+- **History page all-time table**: same PF Rank column added to the inline franchise-level table
+  - `pfSortedAllTime` and `pfRankMapAllTime` computed at module scope from `allTimeStandings`
+  - Delta compares franchise W-L rank (by total wins) vs. all-time PF rank (by total points for)
+
+### USMapHero Logo Position Adjustments (`components/USMapHero.tsx`)
+- Stars (geographic pins) unchanged; only `dx`/`dy` logo offsets adjusted
+- **Whistlepigs** (id=8, Norfolk VA): `dy -20 → 45` — logo now sits off the NC coast/Atlantic
+- **Emus** (id=6): `dy 38 → -20` — logo moved above the Delmarva star, no longer overlaps Whistlepigs
+- **Mega Rats** (id=4, NYC): `dy 10 → -25` — logo moved above the NYC star, no longer overlaps Emus
+- **Folksy Ferrets** (id=11, Baltimore): `dx -20, dy -35` (was `-55, 16`) — logo now sits in PA, no longer overlaps Pepperoni Rolls (WV)
