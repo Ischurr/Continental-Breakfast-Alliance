@@ -97,7 +97,12 @@ export default function EROSPTable({
 
     // Position filter
     if (posFilter !== 'All') {
-      list = list.filter(p => normalizePos(p.position) === posFilter);
+      list = list.filter(p => {
+        const pos = normalizePos(p.position);
+        // Generic 'P' from older JSON — fall back to role for SP/RP filter buttons
+        if (pos === 'P') return p.role === posFilter;
+        return pos === posFilter;
+      });
     }
 
     // Sort
@@ -258,7 +263,7 @@ export default function EROSPTable({
                           )}
                         </td>
                         <td className="px-4 py-2.5 text-gray-500 text-xs font-semibold">
-                          {normalizePos(p.position)}
+                          {normalizePos(p.position) === 'P' ? p.role : normalizePos(p.position)}
                         </td>
                         {showTeamColumn && (
                           <td className="px-4 py-2.5 text-gray-500 text-xs font-semibold">

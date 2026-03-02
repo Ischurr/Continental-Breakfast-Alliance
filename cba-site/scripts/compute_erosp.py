@@ -320,8 +320,10 @@ if not hitter_talent_df.empty:
 if not pitcher_talent_df.empty:
     for mid, row in pitcher_talent_df.iterrows():
         pos = str(row.get("mlb_position", row.get("role", "SP"))).upper()
-        # Normalize
-        if pos in ("SP", "RP", "P"):
+        # Normalize: generic 'P' from MLB API → use fantasy role (SP/RP)
+        if pos == "P":
+            pos = str(row.get("role", "SP")).upper()
+        if pos in ("SP", "RP"):
             position_map[mid] = pos
         elif pos not in position_map:
             position_map[mid] = pos
