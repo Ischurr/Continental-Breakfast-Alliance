@@ -262,7 +262,7 @@ Implemented admin-editable polls integrated into the message board with PIN prot
 ### USMapHero Additional Adjustments — Mar 2026 (`components/USMapHero.tsx`)
 - **Banshees** (id=10): Star moved from eastern TN `[-82.19, 36.60]` → Bristol CT `[-72.95, 41.67]` (correct city); logo offset `dx:45, dy:-65` (northeast, north of Mega Rats to avoid overlap)
 - **Pepperoni Rolls** (id=3, WV): Logo shifted south `dy: -22 → 20`; star moved to Morgantown `[-79.96, 39.63]` (was `[-81.63, 38.35]`)
-- **Folksy Ferrets** (id=11): Logo shifted further west and slightly south: `dx: -40 → -65, dy: -35 → -10`
+- **Folksy Ferrets** (id=11): Logo shifted further west and slightly south: `dx: -40 → -65, dy: -35 → -10`; then shifted north to avoid Morgantown star: `dy: -10 → -45`
 - **Sky Chiefs** (id=7, Syracuse): Logo shifted south and west: `dx: 10 → -30, dy: -52 → -30`
 - **Emus** (id=6): Logo shifted south: `dy: -20 → 5`
 

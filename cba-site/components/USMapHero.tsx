@@ -64,7 +64,7 @@ const TEAMS = [
     id: 11, name: 'Folksy Ferrets',
     logo: 'https://i.imgur.com/cNtQjIA.png',
     coordinates: [-76.75, 39.11] as [number, number],
-    dx: -65, dy: -10,
+    dx: -65, dy: -45,
   },
 ];
 
