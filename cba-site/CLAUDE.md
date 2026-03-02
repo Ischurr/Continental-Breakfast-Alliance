@@ -313,8 +313,17 @@ First run ~15-20 min (pybaseball fetches FanGraphs data). Subsequent runs faster
 #### Bugs fixed (post-launch)
 - **Duplicate key warning** (`mlbam_id` 660271 = Ohtani): appears in both hitter + pitcher talent DFs. Fixed in two places: (1) `compute_erosp.py` Step 13 now tracks `seen_mlbam` set to skip duplicate rows in JSON output; (2) both `app/stats/players/page.tsx` and `app/teams/[teamId]/page.tsx` deduplicate by `mlbam_id` when loading `latest.json` (first/highest value wins).
 - **Sigmoid tau too large** (`tau=1.0` → `tau=0.3`): with tau=1.0, elite players like Judge had start_probability ~86% when it should be ~100%. tau=0.3 gives ~99.8% for players 1.8+ daily-EV above replacement, ~50% at replacement, ~1% clearly below — correct behavior. Re-run `compute_erosp.py` after this change to refresh `latest.json`.
+- **Pitchers missing from table**: pitcher `position` field was `'P'` (generic MLB API value) instead of `'SP'`/`'RP'`, so sidebar filter buttons matched nothing. Fixed in `compute_erosp.py` Step 12 (map `'P'` → role before writing JSON) and in `EROSPTable.tsx` filter + display (fall back to `role` when `position === 'P'`, covers old JSON).
 
 #### Ignored in v1 (deferred)
 - GWRBI, CYC, OFAST (outfield assist), DPT (double play turned), PKO (pickoff), E (errors), NH, PG, CG, SO bonus
 - Monte Carlo P10/P50/P90 uncertainty ranges
 - Phase 2 ML model (LightGBM on historical seasons)
+
+## Session Work (March 2026 — Poll Improvements)
+
+### Poll vote deduplication + auto-close
+- **`app/polls/PollCard.tsx`**: `voted` and `selected` state now lazily initialized from `localStorage` key `voted-{pollId}`. Returning visitors see results immediately (no flash). `handleVote` saves to localStorage before calling `castVote` and guards with `|| voted`.
+- **`app/polls/actions.ts`** `castVote`: after incrementing option votes, sums all options — if total ≥ 12, sets `poll.active = false`. Poll auto-closes at 12 votes regardless of expiry date.
+- To reset a single browser's vote: browser console → `localStorage.removeItem('voted-poll-xxx')`. To list all voted polls: `Object.keys(localStorage).filter(k => k.startsWith('voted-'))`.
+- Vote counts live in Redis; only adjustable via admin edit form (or delete + recreate poll).
