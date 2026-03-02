@@ -21,7 +21,7 @@ const TEAMS = [
   {
     id: 3, name: 'Pepperoni Rolls',
     logo: 'https://i.pinimg.com/originals/83/99/28/839928316e524f7df9f543702aa96e1e.png',
-    coordinates: [-81.63, 38.35] as [number, number],
+    coordinates: [-79.96, 39.63] as [number, number],
     dx: -55, dy: 20,
   },
   {
