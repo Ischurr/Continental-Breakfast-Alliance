@@ -111,7 +111,7 @@ XWOBA_LG_AVG    = 0.320  # approximate MLB league-average xwOBA
 # ---------------------------------------------------------------------------
 # Startability sigmoid
 # ---------------------------------------------------------------------------
-SIGMOID_TAU = 1.0
+SIGMOID_TAU = 0.3
 
 # ---------------------------------------------------------------------------
 # Season/playing-time defaults (used pre-season or for players with no data)

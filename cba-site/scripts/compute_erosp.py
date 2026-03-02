@@ -355,7 +355,11 @@ projection_df["erosp_per_game"] = (
 print("─── Step 13: Writing output ─────────────────────────────────────")
 
 output_players = []
+seen_mlbam: set = set()
 for mlbam_id, row in projection_df.sort_values("erosp_startable", ascending=False).iterrows():
+    if mlbam_id in seen_mlbam:
+        continue
+    seen_mlbam.add(mlbam_id)
     erosp_startable = float(row.get("erosp_startable", 0))
     erosp_raw       = float(row.get("erosp_raw", 0))
 

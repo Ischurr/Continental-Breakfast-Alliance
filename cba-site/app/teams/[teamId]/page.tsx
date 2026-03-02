@@ -70,7 +70,12 @@ export default async function TeamPage({ params }: Props) {
         season_started:  erospRaw.season_started ?? false,
         total_players:   erospRaw.total_players ?? 0,
       };
-      erospPlayers = (erospRaw.players ?? []) as EROSPPlayer[];
+      const seen = new Set<number>();
+      erospPlayers = ((erospRaw.players ?? []) as EROSPPlayer[]).filter(p => {
+        if (seen.has(p.mlbam_id)) return false;
+        seen.add(p.mlbam_id);
+        return true;
+      });
     }
   } catch { /* EROSP data not yet generated */ }
 

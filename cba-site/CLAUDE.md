@@ -286,7 +286,7 @@ Built a full Python modeling pipeline + React UI for daily EROSP projections.
 | `scripts/erosp/talent.py` | Talent estimation: 3-year weighted blend (0.5/0.3/0.2), age curve (peak 28, ±0.6%/yr), xwOBA multiplicative adjustment, sprint speed SB boost |
 | `scripts/erosp/playing_time.py` | Playing time: hitter p_play + PA/game (0.85/4.0 defaults), SP rotation slot + IP/start, RP appearance rate + role (closer/setup/middle) |
 | `scripts/erosp/projection.py` | Per-PA/per-start/per-appearance FP formulas → daily EV → EROSP_raw over remaining schedule |
-| `scripts/erosp/startability.py` | Replacement levels by position (10-team pool), sigmoid start probability (tau=1.0), SP 6-start weekly cap factor, EROSP_startable |
+| `scripts/erosp/startability.py` | Replacement levels by position (10-team pool), sigmoid start probability (tau=0.3), SP 6-start weekly cap factor, EROSP_startable |
 | `scripts/compute_erosp.py` | Orchestrates all steps; outputs `data/erosp/latest.json` |
 
 #### Key modeling details
@@ -309,6 +309,10 @@ First run ~15-20 min (pybaseball fetches FanGraphs data). Subsequent runs faster
 - **Team page** (`app/teams/[teamId]/page.tsx`): loads `data/erosp/latest.json`, filters by `fantasy_team_id === team.id`, renders `<EROSPTable showTeamColumn={false} />` between "Roster" and "Season History"
 - **Stats page** (`app/stats/players/page.tsx`): loads `data/erosp/latest.json`, renders full `<EROSPTable />` section after the existing projections table
 - Both pages gracefully show nothing if `latest.json` doesn't exist yet
+
+#### Bugs fixed (post-launch)
+- **Duplicate key warning** (`mlbam_id` 660271 = Ohtani): appears in both hitter + pitcher talent DFs. Fixed in two places: (1) `compute_erosp.py` Step 13 now tracks `seen_mlbam` set to skip duplicate rows in JSON output; (2) both `app/stats/players/page.tsx` and `app/teams/[teamId]/page.tsx` deduplicate by `mlbam_id` when loading `latest.json` (first/highest value wins).
+- **Sigmoid tau too large** (`tau=1.0` → `tau=0.3`): with tau=1.0, elite players like Judge had start_probability ~86% when it should be ~100%. tau=0.3 gives ~99.8% for players 1.8+ daily-EV above replacement, ~50% at replacement, ~1% clearly below — correct behavior. Re-run `compute_erosp.py` after this change to refresh `latest.json`.
 
 #### Ignored in v1 (deferred)
 - GWRBI, CYC, OFAST (outfield assist), DPT (double play turned), PKO (pickoff), E (errors), NH, PG, CG, SO bonus
