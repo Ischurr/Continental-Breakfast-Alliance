@@ -315,6 +315,16 @@ First run ~15-20 min (pybaseball fetches FanGraphs data). Subsequent runs faster
 - **Sigmoid tau too large** (`tau=1.0` → `tau=0.3`): with tau=1.0, elite players like Judge had start_probability ~86% when it should be ~100%. tau=0.3 gives ~99.8% for players 1.8+ daily-EV above replacement, ~50% at replacement, ~1% clearly below — correct behavior. Re-run `compute_erosp.py` after this change to refresh `latest.json`.
 - **Pitchers missing from table**: pitcher `position` field was `'P'` (generic MLB API value) instead of `'SP'`/`'RP'`, so sidebar filter buttons matched nothing. Fixed in `compute_erosp.py` Step 12 (map `'P'` → role before writing JSON) and in `EROSPTable.tsx` filter + display (fall back to `role` when `position === 'P'`, covers old JSON).
 
+#### True RP Classification for Baseball Field (added Mar 2026)
+- `components/TeamBaseballField.tsx` + `components/BaseballFieldLeaders.tsx`: both accept optional `rpNames?: Set<string>` prop
+- When provided, ESPN `'SP'`-labeled pitchers are split by EROSP `role`: names in the set → Bullpen; everyone else → Rotation
+- When omitted (EROSP not yet generated), falls back to old rank-based split
+- Parent pages build the set: `new Set(erospPlayers.filter(p => p.role === 'RP').map(p => p.name))`
+  - Team page: filters to `teamErospPlayers` first; stats page uses all `erospPlayers`
+  - Passes `undefined` (not empty Set) when EROSP data is absent so fallback triggers correctly
+- EROSP `role` is computed in `scripts/erosp/ingest.py` from FanGraphs stats: `GS/G >= 0.5 → SP`, else `RP`
+- FA view of `BaseballFieldLeaders` is unaffected — ESPN FA data already has real `'SP'`/`'RP'` labels
+
 #### Ignored in v1 (deferred)
 - GWRBI, CYC, OFAST (outfield assist), DPT (double play turned), PKO (pickoff), E (errors), NH, PG, CG, SO bonus
 - Monte Carlo P10/P50/P90 uncertainty ranges

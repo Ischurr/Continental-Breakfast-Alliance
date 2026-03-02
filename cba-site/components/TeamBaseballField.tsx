@@ -11,6 +11,10 @@ type Player = {
 
 interface Props {
   players: Player[];
+  /** Player names (exact match) classified as true relievers via EROSP role data.
+   *  When provided, pitchers in this set go to the Bullpen; all others go to the Rotation.
+   *  Falls back to rank-based split when omitted. */
+  rpNames?: Set<string>;
 }
 
 // "Vladimir Guerrero Jr." → "Guerrero Jr."  |  "Mike Trout" → "Trout"
@@ -201,7 +205,7 @@ const FIELD_SLOTS: Record<string, [string, string]> = {
 
 // ─── Main component ────────────────────────────────────────────────────────────
 
-export default function TeamBaseballField({ players }: Props) {
+export default function TeamBaseballField({ players, rpNames }: Props) {
   const ohtani = players.find(p => p.playerName === 'Shohei Ohtani') ?? null;
   const activePool = players.filter(p => p.playerName !== 'Shohei Ohtani');
 
@@ -220,9 +224,24 @@ export default function TeamBaseballField({ players }: Props) {
   const ofs = utilSorted.slice(0, 3);
   const dh = utilSorted[3] ?? null;
 
-  const sp1      = top('SP', 1)[0] ?? null;
-  const rotation = top('SP', 6).slice(1);     // SP ranks 2–6
-  const bullpen  = top('SP', 11).slice(6);    // SP ranks 7–11
+  // Split pitchers into starters vs relievers.
+  // When EROSP role data is available (rpNames), players in the set are true RPs;
+  // everyone else with position='SP' is treated as a starter.
+  // Falls back to rank-based split when EROSP data isn't loaded yet.
+  const allSPs = activePool
+    .filter(p => p.position === 'SP')
+    .sort((a, b) => b.totalPoints - a.totalPoints);
+
+  const trueSPs = rpNames
+    ? allSPs.filter(p => !rpNames.has(p.playerName))
+    : allSPs.slice(0, 6);
+  const trueRPs = rpNames
+    ? allSPs.filter(p => rpNames.has(p.playerName))
+    : allSPs.slice(6, 11);
+
+  const sp1      = trueSPs[0] ?? null;
+  const rotation = trueSPs.slice(1, 6);   // up to 5 in the rotation side box
+  const bullpen  = trueRPs.slice(0, 5);   // up to 5 in the bullpen
 
   const fieldPlayers: Record<string, Player | null> = {
     C:    top('C',  1)[0] ?? null,

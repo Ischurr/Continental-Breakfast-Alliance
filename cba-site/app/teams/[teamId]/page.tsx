@@ -82,6 +82,11 @@ export default async function TeamPage({ params }: Props) {
   // Filter EROSP players to this fantasy team
   const teamErospPlayers = erospPlayers.filter(p => p.fantasy_team_id === id);
 
+  // Build set of true-RP names for the baseball field (EROSP role = 'RP')
+  const rpNames = new Set(
+    teamErospPlayers.filter(p => p.role === 'RP').map(p => p.name)
+  );
+
   return (
     <div className="min-h-screen bg-sky-50">
       <Header />
@@ -190,7 +195,7 @@ export default async function TeamPage({ params }: Props) {
         {currentRoster.length > 0 && (
           <div className="mb-10">
             <h2 className="text-2xl font-bold mb-4">{currentSeason.year} Roster</h2>
-            <TeamBaseballField players={currentRoster} />
+            <TeamBaseballField players={currentRoster} rpNames={rpNames.size > 0 ? rpNames : undefined} />
           </div>
         )}
 

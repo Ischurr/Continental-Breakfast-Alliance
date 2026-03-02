@@ -170,6 +170,11 @@ export default async function PlayerStatsPage() {
     }
   } catch { /* EROSP data not yet generated */ }
 
+  // Build set of true-RP names for the baseball field (EROSP role = 'RP')
+  const rpNames = new Set(
+    erospPlayers.filter(p => p.role === 'RP').map(p => p.name)
+  );
+
   // Build fantasy team name lookup for rostered player badges
   const teamNameById: Record<number, string> = {};
   for (const t of currentSeason.teams) teamNameById[t.id] = t.name;
@@ -206,7 +211,7 @@ export default async function PlayerStatsPage() {
             {/* Position Leaders — Baseball Field */}
             <h2 className="text-2xl font-bold mb-4">Position Leaders</h2>
             <div className="mb-12">
-              <BaseballFieldLeaders rosteredPlayers={allPlayers} freeAgents={freeAgents} />
+              <BaseballFieldLeaders rosteredPlayers={allPlayers} freeAgents={freeAgents} rpNames={rpNames.size > 0 ? rpNames : undefined} />
             </div>
 
             {/* Top 25 Overall */}

@@ -14,6 +14,10 @@ type Player = {
 interface Props {
   rosteredPlayers: Player[];
   freeAgents: Player[];
+  /** Player names classified as true relievers via EROSP role data (rostered view only).
+   *  When provided, pitchers in this set go to the Bullpen; others go to the Rotation.
+   *  FA view uses real ESPN position labels and ignores this prop. */
+  rpNames?: Set<string>;
 }
 
 // "Vladimir Guerrero Jr." → "Guerrero Jr."  |  "Mike Trout" → "Trout"
@@ -216,7 +220,7 @@ const FIELD_SLOTS: Record<string, [string, string]> = {
 
 // ─── Main component ────────────────────────────────────────────────────────────
 
-export default function BaseballFieldLeaders({ rosteredPlayers, freeAgents }: Props) {
+export default function BaseballFieldLeaders({ rosteredPlayers, freeAgents, rpNames }: Props) {
   const [view, setView] = useState<'rostered' | 'fa'>('rostered');
 
   const allInView = view === 'rostered' ? rosteredPlayers : freeAgents;
@@ -239,14 +243,35 @@ export default function BaseballFieldLeaders({ rosteredPlayers, freeAgents }: Pr
         .sort((a, b) => b.totalPoints - a.totalPoints)[3] ?? null)
     : (top('DH', 1)[0] ?? null);
 
-  const sp1      = top('SP', 1)[0] ?? null;
-  const rotation = top('SP', 4).slice(1);   // SP ranks 2–4
+  // Split pitchers into starters vs relievers.
+  // Rostered view: ESPN labels all pitchers 'SP'; use EROSP role data (rpNames) when
+  //   available to distinguish true RPs from SPs. Falls back to rank-based split.
+  // FA view: free-agent data has real 'SP'/'RP' position labels — use them directly.
+  let sp1: Player | null;
+  let rotation: Player[];
+  let bullpen: Player[];
 
-  // Rostered view: ESPN puts all pitchers in 'SP' slot — use ranks 5-9 as bullpen
-  // FA view: FA data uses real 'RP' position labels
-  const bullpen = view === 'rostered'
-    ? top('SP', 9).slice(4)
-    : top('RP', 5);
+  if (view === 'rostered') {
+    const allSPs = activePool
+      .filter(p => p.position === 'SP' && p.totalPoints > 0)
+      .sort((a, b) => b.totalPoints - a.totalPoints);
+
+    const trueSPs = rpNames
+      ? allSPs.filter(p => !rpNames.has(p.playerName))
+      : allSPs.slice(0, 4);
+    const trueRPs = rpNames
+      ? allSPs.filter(p => rpNames.has(p.playerName))
+      : allSPs.slice(4, 9);
+
+    sp1      = trueSPs[0] ?? null;
+    rotation = trueSPs.slice(1, 4);   // up to 3 in the rotation side box
+    bullpen  = trueRPs.slice(0, 5);   // up to 5 in the bullpen
+  } else {
+    // FA view: real position labels from ESPN FA data
+    sp1      = top('SP', 1)[0] ?? null;
+    rotation = top('SP', 4).slice(1);
+    bullpen  = top('RP', 5);
+  }
 
   const fieldPlayers: Record<string, Player | null> = {
     C:    top('C',  1)[0] ?? null,
