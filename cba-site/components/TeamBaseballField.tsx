@@ -31,14 +31,14 @@ function FieldPin({ player, label }: { player: Player | null; label: string }) {
     <div className="flex flex-col items-center gap-0.5 select-none cursor-default">
       {player?.photoUrl ? (
         <Image src={player.photoUrl} alt={player.playerName} width={44} height={44}
-          className="rounded-full ring-[2.5px] ring-white shadow-lg bg-gray-200 flex-shrink-0" unoptimized />
+          className="w-8 h-8 md:w-11 md:h-11 rounded-full ring-[2.5px] ring-white shadow-lg bg-gray-200 flex-shrink-0" unoptimized />
       ) : (
-        <div className="w-11 h-11 rounded-full ring-[2.5px] ring-white/60 bg-white/15 flex items-center justify-center shadow-md">
+        <div className="w-8 h-8 md:w-11 md:h-11 rounded-full ring-[2.5px] ring-white/60 bg-white/15 flex items-center justify-center shadow-md">
           <span className="text-white/80 text-[11px] font-bold">{label}</span>
         </div>
       )}
       {player && (
-        <div className="bg-black/70 backdrop-blur-sm rounded-full px-2 py-0.5 whitespace-nowrap shadow">
+        <div className="hidden md:block bg-black/70 backdrop-blur-sm rounded-full px-2 py-0.5 whitespace-nowrap shadow">
           <span className="text-[10px] text-white font-semibold">{name}</span>
           {player.totalPoints > 0 && (
             <span className="text-[10px] text-teal-300 font-bold ml-1">{Math.round(player.totalPoints)}</span>
@@ -67,7 +67,7 @@ function BullpenPin({ player, rank }: { player: Player | null; rank: number }) {
         </div>
       )}
       {player && (
-        <div className="bg-black/70 rounded-full px-1.5 py-0.5 whitespace-nowrap shadow">
+        <div className="hidden md:block bg-black/70 rounded-full px-1.5 py-0.5 whitespace-nowrap shadow">
           <span className="text-[8px] text-white font-semibold">{name}</span>
           {player.totalPoints > 0 && (
             <span className="text-[8px] text-teal-300 font-bold ml-0.5">{Math.round(player.totalPoints)}</span>

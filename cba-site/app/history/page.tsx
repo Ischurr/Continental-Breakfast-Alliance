@@ -66,21 +66,21 @@ export default function HistoryPage() {
         {selected === 'all-time' && (
           <>
             <div className="overflow-x-auto overflow-y-hidden mb-14">
-              <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
-                <thead className="bg-gray-800 text-white text-sm">
+              <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden text-xs md:text-sm">
+                <thead className="bg-gray-800 text-white">
                   <tr>
-                    <th className="px-4 py-3 text-left w-10">#</th>
-                    <th className="px-4 py-3 text-left">Team</th>
-                    <th className="px-4 py-3 text-center">W</th>
-                    <th className="px-4 py-3 text-center">L</th>
-                    <th className="px-4 py-3 text-center">T</th>
-                    <th className="px-4 py-3 text-center">PCT</th>
-                    <th className="px-4 py-3 text-center">Titles</th>
-                    <th className="px-4 py-3 text-center">Playoffs</th>
-                    <th className="px-4 py-3 text-center">Saccko Finishes</th>
-                    <th className="px-4 py-3 text-center">Avg Finish</th>
-                    <th className="px-4 py-3 text-right">Total PF</th>
-                    <th className="px-4 py-3 text-center">PF Rank</th>
+                    <th className="px-2 py-2 md:px-4 md:py-3 text-left w-8 md:w-10">#</th>
+                    <th className="px-2 py-2 md:px-4 md:py-3 text-left">Team</th>
+                    <th className="px-2 py-2 md:px-4 md:py-3 text-center">W</th>
+                    <th className="px-2 py-2 md:px-4 md:py-3 text-center">L</th>
+                    <th className="hidden md:table-cell px-4 py-3 text-center">T</th>
+                    <th className="hidden md:table-cell px-4 py-3 text-center">PCT</th>
+                    <th className="px-2 py-2 md:px-4 md:py-3 text-center">Titles</th>
+                    <th className="px-2 py-2 md:px-4 md:py-3 text-center">Playoffs</th>
+                    <th className="hidden md:table-cell px-4 py-3 text-center">Saccko</th>
+                    <th className="hidden md:table-cell px-4 py-3 text-center">Avg Finish</th>
+                    <th className="px-2 py-2 md:px-4 md:py-3 text-right">Total PF</th>
+                    <th className="px-2 py-2 md:px-4 md:py-3 text-center">PF Rank</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -90,33 +90,33 @@ export default function HistoryPage() {
                     const pfRank = pfRankMapAllTime.get(team.teamId) ?? (index + 1);
                     const rankDiff = (index + 1) - pfRank;
                     return (
-                      <tr key={team.teamId} className="border-b hover:bg-sky-50 transition text-sm">
-                        <td className="px-4 py-3 font-semibold text-gray-500">{index + 1}</td>
-                        <td className="px-4 py-3">
+                      <tr key={team.teamId} className="border-b hover:bg-sky-50 transition">
+                        <td className="px-2 py-2 md:px-4 md:py-3 font-semibold text-gray-500">{index + 1}</td>
+                        <td className="px-2 py-2 md:px-4 md:py-3">
                           <Link href={`/teams/${team.teamId}`} className="font-semibold hover:text-teal-600 transition">
                             {getTeamName(team.teamId)}
                           </Link>
                         </td>
-                        <td className="px-4 py-3 text-center">{team.totalWins}</td>
-                        <td className="px-4 py-3 text-center">{team.totalLosses}</td>
-                        <td className="px-4 py-3 text-center">{team.totalTies}</td>
-                        <td className="px-4 py-3 text-center">{Math.round(winPct * 100)}%</td>
-                        <td className="px-4 py-3 text-center">
+                        <td className="px-2 py-2 md:px-4 md:py-3 text-center">{team.totalWins}</td>
+                        <td className="px-2 py-2 md:px-4 md:py-3 text-center">{team.totalLosses}</td>
+                        <td className="hidden md:table-cell px-4 py-3 text-center">{team.totalTies}</td>
+                        <td className="hidden md:table-cell px-4 py-3 text-center">{Math.round(winPct * 100)}%</td>
+                        <td className="px-2 py-2 md:px-4 md:py-3 text-center">
                           {team.championships > 0 ? (
                             <span className="font-bold text-yellow-600">{'★'.repeat(team.championships)}</span>
                           ) : (
                             <span className="text-gray-300">—</span>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-center">{team.playoffAppearances}</td>
-                        <td className="px-4 py-3 text-center text-red-500">
+                        <td className="px-2 py-2 md:px-4 md:py-3 text-center">{team.playoffAppearances}</td>
+                        <td className="hidden md:table-cell px-4 py-3 text-center text-red-500">
                           {team.loserBracketAppearances > 0 ? team.loserBracketAppearances : '—'}
                         </td>
-                        <td className="px-4 py-3 text-center">{team.averageFinish.toFixed(1)}</td>
-                        <td className="px-4 py-3 text-right font-medium">
+                        <td className="hidden md:table-cell px-4 py-3 text-center">{team.averageFinish.toFixed(1)}</td>
+                        <td className="px-2 py-2 md:px-4 md:py-3 text-right font-medium">
                           {Math.round(team.totalPointsFor).toLocaleString()}
                         </td>
-                        <td className="px-4 py-3 text-center">
+                        <td className="px-2 py-2 md:px-4 md:py-3 text-center">
                           <span className="font-medium">{pfRank}</span>
                           {rankDiff !== 0 && (
                             <span className={`ml-1 text-xs ${rankDiff > 0 ? 'text-green-600' : 'text-red-500'}`}>

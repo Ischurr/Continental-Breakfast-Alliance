@@ -15,6 +15,12 @@ export async function castVote(pollId: string, optionId: string): Promise<void> 
 
   option.votes += 1;
 
+  // Auto-close poll once it reaches 12 votes
+  const totalVotes = poll.options.reduce((s, o) => s + o.votes, 0);
+  if (totalVotes >= 12) {
+    poll.active = false;
+  }
+
   await setPolls(data);
   revalidatePath('/polls');
   revalidatePath('/message-board');

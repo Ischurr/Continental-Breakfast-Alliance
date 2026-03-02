@@ -193,10 +193,10 @@ export default function EROSPTable({
       </div>
 
       {/* ── Sidebar + Table ── */}
-      <div className="flex gap-3 items-start">
+      <div className="flex flex-col md:flex-row gap-3 md:items-start">
 
-        {/* Position sidebar */}
-        <div className="flex flex-col gap-1 flex-shrink-0 w-14">
+        {/* Position sidebar — horizontal pill row on mobile, vertical column on desktop */}
+        <div className="flex flex-row flex-wrap gap-1 md:flex-col md:flex-shrink-0 md:w-14">
           {ALL_POSITIONS.map(pos => (
             <button
               key={pos}
@@ -214,7 +214,7 @@ export default function EROSPTable({
 
         {/* Table */}
         <div className="flex-1 min-w-0 bg-white rounded-xl border shadow-sm overflow-hidden">
-          <div className="overflow-y-auto overflow-x-hidden" style={{ maxHeight: '460px' }}>
+          <div className="overflow-y-auto overflow-x-auto" style={{ maxHeight: '460px' }}>
             <table className="min-w-full text-sm">
               <thead className="bg-gray-800 sticky top-0 z-10">
                 <tr>
@@ -227,13 +227,13 @@ export default function EROSPTable({
                   </th>
                   <th className="px-4 py-2.5 text-left text-white w-12">Pos</th>
                   {showTeamColumn && (
-                    <th className="px-4 py-2.5 text-left text-white w-14">Team</th>
+                    <th className="hidden md:table-cell px-4 py-2.5 text-left text-white w-14">Team</th>
                   )}
-                  <th className="px-4 py-2.5 text-center text-white w-20">Status</th>
-                  <th className={thClass('erosp_per_game')} onClick={() => handleSort('erosp_per_game')}>
+                  <th className="hidden md:table-cell px-4 py-2.5 text-center text-white w-20">Status</th>
+                  <th className={`hidden md:table-cell ${thClass('erosp_per_game')}`} onClick={() => handleSort('erosp_per_game')}>
                     /Game <SortIcon col="erosp_per_game" />
                   </th>
-                  <th className={thClass('erosp_raw')} onClick={() => handleSort('erosp_raw')}>
+                  <th className={`hidden md:table-cell ${thClass('erosp_raw')}`} onClick={() => handleSort('erosp_raw')}>
                     Raw <SortIcon col="erosp_raw" />
                   </th>
                   <th className={thClass('erosp_startable')} onClick={() => handleSort('erosp_startable')}>
@@ -266,11 +266,11 @@ export default function EROSPTable({
                           {normalizePos(p.position) === 'P' ? p.role : normalizePos(p.position)}
                         </td>
                         {showTeamColumn && (
-                          <td className="px-4 py-2.5 text-gray-500 text-xs font-semibold">
+                          <td className="hidden md:table-cell px-4 py-2.5 text-gray-500 text-xs font-semibold">
                             {p.mlb_team || '—'}
                           </td>
                         )}
-                        <td className="px-4 py-2.5 text-center">
+                        <td className="hidden md:table-cell px-4 py-2.5 text-center">
                           {p.is_fa ? (
                             <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600">
                               Free Agent
@@ -281,10 +281,10 @@ export default function EROSPTable({
                             </span>
                           )}
                         </td>
-                        <td className="px-4 py-2.5 text-right text-gray-500 text-xs">
+                        <td className="hidden md:table-cell px-4 py-2.5 text-right text-gray-500 text-xs">
                           {p.erosp_per_game.toFixed(2)}
                         </td>
-                        <td className="px-4 py-2.5 text-right text-gray-400 text-xs">
+                        <td className="hidden md:table-cell px-4 py-2.5 text-right text-gray-400 text-xs">
                           {Math.round(p.erosp_raw).toLocaleString()}
                         </td>
                         <td className="px-4 py-2.5 text-right font-bold text-teal-600">
@@ -301,9 +301,10 @@ export default function EROSPTable({
           {/* Footer: result count + explanation */}
           <div className="px-4 py-2 bg-gray-50 border-t flex items-center justify-between text-xs text-gray-400">
             <span>{filtered.length.toLocaleString()} player{filtered.length !== 1 ? 's' : ''}</span>
-            <span>
+            <span className="hidden md:inline">
               <strong>Startable</strong> = replaces replacement-level player · 6-SP-start weekly cap applied
             </span>
+            <span className="md:hidden">6-start SP cap applied</span>
           </div>
         </div>
       </div>

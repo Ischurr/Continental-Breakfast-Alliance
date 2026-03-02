@@ -6,7 +6,7 @@ import { getAllSeasons, getCurrentSeason, getCompletedSeasons, calculateAllTimeS
 import { getHottestStory, timeAgo } from '@/lib/news-fetcher';
 import { Poll, TrashTalkData } from '@/lib/types';
 import { getPolls, getTrashTalk } from '@/lib/store';
-import { getNextEventWithin, formatCountdown, formatEventDate } from '@/lib/calendar';
+import { getAllEventsWithin, formatCountdown, formatEventDate } from '@/lib/calendar';
 import teamsJson from '@/data/teams.json';
 import PollCard from './polls/PollCard';
 
@@ -39,7 +39,7 @@ export default async function Home() {
     Promise.resolve(getNotableAvailablePlayers(5)),
   ]);
 
-  const nextEvent = getNextEventWithin(7);
+  const upcomingEvents = getAllEventsWithin(7);
 
   const activePolls: Poll[] = (await getPolls()).polls.filter((p: Poll) => p.active);
 
@@ -242,24 +242,24 @@ export default async function Home() {
           </div>
         </div>
 
-        {/* Upcoming Event Banner — visible within 7 days of the next calendar event */}
-        {nextEvent && (() => {
+        {/* Upcoming Event Banners — visible within 7 days of each calendar event */}
+        {upcomingEvents.map(event => {
           const s = {
             deadline: { bg: 'bg-amber-500',  border: 'border-amber-600',  dateColor: 'text-amber-100', countdownColor: 'text-amber-600',  label: 'Deadline'  },
             cba:      { bg: 'bg-violet-600', border: 'border-violet-700', dateColor: 'text-violet-100', countdownColor: 'text-violet-600', label: 'CBA Event' },
             mlb:      { bg: 'bg-sky-600',    border: 'border-sky-700',    dateColor: 'text-sky-100',    countdownColor: 'text-sky-600',    label: 'MLB Event' },
-          }[nextEvent.type];
-          const cd = formatCountdown(nextEvent.date);
-          const dl = formatEventDate(nextEvent.date, nextEvent.timeLabel);
+          }[event.type];
+          const cd = formatCountdown(event.date);
+          const dl = formatEventDate(event.date, event.timeLabel);
           return (
-            <div className={`mt-4 ${s.bg} border ${s.border} rounded-xl px-6 py-4 flex items-center justify-between gap-4`}>
+            <div key={event.title} className={`mt-4 ${s.bg} border ${s.border} rounded-xl px-6 py-4 flex items-center justify-between gap-4`}>
               <div className="flex items-center gap-4 min-w-0">
-                <span className="text-3xl" aria-hidden="true">{nextEvent.emoji}</span>
+                <span className="text-3xl" aria-hidden="true">{event.emoji}</span>
                 <div className="min-w-0">
                   <span className="text-xs font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-white/20 text-white">
                     {s.label}
                   </span>
-                  <p className="font-bold text-white text-base leading-snug mt-1">{nextEvent.title}</p>
+                  <p className="font-bold text-white text-base leading-snug mt-1">{event.title}</p>
                   <p className={`text-sm mt-0.5 ${s.dateColor}`}>{dl}</p>
                 </div>
               </div>
@@ -269,7 +269,7 @@ export default async function Home() {
               </div>
             </div>
           );
-        })()}
+        })}
         </div>
 
         {/* Active Polls */}

@@ -45,30 +45,30 @@ export default function TeamStatsPage() {
         <h2 className="text-2xl font-bold mb-5">Biggest Blowouts</h2>
         {biggestWins.length > 0 ? (
           <div className="overflow-x-auto overflow-y-hidden mb-12">
-            <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
-              <thead className="bg-gray-800 text-white text-sm">
+            <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden text-xs md:text-sm">
+              <thead className="bg-gray-800 text-white">
                 <tr>
-                  <th className="px-4 py-3 text-left">#</th>
-                  <th className="px-4 py-3 text-left">Winner</th>
-                  <th className="px-4 py-3 text-left">Loser</th>
-                  <th className="px-4 py-3 text-center">Season</th>
-                  <th className="px-4 py-3 text-center">Week</th>
-                  <th className="px-4 py-3 text-right">Score</th>
-                  <th className="px-4 py-3 text-right">Margin</th>
+                  <th className="px-2 py-2 md:px-4 md:py-3 text-left">#</th>
+                  <th className="px-2 py-2 md:px-4 md:py-3 text-left">Winner</th>
+                  <th className="px-2 py-2 md:px-4 md:py-3 text-left">Loser</th>
+                  <th className="px-2 py-2 md:px-4 md:py-3 text-center">Season</th>
+                  <th className="hidden md:table-cell px-4 py-3 text-center">Week</th>
+                  <th className="px-2 py-2 md:px-4 md:py-3 text-right">Score</th>
+                  <th className="px-2 py-2 md:px-4 md:py-3 text-right">Margin</th>
                 </tr>
               </thead>
               <tbody>
                 {biggestWins.map((win, i) => (
-                  <tr key={`${win.year}-${win.week}-${win.winnerId}`} className="border-b hover:bg-sky-50 text-sm">
-                    <td className="px-4 py-3 text-gray-400">{i + 1}</td>
-                    <td className="px-4 py-3 font-medium text-green-700">{getTeamName(win.winnerId)}</td>
-                    <td className="px-4 py-3 text-gray-600">{getTeamName(win.loserId)}</td>
-                    <td className="px-4 py-3 text-center text-gray-500">{win.year}</td>
-                    <td className="px-4 py-3 text-center text-gray-500">Wk {win.week}</td>
-                    <td className="px-4 py-3 text-right">
+                  <tr key={`${win.year}-${win.week}-${win.winnerId}`} className="border-b hover:bg-sky-50">
+                    <td className="px-2 py-2 md:px-4 md:py-3 text-gray-400">{i + 1}</td>
+                    <td className="px-2 py-2 md:px-4 md:py-3 font-medium text-green-700">{getTeamName(win.winnerId)}</td>
+                    <td className="px-2 py-2 md:px-4 md:py-3 text-gray-600">{getTeamName(win.loserId)}</td>
+                    <td className="px-2 py-2 md:px-4 md:py-3 text-center text-gray-500">{win.year}</td>
+                    <td className="hidden md:table-cell px-4 py-3 text-center text-gray-500">Wk {win.week}</td>
+                    <td className="px-2 py-2 md:px-4 md:py-3 text-right">
                       {win.winnerPoints.toFixed(1)} - {win.loserPoints.toFixed(1)}
                     </td>
-                    <td className="px-4 py-3 text-right font-bold text-teal-600">
+                    <td className="px-2 py-2 md:px-4 md:py-3 text-right font-bold text-teal-600">
                       +{win.margin.toFixed(1)}
                     </td>
                   </tr>
@@ -84,24 +84,24 @@ export default function TeamStatsPage() {
         <h2 className="text-2xl font-bold mb-5">All-Time High Scores</h2>
         {highestScores.length > 0 ? (
           <div className="overflow-x-auto overflow-y-hidden mb-12">
-            <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
-              <thead className="bg-gray-800 text-white text-sm">
+            <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden text-xs md:text-sm">
+              <thead className="bg-gray-800 text-white">
                 <tr>
-                  <th className="px-4 py-3 text-left">#</th>
-                  <th className="px-4 py-3 text-left">Team</th>
-                  <th className="px-4 py-3 text-center">Season</th>
-                  <th className="px-4 py-3 text-center">Week</th>
-                  <th className="px-4 py-3 text-right">Score</th>
+                  <th className="px-2 py-2 md:px-4 md:py-3 text-left">#</th>
+                  <th className="px-2 py-2 md:px-4 md:py-3 text-left">Team</th>
+                  <th className="px-2 py-2 md:px-4 md:py-3 text-center">Season</th>
+                  <th className="px-2 py-2 md:px-4 md:py-3 text-center">Week</th>
+                  <th className="px-2 py-2 md:px-4 md:py-3 text-right">Score</th>
                 </tr>
               </thead>
               <tbody>
                 {highestScores.map((score, i) => (
-                  <tr key={`${score.teamId}-${score.year}-${score.week}`} className="border-b hover:bg-sky-50 text-sm">
-                    <td className="px-4 py-3 text-gray-400">{i + 1}</td>
-                    <td className="px-4 py-3 font-medium">{getTeamName(score.teamId)}</td>
-                    <td className="px-4 py-3 text-center text-gray-500">{score.year}</td>
-                    <td className="px-4 py-3 text-center text-gray-500">Wk {score.week}</td>
-                    <td className="px-4 py-3 text-right font-bold text-teal-600">{score.points.toFixed(1)}</td>
+                  <tr key={`${score.teamId}-${score.year}-${score.week}`} className="border-b hover:bg-sky-50">
+                    <td className="px-2 py-2 md:px-4 md:py-3 text-gray-400">{i + 1}</td>
+                    <td className="px-2 py-2 md:px-4 md:py-3 font-medium">{getTeamName(score.teamId)}</td>
+                    <td className="px-2 py-2 md:px-4 md:py-3 text-center text-gray-500">{score.year}</td>
+                    <td className="px-2 py-2 md:px-4 md:py-3 text-center text-gray-500">Wk {score.week}</td>
+                    <td className="px-2 py-2 md:px-4 md:py-3 text-right font-bold text-teal-600">{score.points.toFixed(1)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -114,15 +114,15 @@ export default function TeamStatsPage() {
         {/* All-time scoring leaders */}
         <h2 className="text-2xl font-bold mb-5">All-Time Scoring Leaders</h2>
         <div className="overflow-x-auto overflow-y-hidden">
-          <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
-            <thead className="bg-gray-800 text-white text-sm">
+          <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden text-xs md:text-sm">
+            <thead className="bg-gray-800 text-white">
               <tr>
-                <th className="px-4 py-3 text-left">#</th>
-                <th className="px-4 py-3 text-left">Team</th>
-                <th className="px-4 py-3 text-right">Total PF</th>
-                <th className="px-4 py-3 text-right">Total PA</th>
-                <th className="px-4 py-3 text-right">Diff</th>
-                <th className="px-4 py-3 text-center">Saccko</th>
+                <th className="px-2 py-2 md:px-4 md:py-3 text-left">#</th>
+                <th className="px-2 py-2 md:px-4 md:py-3 text-left">Team</th>
+                <th className="px-2 py-2 md:px-4 md:py-3 text-right">Total PF</th>
+                <th className="hidden md:table-cell px-4 py-3 text-right">Total PA</th>
+                <th className="hidden md:table-cell px-4 py-3 text-right">Diff</th>
+                <th className="px-2 py-2 md:px-4 md:py-3 text-center">Saccko</th>
               </tr>
             </thead>
             <tbody>
@@ -136,17 +136,17 @@ export default function TeamStatsPage() {
                   const scoreDiff = team.totalPointsFor - paData;
 
                   return (
-                    <tr key={team.teamId} className="border-b hover:bg-sky-50 text-sm">
-                      <td className="px-4 py-3 text-gray-400">{i + 1}</td>
-                      <td className="px-4 py-3 font-medium">{getTeamName(team.teamId)}</td>
-                      <td className="px-4 py-3 text-right font-semibold text-teal-600">
+                    <tr key={team.teamId} className="border-b hover:bg-sky-50">
+                      <td className="px-2 py-2 md:px-4 md:py-3 text-gray-400">{i + 1}</td>
+                      <td className="px-2 py-2 md:px-4 md:py-3 font-medium">{getTeamName(team.teamId)}</td>
+                      <td className="px-2 py-2 md:px-4 md:py-3 text-right font-semibold text-teal-600">
                         {team.totalPointsFor.toFixed(1)}
                       </td>
-                      <td className="px-4 py-3 text-right text-gray-600">{paData.toFixed(1)}</td>
-                      <td className={`px-4 py-3 text-right font-semibold ${scoreDiff >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                      <td className="hidden md:table-cell px-4 py-3 text-right text-gray-600">{paData.toFixed(1)}</td>
+                      <td className={`hidden md:table-cell px-4 py-3 text-right font-semibold ${scoreDiff >= 0 ? 'text-green-600' : 'text-red-500'}`}>
                         {scoreDiff >= 0 ? '+' : ''}{scoreDiff.toFixed(1)}
                       </td>
-                      <td className="px-4 py-3 text-center">
+                      <td className="px-2 py-2 md:px-4 md:py-3 text-center">
                         {team.loserBracketAppearances > 0
                           ? <span className="text-red-500 font-semibold">{team.loserBracketAppearances}x</span>
                           : <span className="text-gray-300">—</span>}

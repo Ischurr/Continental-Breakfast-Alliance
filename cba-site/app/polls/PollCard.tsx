@@ -12,8 +12,14 @@ interface Props {
 }
 
 export default function PollCard({ poll, showResults = false, onEdit }: Props) {
-  const [voted, setVoted] = useState(false);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [voted, setVoted] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return !!localStorage.getItem(`voted-${poll.id}`);
+  });
+  const [selected, setSelected] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem(`voted-${poll.id}`);
+  });
   const [optimisticVotes, setOptimisticVotes] = useState(poll.options.map(o => o.votes));
   const [loading, setLoading] = useState(false);
 
@@ -21,12 +27,13 @@ export default function PollCard({ poll, showResults = false, onEdit }: Props) {
   const showingResults = showResults || voted;
 
   async function handleVote() {
-    if (!selected || loading) return;
+    if (!selected || loading || voted) return;
     setLoading(true);
     // Optimistic update
     const idx = poll.options.findIndex(o => o.id === selected);
     setOptimisticVotes(prev => prev.map((v, i) => i === idx ? v + 1 : v));
     setVoted(true);
+    localStorage.setItem(`voted-${poll.id}`, selected);
     await castVote(poll.id, selected);
     setLoading(false);
   }

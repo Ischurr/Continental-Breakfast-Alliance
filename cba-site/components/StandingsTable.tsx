@@ -24,19 +24,19 @@ export default function StandingsTable({
 
   return (
     <div className="overflow-x-auto overflow-y-hidden">
-      <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+      <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden text-xs md:text-sm">
         <thead className="bg-gray-800 text-white">
           <tr>
-            <th className="px-4 py-3 text-left w-12">Rank</th>
-            <th className="px-4 py-3 text-left">Team</th>
-            <th className="px-6 py-3 text-center w-16">W</th>
-            <th className="px-6 py-3 text-center w-16">L</th>
-            <th className="px-6 py-3 text-center w-16">T</th>
-            <th className="px-4 py-3 text-center w-20">PCT</th>
-            <th className="px-4 py-3 text-right w-24">PF</th>
-            <th className="px-4 py-3 text-center w-24">PF Rank</th>
-            <th className="px-4 py-3 text-right w-24">PA</th>
-            <th className="px-4 py-3 text-center w-24">DIFF</th>
+            <th className="px-2 py-2 md:px-4 md:py-3 text-left w-8 md:w-12">Rank</th>
+            <th className="px-2 py-2 md:px-4 md:py-3 text-left">Team</th>
+            <th className="px-3 py-2 md:px-6 md:py-3 text-center w-10 md:w-16">W</th>
+            <th className="px-3 py-2 md:px-6 md:py-3 text-center w-10 md:w-16">L</th>
+            <th className="hidden md:table-cell px-6 py-3 text-center w-16">T</th>
+            <th className="hidden md:table-cell px-4 py-3 text-center w-20">PCT</th>
+            <th className="px-2 py-2 md:px-4 md:py-3 text-right w-16 md:w-24">PF</th>
+            <th className="px-2 py-2 md:px-4 md:py-3 text-center w-16 md:w-24">PF Rank</th>
+            <th className="hidden md:table-cell px-4 py-3 text-right w-24">PA</th>
+            <th className="hidden md:table-cell px-4 py-3 text-center w-24">DIFF</th>
           </tr>
         </thead>
         <tbody>
@@ -57,8 +57,8 @@ export default function StandingsTable({
                   isPlayoff ? 'bg-green-50' : isLoser ? 'bg-red-50' : ''
                 }`}
               >
-                <td className="px-4 py-3 font-semibold text-gray-700">{index + 1}</td>
-                <td className="px-4 py-3">
+                <td className="px-2 py-2 md:px-4 md:py-3 font-semibold text-gray-700">{index + 1}</td>
+                <td className="px-2 py-2 md:px-4 md:py-3">
                   <Link
                     href={`/teams/${standing.teamId}`}
                     className="font-medium hover:text-teal-600 transition"
@@ -69,12 +69,12 @@ export default function StandingsTable({
                     <span className="ml-2 text-xs text-gray-500">{standing.streak}</span>
                   )}
                 </td>
-                <td className="px-6 py-3 text-center">{standing.wins}</td>
-                <td className="px-6 py-3 text-center">{standing.losses}</td>
-                <td className="px-6 py-3 text-center">{standing.ties}</td>
-                <td className="px-4 py-3 text-center">{winPct.toFixed(3)}</td>
-                <td className="px-4 py-3 text-right">{standing.pointsFor.toFixed(1)}</td>
-                <td className="px-4 py-3 text-center">
+                <td className="px-3 py-2 md:px-6 md:py-3 text-center">{standing.wins}</td>
+                <td className="px-3 py-2 md:px-6 md:py-3 text-center">{standing.losses}</td>
+                <td className="hidden md:table-cell px-6 py-3 text-center">{standing.ties}</td>
+                <td className="hidden md:table-cell px-4 py-3 text-center">{winPct.toFixed(3)}</td>
+                <td className="px-2 py-2 md:px-4 md:py-3 text-right">{standing.pointsFor.toFixed(1)}</td>
+                <td className="px-2 py-2 md:px-4 md:py-3 text-center">
                   <span className="font-medium">{pfRank}</span>
                   {rankDiff !== 0 && (
                     <span className={`ml-1 text-xs ${rankDiff > 0 ? 'text-green-600' : 'text-red-500'}`}>
@@ -82,9 +82,9 @@ export default function StandingsTable({
                     </span>
                   )}
                 </td>
-                <td className="px-4 py-3 text-right">{standing.pointsAgainst.toFixed(1)}</td>
+                <td className="hidden md:table-cell px-4 py-3 text-right">{standing.pointsAgainst.toFixed(1)}</td>
                 <td
-                  className={`px-4 py-3 text-center font-semibold ${
+                  className={`hidden md:table-cell px-4 py-3 text-center font-semibold ${
                     diff > 0 ? 'text-green-600' : diff < 0 ? 'text-red-600' : 'text-gray-600'
                   }`}
                 >
