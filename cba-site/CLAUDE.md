@@ -265,3 +265,52 @@ Implemented admin-editable polls integrated into the message board with PIN prot
 - **Folksy Ferrets** (id=11): Logo shifted further west and slightly south: `dx: -40 → -65, dy: -35 → -10`
 - **Sky Chiefs** (id=7, Syracuse): Logo shifted south and west: `dx: 10 → -30, dy: -52 → -30`
 - **Emus** (id=6): Logo shifted south: `dy: -20 → 5`
+
+## Session Work (March 2026 — EROSP System)
+
+### EROSP — Expected Rest of Season Points
+
+Built a full Python modeling pipeline + React UI for daily EROSP projections.
+
+#### Architecture: GitHub Actions + JSON files (no new infrastructure)
+- Daily cron at **11 AM UTC (6 AM EST)** via `.github/workflows/update-erosp.yml`
+- Writes `data/erosp/latest.json` → committed to repo → Vercel redeploys
+- Same pattern as `update-projections.yml`
+
+#### Python Pipeline (`scripts/erosp/` + `scripts/compute_erosp.py`)
+
+| Module | Purpose |
+|--------|---------|
+| `scripts/erosp/config.py` | League constants: scoring weights (H+1+TB, R+1, RBI+1, BB+1, K-1, SB+2, CS-1, GIDP-0.25; IP+3, HA-1, ER-2, BBA-1, KP+1, W+3, L-3, SV+5, BS-2, HD+3, QS+3), roster slot counts, park factors |
+| `scripts/erosp/ingest.py` | Data fetching: `pybaseball` batting/pitching stats, Statcast xwOBA, sprint speed; MLB StatsAPI schedule; ESPN roster + FA JSON files; Chadwick register ID mapping |
+| `scripts/erosp/talent.py` | Talent estimation: 3-year weighted blend (0.5/0.3/0.2), age curve (peak 28, ±0.6%/yr), xwOBA multiplicative adjustment, sprint speed SB boost |
+| `scripts/erosp/playing_time.py` | Playing time: hitter p_play + PA/game (0.85/4.0 defaults), SP rotation slot + IP/start, RP appearance rate + role (closer/setup/middle) |
+| `scripts/erosp/projection.py` | Per-PA/per-start/per-appearance FP formulas → daily EV → EROSP_raw over remaining schedule |
+| `scripts/erosp/startability.py` | Replacement levels by position (10-team pool), sigmoid start probability (tau=1.0), SP 6-start weekly cap factor, EROSP_startable |
+| `scripts/compute_erosp.py` | Orchestrates all steps; outputs `data/erosp/latest.json` |
+
+#### Key modeling details
+- **Scoring**: singles=2pts (H+TB), doubles=3, triples=4, HRs=5; pitchers: 3pts/IP is the anchor stat
+- **Replacement level**: computed from full MLB player pool at each position (not just rostered); uses N-th best daily EV where N = slots × 10 teams
+- **SP 6-start cap**: `cap_factor = min(1.0, 6 / team_starts_per_week)` per SP; teams with ≤6 starts/week have cap_factor=1.0
+- **Pre-season**: current-season weight = 0; all 3-yr history; p_play defaults applied; full 162-game projection
+- **Cache**: `scripts/erosp_cache/` stores all pybaseball CSV fetches and schedule JSON
+
+#### To run locally
+```bash
+cd /Users/ianschurr/Continental-Breakfast-Alliance/cba-site/scripts
+pip3 install pybaseball pandas numpy requests python-mlb-statsapi
+python3 compute_erosp.py
+```
+First run ~15-20 min (pybaseball fetches FanGraphs data). Subsequent runs faster (cache hits).
+
+#### Frontend
+- **`components/EROSPTable.tsx`**: `'use client'` sortable table; columns: Player, Pos, Team, /Game, Raw, Startable; Raw/Startable toggle; position sidebar filter; FA/Rostered/All toggle
+- **Team page** (`app/teams/[teamId]/page.tsx`): loads `data/erosp/latest.json`, filters by `fantasy_team_id === team.id`, renders `<EROSPTable showTeamColumn={false} />` between "Roster" and "Season History"
+- **Stats page** (`app/stats/players/page.tsx`): loads `data/erosp/latest.json`, renders full `<EROSPTable />` section after the existing projections table
+- Both pages gracefully show nothing if `latest.json` doesn't exist yet
+
+#### Ignored in v1 (deferred)
+- GWRBI, CYC, OFAST (outfield assist), DPT (double play turned), PKO (pickoff), E (errors), NH, PG, CG, SO bonus
+- Monte Carlo P10/P50/P90 uncertainty ranges
+- Phase 2 ML model (LightGBM on historical seasons)

@@ -17,6 +17,7 @@ import {
 } from '@/lib/mlb-stats';
 import MlbStatsGrid from '@/components/MlbStatsGrid';
 import ProjectedPointsTable from '@/components/ProjectedPointsTable';
+import EROSPTable, { type EROSPPlayer, type EROSPMeta } from '@/components/EROSPTable';
 import fs from 'fs';
 import path from 'path';
 
@@ -146,6 +147,28 @@ export default async function PlayerStatsPage() {
         .filter(p => p.totalPoints > 0)
         .sort((a, b) => b.totalPoints - a.totalPoints);
 
+  // EROSP data — load from latest.json if available
+  let erospPlayers: EROSPPlayer[] = [];
+  let erospMeta: EROSPMeta | null = null;
+  try {
+    const erospPath = path.join(process.cwd(), 'data', 'erosp', 'latest.json');
+    if (fs.existsSync(erospPath)) {
+      const erospRaw = JSON.parse(fs.readFileSync(erospPath, 'utf-8'));
+      erospMeta = {
+        generated_at:    erospRaw.generated_at ?? '',
+        season:          erospRaw.season ?? projectionYear,
+        games_remaining: erospRaw.games_remaining ?? 162,
+        season_started:  erospRaw.season_started ?? false,
+        total_players:   erospRaw.total_players ?? 0,
+      };
+      erospPlayers = (erospRaw.players ?? []) as EROSPPlayer[];
+    }
+  } catch { /* EROSP data not yet generated */ }
+
+  // Build fantasy team name lookup for rostered player badges
+  const teamNameById: Record<number, string> = {};
+  for (const t of currentSeason.teams) teamNameById[t.id] = t.name;
+
   // Fetch MLB Stats API data in parallel
   const [baLeaders, hitsLeaders, hrLeaders, sbLeaders, eraLeaders, savesLeaders, kLeaders, whipLeaders] =
     await Promise.all([
@@ -263,6 +286,26 @@ export default async function PlayerStatsPage() {
               targetYear={projectionYear}
               recentYear={projectionYear - 1}
             />
+
+            {/* ── EROSP Section ─────────────────────────────────────────── */}
+            {erospMeta ? (
+              <>
+                <h2 className="text-2xl font-bold mb-1 mt-10">
+                  {erospMeta.season} Expected Rest of Season Points (EROSP)
+                </h2>
+                <p className="text-sm text-gray-500 mb-6">
+                  Daily-updated model projecting each player&apos;s remaining fantasy points —
+                  both unconstrained (<strong>Raw</strong>) and within a 10-team daily-lineup
+                  league with 6-SP-start weekly cap (<strong>Startable</strong>).
+                </p>
+                <EROSPTable
+                  players={erospPlayers}
+                  meta={erospMeta}
+                  showTeamColumn={true}
+                  teamNames={teamNameById}
+                />
+              </>
+            ) : null}
 
             <MlbStatsGrid
               baLeaders={baLeaders}

@@ -9,6 +9,9 @@ import { TrashTalkData } from '@/lib/types';
 import { getTrashTalk, getTeamContent } from '@/lib/store';
 import { TeamBioEditor, TeamStrengthsEditor } from './TeamContentEditor';
 import TeamBaseballField from '@/components/TeamBaseballField';
+import EROSPTable, { type EROSPPlayer, type EROSPMeta } from '@/components/EROSPTable';
+import fs from 'fs';
+import path from 'path';
 
 interface Props {
   params: Promise<{ teamId: string }>;
@@ -52,6 +55,27 @@ export default async function TeamPage({ params }: Props) {
   const teamPosts = boardData.posts.filter(
     p => p.authorTeamId === id || p.targetTeamId === id
   );
+
+  // EROSP data — load from latest.json if available
+  let erospPlayers: EROSPPlayer[] = [];
+  let erospMeta: EROSPMeta | null = null;
+  try {
+    const erospPath = path.join(process.cwd(), 'data', 'erosp', 'latest.json');
+    if (fs.existsSync(erospPath)) {
+      const erospRaw = JSON.parse(fs.readFileSync(erospPath, 'utf-8'));
+      erospMeta = {
+        generated_at:    erospRaw.generated_at ?? '',
+        season:          erospRaw.season ?? currentSeason.year,
+        games_remaining: erospRaw.games_remaining ?? 162,
+        season_started:  erospRaw.season_started ?? false,
+        total_players:   erospRaw.total_players ?? 0,
+      };
+      erospPlayers = (erospRaw.players ?? []) as EROSPPlayer[];
+    }
+  } catch { /* EROSP data not yet generated */ }
+
+  // Filter EROSP players to this fantasy team
+  const teamErospPlayers = erospPlayers.filter(p => p.fantasy_team_id === id);
 
   return (
     <div className="min-h-screen bg-sky-50">
@@ -162,6 +186,30 @@ export default async function TeamPage({ params }: Props) {
           <div className="mb-10">
             <h2 className="text-2xl font-bold mb-4">{currentSeason.year} Roster</h2>
             <TeamBaseballField players={currentRoster} />
+          </div>
+        )}
+
+        {/* EROSP Projections */}
+        {erospMeta && (
+          <div className="mb-10">
+            <h2 className="text-2xl font-bold mb-1">{erospMeta.season} EROSP Projections</h2>
+            <p className="text-sm text-gray-500 mb-4">
+              Expected Rest of Season Fantasy Points · {erospMeta.games_remaining} games remaining
+            </p>
+            {teamErospPlayers.length > 0 ? (
+              <EROSPTable
+                players={teamErospPlayers}
+                meta={erospMeta}
+                showTeamColumn={false}
+              />
+            ) : (
+              <div className="bg-white rounded-xl border shadow-sm p-6 text-center text-gray-400 text-sm">
+                No EROSP data for this team's roster yet.
+                {!erospMeta.season_started && (
+                  <span> EROSP data becomes more accurate once the season starts.</span>
+                )}
+              </div>
+            )}
           </div>
         )}
 
