@@ -22,7 +22,7 @@ const TEAMS = [
     id: 3, name: 'Pepperoni Rolls',
     logo: 'https://i.pinimg.com/originals/83/99/28/839928316e524f7df9f543702aa96e1e.png',
     coordinates: [-81.63, 38.35] as [number, number],
-    dx: -55, dy: -22,
+    dx: -55, dy: 20,
   },
   {
     id: 4, name: 'Mega Rats',
@@ -34,13 +34,13 @@ const TEAMS = [
     id: 6, name: 'Emus',
     logo: 'https://mystique-api.fantasy.espn.com/apis/v1/domains/lm/images/91042200-9a25-11f0-b1c3-bf61c28fbeb9',
     coordinates: [-75.60, 38.36] as [number, number],
-    dx: 55, dy: -20,
+    dx: 55, dy: 5,
   },
   {
     id: 7, name: 'Sky Chiefs',
     logo: 'https://1000logos.net/wp-content/uploads/2018/08/Syracuse-Chiefs-Logo-1997.png',
     coordinates: [-76.15, 43.05] as [number, number],
-    dx: 10, dy: -52,
+    dx: -30, dy: -30,
   },
   {
     id: 8, name: 'Whistlepigs',
@@ -57,14 +57,14 @@ const TEAMS = [
   {
     id: 10, name: 'Banshees',
     logo: 'https://mystique-api.fantasy.espn.com/apis/v1/domains/lm/images/bc893190-2775-11f0-bf52-473646e3de99',
-    coordinates: [-82.19, 36.60] as [number, number],
-    dx: -55, dy: 8,
+    coordinates: [-72.95, 41.67] as [number, number],
+    dx: 45, dy: -65,
   },
   {
     id: 11, name: 'Folksy Ferrets',
     logo: 'https://i.imgur.com/cNtQjIA.png',
     coordinates: [-76.75, 39.11] as [number, number],
-    dx: -40, dy: -35,
+    dx: -65, dy: -10,
   },
 ];
 

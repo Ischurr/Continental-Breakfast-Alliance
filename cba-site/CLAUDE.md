@@ -258,3 +258,10 @@ Implemented admin-editable polls integrated into the message board with PIN prot
 - **Emus** (id=6): `dy 38 → -20` — logo moved above the Delmarva star, no longer overlaps Whistlepigs
 - **Mega Rats** (id=4, NYC): `dy 10 → -25` — logo moved above the NYC star, no longer overlaps Emus
 - **Folksy Ferrets** (id=11, Baltimore): `dx -20, dy -35` (was `-55, 16`) — logo now sits in PA, no longer overlaps Pepperoni Rolls (WV)
+
+### USMapHero Additional Adjustments — Mar 2026 (`components/USMapHero.tsx`)
+- **Banshees** (id=10): Star moved from eastern TN `[-82.19, 36.60]` → Bristol CT `[-72.95, 41.67]` (correct city); logo offset `dx:45, dy:-65` (northeast, north of Mega Rats to avoid overlap)
+- **Pepperoni Rolls** (id=3, WV): Logo shifted south `dy: -22 → 20`
+- **Folksy Ferrets** (id=11): Logo shifted further west and slightly south: `dx: -40 → -65, dy: -35 → -10`
+- **Sky Chiefs** (id=7, Syracuse): Logo shifted south and west: `dx: 10 → -30, dy: -52 → -30`
+- **Emus** (id=6): Logo shifted south: `dy: -20 → 5`
