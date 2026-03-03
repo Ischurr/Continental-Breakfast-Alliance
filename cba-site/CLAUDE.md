@@ -337,3 +337,56 @@ First run ~15-20 min (pybaseball fetches FanGraphs data). Subsequent runs faster
 - **`app/polls/actions.ts`** `castVote`: after incrementing option votes, sums all options — if total ≥ 12, sets `poll.active = false`. Poll auto-closes at 12 votes regardless of expiry date.
 - To reset a single browser's vote: browser console → `localStorage.removeItem('voted-poll-xxx')`. To list all voted polls: `Object.keys(localStorage).filter(k => k.startsWith('voted-'))`.
 - Vote counts live in Redis; only adjustable via admin edit form (or delete + recreate poll).
+
+## Session Work (March 2026 — Mobile Layout Improvements)
+
+### Responsive Tables
+Applied consistent mobile-first treatment across all data tables:
+- `text-xs md:text-sm` on all `<table>` elements
+- Padding reduced: `px-2 py-2 md:px-4 md:py-3` on all `<th>`/`<td>` cells
+- Low-priority columns hidden on mobile with `hidden md:table-cell`
+
+**`components/StandingsTable.tsx`**: Hidden on mobile: T, PCT, PA, DIFF — mobile shows Rank/Team/W/L/PF/PF Rank (6 cols)
+
+**`app/history/page.tsx`** all-time table: Hidden on mobile: T, PCT, Saccko, Avg Finish
+
+**`app/stats/teams/page.tsx`**:
+- Blowouts table: Week column hidden on mobile
+- Scoring Leaders table: Total PA and Diff hidden on mobile
+
+### EROSPTable Bug Fix + Mobile Layout (`components/EROSPTable.tsx`)
+- **Critical bug**: `overflow-x-hidden` was silently clipping the table on mobile → changed to `overflow-x-auto`
+- Outer layout changed from vertical stack to `flex flex-col md:flex-row` (sidebar above table on mobile)
+- Position sidebar changed from vertical `flex-col` to `flex flex-row flex-wrap md:flex-col` — horizontal pill row on mobile
+- Hidden on mobile: Team, Status, /Game, Raw columns (`hidden md:table-cell`)
+- Footer text shortened on mobile via `md:hidden` span
+
+### Baseball Field Pin Improvements (`components/TeamBaseballField.tsx`, `components/BaseballFieldLeaders.tsx`)
+- Player photo reduced: `w-11 h-11` → `w-8 h-8 md:w-11 md:h-11` (32px mobile, 44px desktop)
+- Name+score badge hidden on mobile (`hidden md:block`) in both `FieldPin` and `BullpenPin`
+  - Root cause: `whitespace-nowrap` badges (e.g. "Guerrero Jr." ≈ 80px wide) overlapped adjacent infield pins (~40px apart on a 375px phone)
+  - Position labels (tiny 2–3 char) and side boxes below the field still show on mobile
+
+### Landing Page Multiple Event Banners (`app/page.tsx`)
+- **Bug**: `getNextEventWithin(7)` only returns the nearest single event — WBC (Mar 5) was returned, Keeper Deadline (Mar 7) was silently dropped
+- **Fix**: switched import to `getAllEventsWithin`, variable to `const upcomingEvents = getAllEventsWithin(7)`, render changed from single conditional to `.map()` over the array
+- To test locally: change both `getAllEventsWithin(7)` calls (in `page.tsx` and `layout.tsx`) to `(14)`, revert before pushing
+
+## Session Work (March 2026 — WVPR Brand Kit Integration)
+
+### West Virginia Pepperoni Rolls brand content (`data/teams.json`, `app/teams/[teamId]/page.tsx`)
+- **Brand colors fixed**: `primaryColor` updated to Mountaineer Blue `#1C384F`, `secondaryColor` to Raw Dough `#FBF2CE` (was `#FFE66D`/`#FFFDE0`)
+- **`#LETSGETBAKED` badge**: Red (`#C91920` Pepperoni Red) pill badge added to team header, gated on `id === 3`
+- **Game Day Traditions section**: 8 tradition cards in a 4-column grid (`lg:grid-cols-4`), each with a Mountaineer Blue header strip and Raw Dough cream body. Cards use `flex flex-col` + `flex-1` on the body so all cards in a row fill to the same height. Inserted after `TeamStrengthsEditor`, before Top Players.
+- **Farm System section**: 3 affiliate cards (Huntington Hammers AAA `#5B7C99`, C&O Canal Cats AA `#228B22`, Frost Whitetails A `#4A4A4A`) with level badge, location, and color swatches. Inserted after EROSP Projections, before Season History.
+- **WVPR constants at module level**: `WVPR_TRADITIONS` and `WVPR_AFFILIATES` arrays declared above `interface Props` in `page.tsx`
+
+### Baseball field enhancements (`components/TeamBaseballField.tsx`)
+- **New props**: `fieldDimensions?: { lf, lcf, cf, rcf, rf }` and `stadiumName?: string`. WVPR team page passes these; all other teams pass `undefined`.
+- **Field dimensions**: Text markers placed in the dark foul territory ABOVE the outfield fence arc. Fence y-values at each x: LF/RF corners ~85, LCF/RCF ~47, CF center ~21.5. Marker positions: LF x=50 y=68, LCF x=158 y=30, CF x=350 y=13, RCF x=542 y=30, RF x=650 y=68.
+- **Stadium name caption**: Rendered as a small `<p>` below the field container (outside the SVG/absolute-container), visible on WVPR team page only.
+- **Warning track fixed**: Replaced with a stroke on the fence arc (`M 0 108 Q 350 -65 700 108`, `strokeWidth="38"`) clipped by `<clipPath id="fairTerritoryClip">` (the fair-territory polygon). The clip removes the outward half of the stroke, leaving a uniform ~19px dirt track that follows the full arc. Avoids the corner-tapering problem of the crescent approach and the overflow/angle artifacts of an unclipped stroke.
+- **Photo fixes**: Added `object-cover` to `FieldPin` and `BullpenPin` `<Image>` elements to prevent head squishing. Added explicit `w-7 h-7 lg:w-8 lg:h-8` Tailwind classes to `BullpenPin` image (was relying on intrinsic width/height only).
+- **Responsive pin sizing**: Photo size breakpoints moved from `md:` to `lg:` (`w-8 h-8 lg:w-11 lg:h-11` for FieldPin, `w-7 h-7 lg:w-8 lg:h-8` for BullpenPin). Name badges also moved to `hidden lg:block`. Rationale: at `md` (768px) the field is only ~400px wide with side panels; at `lg` (1024px) it's ~640px — enough room for larger photos and name labels without overlap.
+- **OF2 (CF) position**: Moved from `top: 14%` to `top: 19%` (SVG y ~67 → ~90) so center fielder clears the warning track inner edge (~42).
+- **Field height**: `paddingTop` increased from `68%` to `75%` — field is physically taller, catcher label more visible, better alignment with the Rotation/Bullpen side boxes.

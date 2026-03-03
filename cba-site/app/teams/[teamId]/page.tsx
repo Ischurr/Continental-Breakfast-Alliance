@@ -13,6 +13,47 @@ import EROSPTable, { type EROSPPlayer, type EROSPMeta } from '@/components/EROSP
 import fs from 'fs';
 import path from 'path';
 
+const WVPR_TRADITIONS = [
+  {
+    name: '"Cue Country Roads" Pregame',
+    description: "Before every home game, fans join in singing 'Cue Country Roads' by Morgantown's own Charles Wesley Godwin.",
+  },
+  {
+    name: 'Running of the Rolls',
+    description: 'Three mascot rolls race the 1st baseline in the 5th inning: Hot Pepper Hank, Pepperoni and Cheese Patty, and Double-Stuffed Dave (the lovable loser). Pick your winner via the Roll Call! app.',
+  },
+  {
+    name: 'Free Pepperoni Roll Fridays',
+    description: "First 500 fans through the gate at every Friday home game get a free Julia's Original Pepperoni Roll from Chico's Bakery. Vegetarian and gluten-free options available behind Gate A.",
+  },
+  {
+    name: 'Fire(works) on the Mountain',
+    description: 'Every Friday (weather permitting), fireworks light up the sky 5 minutes after the final out — win or lose.',
+  },
+  {
+    name: 'Victory Sing-Along',
+    description: 'After every win, the whole ballpark joins in singing "Take Me Home, Country Roads."',
+  },
+  {
+    name: '"Beverage" Snake',
+    description: "Section 43's fan-created tradition: save your cup and pass it to the nearest attendant. No throwing — that's an ejection. All cups recycled after the game.",
+  },
+  {
+    name: 'Pepperoni Roll Eating Contest',
+    description: "At the season's midpoint during the 7th-inning stretch: who can eat the most rolls in 2:30? Winner gets merch and a year's supply from Chico's. 2022 champ: Joey Chesnut.",
+  },
+  {
+    name: 'Moonshine Run',
+    description: "On Sundays, kids follow a 1928 Ford Model A Sport Coupe around the bases. Parents are responsible for their children.",
+  },
+];
+
+const WVPR_AFFILIATES = [
+  { name: 'Huntington Hammers', level: 'AAA', location: 'Huntington, WV', primaryColor: '#5B7C99', accentColor: '#EED202' },
+  { name: 'Chesapeake & Ohio Canal Cats', level: 'AA', location: 'Cumberland, MD', primaryColor: '#228B22', accentColor: '#6495ED' },
+  { name: 'Frost Whitetails', level: 'A', location: 'Frost, WV', primaryColor: '#4A4A4A', accentColor: '#FF6700' },
+];
+
 interface Props {
   params: Promise<{ teamId: string }>;
 }
@@ -112,6 +153,9 @@ export default async function TeamPage({ params }: Props) {
             <div className="flex-1 min-w-0">
               <h1 className="text-4xl font-bold mb-1">{team.name}</h1>
               <p className="text-lg opacity-80 mb-4">{team.owner}</p>
+              {id === 3 && (
+                <span className="inline-block bg-[#C91920] text-white text-xs font-bold px-3 py-1 rounded-full mb-3 tracking-wide">#LETSGETBAKED</span>
+              )}
               <TeamBioEditor teamId={id} bio={effectiveBio} />
             </div>
           </div>
@@ -160,6 +204,26 @@ export default async function TeamPage({ params }: Props) {
           weaknesses={effectiveWeaknesses}
         />
 
+        {/* WVPR Game Day Traditions */}
+        {id === 3 && (
+          <div className="mb-10">
+            <h2 className="text-2xl font-bold mb-1">Game Day Traditions</h2>
+            <p className="text-sm text-gray-500 mb-4">Tim Elko Field at Montani Semper Liberi Park · Morgantown, WV</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {WVPR_TRADITIONS.map(t => (
+                <div key={t.name} className="rounded-xl overflow-hidden shadow-sm border border-gray-200 flex flex-col">
+                  <div className="px-4 py-3" style={{ backgroundColor: '#1C384F' }}>
+                    <p className="text-sm font-bold text-white leading-tight">{t.name}</p>
+                  </div>
+                  <div className="px-4 py-3 flex-1" style={{ backgroundColor: '#FBF2CE' }}>
+                    <p className="text-xs text-gray-700 leading-relaxed">{t.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Top Players All-Time */}
         {topPlayersAllTime.length > 0 && (
           <div className="mb-10">
@@ -195,7 +259,12 @@ export default async function TeamPage({ params }: Props) {
         {currentRoster.length > 0 && (
           <div className="mb-10">
             <h2 className="text-2xl font-bold mb-4">{currentSeason.year} Roster</h2>
-            <TeamBaseballField players={currentRoster} rpNames={rpNames.size > 0 ? rpNames : undefined} />
+            <TeamBaseballField
+              players={currentRoster}
+              rpNames={rpNames.size > 0 ? rpNames : undefined}
+              fieldDimensions={id === 3 ? { lf: 325, lcf: 375, cf: 400, rcf: 375, rf: 325 } : undefined}
+              stadiumName={id === 3 ? 'Tim Elko Field at Montani Semper Liberi Park' : undefined}
+            />
           </div>
         )}
 
@@ -220,6 +289,31 @@ export default async function TeamPage({ params }: Props) {
                 )}
               </div>
             )}
+          </div>
+        )}
+
+        {/* WVPR Farm System */}
+        {id === 3 && (
+          <div className="mb-10">
+            <h2 className="text-2xl font-bold mb-4">Farm System</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {WVPR_AFFILIATES.map(a => (
+                <div key={a.name} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                  <div className="px-5 py-4" style={{ backgroundColor: a.primaryColor }}>
+                    <span className="inline-block bg-white/20 text-white text-[11px] font-bold px-2 py-0.5 rounded-full mb-2 tracking-wide">
+                      {a.level}
+                    </span>
+                    <p className="text-white font-bold text-sm leading-tight">{a.name}</p>
+                    <p className="text-white/65 text-xs mt-0.5">{a.location}</p>
+                  </div>
+                  <div className="px-4 py-3 flex items-center gap-2">
+                    <div className="w-5 h-5 rounded-full border-2 border-white shadow-sm flex-shrink-0" style={{ backgroundColor: a.primaryColor }} />
+                    <div className="w-5 h-5 rounded-full border-2 border-white shadow-sm flex-shrink-0" style={{ backgroundColor: a.accentColor }} />
+                    <span className="text-[10px] text-gray-400 font-mono ml-1">{a.primaryColor} · {a.accentColor}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

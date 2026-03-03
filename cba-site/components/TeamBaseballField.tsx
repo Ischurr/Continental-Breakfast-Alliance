@@ -15,6 +15,10 @@ interface Props {
    *  When provided, pitchers in this set go to the Bullpen; all others go to the Rotation.
    *  Falls back to rank-based split when omitted. */
   rpNames?: Set<string>;
+  /** When provided, renders distance markers at each wall position on the field SVG. */
+  fieldDimensions?: { lf: number; lcf: number; cf: number; rcf: number; rf: number };
+  /** When provided, renders the stadium name as a caption below the field. */
+  stadiumName?: string;
 }
 
 // "Vladimir Guerrero Jr." → "Guerrero Jr."  |  "Mike Trout" → "Trout"
@@ -31,14 +35,14 @@ function FieldPin({ player, label }: { player: Player | null; label: string }) {
     <div className="flex flex-col items-center gap-0.5 select-none cursor-default">
       {player?.photoUrl ? (
         <Image src={player.photoUrl} alt={player.playerName} width={44} height={44}
-          className="w-8 h-8 md:w-11 md:h-11 rounded-full ring-[2.5px] ring-white shadow-lg bg-gray-200 flex-shrink-0" unoptimized />
+          className="w-8 h-8 lg:w-11 lg:h-11 rounded-full object-cover ring-[2.5px] ring-white shadow-lg bg-gray-200 flex-shrink-0" unoptimized />
       ) : (
-        <div className="w-8 h-8 md:w-11 md:h-11 rounded-full ring-[2.5px] ring-white/60 bg-white/15 flex items-center justify-center shadow-md">
+        <div className="w-8 h-8 lg:w-11 lg:h-11 rounded-full ring-[2.5px] ring-white/60 bg-white/15 flex items-center justify-center shadow-md">
           <span className="text-white/80 text-[11px] font-bold">{label}</span>
         </div>
       )}
       {player && (
-        <div className="hidden md:block bg-black/70 backdrop-blur-sm rounded-full px-2 py-0.5 whitespace-nowrap shadow">
+        <div className="hidden lg:block bg-black/70 backdrop-blur-sm rounded-full px-2 py-0.5 whitespace-nowrap shadow">
           <span className="text-[10px] text-white font-semibold">{name}</span>
           {player.totalPoints > 0 && (
             <span className="text-[10px] text-teal-300 font-bold ml-1">{Math.round(player.totalPoints)}</span>
@@ -60,14 +64,14 @@ function BullpenPin({ player, rank }: { player: Player | null; rank: number }) {
     <div className="flex flex-col items-center gap-0.5 select-none cursor-default">
       {player?.photoUrl ? (
         <Image src={player.photoUrl} alt={player.playerName} width={28} height={28}
-          className="rounded-full ring-[2px] ring-white shadow bg-gray-200 flex-shrink-0" unoptimized />
+          className="w-7 h-7 lg:w-8 lg:h-8 rounded-full object-cover ring-[2px] ring-white shadow bg-gray-200 flex-shrink-0" unoptimized />
       ) : (
-        <div className="w-7 h-7 rounded-full ring-[2px] ring-white/60 bg-white/15 flex items-center justify-center">
+        <div className="w-7 h-7 lg:w-8 lg:h-8 rounded-full ring-[2px] ring-white/60 bg-white/15 flex items-center justify-center">
           <span className="text-white/80 text-[9px] font-bold">RP</span>
         </div>
       )}
       {player && (
-        <div className="hidden md:block bg-black/70 rounded-full px-1.5 py-0.5 whitespace-nowrap shadow">
+        <div className="hidden lg:block bg-black/70 rounded-full px-1.5 py-0.5 whitespace-nowrap shadow">
           <span className="text-[8px] text-white font-semibold">{name}</span>
           {player.totalPoints > 0 && (
             <span className="text-[8px] text-teal-300 font-bold ml-0.5">{Math.round(player.totalPoints)}</span>
@@ -197,7 +201,7 @@ const FIELD_SLOTS: Record<string, [string, string]> = {
   '2B': ['62%',   '52%'],
   '1B': ['68%',   '67%'],
   OF1:  ['17%',   '33%'],
-  OF2:  ['50%',   '14%'],
+  OF2:  ['50%',   '19%'],
   OF3:  ['83%',   '33%'],
   BP1:  ['91.7%', '67%'],
   BP2:  ['91.7%', '82%'],
@@ -205,7 +209,7 @@ const FIELD_SLOTS: Record<string, [string, string]> = {
 
 // ─── Main component ────────────────────────────────────────────────────────────
 
-export default function TeamBaseballField({ players, rpNames }: Props) {
+export default function TeamBaseballField({ players, rpNames, fieldDimensions, stadiumName }: Props) {
   const ohtani = players.find(p => p.playerName === 'Shohei Ohtani') ?? null;
   const activePool = players.filter(p => p.playerName !== 'Shohei Ohtani');
 
@@ -270,13 +274,20 @@ export default function TeamBaseballField({ players, rpNames }: Props) {
       <div className="flex-1 min-w-0">
         <div
           className="relative w-full rounded-2xl overflow-hidden shadow-lg border border-green-900/40"
-          style={{ paddingTop: '68%' }}
+          style={{ paddingTop: '75%' }}
         >
           <svg
             className="absolute inset-0 w-full h-full"
             viewBox="0 0 700 476"
             preserveAspectRatio="xMidYMid slice"
           >
+            <defs>
+              {/* Clip to fair territory so warning track stroke stays inside the fence */}
+              <clipPath id="fairTerritoryClip">
+                <path d="M 350 460 L 0 108 Q 350 -65 700 108 Z" />
+              </clipPath>
+            </defs>
+
             {/* ── Foul territory background ────────────────────────── */}
             <rect width="700" height="476" fill="#1a3c1f" />
 
@@ -294,9 +305,10 @@ export default function TeamBaseballField({ players, rpNames }: Props) {
               />
             ))}
 
-            {/* ── Warning track ─────────────────────────────────────── */}
-            <path d="M 18 118 Q 350 -42 682 118"
-              fill="none" stroke="#c4a060" strokeWidth="26" opacity="0.9" />
+            {/* ── Warning track (stroke on fence arc, clipped to fair territory) ── */}
+            <path d="M 0 108 Q 350 -65 700 108"
+              fill="none" stroke="#c4a060" strokeWidth="38" opacity="0.9"
+              clipPath="url(#fairTerritoryClip)" />
 
             {/* ── Infield dirt ring ─────────────────────────────────── */}
             <polygon
@@ -341,6 +353,17 @@ export default function TeamBaseballField({ players, rpNames }: Props) {
             <path d="M 0 108 Q 350 -65 700 108" fill="none" stroke="#5c3218" strokeWidth="10" />
             <path d="M 0 108 Q 350 -65 700 108" fill="none" stroke="#c08050" strokeWidth="4" opacity="0.55" />
 
+            {/* ── Field dimension markers (outside the fence in foul territory) ── */}
+            {fieldDimensions && (
+              <g fill="rgba(255,255,255,0.80)" fontSize="12" fontFamily="sans-serif" fontWeight="bold" textAnchor="middle">
+                <text x="50"  y="68">{fieldDimensions.lf}</text>
+                <text x="158" y="30">{fieldDimensions.lcf}</text>
+                <text x="350" y="13">{fieldDimensions.cf}</text>
+                <text x="542" y="30">{fieldDimensions.rcf}</text>
+                <text x="650" y="68">{fieldDimensions.rf}</text>
+              </g>
+            )}
+
             {/* ── Bullpen marker ────────────────────────────────────── */}
             <rect x="596" y="262" width="92" height="175" rx="5"
               fill="#1e4a28" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" />
@@ -369,6 +392,9 @@ export default function TeamBaseballField({ players, rpNames }: Props) {
             </div>
           ))}
         </div>
+        {stadiumName && (
+          <p className="text-center text-[11px] text-gray-400 mt-2 font-medium tracking-wide">{stadiumName}</p>
+        )}
       </div>
 
       {/* Right: Bullpen #3–5 + Rotation #2–4 */}
