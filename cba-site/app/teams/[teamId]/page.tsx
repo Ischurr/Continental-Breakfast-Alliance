@@ -484,23 +484,21 @@ export default async function TeamPage({ params }: Props) {
                 View all posts →
               </Link>
             </div>
-            <div className="space-y-4">
+            <div className="flex flex-wrap gap-4">
               {teamPosts.map(post => {
                 const authorMeta = teamsMetadata.teams.find(t => t.id === post.authorTeamId);
                 const targetMeta = post.targetTeamId
                   ? teamsMetadata.teams.find(t => t.id === post.targetTeamId)
                   : null;
-                const diff = Date.now() - new Date(post.createdAt).getTime();
-                const minutes = Math.floor(diff / 60000);
-                const timeStr = minutes < 1 ? 'just now'
-                  : minutes < 60 ? `${minutes}m ago`
-                  : Math.floor(minutes / 60) < 24 ? `${Math.floor(minutes / 60)}h ago`
-                  : `${Math.floor(minutes / (60 * 24))}d ago`;
+                const dateStr = new Date(post.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const ytMatch = post.videoUrl?.match(
+                  /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/
+                );
                 return (
                   <div
                     key={post.id}
                     className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm"
-                    style={{ borderLeftColor: authorMeta?.primaryColor ?? '#e5e7eb', borderLeftWidth: 4 }}
+                    style={{ borderLeftColor: authorMeta?.primaryColor ?? '#e5e7eb', borderLeftWidth: 4, maxWidth: 520, flex: '1 1 300px' }}
                   >
                     <div className="flex items-start justify-between gap-3 mb-2">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -512,13 +510,25 @@ export default async function TeamPage({ params }: Props) {
                           </span>
                         )}
                       </div>
-                      <span className="text-xs text-gray-300 shrink-0">{timeStr}</span>
+                      <span className="text-xs text-gray-300 shrink-0">{dateStr}</span>
                     </div>
                     {post.message && (
                       <p className="text-sm text-gray-700 leading-relaxed">{post.message}</p>
                     )}
                     {post.videoUrl && (
-                      <p className="text-xs text-teal-600 mt-1 font-medium">📹 Video — <Link href="/message-board" className="hover:underline">view on Message Board</Link></p>
+                      ytMatch ? (
+                        <div className="mt-3 rounded-xl overflow-hidden" style={{ aspectRatio: '16/9', maxWidth: 480 }}>
+                          <iframe
+                            src={`https://www.youtube.com/embed/${ytMatch[1]}`}
+                            className="w-full h-full"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        </div>
+                      ) : (
+                        // eslint-disable-next-line jsx-a11y/media-has-caption
+                        <video src={post.videoUrl} controls className="mt-3 rounded-xl" style={{ maxHeight: 270, maxWidth: 480 }} />
+                      )
                     )}
                   </div>
                 );

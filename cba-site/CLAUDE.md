@@ -446,6 +446,18 @@ Applied consistent mobile-first treatment across all data tables:
 - Changed to `{ohtani && <OhtaniCard player={ohtani} />}` in both components
 - Box now only appears on the team that actually rostered Shohei Ohtani
 
+## Session Work (March 4, 2026 — Team Page Video Embeds)
+
+### Video posts on team pages (`app/teams/[teamId]/page.tsx`)
+- Message board posts with a `videoUrl` now **embed the video directly** on the team page instead of showing a "📹 Video — view on Message Board" link
+- YouTube URLs are detected with the same regex used in `PostCard.tsx`; matched → `<iframe>` embed; unmatched → `<video controls>`
+- Video embed capped at `maxWidth: 480, aspectRatio: 16/9` (compact, watchable, not full-width)
+- **Hydration fix**: replaced `Date.now()` relative-time calculation (`timeStr`) with `toLocaleDateString('en-US', { month: 'short', day: 'numeric' })` — static date avoids server/client mismatch
+- **Layout**: post card container changed from `space-y-4` to `flex flex-wrap gap-4`; each card gets `maxWidth: 520, flex: '1 1 300px'` — two cards fit side-by-side on desktop, stack on mobile
+
+### Workflow
+- To show a video on a team page: post a message on the message board with a YouTube URL in the video field, targeting or authored by that team — the post and embedded video appear automatically at the bottom of the team page
+
 ## Session Work (March 4, 2026 — Per-Stadium Photo Field Positions)
 
 ### Per-stadium photo slot maps (`components/TeamBaseballField.tsx`)
@@ -457,3 +469,11 @@ Applied consistent mobile-first treatment across all data tables:
 
 ### Bristol Banshees stadium name (`app/teams/[teamId]/page.tsx`)
 - Added `id === 10` branch to `stadiumName` prop: renders "Muzzy Field, Home of the Bristol Banshees" below the field photo
+
+### `TeamBaseballField` layout restructure
+- **DH moved to right column**: DHCard removed from left column, now sits at the top of the right (Bullpen/Rotation) column
+- **Left column**: now only renders when Ohtani is on the roster (`{ohtani && <OhtaniCard>}`); no Ohtani = no left column = field naturally fills more horizontal space
+- **Photo mode player counts**: Bullpen shows 3 rows (ranks 1–3), Rotation shows 4 rows (ranks 2–5) — trimmed to fit within the field image height
+- **DHCard**: made more compact — photo 40→32px, padding reduced (`py-2 gap-1` → `py-1.5 gap-0.5`)
+- **Stadium name caption**: moved outside the inner flex row so it spans the full width below both the field image and the right-side boxes
+- **Right column width**: narrowed from `185px` → `160px`; mobile layout uses `grid-cols-3` (DH + Bullpen + Rotation in a row)
