@@ -407,3 +407,27 @@ Applied consistent mobile-first treatment across all data tables:
 - **WVU state + Flying WV logo** (SVG mode only, not photo mode): `<g transform="translate(350, 125)">` in the SVG draws the WV state silhouette (Mountaineer Blue `#1C384F`, opacity 0.52) with the Flying WV letterform (white strokes, opacity 0.82) on top. Positioned in center field grass. Triggered by `stadiumName` prop being set (WVPR only). Not rendered in photo mode since the real logo is already painted on the field in the photo.
 - **Team page wiring** (`app/teams/[teamId]/page.tsx`): WVPR (`id === 3`) passes `backgroundImageUrl="/wvu-kendrick-field.jpg"`.
 
+## Session Work (March 4, 2026 — Poll Expiration + Winner Display)
+
+### Poll auto-expiration (`lib/store.ts`, `app/polls/actions.ts`)
+- **Root bug**: `expiresAt` was display-only — never checked to actually close polls. Votes also silently failed in production because `setPolls` throws when `IS_VERCEL && !KV_REST_API_URL`.
+- **`getAndProcessPolls()`** added to `lib/store.ts`: reads polls, checks each active poll's `expiresAt` (treated as end of that day: `expiresAt + 'T23:59:59'`), sets `active: false` if expired, persists if any changed, returns data. Use this instead of `getPolls()` everywhere so expiry is always enforced on read.
+- **`castVote`** in `app/polls/actions.ts`: added expiry guard before incrementing votes — if poll's `expiresAt` has passed, closes it in storage, revalidates, returns early without counting the vote.
+- **`data/polls.json`**: both polls (`poll-2`, `poll-3`) manually set to `active: false` since they expired March 2. Note: this only affects local dev; production reads from Upstash Redis (KV).
+
+### KV / Upstash discovery
+- **`lib/store.ts` always uses KV when `KV_REST_API_URL` is set** — `data/polls.json` is never read/written in that case. `KV_REST_API_URL` is in `.env.local`, so all local dev and production traffic goes to Upstash Redis (`smiling-flamingo-54856.upstash.io`).
+- Vote counts seen on the site are real — stored in Redis. `data/polls.json` only matters if KV env var is absent.
+- Vercel env vars (`KV_REST_API_URL`, `KV_REST_API_TOKEN`) must be set for **Production** environment. Were previously set for "all environments"; changed to Production-only (`.env.local` covers local dev).
+
+### Landing page "Recently Decided" section (`app/page.tsx`)
+- `getPollWinner(poll)` helper at module level: returns `{ text, pct }` for the option with most votes, or `null` if 0 votes.
+- `recentlyClosedPolls`: filters polls where `!active && expiresAt` and `Date.now() - new Date(expiresAt + 'T23:59:59') < 24h`.
+- New "📊 Recently Decided" section renders between "Active Polls" and "Latest Messages". Each card shows the question, then either a teal winner box (option text + vote%) or "No votes were cast." italic text.
+- Section only appears within 24 hours of the poll's `expiresAt` date; disappears automatically after.
+
+### Announcement ticker poll results (`app/layout.tsx`)
+- Layout made `async`; calls `getAndProcessPolls()` to get live poll state.
+- `recentlyClosedPolls` filtered same way as landing page (24h window, `expiresAt`-based).
+- Poll ticker items appended after calendar event items: `emoji: '🗳️'`, `title: poll.question`, `dateLabel: winner.text` (or "No votes cast"), `countdown: '${pct}%'` (shown in yellow bold) or `'—'`.
+- Polls closed by vote threshold (12 votes, no `expiresAt`) do NOT appear in ticker — only expiry-closed polls.
