@@ -5,10 +5,17 @@ import Image from 'next/image';
 import { getAllSeasons, getCurrentSeason, getCompletedSeasons, calculateAllTimeStandings, getTopMatchupOfWeek, getNotableAvailablePlayers } from '@/lib/data-processor';
 import { getHottestStory, timeAgo } from '@/lib/news-fetcher';
 import { Poll, TrashTalkData } from '@/lib/types';
-import { getPolls, getTrashTalk } from '@/lib/store';
+import { getAndProcessPolls, getTrashTalk } from '@/lib/store';
 import { getAllEventsWithin, formatCountdown, formatEventDate } from '@/lib/calendar';
 import teamsJson from '@/data/teams.json';
 import PollCard from './polls/PollCard';
+
+function getPollWinner(poll: Poll) {
+  const total = poll.options.reduce((s, o) => s + o.votes, 0);
+  if (total === 0) return null;
+  const winner = poll.options.reduce((best, o) => o.votes > best.votes ? o : best);
+  return { text: winner.text, pct: Math.round((winner.votes / total) * 100) };
+}
 
 const SOURCE_COLORS: Record<string, string> = {
   'MLB.com': 'bg-teal-100 text-teal-700',
@@ -41,7 +48,14 @@ export default async function Home() {
 
   const upcomingEvents = getAllEventsWithin(7);
 
-  const activePolls: Poll[] = (await getPolls()).polls.filter((p: Poll) => p.active);
+  const allPolls = (await getAndProcessPolls()).polls;
+  const activePolls: Poll[] = allPolls.filter((p: Poll) => p.active);
+  const oneDayMs = 24 * 60 * 60 * 1000;
+  const recentlyClosedPolls: Poll[] = allPolls.filter((p: Poll) => {
+    if (p.active || !p.expiresAt) return false;
+    const closedAt = new Date(p.expiresAt + 'T23:59:59').getTime();
+    return Date.now() - closedAt < oneDayMs;
+  });
 
   const allPosts: TrashTalkData['posts'] = (await getTrashTalk()).posts;
   // Show posts from the last 72 hours; if none, fall back to the single latest post
@@ -281,6 +295,36 @@ export default async function Home() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {activePolls.map(poll => <PollCard key={poll.id} poll={poll} />)}
+            </div>
+          </div>
+        )}
+
+        {/* Recently Decided Polls */}
+        {recentlyClosedPolls.length > 0 && (
+          <div className="mb-12">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-700">📊 Recently Decided</h2>
+              <Link href="/message-board" className="text-sm text-teal-600 hover:underline font-medium">See all polls →</Link>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {recentlyClosedPolls.map(poll => {
+                const winner = getPollWinner(poll);
+                return (
+                  <div key={poll.id} className="bg-white rounded-xl shadow-sm border p-6">
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">🔒 Poll Closed</p>
+                    <h3 className="text-lg font-bold text-gray-800 mb-3">{poll.question}</h3>
+                    {winner ? (
+                      <div className="bg-teal-50 border border-teal-200 rounded-lg px-4 py-3">
+                        <p className="text-xs text-teal-500 font-semibold uppercase tracking-wide mb-0.5">Winner</p>
+                        <p className="font-bold text-teal-700 text-base">{winner.text}</p>
+                        <p className="text-sm text-teal-600 font-medium mt-0.5">{winner.pct}% of votes</p>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-400 italic">No votes were cast.</p>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

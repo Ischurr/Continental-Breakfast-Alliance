@@ -10,6 +10,18 @@ export async function castVote(pollId: string, optionId: string): Promise<void> 
   const poll = data.polls.find(p => p.id === pollId);
   if (!poll || !poll.active) return;
 
+  // Auto-close if expiry date has passed
+  if (poll.expiresAt) {
+    const expires = new Date(poll.expiresAt + 'T23:59:59');
+    if (new Date() > expires) {
+      poll.active = false;
+      await setPolls(data);
+      revalidatePath('/polls');
+      revalidatePath('/message-board');
+      return;
+    }
+  }
+
   const option = poll.options.find(o => o.id === optionId);
   if (!option) return;
 

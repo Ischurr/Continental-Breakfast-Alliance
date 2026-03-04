@@ -3,7 +3,7 @@ import MessageBoardForm from './MessageBoardForm';
 import PostCard from './PostCard';
 import PollsViewer from './PollsViewer';
 import { TrashTalkData, Poll } from '@/lib/types';
-import { getTrashTalk, getPolls } from '@/lib/store';
+import { getTrashTalk, getAndProcessPolls } from '@/lib/store';
 import teamsRaw from '@/data/teams.json';
 
 function getTeamById(id: number) {
@@ -25,7 +25,7 @@ export default async function MessageBoardPage() {
   const data: TrashTalkData = await getTrashTalk();
   const posts = data.posts;
 
-  const allPolls: Poll[] = (await getPolls()).polls;
+  const allPolls: Poll[] = (await getAndProcessPolls()).polls;
   const activePolls = allPolls.filter(p => p.active);
   const closedPolls = allPolls.filter(p => !p.active);
 

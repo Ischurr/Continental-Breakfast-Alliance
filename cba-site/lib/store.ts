@@ -71,6 +71,24 @@ export async function setPolls(data: PollsData): Promise<void> {
   fsWrite(path.join(DATA_DIR, 'polls.json'), JSON.stringify(data, null, 2));
 }
 
+/** Reads polls and auto-closes any where expiresAt has passed. Persists if changed. */
+export async function getAndProcessPolls(): Promise<PollsData> {
+  const data = await getPolls();
+  let changed = false;
+  const now = new Date();
+  for (const poll of data.polls) {
+    if (poll.active && poll.expiresAt) {
+      const expires = new Date(poll.expiresAt + 'T23:59:59');
+      if (now > expires) {
+        poll.active = false;
+        changed = true;
+      }
+    }
+  }
+  if (changed) await setPolls(data);
+  return data;
+}
+
 // ── Rankings ──────────────────────────────────────────────────────────────────
 
 export async function getRankings(): Promise<{ articles: any[] }> {
