@@ -431,3 +431,29 @@ Applied consistent mobile-first treatment across all data tables:
 - `recentlyClosedPolls` filtered same way as landing page (24h window, `expiresAt`-based).
 - Poll ticker items appended after calendar event items: `emoji: '🗳️'`, `title: poll.question`, `dateLabel: winner.text` (or "No votes cast"), `countdown: '${pct}%'` (shown in yellow bold) or `'—'`.
 - Polls closed by vote threshold (12 votes, no `expiresAt`) do NOT appear in ticker — only expiry-closed polls.
+
+## Session Work (March 4, 2026 — Emus Page + Ohtani Box)
+
+### Delmarva Emus Fun Franchise Facts (`app/teams/[teamId]/page.tsx`)
+- Added `EMUS_FUN_FACTS` string constant at module level (above `WVPR_TRADITIONS`)
+- New `{id === 6}` conditional section inserted after `TeamStrengthsEditor`, before WVPR Game Day Traditions
+- Single card with purple header (`#6C5CE7`) / light purple body (`#F0EEFF`) matching Emus team colors
+- Header label: "Delmarva Emus (née Shureburds)"; subtitle: "The Delmarva Peninsula's Almost Winningest Baseball Team, Established 2022"
+- Text: name change from Shureburds → Emus due to emu sighting on the Delmarva Peninsula; six-game win streak followed; 3rd place again
+
+### Shohei Ohtani Box — conditional render (`components/TeamBaseballField.tsx`, `components/BaseballFieldLeaders.tsx`)
+- `<OhtaniCard>` was always rendered (showing an empty `—` placeholder on teams without him)
+- Changed to `{ohtani && <OhtaniCard player={ohtani} />}` in both components
+- Box now only appears on the team that actually rostered Shohei Ohtani
+
+## Session Work (March 4, 2026 — Per-Stadium Photo Field Positions)
+
+### Per-stadium photo slot maps (`components/TeamBaseballField.tsx`)
+- Replaced single `FIELD_SLOTS_PHOTO` with `FIELD_SLOTS_BY_PHOTO` — a map keyed by `backgroundImageUrl` (`/public/` path), each entry holding independent `slots` + `objectPosition`
+- WVU (`/wvu-kendrick-field.jpg`) and Bristol (`/bristol-field.jpg`) now have completely separate pin coordinates; tuning one never affects the other
+- `objectPosition` per entry controls CSS `object-${position}` on the `<Image>` — WVU uses `'top'`, Bristol uses `'center'`
+- To add a new stadium: add one entry to `FIELD_SLOTS_BY_PHOTO` with the image path as the key; no other code changes needed
+- Stadium name caption (`<p>`) moved inside the center field column div so `text-center` aligns it to the field image, not the full component width (including side boxes)
+
+### Bristol Banshees stadium name (`app/teams/[teamId]/page.tsx`)
+- Added `id === 10` branch to `stadiumName` prop: renders "Muzzy Field, Home of the Bristol Banshees" below the field photo

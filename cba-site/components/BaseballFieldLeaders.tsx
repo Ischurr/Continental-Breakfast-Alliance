@@ -312,7 +312,7 @@ export default function BaseballFieldLeaders({ rosteredPlayers, freeAgents, rpNa
 
         {/* Left: Shohei + DH */}
         <div className="flex flex-row md:flex-col gap-2 md:justify-center md:flex-shrink-0 md:w-[100px]">
-          <OhtaniCard player={ohtani} />
+          {ohtani && <OhtaniCard player={ohtani} />}
           <DHCard player={dh} />
         </div>
 

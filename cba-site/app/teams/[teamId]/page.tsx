@@ -281,7 +281,7 @@ export default async function TeamPage({ params }: Props) {
               players={currentRoster}
               rpNames={rpNames.size > 0 ? rpNames : undefined}
               fieldDimensions={id === 3 ? { lf: 325, lcf: 375, cf: 400, rcf: 375, rf: 325 } : undefined}
-              stadiumName={id === 3 ? 'Tim Elko Field at Montani Semper Liberi Park' : undefined}
+              stadiumName={id === 3 ? 'Tim Elko Field at Montani Semper Liberi Park' : id === 10 ? 'Muzzy Field, Home of the Bristol Banshees' : undefined}
               backgroundImageUrl={id === 3 ? '/wvu-kendrick-field.jpg' : id === 10 ? '/bristol-field.jpg' : undefined}
             />
           </div>

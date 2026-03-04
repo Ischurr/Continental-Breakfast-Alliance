@@ -164,15 +164,15 @@ function DHCard({ player }: { player: Player | null }) {
   const name = player ? displayLastName(player.playerName) : '';
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-      <div className="bg-gray-800 text-white text-[10px] font-bold px-2 py-1.5 text-center tracking-widest uppercase">
+      <div className="bg-gray-800 text-white text-[10px] font-bold px-2 py-1 text-center tracking-widest uppercase">
         DH
       </div>
-      <div className="px-2 py-2 flex flex-col items-center gap-1">
+      <div className="px-2 py-1.5 flex flex-col items-center gap-0.5">
         {player?.photoUrl ? (
-          <Image src={player.photoUrl} alt={player.playerName} width={40} height={40}
-            className="rounded-full bg-gray-100" unoptimized />
+          <Image src={player.photoUrl} alt={player.playerName} width={32} height={32}
+            className="w-8 h-8 rounded-full bg-gray-100" unoptimized />
         ) : (
-          <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
             <span className="text-gray-400 text-[10px] font-bold">DH</span>
           </div>
         )}
@@ -208,25 +208,48 @@ const FIELD_SLOTS_SVG: Record<string, [string, string]> = {
   BP2:  ['91.7%', '82%'],
 };
 
-// Photo background (16:9 broadcast angle from behind home plate, e.g. WVU Kendrick Field)
-// No bullpen pins on the photo — all relievers go in the side box instead
-const FIELD_SLOTS_PHOTO: Record<string, [string, string]> = {
-  C:    ['50%',  '77%'],
-  SP:   ['51%',  '50%'],
-  '3B': ['14%',  '50%'],
-  SS:   ['35%',  '45%'],
-  '2B': ['65%',  '45%'],
-  '1B': ['83%',  '49%'],
-  OF1:  ['25%',  '43%'],
-  OF2:  ['47%',  '40%'],
-  OF3:  ['78%',  '40%'],
+// Photo background config — one entry per stadium photo.
+// To add a new stadium: add a new key matching the backgroundImageUrl passed from the team page.
+// Keys are the /public/ paths used in app/teams/[teamId]/page.tsx.
+// No bullpen pins on photos — all relievers go in the side box instead.
+type PhotoConfig = { objectPosition: string; slots: Record<string, [string, string]> };
+const FIELD_SLOTS_BY_PHOTO: Record<string, PhotoConfig> = {
+  '/wvu-kendrick-field.jpg': {
+    objectPosition: 'top',
+    slots: {
+      C:    ['55%',  '55%'],
+      SP:   ['43%',  '25%'],
+      '3B': ['20%',  '30%'],
+      SS:   ['28%',  '17%'],
+      '2B': ['53%',  '16%'],
+      '1B': ['69%',  '25%'],
+      OF1:  ['08%',  '13%'],
+      OF2:  ['38%',  '10%'],
+      OF3:  ['62%',  '11%'],
+    },
+  },
+  '/bristol-field.jpg': {
+    objectPosition: 'center',
+    slots: {
+      C:    ['50%',  '82%'],
+      SP:   ['55%',  '50%'],
+      '3B': ['12%',  '55%'],
+      SS:   ['33%',  '41%'],
+      '2B': ['65%',  '40%'],
+      '1B': ['84%',  '45%'],
+      OF1:  ['17%',  '38%'],
+      OF2:  ['48%',  '36%'],
+      OF3:  ['78%',  '35%'],
+    },
+  },
 };
 
 // ─── Main component ────────────────────────────────────────────────────────────
 
 export default function TeamBaseballField({ players, rpNames, fieldDimensions, stadiumName, backgroundImageUrl }: Props) {
   const isPhotoMode = !!backgroundImageUrl;
-  const fieldSlots = isPhotoMode ? FIELD_SLOTS_PHOTO : FIELD_SLOTS_SVG;
+  const photoConfig = backgroundImageUrl ? FIELD_SLOTS_BY_PHOTO[backgroundImageUrl] : undefined;
+  const fieldSlots = photoConfig?.slots ?? FIELD_SLOTS_SVG;
   const ohtani = players.find(p => p.playerName === 'Shohei Ohtani') ?? null;
   const activePool = players.filter(p => p.playerName !== 'Shohei Ohtani');
 
@@ -279,7 +302,8 @@ export default function TeamBaseballField({ players, rpNames, fieldDimensions, s
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-3 md:items-stretch">
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-col md:flex-row gap-3 md:items-stretch">
 
       {/* Left: Shohei only (when present) */}
       {ohtani && (
@@ -300,7 +324,7 @@ export default function TeamBaseballField({ players, rpNames, fieldDimensions, s
               src={backgroundImageUrl}
               alt={stadiumName ?? 'Baseball field'}
               fill
-              className="object-cover object-top"
+              className={`object-cover object-${photoConfig?.objectPosition ?? 'top'}`}
               unoptimized
             />
           )}
@@ -461,7 +485,7 @@ export default function TeamBaseballField({ players, rpNames, fieldDimensions, s
           ))}
         </div>
         {stadiumName && (
-          <p className="text-center text-[11px] text-gray-400 mt-2 font-medium tracking-wide">{stadiumName}</p>
+          <p className="text-center text-[11px] text-gray-400 font-medium tracking-wide mt-2">{stadiumName}</p>
         )}
       </div>
 
@@ -471,19 +495,20 @@ export default function TeamBaseballField({ players, rpNames, fieldDimensions, s
         <SideBox
           title="Bullpen"
           players={isPhotoMode
-            ? [bullpen[0] ?? null, bullpen[1] ?? null]
+            ? [bullpen[0] ?? null, bullpen[1] ?? null, bullpen[2] ?? null]
             : [bullpen[2] ?? null, bullpen[3] ?? null, bullpen[4] ?? null]}
           startRank={isPhotoMode ? 1 : 3}
         />
         <SideBox
           title="Rotation"
           players={isPhotoMode
-            ? [rotation[0] ?? null, rotation[1] ?? null, rotation[2] ?? null]
+            ? [rotation[0] ?? null, rotation[1] ?? null, rotation[2] ?? null, rotation[3] ?? null]
             : [rotation[0] ?? null, rotation[1] ?? null, rotation[2] ?? null, rotation[3] ?? null, rotation[4] ?? null]}
           startRank={2}
         />
       </div>
 
+      </div>
     </div>
   );
 }
