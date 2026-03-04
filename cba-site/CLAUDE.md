@@ -390,3 +390,20 @@ Applied consistent mobile-first treatment across all data tables:
 - **Responsive pin sizing**: Photo size breakpoints moved from `md:` to `lg:` (`w-8 h-8 lg:w-11 lg:h-11` for FieldPin, `w-7 h-7 lg:w-8 lg:h-8` for BullpenPin). Name badges also moved to `hidden lg:block`. Rationale: at `md` (768px) the field is only ~400px wide with side panels; at `lg` (1024px) it's ~640px — enough room for larger photos and name labels without overlap.
 - **OF2 (CF) position**: Moved from `top: 14%` to `top: 19%` (SVG y ~67 → ~90) so center fielder clears the warning track inner edge (~42).
 - **Field height**: `paddingTop` increased from `68%` to `75%` — field is physically taller, catcher label more visible, better alignment with the Rotation/Bullpen side boxes.
+
+## Session Work (March 2026 — WVPR Kendrick Field Photo Background)
+
+### `components/TeamBaseballField.tsx` — Photo background mode
+- **New prop**: `backgroundImageUrl?: string`. When set, replaces the SVG field drawing with a real stadium photo.
+- **`public/wvu-kendrick-field.jpg`**: 2000×1125 official WVU Athletics photo of Kendrick Family Ballpark (Monongalia County Ballpark), downloaded from WVU CDN. Broadcast angle from behind home plate.
+- **Photo mode behavior**:
+  - Container `paddingTop` switches from `75%` → `56.25%` (16:9 to match image aspect ratio)
+  - Next.js `<Image fill>` with `object-cover object-top` fills the container
+  - SVG field drawing is skipped entirely
+  - Separate `FIELD_SLOTS_PHOTO` position set (recalibrated for broadcast-angle perspective; user has been tweaking these manually)
+  - `hideLabel={isPhotoMode}` on `FieldPin` — position abbreviation badges hidden in photo mode (redundant when positions are visually obvious)
+  - Bullpen pins (BP1/BP2) removed from the photo — no on-field bullpen marker. Side Bullpen box switches to show ranks 1–3 (instead of 3–5 which assumed 1–2 were on-field)
+- **Name badge**: Changed from single `rounded-full` pill (name + pts inline) to `flex-col rounded-lg` — name on top line, points on second line, both center-aligned. Applies to both SVG and photo modes.
+- **WVU state + Flying WV logo** (SVG mode only, not photo mode): `<g transform="translate(350, 125)">` in the SVG draws the WV state silhouette (Mountaineer Blue `#1C384F`, opacity 0.52) with the Flying WV letterform (white strokes, opacity 0.82) on top. Positioned in center field grass. Triggered by `stadiumName` prop being set (WVPR only). Not rendered in photo mode since the real logo is already painted on the field in the photo.
+- **Team page wiring** (`app/teams/[teamId]/page.tsx`): WVPR (`id === 3`) passes `backgroundImageUrl="/wvu-kendrick-field.jpg"`.
+

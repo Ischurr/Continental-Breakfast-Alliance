@@ -19,6 +19,9 @@ interface Props {
   fieldDimensions?: { lf: number; lcf: number; cf: number; rcf: number; rf: number };
   /** When provided, renders the stadium name as a caption below the field. */
   stadiumName?: string;
+  /** When provided, uses a real photo as the field background instead of the SVG drawing.
+   *  Should be a path to a 16:9 overhead/broadcast-angle stadium photo in public/. */
+  backgroundImageUrl?: string;
 }
 
 // "Vladimir Guerrero Jr." → "Guerrero Jr."  |  "Mike Trout" → "Trout"
@@ -29,7 +32,7 @@ function displayLastName(fullName: string): string {
 
 // ─── Standard field pin ────────────────────────────────────────────────────────
 
-function FieldPin({ player, label }: { player: Player | null; label: string }) {
+function FieldPin({ player, label, hideLabel }: { player: Player | null; label: string; hideLabel?: boolean }) {
   const name = player ? displayLastName(player.playerName) : '';
   return (
     <div className="flex flex-col items-center gap-0.5 select-none cursor-default">
@@ -42,16 +45,14 @@ function FieldPin({ player, label }: { player: Player | null; label: string }) {
         </div>
       )}
       {player && (
-        <div className="hidden lg:block bg-black/70 backdrop-blur-sm rounded-full px-2 py-0.5 whitespace-nowrap shadow">
-          <span className="text-[10px] text-white font-semibold">{name}</span>
+        <div className="hidden lg:flex flex-col items-center bg-black/70 backdrop-blur-sm rounded-lg px-2 py-0.5 whitespace-nowrap shadow">
+          <span className="text-[10px] text-white font-semibold leading-tight">{name}</span>
           {player.totalPoints > 0 && (
-            <span className="text-[10px] text-teal-300 font-bold ml-1">{Math.round(player.totalPoints)}</span>
+            <span className="text-[10px] text-teal-300 font-bold leading-tight">{Math.round(player.totalPoints)}</span>
           )}
         </div>
       )}
-      <span className="bg-black/75 text-white text-[9px] font-bold px-1.5 rounded-full leading-tight shadow">
-        {label}
-      </span>
+      {!hideLabel && <span className="bg-black/75 text-white text-[9px] font-bold px-1.5 rounded-full leading-tight shadow">{label}</span>}
     </div>
   );
 }
@@ -191,9 +192,9 @@ function DHCard({ player }: { player: Player | null }) {
 }
 
 // ─── Field slot positions ──────────────────────────────────────────────────────
-// Same coordinates as BaseballFieldLeaders
 
-const FIELD_SLOTS: Record<string, [string, string]> = {
+// SVG-drawn field (top-down perspective, 700×476 viewBox)
+const FIELD_SLOTS_SVG: Record<string, [string, string]> = {
   C:    ['50%',   '96%'],
   SP:   ['50%',   '72%'],
   '3B': ['32%',   '67%'],
@@ -207,9 +208,25 @@ const FIELD_SLOTS: Record<string, [string, string]> = {
   BP2:  ['91.7%', '82%'],
 };
 
+// Photo background (16:9 broadcast angle from behind home plate, e.g. WVU Kendrick Field)
+// No bullpen pins on the photo — all relievers go in the side box instead
+const FIELD_SLOTS_PHOTO: Record<string, [string, string]> = {
+  C:    ['52%',  '53%'],
+  SP:   ['43%',  '30%'],
+  '3B': ['20%',  '28%'],
+  SS:   ['30%',  '24%'],
+  '2B': ['51%',  '23%'],
+  '1B': ['66%',  '29%'],
+  OF1:  ['10%',  '15%'],
+  OF2:  ['37%',  '16%'],
+  OF3:  ['60%',  '17%'],
+};
+
 // ─── Main component ────────────────────────────────────────────────────────────
 
-export default function TeamBaseballField({ players, rpNames, fieldDimensions, stadiumName }: Props) {
+export default function TeamBaseballField({ players, rpNames, fieldDimensions, stadiumName, backgroundImageUrl }: Props) {
+  const isPhotoMode = !!backgroundImageUrl;
+  const fieldSlots = isPhotoMode ? FIELD_SLOTS_PHOTO : FIELD_SLOTS_SVG;
   const ohtani = players.find(p => p.playerName === 'Shohei Ohtani') ?? null;
   const activePool = players.filter(p => p.playerName !== 'Shohei Ohtani');
 
@@ -274,9 +291,21 @@ export default function TeamBaseballField({ players, rpNames, fieldDimensions, s
       <div className="flex-1 min-w-0">
         <div
           className="relative w-full rounded-2xl overflow-hidden shadow-lg border border-green-900/40"
-          style={{ paddingTop: '75%' }}
+          style={{ paddingTop: isPhotoMode ? '56.25%' : '75%' }}
         >
-          <svg
+          {/* ── Photo background mode ───────────────────────────────────── */}
+          {isPhotoMode && (
+            <Image
+              src={backgroundImageUrl}
+              alt={stadiumName ?? 'Baseball field'}
+              fill
+              className="object-cover object-top"
+              unoptimized
+            />
+          )}
+
+          {/* ── SVG field (hidden in photo mode) ───────────────────────── */}
+          {!isPhotoMode && <svg
             className="absolute inset-0 w-full h-full"
             viewBox="0 0 700 476"
             preserveAspectRatio="xMidYMid slice"
@@ -353,6 +382,43 @@ export default function TeamBaseballField({ players, rpNames, fieldDimensions, s
             <path d="M 0 108 Q 350 -65 700 108" fill="none" stroke="#5c3218" strokeWidth="10" />
             <path d="M 0 108 Q 350 -65 700 108" fill="none" stroke="#c08050" strokeWidth="4" opacity="0.55" />
 
+            {/* ── WVU logo in center field grass: WV state silhouette + Flying WV ── */}
+            {/* Visible only on WVPR team page (stadiumName prop is set for id=3)   */}
+            {/* Centered at (350, 125). State ~117px wide × 90px tall.              */}
+            {stadiumName && (
+              <g transform="translate(350, 125)">
+                {/* West Virginia state silhouette in Mountaineer Blue */}
+                {/* Key landmarks: Northern Panhandle (top-left), Eastern Panhandle (upper-right) */}
+                <path
+                  d="
+                    M -43,-52 L -38,-58 L -33,-52
+                    L -28,-28 L  8,-30
+                    L 40,-45  L 58,-50 L 62,-43 L 55,-36
+                    L 30,-20
+                    L 25, 10  L 15, 28
+                    L -10, 32 L -30, 25 L -48, 12
+                    L -55, -5 L -48,-28
+                    L -43,-28 Z
+                  "
+                  fill="#1C384F"
+                  opacity="0.52"
+                />
+                {/* Flying WV letterform — white, centered in main body of state */}
+                <g
+                  fill="none"
+                  stroke="rgba(255,255,255,0.82)"
+                  strokeWidth="8"
+                  strokeLinecap="square"
+                  strokeLinejoin="miter"
+                >
+                  {/* W: two valleys */}
+                  <polyline points="-38,18 -25,-10 -16,5 -7,-10 6,18" />
+                  {/* V: one valley */}
+                  <polyline points="6,18 20,-10 34,18" />
+                </g>
+              </g>
+            )}
+
             {/* ── Field dimension markers (outside the fence in foul territory) ── */}
             {fieldDimensions && (
               <g fill="rgba(255,255,255,0.80)" fontSize="12" fontFamily="sans-serif" fontWeight="bold" textAnchor="middle">
@@ -369,10 +435,10 @@ export default function TeamBaseballField({ players, rpNames, fieldDimensions, s
               fill="#1e4a28" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" />
             <text x="642" y="274" textAnchor="middle" fill="rgba(255,255,255,0.4)"
               fontSize="7" fontFamily="sans-serif" fontWeight="bold" letterSpacing="1">BULLPEN</text>
-          </svg>
+          </svg>}
 
           {/* Player pins */}
-          {Object.entries(FIELD_SLOTS).map(([key, [left, top]]) => (
+          {Object.entries(fieldSlots).map(([key, [left, top]]) => (
             <div
               key={key}
               className="absolute"
@@ -387,6 +453,7 @@ export default function TeamBaseballField({ players, rpNames, fieldDimensions, s
                 <FieldPin
                   player={fieldPlayers[key] ?? null}
                   label={key.startsWith('OF') ? 'OF' : key}
+                  hideLabel={isPhotoMode}
                 />
               )}
             </div>
@@ -401,8 +468,10 @@ export default function TeamBaseballField({ players, rpNames, fieldDimensions, s
       <div className="grid grid-cols-2 md:grid-cols-1 gap-3 md:flex-shrink-0 md:w-[185px]">
         <SideBox
           title="Bullpen"
-          players={[bullpen[2] ?? null, bullpen[3] ?? null, bullpen[4] ?? null]}
-          startRank={3}
+          players={isPhotoMode
+            ? [bullpen[0] ?? null, bullpen[1] ?? null, bullpen[2] ?? null]
+            : [bullpen[2] ?? null, bullpen[3] ?? null, bullpen[4] ?? null]}
+          startRank={isPhotoMode ? 1 : 3}
         />
         <SideBox
           title="Rotation"
