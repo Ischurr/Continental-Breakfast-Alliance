@@ -211,15 +211,15 @@ const FIELD_SLOTS_SVG: Record<string, [string, string]> = {
 // Photo background (16:9 broadcast angle from behind home plate, e.g. WVU Kendrick Field)
 // No bullpen pins on the photo — all relievers go in the side box instead
 const FIELD_SLOTS_PHOTO: Record<string, [string, string]> = {
-  C:    ['52%',  '53%'],
-  SP:   ['43%',  '30%'],
-  '3B': ['20%',  '28%'],
-  SS:   ['30%',  '24%'],
-  '2B': ['51%',  '23%'],
-  '1B': ['66%',  '29%'],
-  OF1:  ['10%',  '15%'],
-  OF2:  ['37%',  '16%'],
-  OF3:  ['60%',  '17%'],
+  C:    ['50%',  '77%'],
+  SP:   ['51%',  '50%'],
+  '3B': ['14%',  '50%'],
+  SS:   ['35%',  '45%'],
+  '2B': ['65%',  '45%'],
+  '1B': ['83%',  '49%'],
+  OF1:  ['25%',  '43%'],
+  OF2:  ['47%',  '40%'],
+  OF3:  ['78%',  '40%'],
 };
 
 // ─── Main component ────────────────────────────────────────────────────────────
@@ -281,11 +281,12 @@ export default function TeamBaseballField({ players, rpNames, fieldDimensions, s
   return (
     <div className="flex flex-col md:flex-row gap-3 md:items-stretch">
 
-      {/* Left: Shohei + DH */}
-      <div className="flex flex-row md:flex-col gap-2 md:justify-center md:flex-shrink-0 md:w-[100px]">
-        <OhtaniCard player={ohtani} />
-        <DHCard player={dh} />
-      </div>
+      {/* Left: Shohei only (when present) */}
+      {ohtani && (
+        <div className="flex md:flex-col gap-2 md:justify-center md:flex-shrink-0 md:w-[100px]">
+          <OhtaniCard player={ohtani} />
+        </div>
+      )}
 
       {/* Center: field */}
       <div className="flex-1 min-w-0">
@@ -464,18 +465,21 @@ export default function TeamBaseballField({ players, rpNames, fieldDimensions, s
         )}
       </div>
 
-      {/* Right: Bullpen #3–5 + Rotation #2–4 */}
-      <div className="grid grid-cols-2 md:grid-cols-1 gap-3 md:flex-shrink-0 md:w-[185px]">
+      {/* Right: DH + Bullpen + Rotation */}
+      <div className="grid grid-cols-3 md:grid-cols-1 gap-2 md:flex-shrink-0 md:w-[160px]">
+        <DHCard player={dh} />
         <SideBox
           title="Bullpen"
           players={isPhotoMode
-            ? [bullpen[0] ?? null, bullpen[1] ?? null, bullpen[2] ?? null]
+            ? [bullpen[0] ?? null, bullpen[1] ?? null]
             : [bullpen[2] ?? null, bullpen[3] ?? null, bullpen[4] ?? null]}
           startRank={isPhotoMode ? 1 : 3}
         />
         <SideBox
           title="Rotation"
-          players={[rotation[0] ?? null, rotation[1] ?? null, rotation[2] ?? null, rotation[3] ?? null, rotation[4] ?? null]}
+          players={isPhotoMode
+            ? [rotation[0] ?? null, rotation[1] ?? null, rotation[2] ?? null]
+            : [rotation[0] ?? null, rotation[1] ?? null, rotation[2] ?? null, rotation[3] ?? null, rotation[4] ?? null]}
           startRank={2}
         />
       </div>

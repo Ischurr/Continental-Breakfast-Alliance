@@ -13,6 +13,8 @@ import EROSPTable, { type EROSPPlayer, type EROSPMeta } from '@/components/EROSP
 import fs from 'fs';
 import path from 'path';
 
+const EMUS_FUN_FACTS = "Last year's name change from Shureburds to Emus was due to an emu sighting on the Delmarva Peninsula. This temporary name change ignited a six-game win streak, and so the Shore Boyz hoped they could ride this to different fortunes come playoff time. Unfortunately, a Shureburd can't change its feathers. 3rd place again!";
+
 const WVPR_TRADITIONS = [
   {
     name: '"Cue Country Roads" Pregame',
@@ -204,6 +206,22 @@ export default async function TeamPage({ params }: Props) {
           weaknesses={effectiveWeaknesses}
         />
 
+        {/* Emus Fun Franchise Facts */}
+        {id === 6 && (
+          <div className="mb-10">
+            <h2 className="text-2xl font-bold mb-1">Fun Franchise Facts</h2>
+            <p className="text-sm text-gray-500 mb-4">The Delmarva Peninsula's Almost Winningest Baseball Team, Established 2022</p>
+            <div className="rounded-xl overflow-hidden shadow-sm border border-gray-200">
+              <div className="px-4 py-3" style={{ backgroundColor: '#6C5CE7' }}>
+                <p className="text-sm font-bold text-white leading-tight">Delmarva Emus (née Shureburds)</p>
+              </div>
+              <div className="px-4 py-4" style={{ backgroundColor: '#F0EEFF' }}>
+                <p className="text-sm text-gray-700 leading-relaxed">{EMUS_FUN_FACTS}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* WVPR Game Day Traditions */}
         {id === 3 && (
           <div className="mb-10">
@@ -264,7 +282,7 @@ export default async function TeamPage({ params }: Props) {
               rpNames={rpNames.size > 0 ? rpNames : undefined}
               fieldDimensions={id === 3 ? { lf: 325, lcf: 375, cf: 400, rcf: 375, rf: 325 } : undefined}
               stadiumName={id === 3 ? 'Tim Elko Field at Montani Semper Liberi Park' : undefined}
-              backgroundImageUrl={id === 3 ? '/wvu-kendrick-field.jpg' : undefined}
+              backgroundImageUrl={id === 3 ? '/wvu-kendrick-field.jpg' : id === 10 ? '/bristol-field.jpg' : undefined}
             />
           </div>
         )}
