@@ -400,7 +400,7 @@ Applied consistent mobile-first treatment across all data tables:
   - Container `paddingTop` switches from `75%` → `56.25%` (16:9 to match image aspect ratio)
   - Next.js `<Image fill>` with `object-cover object-top` fills the container
   - SVG field drawing is skipped entirely
-  - Separate `FIELD_SLOTS_PHOTO` position set (recalibrated for broadcast-angle perspective; user has been tweaking these manually)
+  - Separate `FIELD_SLOTS_PHOTO` position set calibrated for broadcast-angle perspective. Current tuned values: `C: 52%/53%, SP: 43%/30%, 3B: 20%/28%, SS: 30%/24%, 2B: 51%/23%, 1B: 66%/29%, OF1: 10%/15%, OF2: 37%/16%, OF3: 60%/17%` (left%/top%). To nudge a pin: ↑ left% = right, ↓ left% = left, ↑ top% = down toward plate, ↓ top% = up toward fence.
   - `hideLabel={isPhotoMode}` on `FieldPin` — position abbreviation badges hidden in photo mode (redundant when positions are visually obvious)
   - Bullpen pins (BP1/BP2) removed from the photo — no on-field bullpen marker. Side Bullpen box switches to show ranks 1–3 (instead of 3–5 which assumed 1–2 were on-field)
 - **Name badge**: Changed from single `rounded-full` pill (name + pts inline) to `flex-col rounded-lg` — name on top line, points on second line, both center-aligned. Applies to both SVG and photo modes.
