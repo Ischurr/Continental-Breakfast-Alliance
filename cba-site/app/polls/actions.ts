@@ -4,6 +4,11 @@ import { revalidatePath } from 'next/cache';
 import { PollsData } from '@/lib/types';
 import { getPolls, setPolls } from '@/lib/store';
 
+function revalidateRoutes() {
+  revalidatePath('/polls');
+  revalidatePath('/message-board');
+}
+
 export async function castVote(pollId: string, optionId: string): Promise<void> {
   const data: PollsData = await getPolls();
 
@@ -16,8 +21,7 @@ export async function castVote(pollId: string, optionId: string): Promise<void> 
     if (new Date() > expires) {
       poll.active = false;
       await setPolls(data);
-      revalidatePath('/polls');
-      revalidatePath('/message-board');
+      revalidateRoutes();
       return;
     }
   }
@@ -34,8 +38,7 @@ export async function castVote(pollId: string, optionId: string): Promise<void> 
   }
 
   await setPolls(data);
-  revalidatePath('/polls');
-  revalidatePath('/message-board');
+  revalidateRoutes();
 }
 
 // --- admin helpers -----------------------------------------------------------
@@ -63,8 +66,7 @@ export async function createPoll(
     expiresAt,
   });
   await setPolls(data);
-  revalidatePath('/polls');
-  revalidatePath('/message-board');
+  revalidateRoutes();
 }
 
 export async function updatePoll(
@@ -92,8 +94,7 @@ export async function updatePoll(
   poll.active = active;
   poll.expiresAt = expiresAt;
   await setPolls(data);
-  revalidatePath('/polls');
-  revalidatePath('/message-board');
+  revalidateRoutes();
 }
 
 export async function deletePoll(pollId: string, password?: string): Promise<void> {
@@ -105,6 +106,5 @@ export async function deletePoll(pollId: string, password?: string): Promise<voi
   const data: PollsData = await getPolls();
   data.polls = data.polls.filter(p => p.id !== pollId);
   await setPolls(data);
-  revalidatePath('/polls');
-  revalidatePath('/message-board');
+  revalidateRoutes();
 }
