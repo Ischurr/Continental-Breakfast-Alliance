@@ -458,6 +458,24 @@ Applied consistent mobile-first treatment across all data tables:
 ### Workflow
 - To show a video on a team page: post a message on the message board with a YouTube URL in the video field, targeting or authored by that team — the post and embedded video appear automatically at the bottom of the team page
 
+## Session Work (March 5, 2026 — Suggested Keepers + Field Side Box Polish)
+
+### Suggested 2026 Keepers (`lib/data-processor.ts`, `app/teams/[teamId]/page.tsx`, `data/projections/2026.json`)
+- **`data/projections/2026.json`**: 823-player JSON converted from `scripts/fantasy_projections_2026.csv`. Fields: `playerName`, `mlbamId`, `position`, `team`, `age`, `projectedFP`, `percentile`.
+- **`getSuggestedKeepers(teamId, limit=6)`**: looks up each 2025 roster player in the projections by name (case-insensitive, alphanumeric-normalized). Returns top N by `projectedFP2026`, with `keeperValue`, `age`, and `totalPoints2025` attached. 97.6% match rate on 2025 rosters.
+- **Team page layout**: "Top Players All-Time" (6 players) and "Suggested 2026 Keepers" (6 players) shown side-by-side in a `md:grid-cols-2` grid. Keeper cards show position, age, amber `Rd N` badge for keeper round cost, and projected FP in indigo labeled "proj".
+- **Date-based switching**: `keeperDeadline = new Date('2026-03-09')`. Before Mar 9 → show suggested keepers from projections. After Mar 9 → show actual `getTeamKeepersForYear(id, 2026)` from 2026 roster data (populated after draft).
+- **Alignment fix**: invisible subtitle spacer on the "Top Players All-Time" header matches the height of the keepers subtitle, keeping first cards on the same horizontal plane.
+
+### Baseball Field Side Box Polish (`components/TeamBaseballField.tsx`)
+- **Bullpen rectangle removed** from SVG field drawing (`<rect>` + `<text>` BULLPEN label deleted)
+- **BP1/BP2 pins removed** from `FIELD_SLOTS_SVG` — no more on-field bullpen pins for any team
+- **Bullpen side box unified**: always shows ranks 1–3 (`startRank={1}`) on all teams — same as photo-mode teams (Banshees, WV). Previously SVG teams showed ranks 3–5 because 1–2 were on-field.
+- **SideRow redesign**: photo 32px, full name visible at `xl:` / last name only below `xl:`, points on own line below name, responsive padding/gaps
+- **DHCard redesign**: photo scales `md:40px → lg:48px → xl:56px`, full name at `lg:` / last name below, "pts" label added
+- **Side panel responsive width**: `md:w-[140px] lg:w-[165px] xl:w-[190px]` (was fixed 160px then 190px)
+- All SideRow photos now have `object-cover` to prevent stretching
+
 ## Session Work (March 4, 2026 — Per-Stadium Photo Field Positions)
 
 ### Per-stadium photo slot maps (`components/TeamBaseballField.tsx`)
