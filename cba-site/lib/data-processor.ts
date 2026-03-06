@@ -4,6 +4,7 @@ import season2023 from '../data/historical/2023.json';
 import season2024 from '../data/historical/2024.json';
 import season2025 from '../data/historical/2025.json';
 import season2026raw from '../data/current/2026.json';
+import projections2026 from '../data/projections/2026.json';
 
 // Strip bad preseason data: if no games have been played, clear playoffTeams
 const totalGames2026 = (season2026raw as SeasonData).standings.reduce(
@@ -298,6 +299,47 @@ export function getTopMatchupOfWeek() {
     teams: currentSeason.teams,
     standings: currentSeason.standings,
   };
+}
+
+// Returns suggested keepers for a team: 2025 roster players ranked by 2026 projected fantasy points
+export function getSuggestedKeepers(teamId: number, limit = 7) {
+  const season2025 = getAllSeasons().find(s => s.year === 2025);
+  if (!season2025) return [];
+  const roster = season2025.rosters?.find(r => r.teamId === teamId);
+  if (!roster) return [];
+
+  // Build a name-lookup map from projections (case-insensitive, normalized)
+  const normalize = (name: string) => name.toLowerCase().replace(/[^a-z ]/g, '').trim();
+  const projMap = new Map<string, { projectedFP: number; position: string; age: number | null; percentile: number | null }>();
+  for (const p of projections2026.players) {
+    if (p.projectedFP !== null) {
+      projMap.set(normalize(p.playerName), {
+        projectedFP: p.projectedFP,
+        position: p.position,
+        age: p.age,
+        percentile: p.percentile,
+      });
+    }
+  }
+
+  return roster.players
+    .map(p => {
+      const proj = projMap.get(normalize(p.playerName));
+      return {
+        playerId: p.playerId,
+        playerName: p.playerName,
+        position: p.position,
+        photoUrl: p.photoUrl,
+        keeperValue: p.keeperValue ?? 0,
+        totalPoints2025: p.totalPoints,
+        projectedFP2026: proj?.projectedFP ?? null,
+        age: proj?.age ?? null,
+        percentile: proj?.percentile ?? null,
+      };
+    })
+    .filter(p => p.projectedFP2026 !== null)
+    .sort((a, b) => (b.projectedFP2026 ?? 0) - (a.projectedFP2026 ?? 0))
+    .slice(0, limit);
 }
 
 // Returns top N historically high-scoring players who are NOT on any current roster.

@@ -91,24 +91,30 @@ function BullpenPin({ player, rank }: { player: Player | null; rank: number }) {
 function SideRow({ player, rank }: { player: Player | null; rank: number }) {
   if (!player) {
     return (
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-100 last:border-b-0">
-        <span className="text-[11px] font-bold text-gray-300 w-4 flex-shrink-0">{rank}.</span>
-        <span className="text-[11px] text-gray-300 italic">—</span>
+      <div className="flex items-center gap-1.5 px-2 lg:px-3 py-2 border-b border-gray-100 last:border-b-0">
+        <span className="text-[10px] lg:text-[11px] font-bold text-gray-300 w-4 flex-shrink-0">{rank}.</span>
+        <span className="text-[10px] lg:text-[11px] text-gray-300 italic">—</span>
       </div>
     );
   }
-  const name = displayLastName(player.playerName);
   return (
-    <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-100 last:border-b-0">
+    <div className="flex items-center gap-1.5 lg:gap-2 px-2 lg:px-3 py-2 lg:py-2.5 border-b border-gray-100 last:border-b-0">
       {player.photoUrl && (
-        <Image src={player.photoUrl} alt={player.playerName} width={22} height={22}
-          className="rounded-full bg-gray-100 flex-shrink-0" unoptimized />
+        <Image src={player.photoUrl} alt={player.playerName} width={32} height={32}
+          className="w-6 h-6 lg:w-7 lg:h-7 xl:w-8 xl:h-8 rounded-full object-cover bg-gray-100 flex-shrink-0" unoptimized />
       )}
-      <span className="text-[11px] font-bold text-gray-300 w-4 flex-shrink-0">{rank}.</span>
-      <span className="text-[11px] font-semibold text-gray-800 truncate flex-1">{name}</span>
-      {player.totalPoints > 0 && (
-        <span className="text-[11px] font-bold text-teal-600 flex-shrink-0">{Math.round(player.totalPoints)}</span>
-      )}
+      <div className="flex flex-col min-w-0 flex-1">
+        <div className="flex items-baseline gap-1">
+          <span className="text-[10px] lg:text-[11px] font-bold text-gray-300 flex-shrink-0">{rank}.</span>
+          <span className="text-[10px] lg:text-[11px] font-semibold text-gray-800 truncate">
+            <span className="xl:hidden">{displayLastName(player.playerName)}</span>
+            <span className="hidden xl:inline">{player.playerName}</span>
+          </span>
+        </div>
+        {player.totalPoints > 0 && (
+          <span className="text-[10px] lg:text-[11px] font-bold text-teal-600">{Math.round(player.totalPoints)} pts</span>
+        )}
+      </div>
     </div>
   );
 }
@@ -161,26 +167,28 @@ function OhtaniCard({ player }: { player: Player | null }) {
 // ─── DH card ──────────────────────────────────────────────────────────────────
 
 function DHCard({ player }: { player: Player | null }) {
-  const name = player ? displayLastName(player.playerName) : '';
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-      <div className="bg-gray-800 text-white text-[10px] font-bold px-2 py-1 text-center tracking-widest uppercase">
+      <div className="bg-gray-800 text-white text-[11px] font-bold px-2 py-2 text-center tracking-widest uppercase">
         DH
       </div>
-      <div className="px-2 py-1.5 flex flex-col items-center gap-0.5">
+      <div className="px-2 lg:px-3 py-2 lg:py-3 flex flex-col items-center gap-1 lg:gap-1.5">
         {player?.photoUrl ? (
-          <Image src={player.photoUrl} alt={player.playerName} width={32} height={32}
-            className="w-8 h-8 rounded-full bg-gray-100" unoptimized />
+          <Image src={player.photoUrl} alt={player.playerName} width={56} height={56}
+            className="w-10 h-10 lg:w-12 lg:h-12 xl:w-14 xl:h-14 rounded-full object-cover bg-gray-100" unoptimized />
         ) : (
-          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+          <div className="w-10 h-10 lg:w-12 lg:h-12 xl:w-14 xl:h-14 rounded-full bg-gray-100 flex items-center justify-center">
             <span className="text-gray-400 text-[10px] font-bold">DH</span>
           </div>
         )}
         {player ? (
           <>
-            <span className="text-[10px] font-semibold text-gray-800 text-center leading-tight w-full">{name}</span>
+            <span className="text-[10px] lg:text-xs font-semibold text-gray-800 text-center leading-snug">
+              <span className="lg:hidden">{displayLastName(player.playerName)}</span>
+              <span className="hidden lg:inline">{player.playerName}</span>
+            </span>
             {player.totalPoints > 0 && (
-              <span className="text-[10px] font-bold text-teal-600">{Math.round(player.totalPoints)}</span>
+              <span className="text-[10px] lg:text-xs font-bold text-teal-600">{Math.round(player.totalPoints)} pts</span>
             )}
           </>
         ) : (
@@ -204,8 +212,6 @@ const FIELD_SLOTS_SVG: Record<string, [string, string]> = {
   OF1:  ['17%',   '33%'],
   OF2:  ['50%',   '19%'],
   OF3:  ['83%',   '33%'],
-  BP1:  ['91.7%', '67%'],
-  BP2:  ['91.7%', '82%'],
 };
 
 // Photo background config — one entry per stadium photo.
@@ -455,11 +461,6 @@ export default function TeamBaseballField({ players, rpNames, fieldDimensions, s
               </g>
             )}
 
-            {/* ── Bullpen marker ────────────────────────────────────── */}
-            <rect x="596" y="262" width="92" height="175" rx="5"
-              fill="#1e4a28" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" />
-            <text x="642" y="274" textAnchor="middle" fill="rgba(255,255,255,0.4)"
-              fontSize="7" fontFamily="sans-serif" fontWeight="bold" letterSpacing="1">BULLPEN</text>
           </svg>}
 
           {/* Player pins */}
@@ -490,20 +491,16 @@ export default function TeamBaseballField({ players, rpNames, fieldDimensions, s
       </div>
 
       {/* Right: DH + Bullpen + Rotation */}
-      <div className="grid grid-cols-3 md:grid-cols-1 gap-2 md:flex-shrink-0 md:w-[160px]">
+      <div className="grid grid-cols-3 md:grid-cols-1 gap-2 md:flex-shrink-0 md:w-[140px] lg:w-[165px] xl:w-[190px]">
         <DHCard player={dh} />
         <SideBox
           title="Bullpen"
-          players={isPhotoMode
-            ? [bullpen[0] ?? null, bullpen[1] ?? null, bullpen[2] ?? null]
-            : [bullpen[2] ?? null, bullpen[3] ?? null, bullpen[4] ?? null]}
-          startRank={isPhotoMode ? 1 : 3}
+          players={[bullpen[0] ?? null, bullpen[1] ?? null, bullpen[2] ?? null]}
+          startRank={1}
         />
         <SideBox
           title="Rotation"
-          players={isPhotoMode
-            ? [rotation[0] ?? null, rotation[1] ?? null, rotation[2] ?? null, rotation[3] ?? null]
-            : [rotation[0] ?? null, rotation[1] ?? null, rotation[2] ?? null, rotation[3] ?? null, rotation[4] ?? null]}
+          players={[rotation[0] ?? null, rotation[1] ?? null, rotation[2] ?? null, rotation[3] ?? null]}
           startRank={2}
         />
       </div>

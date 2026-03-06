@@ -1,6 +1,6 @@
 import Header from '@/components/Header';
 import StandingsTable from '@/components/StandingsTable';
-import { getAllSeasons, getCurrentSeason, calculateAllTimeStandings, getTeamHeadToHead, getTeamSeasonHistory, getTeamTopPlayersAllTime, getTeamTopPlayerForYear, getTeamKeepersForYear } from '@/lib/data-processor';
+import { getAllSeasons, getCurrentSeason, calculateAllTimeStandings, getTeamHeadToHead, getTeamSeasonHistory, getTeamTopPlayersAllTime, getTeamTopPlayerForYear, getTeamKeepersForYear, getSuggestedKeepers } from '@/lib/data-processor';
 import teamsMetadata from '@/data/teams.json';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -78,7 +78,12 @@ export default async function TeamPage({ params }: Props) {
   const meta = teamsMetadata.teams.find(t => t.id === id);
   const allTimeStats = calculateAllTimeStandings().find(t => t.teamId === id);
   const seasonHistory = getTeamSeasonHistory(id);
-  const topPlayersAllTime = getTeamTopPlayersAllTime(id, 5);
+  const topPlayersAllTime = getTeamTopPlayersAllTime(id, 6);
+  // Show suggested keepers (from projections) until keepers are selected; after that show actual 2026 keepers
+  const keeperDeadline = new Date('2026-03-09'); // Monday after keeper selection Sunday (Mar 8)
+  const showSuggestedKeepers = new Date() < keeperDeadline;
+  const suggestedKeepers = showSuggestedKeepers ? getSuggestedKeepers(id, 6) : [];
+  const actualKeepers2026 = showSuggestedKeepers ? [] : getTeamKeepersForYear(id, 2026);
 
   // Current season roster for this team (for the field diagram)
   const currentRoster = (currentSeason.rosters ?? []).find(r => r.teamId === id)?.players ?? [];
@@ -242,34 +247,118 @@ export default async function TeamPage({ params }: Props) {
           </div>
         )}
 
-        {/* Top Players All-Time */}
-        {topPlayersAllTime.length > 0 && (
-          <div className="mb-10">
-            <h2 className="text-2xl font-bold mb-4">Top Players All-Time</h2>
-            <div className="flex flex-col gap-2">
-              {topPlayersAllTime.map((p, i) => (
-                <div key={p.playerName} className="bg-white rounded-lg border px-4 py-3 flex items-center gap-4 hover:bg-sky-50 transition">
-                  <span className="text-sm font-bold text-gray-300 w-5 flex-shrink-0">{i + 1}</span>
-                  {p.photoUrl && (
-                    <Image
-                      src={p.photoUrl}
-                      alt={p.playerName}
-                      width={36}
-                      height={36}
-                      className="rounded-full object-cover bg-gray-100 flex-shrink-0"
-                      unoptimized
-                    />
+        {/* Top Players All-Time + Suggested / Actual 2026 Keepers */}
+        {(topPlayersAllTime.length > 0 || suggestedKeepers.length > 0 || actualKeepers2026.length > 0) && (
+          <div className="mb-10 grid grid-cols-1 md:grid-cols-2 gap-6">
+            {topPlayersAllTime.length > 0 && (
+              <div>
+                <div className="mb-4">
+                  <h2 className="text-2xl font-bold mb-1">Top Players All-Time</h2>
+                  {/* invisible spacer to match height of keepers subtitle when present */}
+                  {(suggestedKeepers.length > 0) && (
+                    <p className="text-xs invisible">placeholder</p>
                   )}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-800 text-sm">{p.playerName}</p>
-                    <p className="text-xs text-gray-400">{p.position}</p>
-                  </div>
-                  <span className="text-sm font-bold text-teal-600 flex-shrink-0">
-                    {Math.round(p.totalPoints).toLocaleString()} pts
-                  </span>
                 </div>
-              ))}
-            </div>
+                <div className="flex flex-col gap-2">
+                  {topPlayersAllTime.map((p, i) => (
+                    <div key={p.playerName} className="bg-white rounded-lg border px-4 py-3 flex items-center gap-4 hover:bg-sky-50 transition">
+                      <span className="text-sm font-bold text-gray-300 w-5 flex-shrink-0">{i + 1}</span>
+                      {p.photoUrl && (
+                        <Image
+                          src={p.photoUrl}
+                          alt={p.playerName}
+                          width={36}
+                          height={36}
+                          className="rounded-full object-cover bg-gray-100 flex-shrink-0"
+                          unoptimized
+                        />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-800 text-sm">{p.playerName}</p>
+                        <p className="text-xs text-gray-400">{p.position}</p>
+                      </div>
+                      <span className="text-sm font-bold text-teal-600 flex-shrink-0">
+                        {Math.round(p.totalPoints).toLocaleString()} pts
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {suggestedKeepers.length > 0 && (
+              <div>
+                <div className="mb-4">
+                  <h2 className="text-2xl font-bold mb-1">Suggested 2026 Keepers</h2>
+                  <p className="text-xs text-gray-400 uppercase tracking-wide">Ranked by projected 2026 fantasy points</p>
+                </div>
+                <div className="flex flex-col gap-2">
+                  {suggestedKeepers.map((p, i) => (
+                    <div key={p.playerId} className="bg-white rounded-lg border px-4 py-3 flex items-center gap-4 hover:bg-sky-50 transition">
+                      <span className="text-sm font-bold text-gray-300 w-5 flex-shrink-0">{i + 1}</span>
+                      {p.photoUrl && (
+                        <Image
+                          src={p.photoUrl}
+                          alt={p.playerName}
+                          width={36}
+                          height={36}
+                          className="rounded-full object-cover bg-gray-100 flex-shrink-0"
+                          unoptimized
+                        />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-800 text-sm">{p.playerName}</p>
+                        <p className="text-xs text-gray-400">
+                          {p.position}
+                          {p.age !== null && <span> · Age {p.age.toFixed(0)}</span>}
+                          {p.keeperValue > 0 && (
+                            <span className="ml-1 bg-amber-100 text-amber-700 rounded px-1 font-medium">Rd {p.keeperValue}</span>
+                          )}
+                        </p>
+                      </div>
+                      <span className="text-sm font-bold text-indigo-600 flex-shrink-0">
+                        {Math.round(p.projectedFP2026!).toLocaleString()} proj
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {actualKeepers2026.length > 0 && (
+              <div>
+                <div className="mb-4">
+                  <h2 className="text-2xl font-bold mb-1">2026 Keepers</h2>
+                </div>
+                <div className="flex flex-col gap-2">
+                  {actualKeepers2026.map((p, i) => (
+                    <div key={p.playerId} className="bg-white rounded-lg border px-4 py-3 flex items-center gap-4 hover:bg-sky-50 transition">
+                      <span className="text-sm font-bold text-gray-300 w-5 flex-shrink-0">{i + 1}</span>
+                      {p.photoUrl && (
+                        <Image
+                          src={p.photoUrl}
+                          alt={p.playerName}
+                          width={36}
+                          height={36}
+                          className="rounded-full object-cover bg-gray-100 flex-shrink-0"
+                          unoptimized
+                        />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-800 text-sm">{p.playerName}</p>
+                        <p className="text-xs text-gray-400">
+                          {p.position}
+                          {(p.keeperValue ?? 0) > 0 && (
+                            <span className="ml-1 bg-amber-100 text-amber-700 rounded px-1 font-medium">Rd {p.keeperValue}</span>
+                          )}
+                        </p>
+                      </div>
+                      <span className="text-sm font-bold text-teal-600 flex-shrink-0">
+                        {Math.round(p.totalPoints).toLocaleString()} pts
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
