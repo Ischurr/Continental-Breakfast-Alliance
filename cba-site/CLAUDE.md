@@ -116,6 +116,8 @@ npm run build            # Production build
 - **Landing page event banner** (`app/page.tsx`): full-width card below the 3-card League Pulse grid, visible within 7 days of next event. Solid color bg: amber-500 (deadline), violet-600 (CBA event), sky-600 (MLB event). White countdown pill on right. To test locally: temporarily change `getNextEventWithin(7)` to `(14)` in `page.tsx` AND `getAllEventsWithin(7)` to `(14)` in `layout.tsx` — revert before pushing.
 - **TeamBaseballField** (`components/TeamBaseballField.tsx`): per-team baseball field diagram added to each team page (`app/teams/[teamId]/page.tsx`) as a "2026 Roster" section between "Top Players All-Time" and "Season History". Scoped to one team's current roster — no rostered/FA toggle. Uses same SVG field and pin components as `BaseballFieldLeaders` but `totalPoints > 0` filter removed so players appear pre-season (points badge hidden when 0). Rotation side box shows ranks 2–6 (5 pitchers); Bullpen box shows ranks 7–11. UTIL position logic identical to rostered view: top 3 UTIL → OF1/OF2/OF3, 4th → DH. Only renders if `currentSeason.rosters` has data for the team.
 - **Season cutover date**: `getCurrentSeason()` in `lib/data-processor.ts` now switches to the new year on **March 20** (was March 15). After draft, run "Update Stats" from Actions tab to pull fresh ESPN rosters immediately rather than waiting for the nightly 5:30 AM EST cron.
+- **BaseballFieldLeaders layout** (`components/BaseballFieldLeaders.tsx`): dynamic `sideBySide` state controls whether the sidebar (Ohtani/DH/Bullpen/Rotation cards) sits alongside the field or drops below. Uses `ResizeObserver` on `wrapperRef` and `sidebarRef`. `checkLayout` computes theoretical field height = `(wrapperWidth - sidebarW - 12) * 0.68` and compares to `sidebar.scrollHeight` (natural content height). When `sideBySide=true`: outer div gets `relative pr-[177px] xl:pr-[197px]`, sidebar is `absolute top-0 right-0 bottom-0 w-[165px] xl:w-[185px]`. When false: sidebar is `mt-3 grid grid-cols-2 gap-2`. Only side-by-side at `lg+`. Bullpen shows 5 players (ranks 1-5), Rotation shows 4 players (ranks 2-5). OhtaniCard and DHCard use horizontal layout (photo left, name/points right). Photos use `object-cover` to prevent stretching. Layout re-checks on view toggle (rostered/FA) since Ohtani may appear/disappear.
+- **TeamBaseballField sidebar** (`components/TeamBaseballField.tsx`): same horizontal OhtaniCard/DHCard layout as BaseballFieldLeaders. Player names use `break-words` (not `truncate`) to prevent names being cut off.
 
 ## Key Gotchas
 - ESPN roster data: all pitchers use 'SP' slot (no 'RP'), UTIL = OF + DH
@@ -475,6 +477,18 @@ Applied consistent mobile-first treatment across all data tables:
 - **DHCard redesign**: photo scales `md:40px → lg:48px → xl:56px`, full name at `lg:` / last name below, "pts" label added
 - **Side panel responsive width**: `md:w-[140px] lg:w-[165px] xl:w-[190px]` (was fixed 160px then 190px)
 - All SideRow photos now have `object-cover` to prevent stretching
+
+## Session Work (March 5, 2026 — Code Cleanup)
+
+### Dead code removed
+- **`app/rankings/AdminArticleForm.tsx`**: deleted — was already removed from `app/rankings/page.tsx` (noted in previous session), file had zero imports anywhere
+- **`app/trash-talk/` directory** (page.tsx, actions.ts, TrashTalkForm.tsx): deleted — `/trash-talk` permanently redirects to `/message-board` via `next.config.ts`; the route files were never reachable
+
+### Duplicate code consolidated
+- **`timeAgo()` in `app/message-board/page.tsx`**: removed local definition; now imports `{ timeAgo }` from `@/lib/news-fetcher` where the canonical export already existed
+- **`revalidatePath` repetition in `app/polls/actions.ts`**: extracted a local `revalidateRoutes()` helper that calls `revalidatePath('/polls')` + `revalidatePath('/message-board')`; replaces 5 identical copy-pasted pairs across `castVote`, `createPoll`, `updatePoll`, `deletePoll`
+
+---
 
 ## Session Work (March 4, 2026 — Per-Stadium Photo Field Positions)
 

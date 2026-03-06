@@ -106,7 +106,7 @@ function SideRow({ player, rank }: { player: Player | null; rank: number }) {
       <div className="flex flex-col min-w-0 flex-1">
         <div className="flex items-baseline gap-1">
           <span className="text-[10px] lg:text-[11px] font-bold text-gray-300 flex-shrink-0">{rank}.</span>
-          <span className="text-[10px] lg:text-[11px] font-semibold text-gray-800 truncate">
+          <span className="text-[10px] lg:text-[11px] font-semibold text-gray-800 break-words">
             <span className="xl:hidden">{displayLastName(player.playerName)}</span>
             <span className="hidden xl:inline">{player.playerName}</span>
           </span>
@@ -140,22 +140,22 @@ function OhtaniCard({ player }: { player: Player | null }) {
       <div className="bg-yellow-600 text-white text-[9px] font-bold px-2 py-1.5 text-center tracking-wide uppercase leading-tight">
         The Shohei Box
       </div>
-      <div className="px-2 py-2 flex flex-col items-center gap-1">
+      <div className="px-2 py-2 flex items-center gap-2">
         {player?.photoUrl ? (
-          <Image src={player.photoUrl} alt={player.playerName} width={40} height={40}
-            className="rounded-full bg-gray-100" unoptimized />
+          <Image src={player.photoUrl} alt={player.playerName} width={32} height={32}
+            className="w-8 h-8 rounded-full object-cover bg-gray-100 flex-shrink-0" unoptimized />
         ) : (
-          <div className="w-10 h-10 rounded-full bg-yellow-50 border border-yellow-200 flex items-center justify-center">
-            <span className="text-yellow-600 text-[10px] font-bold">SP/DH</span>
+          <div className="w-8 h-8 rounded-full bg-yellow-50 border border-yellow-200 flex items-center justify-center flex-shrink-0">
+            <span className="text-yellow-600 text-[9px] font-bold">SP/DH</span>
           </div>
         )}
         {player ? (
-          <>
-            <span className="text-[10px] font-semibold text-gray-800 text-center leading-tight">Ohtani</span>
+          <div className="flex flex-col min-w-0">
+            <span className="text-[11px] font-semibold text-gray-800 leading-tight">Ohtani</span>
             {player.totalPoints > 0 && (
-              <span className="text-[10px] font-bold text-teal-600">{Math.round(player.totalPoints)}</span>
+              <span className="text-[11px] font-bold text-teal-600">{Math.round(player.totalPoints)}</span>
             )}
-          </>
+          </div>
         ) : (
           <span className="text-[10px] text-gray-300 italic">—</span>
         )}
@@ -172,25 +172,25 @@ function DHCard({ player }: { player: Player | null }) {
       <div className="bg-gray-800 text-white text-[11px] font-bold px-2 py-2 text-center tracking-widest uppercase">
         DH
       </div>
-      <div className="px-2 lg:px-3 py-2 lg:py-3 flex flex-col items-center gap-1 lg:gap-1.5">
+      <div className="px-2 py-2 flex items-center gap-2">
         {player?.photoUrl ? (
-          <Image src={player.photoUrl} alt={player.playerName} width={56} height={56}
-            className="w-10 h-10 lg:w-12 lg:h-12 xl:w-14 xl:h-14 rounded-full object-cover bg-gray-100" unoptimized />
+          <Image src={player.photoUrl} alt={player.playerName} width={32} height={32}
+            className="w-8 h-8 rounded-full object-cover bg-gray-100 flex-shrink-0" unoptimized />
         ) : (
-          <div className="w-10 h-10 lg:w-12 lg:h-12 xl:w-14 xl:h-14 rounded-full bg-gray-100 flex items-center justify-center">
-            <span className="text-gray-400 text-[10px] font-bold">DH</span>
+          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+            <span className="text-gray-400 text-[9px] font-bold">DH</span>
           </div>
         )}
         {player ? (
-          <>
-            <span className="text-[10px] lg:text-xs font-semibold text-gray-800 text-center leading-snug">
-              <span className="lg:hidden">{displayLastName(player.playerName)}</span>
-              <span className="hidden lg:inline">{player.playerName}</span>
+          <div className="flex flex-col min-w-0">
+            <span className="text-[10px] lg:text-[11px] font-semibold text-gray-800 leading-tight break-words">
+              <span className="xl:hidden">{displayLastName(player.playerName)}</span>
+              <span className="hidden xl:inline">{player.playerName}</span>
             </span>
             {player.totalPoints > 0 && (
-              <span className="text-[10px] lg:text-xs font-bold text-teal-600">{Math.round(player.totalPoints)} pts</span>
+              <span className="text-[10px] lg:text-[11px] font-bold text-teal-600">{Math.round(player.totalPoints)} pts</span>
             )}
-          </>
+          </div>
         ) : (
           <span className="text-[10px] text-gray-300 italic">—</span>
         )}
