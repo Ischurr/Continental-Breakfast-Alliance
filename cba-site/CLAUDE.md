@@ -542,3 +542,24 @@ Applied consistent mobile-first treatment across all data tables:
 - **`components/EROSPTable.tsx`**: footer text "7-SP-start weekly cap applied"
 - **`app/stats/players/page.tsx`**: description "7-SP-start weekly cap"
 - **`CLAUDE.md`** EROSP section: formula updated to `min(1.0, 7 / team_starts_per_week)`
+
+## Session Work (March 8, 2026 — Confirmed Keeper Overrides)
+
+### `data/keeper-overrides.json` (new file)
+- JSON file keyed by team ID containing manually confirmed 2026 keeper lists for all 10 teams
+- When an entry exists for a team, `getSuggestedKeepers` returns exactly those players in that order instead of using the algorithmic ranking
+- All 10 teams set: Space Cowboys (1), Chinook (2), Pepperoni Rolls (3), Mega Rats (4), Emus (6), Sky Chiefs (7), Whistlepigs (8), Fuzzy Bottoms (9), Banshees (10), Folksy Ferrets (11)
+
+### `lib/data-processor.ts` — `getSuggestedKeepers` updates
+- Added `rosterYear` parameter (default 2025) — looks at that year's roster for suggestions
+- Overrides only apply when `rosterYear === 2025` (suggesting 2026 keepers); ignored for future years
+- When override exists: builds result from the named players, pulling `playerId`/`photoUrl`/`keeperValue` from roster and `projectedFP`/`age`/`percentile` from projections; graceful fallbacks for any missing data
+
+### `app/teams/[teamId]/page.tsx` — keeper display logic
+- Imports `keeperOverrides` to drive label switching: teams with confirmed keepers show **"2026 Keepers"** / "Confirmed keepers" subtitle; others show "Suggested 2026 Keepers" / "Ranked by projected 2026 fantasy points"
+- Added `seasonEnd2026 = new Date('2026-10-01')` — after Oct 1, 2026 the page automatically switches to **"Suggested 2027 Keepers"** based on 2026 season stats, overrides are ignored
+- Fixed React key collision: `key={p.playerId || p.playerName}` — falls back to name for override players with no ESPN ID match
+- Timeline: pre-Mar 24 → confirmed/suggested 2026 keepers; Mar 24–Oct 1 → actual ESPN draft keepers; Oct 1+ → suggested 2027 keepers
+
+### Known data issue
+- James Wood (WSH OF, age 22) has a bad projection entry in `data/projections/2026.json` — maps to a different James Wood (pitcher, age 29). Low projected FP (361) shown for him. Fix: manually correct the entry or wait for the Monday projection regeneration to overwrite it.

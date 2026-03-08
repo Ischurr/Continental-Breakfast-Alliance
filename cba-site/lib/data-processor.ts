@@ -5,6 +5,7 @@ import season2024 from '../data/historical/2024.json';
 import season2025 from '../data/historical/2025.json';
 import season2026raw from '../data/current/2026.json';
 import projections2026 from '../data/projections/2026.json';
+import keeperOverrides from '../data/keeper-overrides.json';
 
 // Strip bad preseason data: if no games have been played, clear playoffTeams
 const totalGames2026 = (season2026raw as SeasonData).standings.reduce(
@@ -301,11 +302,12 @@ export function getTopMatchupOfWeek() {
   };
 }
 
-// Returns suggested keepers for a team: 2025 roster players ranked by 2026 projected fantasy points
-export function getSuggestedKeepers(teamId: number, limit = 7) {
-  const season2025 = getAllSeasons().find(s => s.year === 2025);
-  if (!season2025) return [];
-  const roster = season2025.rosters?.find(r => r.teamId === teamId);
+// Returns suggested keepers for a team based on prior season roster ranked by next-year projected FP.
+// rosterYear=2025 → suggests 2026 keepers (uses overrides if set); rosterYear=2026 → suggests 2027 keepers (no overrides).
+export function getSuggestedKeepers(teamId: number, limit = 7, rosterYear = 2025) {
+  const priorSeason = getAllSeasons().find(s => s.year === rosterYear);
+  if (!priorSeason) return [];
+  const roster = priorSeason.rosters?.find(r => r.teamId === teamId);
   if (!roster) return [];
 
   // Build a name-lookup map from projections (case-insensitive, normalized)
@@ -320,6 +322,27 @@ export function getSuggestedKeepers(teamId: number, limit = 7) {
         percentile: p.percentile,
       });
     }
+  }
+
+  // Manual overrides only apply when suggesting 2026 keepers (rosterYear=2025)
+  const overrides = rosterYear === 2025 ? (keeperOverrides as Record<string, string[]>)[String(teamId)] : undefined;
+  if (overrides) {
+    const rosterMap = new Map(roster.players.map(p => [normalize(p.playerName), p]));
+    return overrides.slice(0, limit).map(name => {
+      const rp = rosterMap.get(normalize(name));
+      const proj = projMap.get(normalize(name));
+      return {
+        playerId: rp?.playerId ?? '',
+        playerName: name,
+        position: rp?.position ?? proj?.position ?? '?',
+        photoUrl: rp?.photoUrl ?? '',
+        keeperValue: rp?.keeperValue ?? 0,
+        totalPoints2025: rp?.totalPoints ?? null,
+        projectedFP2026: proj?.projectedFP ?? null,
+        age: proj?.age ?? null,
+        percentile: proj?.percentile ?? null,
+      };
+    });
   }
 
   return roster.players

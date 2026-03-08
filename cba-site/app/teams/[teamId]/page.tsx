@@ -2,6 +2,7 @@ import Header from '@/components/Header';
 import StandingsTable from '@/components/StandingsTable';
 import { getAllSeasons, getCurrentSeason, calculateAllTimeStandings, getTeamHeadToHead, getTeamSeasonHistory, getTeamTopPlayersAllTime, getTeamTopPlayerForYear, getTeamKeepersForYear, getSuggestedKeepers } from '@/lib/data-processor';
 import teamsMetadata from '@/data/teams.json';
+import keeperOverrides from '@/data/keeper-overrides.json';
 import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
@@ -79,11 +80,17 @@ export default async function TeamPage({ params }: Props) {
   const allTimeStats = calculateAllTimeStandings().find(t => t.teamId === id);
   const seasonHistory = getTeamSeasonHistory(id);
   const topPlayersAllTime = getTeamTopPlayersAllTime(id, 6);
-  // Show suggested keepers (from projections) until keepers are selected; after that show actual 2026 keepers
-  const keeperDeadline = new Date('2026-03-24'); // Switch to actual keepers after draft (Mar 23)
-  const showSuggestedKeepers = new Date() < keeperDeadline;
-  const suggestedKeepers = showSuggestedKeepers ? getSuggestedKeepers(id, 6) : [];
-  const actualKeepers2026 = showSuggestedKeepers ? [] : getTeamKeepersForYear(id, 2026);
+  // Keeper display logic:
+  // - Before Mar 24 draft: show suggested/confirmed 2026 keepers (from overrides or algorithm)
+  // - Mar 24 – Oct 1: show actual 2026 keepers from ESPN roster data
+  // - After Oct 1 (offseason): show suggested 2027 keepers based on 2026 season stats
+  const keeperDeadline = new Date('2026-03-24');
+  const seasonEnd2026 = new Date('2026-10-01');
+  const now = new Date();
+  const showSuggestedKeepers = now < keeperDeadline;
+  const showSuggested2027 = now >= seasonEnd2026;
+  const suggestedKeepers = showSuggestedKeepers ? getSuggestedKeepers(id, 6) : showSuggested2027 ? getSuggestedKeepers(id, 6, 2026) : [];
+  const actualKeepers2026 = (!showSuggestedKeepers && !showSuggested2027) ? getTeamKeepersForYear(id, 2026) : [];
 
   // Current season roster for this team (for the field diagram)
   const currentRoster = (currentSeason.rosters ?? []).find(r => r.teamId === id)?.players ?? [];
@@ -312,12 +319,12 @@ export default async function TeamPage({ params }: Props) {
             {suggestedKeepers.length > 0 && (
               <div>
                 <div className="mb-4">
-                  <h2 className="text-2xl font-bold mb-1">Suggested 2026 Keepers</h2>
-                  <p className="text-xs text-gray-400 uppercase tracking-wide">Ranked by projected 2026 fantasy points</p>
+                  <h2 className="text-2xl font-bold mb-1">{showSuggested2027 ? 'Suggested 2027 Keepers' : (keeperOverrides as Record<string, string[]>)[String(id)] ? '2026 Keepers' : 'Suggested 2026 Keepers'}</h2>
+                  <p className="text-xs text-gray-400 uppercase tracking-wide">{showSuggested2027 ? 'Ranked by 2026 season stats' : (keeperOverrides as Record<string, string[]>)[String(id)] ? 'Confirmed keepers' : 'Ranked by projected 2026 fantasy points'}</p>
                 </div>
                 <div className="flex flex-col gap-2">
                   {suggestedKeepers.map((p, i) => (
-                    <div key={p.playerId} className="bg-white rounded-lg border px-4 py-3 flex items-center gap-4 hover:bg-sky-50 transition">
+                    <div key={p.playerId || p.playerName} className="bg-white rounded-lg border px-4 py-3 flex items-center gap-4 hover:bg-sky-50 transition">
                       <span className="text-sm font-bold text-gray-300 w-5 flex-shrink-0">{i + 1}</span>
                       {p.photoUrl && (
                         <Image
