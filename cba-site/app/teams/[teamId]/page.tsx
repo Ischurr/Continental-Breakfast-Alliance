@@ -80,7 +80,7 @@ export default async function TeamPage({ params }: Props) {
   const seasonHistory = getTeamSeasonHistory(id);
   const topPlayersAllTime = getTeamTopPlayersAllTime(id, 6);
   // Show suggested keepers (from projections) until keepers are selected; after that show actual 2026 keepers
-  const keeperDeadline = new Date('2026-03-08'); // Deadline passed — show actual keepers
+  const keeperDeadline = new Date('2026-03-24'); // Switch to actual keepers after draft (Mar 23)
   const showSuggestedKeepers = new Date() < keeperDeadline;
   const suggestedKeepers = showSuggestedKeepers ? getSuggestedKeepers(id, 6) : [];
   const actualKeepers2026 = showSuggestedKeepers ? [] : getTeamKeepersForYear(id, 2026);

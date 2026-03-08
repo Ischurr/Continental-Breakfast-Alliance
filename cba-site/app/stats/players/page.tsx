@@ -306,7 +306,7 @@ export default async function PlayerStatsPage() {
                 <p className="text-sm text-gray-500 mb-6">
                   Daily-updated model projecting each player&apos;s remaining fantasy points —
                   both unconstrained (<strong>Raw</strong>) and within a 10-team daily-lineup
-                  league with 6-SP-start weekly cap (<strong>Startable</strong>).
+                  league with 7-SP-start weekly cap (<strong>Startable</strong>).
                 </p>
                 <EROSPTable
                   players={erospPlayers}

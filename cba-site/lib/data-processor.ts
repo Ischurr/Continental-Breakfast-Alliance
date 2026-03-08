@@ -250,7 +250,7 @@ export function getTeamKeepersForYear(teamId: number, year: number) {
   return roster.players
     .filter(p => (p.keeperValue ?? 0) > 0)
     .sort((a, b) => (a.keeperValue ?? 0) - (b.keeperValue ?? 0))
-    .slice(0, 5);
+    .slice(0, 6);
 }
 
 // Returns the current week's matchup with the best combined team strength.

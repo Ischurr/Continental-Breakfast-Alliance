@@ -302,9 +302,9 @@ export default function EROSPTable({
           <div className="px-4 py-2 bg-gray-50 border-t flex items-center justify-between text-xs text-gray-400">
             <span>{filtered.length.toLocaleString()} player{filtered.length !== 1 ? 's' : ''}</span>
             <span className="hidden md:inline">
-              <strong>Startable</strong> = replaces replacement-level player · 6-SP-start weekly cap applied
+              <strong>Startable</strong> = replaces replacement-level player · 7-SP-start weekly cap applied
             </span>
-            <span className="md:hidden">6-start SP cap applied</span>
+            <span className="md:hidden">7-start SP cap applied</span>
           </div>
         </div>
       </div>

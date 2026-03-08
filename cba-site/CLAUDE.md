@@ -517,3 +517,28 @@ Applied consistent mobile-first treatment across all data tables:
 - Image (`Sky Chiefs Uniforms.PNG`) copied from Desktop → `public/sky-chiefs-uniforms.png`
 - Layout: fixed-width `w-72` image card + fixed-width `w-72` text card side-by-side using `items-stretch` so the text box matches the image height exactly
 - `w-fit` on the outer container keeps the block from stretching full-page width
+
+## Session Work (March 8, 2026 — 2026 Rule Changes)
+
+### 6 keepers per team (was 5)
+- **`lib/data-processor.ts`**: `getTeamKeepersForYear()` slice changed from `.slice(0, 5)` → `.slice(0, 6)`
+- **`app/teams/[teamId]/page.tsx`**: `getSuggestedKeepers(id, 6)` — suggested keepers show 6 players (not bumped to 7)
+- **`keeperDeadline = new Date('2026-03-24')`** — shows suggested keepers until day after draft (Mar 23); after that, `getTeamKeepersForYear(id, 2026)` returns actual keepers from ESPN roster data
+
+### ESPN keeperValue caveat
+- `keeperValue` in ESPN API = draft round cost for all rostered players, NOT a keeper designation flag
+- Pre-draft: can't distinguish the 6 true keepers from a 20-player roster via API alone
+- Post-draft: actual keepers identifiable via `acquisitionType === 'KEEPER'` in roster entries
+- After Mar 23 draft: run `npx tsx scripts/fetch-rosters-2026.ts` then `getTeamKeepersForYear` will return real keepers
+
+### `scripts/fetch-rosters-2026.ts` (new script)
+- Fetches 2026 ESPN rosters with `mRoster` view and merges `rosters` array into `data/current/2026.json`
+- Run post-draft to populate actual keeper data: `npx tsx scripts/fetch-rosters-2026.ts`
+- Historical data (2022-2025) also refreshed via `npx tsx scripts/fetch-historical.ts`
+
+### SP 7-start weekly cap (was 6)
+- **`scripts/erosp/config.py`**: `SP_WEEKLY_CAP = 7`
+- **`scripts/erosp/startability.py`**: docstrings updated ("SP 7-start weekly cap")
+- **`components/EROSPTable.tsx`**: footer text "7-SP-start weekly cap applied"
+- **`app/stats/players/page.tsx`**: description "7-SP-start weekly cap"
+- **`CLAUDE.md`** EROSP section: formula updated to `min(1.0, 7 / team_starts_per_week)`

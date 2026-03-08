@@ -84,7 +84,7 @@ POSITION_ELIGIBILITY: Dict[str, List[str]] = {
 # League settings
 # ---------------------------------------------------------------------------
 LEAGUE_TEAMS     = 10
-SP_WEEKLY_CAP    = 6
+SP_WEEKLY_CAP    = 7
 RP_DAILY_STARTS  = 3   # start top 3 RPs each day
 
 # ---------------------------------------------------------------------------

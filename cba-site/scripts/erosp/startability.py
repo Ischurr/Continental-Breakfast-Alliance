@@ -4,7 +4,7 @@ Startability module for EROSP.
 Computes:
   1. Replacement levels by position (10-team league)
   2. Hitter start probability via sigmoid
-  3. SP 6-start weekly cap adjustment
+  3. SP 7-start weekly cap adjustment
   4. RP start probability (top 3 daily)
   5. EROSP_startable = sum of daily_ev_raw × start_probability × cap_factor
 """
@@ -141,7 +141,7 @@ def sp_cap_factor(
     games_remaining: int = FULL_SEASON_GAMES,
 ) -> float:
     """
-    Fraction of this SP's starts that would count under the 6-start weekly cap.
+    Fraction of this SP's starts that would count under the 7-start weekly cap.
 
     Logic:
       - If the entire team's SP corps projects ≤6 starts/week, all starts count → 1.0
