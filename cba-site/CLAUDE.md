@@ -288,13 +288,13 @@ Built a full Python modeling pipeline + React UI for daily EROSP projections.
 | `scripts/erosp/talent.py` | Talent estimation: 3-year weighted blend (0.5/0.3/0.2), age curve (peak 28, ±0.6%/yr), xwOBA multiplicative adjustment, sprint speed SB boost |
 | `scripts/erosp/playing_time.py` | Playing time: hitter p_play + PA/game (0.85/4.0 defaults), SP rotation slot + IP/start, RP appearance rate + role (closer/setup/middle) |
 | `scripts/erosp/projection.py` | Per-PA/per-start/per-appearance FP formulas → daily EV → EROSP_raw over remaining schedule |
-| `scripts/erosp/startability.py` | Replacement levels by position (10-team pool), sigmoid start probability (tau=0.3), SP 6-start weekly cap factor, EROSP_startable |
+| `scripts/erosp/startability.py` | Replacement levels by position (10-team pool), sigmoid start probability (tau=0.3), SP 7-start weekly cap factor, EROSP_startable |
 | `scripts/compute_erosp.py` | Orchestrates all steps; outputs `data/erosp/latest.json` |
 
 #### Key modeling details
 - **Scoring**: singles=2pts (H+TB), doubles=3, triples=4, HRs=5; pitchers: 3pts/IP is the anchor stat
 - **Replacement level**: computed from full MLB player pool at each position (not just rostered); uses N-th best daily EV where N = slots × 10 teams
-- **SP 6-start cap**: `cap_factor = min(1.0, 6 / team_starts_per_week)` per SP; teams with ≤6 starts/week have cap_factor=1.0
+- **SP 7-start cap**: `cap_factor = min(1.0, 7 / team_starts_per_week)` per SP; teams with ≤7 starts/week have cap_factor=1.0
 - **Pre-season**: current-season weight = 0; all 3-yr history; p_play defaults applied; full 162-game projection
 - **Cache**: `scripts/erosp_cache/` stores all pybaseball CSV fetches and schedule JSON
 
@@ -509,3 +509,11 @@ Applied consistent mobile-first treatment across all data tables:
 - **DHCard**: made more compact — photo 40→32px, padding reduced (`py-2 gap-1` → `py-1.5 gap-0.5`)
 - **Stadium name caption**: moved outside the inner flex row so it spans the full width below both the field image and the right-side boxes
 - **Right column width**: narrowed from `185px` → `160px`; mobile layout uses `grid-cols-3` (DH + Bullpen + Rotation in a row)
+
+## Session Work (March 8, 2026 — Sky Chiefs Uniforms)
+
+### Sky Chiefs uniform reveal section (`app/teams/[teamId]/page.tsx`, `public/sky-chiefs-uniforms.png`)
+- Added a "2026 Uniforms" section to the Sky Chiefs team page (`id === 7`), placed after `TeamStrengthsEditor`
+- Image (`Sky Chiefs Uniforms.PNG`) copied from Desktop → `public/sky-chiefs-uniforms.png`
+- Layout: fixed-width `w-72` image card + fixed-width `w-72` text card side-by-side using `items-stretch` so the text box matches the image height exactly
+- `w-fit` on the outer container keeps the block from stretching full-page width

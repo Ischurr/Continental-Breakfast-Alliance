@@ -80,7 +80,7 @@ export default async function TeamPage({ params }: Props) {
   const seasonHistory = getTeamSeasonHistory(id);
   const topPlayersAllTime = getTeamTopPlayersAllTime(id, 6);
   // Show suggested keepers (from projections) until keepers are selected; after that show actual 2026 keepers
-  const keeperDeadline = new Date('2026-03-09'); // Monday after keeper selection Sunday (Mar 8)
+  const keeperDeadline = new Date('2026-03-08'); // Deadline passed — show actual keepers
   const showSuggestedKeepers = new Date() < keeperDeadline;
   const suggestedKeepers = showSuggestedKeepers ? getSuggestedKeepers(id, 6) : [];
   const actualKeepers2026 = showSuggestedKeepers ? [] : getTeamKeepersForYear(id, 2026);
@@ -210,6 +210,30 @@ export default async function TeamPage({ params }: Props) {
           strengths={effectiveStrengths}
           weaknesses={effectiveWeaknesses}
         />
+
+        {/* Sky Chiefs Uniforms */}
+        {id === 7 && (
+          <div className="mb-10">
+            <h2 className="text-2xl font-bold mb-4">2026 Uniforms</h2>
+            <div className="flex gap-6 items-stretch w-fit">
+              <div className="rounded-xl overflow-hidden shadow-sm border border-gray-200 flex-shrink-0 w-72">
+                <Image
+                  src="/sky-chiefs-uniforms.png"
+                  alt="Sky Chiefs 2026 Uniforms"
+                  width={600}
+                  height={400}
+                  className="w-full h-full object-cover"
+                  unoptimized
+                />
+              </div>
+              <div className="rounded-xl border border-gray-200 shadow-sm bg-white px-5 py-4 w-72">
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  The Sky Chiefs unveiled their 2026 uniform set this offseason, headlined by a new city connect alternate. The design pays homage to Griffiss Air Force Base — once a key hub and air depot for the Strategic Air Command — drawing on the base&apos;s deep ties to the Syracuse area and its legacy in Cold War-era aviation history.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Emus Fun Franchise Facts */}
         {id === 6 && (
