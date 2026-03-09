@@ -562,6 +562,42 @@ base = base.merge(
 )
 base["mlbam_id"] = pd.to_numeric(base["key_mlbam"], errors="coerce")
 
+def norm_name(s: str) -> str:
+    """Normalize player name: collapse spaces after periods (e.g. 'J. T.' → 'J.T.')."""
+    import re
+    return re.sub(r'\.\s+', '.', str(s).strip())
+
+
+# Build a name→MLBAM map from Chadwick for use as a fallback when FG ID lookup fails.
+# Only include names that appear exactly once (avoids same-name collisions).
+_chad_nm = chad_raw[["name_first", "name_last", "key_mlbam"]].copy()
+_chad_nm = _chad_nm.dropna(subset=["name_first", "name_last", "key_mlbam"])
+_chad_nm["key_mlbam"] = pd.to_numeric(_chad_nm["key_mlbam"], errors="coerce")
+_chad_nm = _chad_nm.dropna(subset=["key_mlbam"])
+_chad_nm["key_mlbam"] = _chad_nm["key_mlbam"].astype(int)
+_chad_nm["full_name"] = _chad_nm.apply(
+    lambda r: norm_name(r["name_first"].strip() + " " + r["name_last"].strip()), axis=1)
+_nc = _chad_nm["full_name"].value_counts()
+chad_name_map = (_chad_nm[_chad_nm["full_name"].isin(_nc[_nc == 1].index)]
+                 .set_index("full_name")["key_mlbam"].to_dict())
+print(f"  Chadwick name-fallback map: {len(chad_name_map):,} unambiguous entries.\n")
+
+# Fallback: for players missing MLBAM ID (FG ID not yet in Chadwick, key_fangraphs=-1),
+# resolve via name lookup. Shared by batter and pitcher sections.
+missing_mask = base["mlbam_id"].isna()
+if missing_mask.any():
+    n_resolved = 0
+    for idx in base[missing_mask].index:
+        player_name = norm_name(str(base.at[idx, "Name"]))
+        if player_name in chad_name_map:
+            base.at[idx, "mlbam_id"] = chad_name_map[player_name]
+            n_resolved += 1
+    if n_resolved:
+        print(f"  Name-based Chadwick fallback: resolved MLBAM IDs for {n_resolved} players.")
+    still_missing = base["mlbam_id"].isna().sum()
+    if still_missing:
+        print(f"  {still_missing} players still have no MLBAM ID after name fallback.")
+
 # Fetch birth dates + position from MLB Stats API
 print("  Fetching player info (birth dates + positions)…")
 mlbam_ids = base["mlbam_id"].dropna().astype(int).unique().tolist()
@@ -811,6 +847,18 @@ try:
         pb = pb.merge(id_map[["key_fangraphs", "key_mlbam"]],
                       left_on="IDfg", right_on="key_fangraphs", how="left")
         pb["mlbam_id"] = pd.to_numeric(pb["key_mlbam"], errors="coerce")
+
+        # Fallback: name-based Chadwick lookup for pitchers missing MLBAM ID
+        pitch_missing = pb["mlbam_id"].isna()
+        if pitch_missing.any() and "chad_name_map" in dir():
+            n_resolved = 0
+            for idx in pb[pitch_missing].index:
+                player_name = norm_name(str(pb.at[idx, "Name"]))
+                if player_name in chad_name_map:
+                    pb.at[idx, "mlbam_id"] = chad_name_map[player_name]
+                    n_resolved += 1
+            if n_resolved:
+                print(f"  Name-based Chadwick fallback: resolved MLBAM IDs for {n_resolved} pitchers.")
 
         # Player info (birthdates + positions)
         pitch_mlbam = pb["mlbam_id"].dropna().astype(int).unique().tolist()
