@@ -685,3 +685,42 @@ Three-tier lookup, in order:
 - Computed via `keepers.reduce((sum, k) => sum + (k.totalPoints ?? 0), 0)`
 - Only shown when `keeperTotalPts > 0` — seasons with no keeper point data are unaffected
 - Both sections use IIFE pattern (`(() => { ... })()`) to compute the total inline without polluting outer scope
+
+## Session Work (March 9, 2026 — Suggested Moves Feature)
+
+### Overview
+Added a "Suggested Moves" section to every team page (`app/teams/[teamId]/page.tsx`), placed between the EROSP table and Season History. Identifies weak roster positions and surfaces free agent upgrades with urgency labels.
+
+### New Files
+
+#### `lib/suggested-moves.ts` — Core engine
+Multi-stage pipeline:
+1. **Player→team assignment**: uses EROSP `fantasy_team_id` when non-zero (post-draft); falls back to `data/keeper-overrides.json` name matching (pre-draft, normalizing names to alphanumeric lowercase)
+2. **Weighted positional strength per team**: for each position group (C, 1B, 2B, 3B, SS, OF, SP, RP), ranks players by `erosp_startable` descending, applies slot weights (1.0 → 0.90 → 0.80 → 0.70 → 0.60 → 0.50). Target slot is always the **last starter slot** (SP6, OF3) regardless of how many players exist — empty = null target
+3. **League distributions**: mean/std/z-score/rank across all 10 teams per position
+4. **Weakness detection**: flags if `z ≤ -0.50` OR bottom third of league (rank > 6.67) OR one of team's 2 weakest positions AND `z ≤ 0`
+5. **FA candidate scoring**: cross-references `data/current/free-agents.json` × EROSP by normalized name; scores on weakness severity (0.35), upgrade magnitude (0.40), FA pool quality (0.15), lineup relevance (0.10)
+6. **Urgency classification**: Urgent Pickup (upgrade% ≥ 15%), Suggested Add (≥ 10% + above absolute floor, or FA pool z ≥ 1.0), Watchlist (≥ 5%). Max 5 recommendations returned.
+7. **Empty-slot spam control**: bottom-3-ranked positions always shown; mid-rank empty slots capped at 2
+
+Key config: `erospFloor=25` (denominator min for upgrade%), `weaknessZThreshold=-0.50`, `maxRecommendations=5`, `MAX_MID_RANK_EMPTY_SLOTS=2`
+
+Position eligibility mapping: `role='SP'→SP`, `role='RP'→RP`, `pos='TWP'→OF` (if EROSP > 50), LF/CF/RF → OF
+
+#### `components/SuggestedMoves.tsx` — Display component
+- Server component; no interactivity needed
+- Color-coded cards: red (urgent), teal (suggested), amber (watchlist)
+- Each card: urgency badge + position/slot chip, player comparison (Drop→Add), upgrade bar, league context chips (#rank, z-score, FA pool z), explanation text
+- Empty-slot handling: shows "Fills empty slot" instead of absurd "+1798%" — `displayPct = Math.min(upgradePct, 2.0)` caps the bar; text label overrides the number
+- `NoMovesState` rendered when 0 recommendations (never renders null)
+
+### Team page wiring (`app/teams/[teamId]/page.tsx`)
+- Loads `data/current/free-agents.json` after the EROSP block
+- Runs `getSuggestedMoves({targetTeamId, erospPlayers, keeperOverrides, faList})`
+- Renders `<SuggestedMoves result={suggestedMovesResult} />` in a `mb-10` div before Season History
+- Guarded by `erospPlayers.length > 0` (no-op if EROSP not yet generated)
+
+### Pre-draft behavior (current state, March 9)
+All EROSP players have `fantasy_team_id=0` pre-draft → engine uses keeper-overrides.json. Each team has 6 keepers, leaving most position slots empty. Recommendations reflect genuine FA availability (from free-agents.json) against those keeper gaps. 5 keepers missing from EROSP (James Wood, Paul Skenes, Nick Kurtz, Roman Anthony, Gerrit Cole — injury/prospect cases) make those teams appear slightly weaker at those positions.
+
+Post-draft: run `npx tsx scripts/fetch-rosters-2026.ts` → EROSP daily cron will pick up team assignments → feature auto-upgrades to full-roster analysis.
