@@ -670,3 +670,18 @@ Three-tier lookup, in order:
 - **Gerrit Cole**: 202.9 FP, 51st percentile (SP, NYY, age 35) — limited to ~87 projected IP, age decline
 
 **Going forward**: If a star player misses the PA/IP minimum again, add them manually using the same approach — pull their historical ESPN pts from `data/historical/*.json`, apply the formula from `generate_projections.py` `weighted_fp()` + modifiers. MLBAM IDs can be looked up via `pybaseball playerid_lookup`.
+
+## Session Work (March 9, 2026 — Keeper Point Totals on Team Pages)
+
+### Keeper totals added to team pages (`app/teams/[teamId]/page.tsx`)
+
+**2026 Keepers box** (`suggestedKeepers` section):
+- Added an indigo summary row at the bottom of the keepers list showing **"Total Projected · X,XXX pts"**
+- Computed via `suggestedKeepers.reduce((sum, p) => sum + Math.round(p.projectedFP2026 ?? 0), 0)`
+- Styled as `bg-indigo-50` row matching the indigo color used for projected FP values
+
+**Past season history cards** (Season History grid):
+- The "Keepers" section header now shows total combined points those keepers scored that year, right-aligned in teal
+- Computed via `keepers.reduce((sum, k) => sum + (k.totalPoints ?? 0), 0)`
+- Only shown when `keeperTotalPts > 0` — seasons with no keeper point data are unaffected
+- Both sections use IIFE pattern (`(() => { ... })()`) to compute the total inline without polluting outer scope
