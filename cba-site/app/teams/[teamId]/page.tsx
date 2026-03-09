@@ -316,7 +316,9 @@ export default async function TeamPage({ params }: Props) {
                 </div>
               </div>
             )}
-            {suggestedKeepers.length > 0 && (
+            {suggestedKeepers.length > 0 && (() => {
+              const totalProjFP = suggestedKeepers.reduce((sum, p) => sum + Math.round(p.projectedFP2026 ?? 0), 0);
+              return (
               <div>
                 <div className="mb-4">
                   <h2 className="text-2xl font-bold mb-1">{showSuggested2027 ? 'Suggested 2027 Keepers' : (keeperOverrides as Record<string, string[]>)[String(id)] ? '2026 Keepers' : 'Suggested 2026 Keepers'}</h2>
@@ -351,9 +353,14 @@ export default async function TeamPage({ params }: Props) {
                       </span>
                     </div>
                   ))}
+                  <div className="bg-indigo-50 rounded-lg border border-indigo-100 px-4 py-2.5 flex items-center justify-between">
+                    <span className="text-xs font-semibold text-indigo-400 uppercase tracking-wide">Total Projected</span>
+                    <span className="text-sm font-bold text-indigo-700">{totalProjFP.toLocaleString()} pts</span>
+                  </div>
                 </div>
               </div>
-            )}
+              );
+            })()}
             {actualKeepers2026.length > 0 && (
               <div>
                 <div className="mb-4">
@@ -516,11 +523,18 @@ export default async function TeamPage({ params }: Props) {
                       </div>
                     </div>
                   )}
-                  {keepers.length > 0 && (
+                  {keepers.length > 0 && (() => {
+                    const keeperTotalPts = keepers.reduce((sum, k) => sum + (k.totalPoints ?? 0), 0);
+                    return (
                     <div className="pt-2 mt-2 border-t border-gray-100">
-                      <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Keepers</span>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Keepers</span>
+                        {keeperTotalPts > 0 && (
+                          <span className="text-xs font-semibold text-teal-600">{keeperTotalPts.toFixed(1)} pts</span>
+                        )}
+                      </div>
                       <div
-                        className="mt-2 grid gap-1"
+                        className="mt-1 grid gap-1"
                         style={{ gridTemplateColumns: `repeat(${keepers.length}, 1fr)` }}
                       >
                         {keepers.sort((a, b) => (a.keeperValue ?? 0) - (b.keeperValue ?? 0)).map(k => (
@@ -540,7 +554,8 @@ export default async function TeamPage({ params }: Props) {
                         ))}
                       </div>
                     </div>
-                  )}
+                    );
+                  })()}
                 </div>
               ) : (
                 <p className="text-sm text-gray-400">No data available</p>
