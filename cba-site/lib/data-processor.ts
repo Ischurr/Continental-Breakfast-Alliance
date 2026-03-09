@@ -45,12 +45,12 @@ export function getSeasonByYear(year: number): SeasonData | undefined {
 }
 
 // Returns the season to display as "current".
-// On/after March 20: switch to the new year's season if it exists in data.
-// Before March 20: use the most recently completed season.
+// On/after March 9: switch to the new year's season if it exists in data.
+// Before March 9: use the most recently completed season.
 export function getCurrentSeason(): SeasonData {
   const all = getAllSeasons();
   const today = new Date();
-  const marchCutover = new Date(today.getFullYear(), 2, 20); // March 20 (month is 0-indexed)
+  const marchCutover = new Date(today.getFullYear(), 2, 9); // March 9 (month is 0-indexed)
 
   if (today >= marchCutover) {
     const thisSeason = all.find(s => s.year === today.getFullYear());
