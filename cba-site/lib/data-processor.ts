@@ -343,7 +343,7 @@ export function getSuggestedKeepers(teamId: number, limit = 7, rosterYear = 2025
     if (p.projectedFP !== null) {
       projMap.set(normalize(p.playerName), {
         projectedFP: p.projectedFP,
-        position: p.position,
+        position: p.position ?? '',
         age: p.age,
         percentile: p.percentile,
       });
