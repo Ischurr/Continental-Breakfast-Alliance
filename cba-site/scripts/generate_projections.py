@@ -678,17 +678,73 @@ print(f"  Age range: {base['age'].min():.0f}–{base['age'].max():.0f}  "
 
 
 # ──────────────────────────────────────────────────────────────────────────────
+# STEP 8b — ESPN ACTUAL POINTS OVERRIDE
+# Replace FanGraphs-recalculated fp_y1/fp_y2/fp_y3 with ESPN's actual league
+# fantasy points for rostered players. This captures scoring categories
+# (HBP, etc.) and stat-tracking differences that the FanGraphs recalc misses.
+# ──────────────────────────────────────────────────────────────────────────────
+
+print("─── Step 8b: ESPN actual points override ─────────────────────")
+
+HIST_DIR = SCRIPT_DIR.parent / "data" / "historical"
+
+def load_espn_points(year) -> dict:
+    """Return {normalized_name: total_points} from a historical JSON file."""
+    path = HIST_DIR / f"{year}.json"
+    if not path.exists():
+        return {}
+    import json
+    with open(path) as f:
+        data = json.load(f)
+    points = {}
+    for roster in data.get("rosters", []):
+        for player in roster.get("players", []):
+            name = norm_name(player.get("playerName", ""))
+            tp = player.get("totalPoints")
+            if name and tp is not None and float(tp) > 0:
+                points[name] = float(tp)
+    return points
+
+base["_norm_name"] = base["Name"].apply(norm_name)
+
+for col, year in [("fp_y1", Y1), ("fp_y2", Y2), ("fp_y3", Y3)]:
+    if year is None:
+        continue
+    espn_pts = load_espn_points(year)
+    if not espn_pts:
+        print(f"  {year}: no ESPN historical file found, keeping FanGraphs values.")
+        continue
+    mask = base["_norm_name"].isin(espn_pts)
+    base.loc[mask, col] = base.loc[mask, "_norm_name"].map(espn_pts)
+    print(f"  {year} (fp_{col[-2:]}): overrode {mask.sum()} players with ESPN actual points.")
+
+base = base.drop(columns=["_norm_name"])
+print()
+
+# ──────────────────────────────────────────────────────────────────────────────
 # STEP 9 — WEIGHTED BASE FANTASY POINTS
 # ──────────────────────────────────────────────────────────────────────────────
 
 print("─── Step 9: Weighted historical fantasy points ───────────────")
 
-def weighted_fp(row) -> float:
-    y1 = row.get("fp_y1", np.nan)
-    y2 = row.get("fp_y2", np.nan)
-    y3 = row.get("fp_y3", np.nan)
+def weighted_fp(row, pa_baseline=None) -> float:
+    # When pa_baseline is set (batters: 600 PA), normalize each year's FP to
+    # that rate so partial seasons (injuries, late callups, rookie debuts) aren't
+    # penalized vs. full seasons. PlayingTimeMod in Step 10 then scales the result
+    # back to projected PA. Pitchers pass pa_baseline=None (no normalization) since
+    # their pa_y1/pa_y2 fields hold IP, not plate appearances.
+    def pa_normalize(fp, pa):
+        if pd.isna(fp) or fp <= 0:
+            return np.nan
+        if pa_baseline is None or pd.isna(pa) or pa <= 0:
+            return fp
+        return fp * (pa_baseline / pa)
 
-    has = [pd.notna(v) and v > 0 for v in [y1, y2, y3]]
+    y1 = pa_normalize(row.get("fp_y1"), row.get("pa_y1"))
+    y2 = pa_normalize(row.get("fp_y2"), row.get("pa_y2"))
+    y3 = pa_normalize(row.get("fp_y3"), row.get("pa_y3"))
+
+    has = [pd.notna(v) for v in [y1, y2, y3]]
     n   = sum(has)
 
     if n == 3:
@@ -707,7 +763,7 @@ def weighted_fp(row) -> float:
     else:
         return np.nan
 
-base["WeightedBase"] = base.apply(weighted_fp, axis=1)
+base["WeightedBase"] = base.apply(lambda row: weighted_fp(row, pa_baseline=600), axis=1)
 before = len(base)
 base = base.dropna(subset=["WeightedBase"])
 print(f"  {len(base):,} players with valid weighted base "
@@ -880,8 +936,20 @@ try:
         pb["age"] = pb.apply(pcalc_age, axis=1)
         pb["age"] = pb["age"].fillna(pb["age"].median() if not pb["age"].isna().all() else 28)
 
-        # Weighted base
-        pb["WeightedBase"] = pb.apply(weighted_fp, axis=1)
+        # Weighted base — normalize to per-season IP rate so partial seasons
+        # (injury, TJ surgery, late callup) aren't penalized vs. full seasons.
+        # Starters baseline: 180 IP  |  Relievers baseline: 70 IP
+        SP_IP_BASELINE = 180.0
+        RP_IP_BASELINE = 70.0
+        if "GS" in pb.columns and "G" in pb.columns:
+            is_sp = (pb["GS"].fillna(0) / pb["G"].replace(0, np.nan).fillna(1)) >= 0.5
+            pb["_ip_baseline"] = np.where(is_sp, SP_IP_BASELINE, RP_IP_BASELINE)
+        else:
+            pb["_ip_baseline"] = SP_IP_BASELINE  # fallback
+        pb["WeightedBase"] = pb.apply(
+            lambda row: weighted_fp(row, pa_baseline=row["_ip_baseline"]), axis=1
+        )
+        pb = pb.drop(columns=["_ip_baseline"])
         pb = pb.dropna(subset=["WeightedBase"])
 
         # SP vs RP: use GS (games started) vs G ratio

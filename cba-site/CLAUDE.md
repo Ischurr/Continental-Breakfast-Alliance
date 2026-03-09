@@ -578,4 +578,44 @@ Applied consistent mobile-first treatment across all data tables:
 - Timeline: pre-Mar 24 → confirmed/suggested 2026 keepers; Mar 24–Oct 1 → actual ESPN draft keepers; Oct 1+ → suggested 2027 keepers
 
 ### Known data issue
-- James Wood (WSH OF, age 22) has a bad projection entry in `data/projections/2026.json` — maps to a different James Wood (pitcher, age 29). Low projected FP (361) shown for him. Fix: manually correct the entry or wait for the Monday projection regeneration to overwrite it.
+- ~~James Wood bad projection~~ — **resolved** (2026-03-08). Age bug fixed (29.4→23.5) and ESPN actual points now used as fp_y1 source (529 pts). Current projection: 395.9 FP, 83rd percentile.
+
+## Session Work (March 8, 2026 — ESPN Actual Points in Projections)
+
+### ESPN historical points override (`scripts/generate_projections.py`, `data/projections/2026.json`)
+
+**Root cause discovered**: projection script was recalculating `fp_y1`/`fp_y2`/`fp_y3` from FanGraphs batting stats using its own scoring formula, which was missing HBP (+1 pt each in ESPN) and had other minor stat-counting differences vs. ESPN's actual totals. For James Wood, this caused a ~60-point undercount (469.5 recalculated vs. 529.0 ESPN actual).
+
+**Fix — Step 8b added** to `generate_projections.py`:
+- Loads `data/historical/{Y1,Y2,Y3}.json` and builds `{normalized_name: totalPoints}` dicts
+- After FanGraphs stats are merged, overrides `fp_y1`/`fp_y2`/`fp_y3` with ESPN actual points for any name match
+- Uses existing `norm_name()` for consistent name normalization
+- Players not in historical JSON (free agents, etc.) fall back to FanGraphs recalculation as before
+- Override counts: 2025→168 players, 2024→158 players, 2023→133 players
+
+**`data/projections/2026.json`** regenerated from updated CSV. James Wood: fp_y1 469.5→529.0, WeightedBase 373→419, ProjectedFP 399→396 (slight net decrease due to Steamer projecting fewer PA: 513→472).
+
+**Going forward**: the Monday GitHub Actions cron automatically picks up ESPN data on every weekly regeneration — no manual steps needed.
+
+## Session Work (March 8, 2026 — PA Normalization + JSON Shape Fix)
+
+### PA normalization in projection blending (`scripts/generate_projections.py`)
+
+**Problem**: partial seasons (injuries, mid-season callups) were being blended at face-value FP totals, penalizing players who only played half a year. James Wood's 2024 (255 FP in 336 PA) was being weighted at 40% as if it were a full-season 255 — dragging his WeightedBase down unfairly.
+
+**Fix — `weighted_fp()` now PA-normalizes before blending**:
+- Each year's FP is scaled to a full-season equivalent: `fp * (pa_baseline / actual_pa)`
+- Batter baseline: `pa_baseline=600`
+- Pitcher baseline: SP (`GS/G >= 0.5`) → 180 IP; RP → 70 IP (classified via GS/G ratio per player)
+- Effect on Wood: 2024 FP 255 in 336 PA → normalized ~455; WeightedBase rises from 419 → ~499; ProjectedFP 396 → ~421
+- Pitcher classification added: `is_sp = (pb["GS"].fillna(0) / pb["G"].replace(0, np.nan).fillna(1)) >= 0.5`; `pb["_ip_baseline"]` set accordingly before calling `weighted_fp`
+
+**Known limitation**: players with <3 years of history who are genuinely improving (e.g. Wood) are still somewhat underprojected because the model is backward-looking with no trajectory component. Accepted as-is.
+
+### `data/projections/2026.json` shape fix
+
+**Bug**: JSON was written as a plain array `[{...}, ...]` but `lib/data-processor.ts:316` expects `{ players: [...] }` shape:
+```typescript
+for (const p of projections2026.players) {  // TypeError if root is array
+```
+**Fix**: wrapped existing array in `{ "players": [...] }` — 823 players, shape now correct. Runtime TypeError on dev server resolved.
