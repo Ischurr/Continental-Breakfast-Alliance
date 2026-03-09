@@ -39,7 +39,7 @@ npm run build            # Production build
 ```
 
 ## Data Conventions
-- `getCurrentSeason()` returns the current-year JSON; switches to new year on **March 20**
+- `getCurrentSeason()` returns the current-year JSON; switches to new year on **March 9** (hardcoded in `lib/data-processor.ts` line 53)
 - Season JSON shape: `{ year, teams, standings, matchups, weeklyStats, playoffTeams, loserBracket, champion?, backgroundPhotoUrl?, rosters? }`
 - ESPN roster positions: **UTIL = outfielders + DH** (no separate OF/DH labels in roster data)
 - Free agent data from ESPN API uses real position labels (OF, DH, SP, RP, etc.)
@@ -115,7 +115,7 @@ npm run build            # Production build
 - **Scrolling event ticker** (`components/EventTickerBanner.tsx`): `'use client'` component rendered in `app/layout.tsx` (site-wide, above Header). Shows all events within 7 days as a continuous horizontal marquee. Multiple events follow each other in sequence. CSS animation defined in `globals.css` as `@keyframes ticker-scroll`. Duration scales with item count for consistent ~80px/s reading speed. Hidden when no events are within window.
 - **Landing page event banner** (`app/page.tsx`): full-width card below the 3-card League Pulse grid, visible within 7 days of next event. Solid color bg: amber-500 (deadline), violet-600 (CBA event), sky-600 (MLB event). White countdown pill on right. To test locally: temporarily change `getNextEventWithin(7)` to `(14)` in `page.tsx` AND `getAllEventsWithin(7)` to `(14)` in `layout.tsx` — revert before pushing.
 - **TeamBaseballField** (`components/TeamBaseballField.tsx`): per-team baseball field diagram added to each team page (`app/teams/[teamId]/page.tsx`) as a "2026 Roster" section between "Top Players All-Time" and "Season History". Scoped to one team's current roster — no rostered/FA toggle. Uses same SVG field and pin components as `BaseballFieldLeaders` but `totalPoints > 0` filter removed so players appear pre-season (points badge hidden when 0). Rotation side box shows ranks 2–6 (5 pitchers); Bullpen box shows ranks 7–11. UTIL position logic identical to rostered view: top 3 UTIL → OF1/OF2/OF3, 4th → DH. Only renders if `currentSeason.rosters` has data for the team.
-- **Season cutover date**: `getCurrentSeason()` in `lib/data-processor.ts` now switches to the new year on **March 20** (was March 15). After draft, run "Update Stats" from Actions tab to pull fresh ESPN rosters immediately rather than waiting for the nightly 5:30 AM EST cron.
+- **Season cutover date**: `getCurrentSeason()` in `lib/data-processor.ts` switches to the new year on **March 9** (confirmed in code — was previously documented as March 15, then March 20, both wrong). After draft, run "Update Stats" from Actions tab to pull fresh ESPN rosters immediately rather than waiting for the nightly 5:30 AM EST cron.
 - **BaseballFieldLeaders layout** (`components/BaseballFieldLeaders.tsx`): dynamic `sideBySide` state controls whether the sidebar (Ohtani/DH/Bullpen/Rotation cards) sits alongside the field or drops below. Uses `ResizeObserver` on `wrapperRef` and `sidebarRef`. `checkLayout` computes theoretical field height = `(wrapperWidth - sidebarW - 12) * 0.68` and compares to `sidebar.scrollHeight` (natural content height). When `sideBySide=true`: outer div gets `relative pr-[177px] xl:pr-[197px]`, sidebar is `absolute top-0 right-0 bottom-0 w-[165px] xl:w-[185px]`. When false: sidebar is `mt-3 grid grid-cols-2 gap-2`. Only side-by-side at `lg+`. Bullpen shows 5 players (ranks 1-5), Rotation shows 4 players (ranks 2-5). OhtaniCard and DHCard use horizontal layout (photo left, name/points right). Photos use `object-cover` to prevent stretching. Layout re-checks on view toggle (rostered/FA) since Ohtani may appear/disappear.
 - **TeamBaseballField sidebar** (`components/TeamBaseballField.tsx`): same horizontal OhtaniCard/DHCard layout as BaseballFieldLeaders. Player names use `break-words` (not `truncate`) to prevent names being cut off.
 
@@ -138,7 +138,7 @@ npm run build            # Production build
 ## Key Gotchas
 - ESPN roster data: all pitchers use 'SP' slot (no 'RP'), UTIL = OF + DH
 - MLB Stats API `fields` param: must list nested fields explicitly (e.g., `primaryPosition,abbreviation` not just `primaryPosition`)
-- `getCurrentSeason()` returns 2025 until March 20 — use separate year computation for projection headings
+- `getCurrentSeason()` returns 2025 until March 9 (cutover date in `lib/data-processor.ts`) — use separate year computation for projection headings
 - CSV `nan` values come through as the string `"nan"` in TypeScript (truthy) — check `!== 'nan'` explicitly
 - Server Actions must call `revalidatePath` for every route that displays that data
 - Vercel env vars: no quotes around values, must be set for Production, require redeploy after adding

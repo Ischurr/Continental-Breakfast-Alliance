@@ -18,6 +18,9 @@ interface Props {
    *  When provided, pitchers in this set go to the Bullpen; others go to the Rotation.
    *  FA view uses real ESPN position labels and ignores this prop. */
   rpNames?: Set<string>;
+  /** When true: uses real position labels (OF, DH, SP, RP) instead of ESPN UTIL logic,
+   *  hides the Rostered/FA toggle, and shows draft-board heading. */
+  draftBoardMode?: boolean;
 }
 
 // "Vladimir Guerrero Jr." → "Guerrero Jr."  |  "Mike Trout" → "Trout"
@@ -175,7 +178,7 @@ const FIELD_SLOTS: Record<string, [string, string]> = {
 
 // ─── Main component ────────────────────────────────────────────────────────────
 
-export default function BaseballFieldLeaders({ rosteredPlayers, freeAgents, rpNames }: Props) {
+export default function BaseballFieldLeaders({ rosteredPlayers, freeAgents, rpNames, draftBoardMode }: Props) {
   const [view, setView] = useState<'rostered' | 'fa'>('rostered');
   const wrapperRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -211,22 +214,24 @@ export default function BaseballFieldLeaders({ rosteredPlayers, freeAgents, rpNa
       .sort((a, b) => b.totalPoints - a.totalPoints)
       .slice(0, n);
 
-  const ofs: Player[] = view === 'rostered'
-    ? activePool.filter(p => p.position === 'UTIL' && p.totalPoints > 0)
-        .sort((a, b) => b.totalPoints - a.totalPoints).slice(0, 3)
-    : top('OF', 3);
+  // Draft board mode uses real position labels (OF, DH, SP, RP) from CSV projections.
+  // Rostered view uses ESPN's UTIL slot for outfielders/DH.
+  const ofs: Player[] = (draftBoardMode || view === 'fa')
+    ? top('OF', 3)
+    : activePool.filter(p => p.position === 'UTIL' && p.totalPoints > 0)
+        .sort((a, b) => b.totalPoints - a.totalPoints).slice(0, 3);
 
-  const dh: Player | null = view === 'rostered'
-    ? (activePool.filter(p => p.position === 'UTIL' && p.totalPoints > 0)
-        .sort((a, b) => b.totalPoints - a.totalPoints)[3] ?? null)
-    : (top('DH', 1)[0] ?? null);
+  const dh: Player | null = (draftBoardMode || view === 'fa')
+    ? (top('DH', 1)[0] ?? null)
+    : (activePool.filter(p => p.position === 'UTIL' && p.totalPoints > 0)
+        .sort((a, b) => b.totalPoints - a.totalPoints)[3] ?? null);
 
   // Split pitchers into starters vs relievers.
   let sp1: Player | null;
   let rotation: Player[];
   let bullpen: Player[];
 
-  if (view === 'rostered') {
+  if (!draftBoardMode && view === 'rostered') {
     const allSPs = activePool
       .filter(p => p.position === 'SP' && p.totalPoints > 0)
       .sort((a, b) => b.totalPoints - a.totalPoints);
@@ -242,6 +247,7 @@ export default function BaseballFieldLeaders({ rosteredPlayers, freeAgents, rpNa
     rotation = trueSPs.slice(1, 5);
     bullpen  = trueRPs.slice(0, 5);
   } else {
+    // FA view and draft board mode both use real SP/RP position labels
     sp1      = top('SP', 1)[0] ?? null;
     rotation = top('SP', 5).slice(1);
     bullpen  = top('RP', 5);
@@ -262,22 +268,24 @@ export default function BaseballFieldLeaders({ rosteredPlayers, freeAgents, rpNa
   return (
     <div ref={wrapperRef} className="flex flex-col gap-4">
 
-      {/* Toggle */}
-      <div className="flex gap-2">
-        {(['rostered', 'fa'] as const).map(v => (
-          <button
-            key={v}
-            onClick={() => setView(v)}
-            className={`px-4 py-2 rounded-full text-sm font-semibold border transition ${
-              view === v
-                ? 'bg-teal-700 text-white border-teal-700'
-                : 'bg-white text-gray-600 border-gray-200 hover:border-teal-400 hover:text-teal-600'
-            }`}
-          >
-            {v === 'rostered' ? 'Rostered Leaders' : 'Free Agents'}
-          </button>
-        ))}
-      </div>
+      {/* Toggle — hidden in draft board mode */}
+      {!draftBoardMode && (
+        <div className="flex gap-2">
+          {(['rostered', 'fa'] as const).map(v => (
+            <button
+              key={v}
+              onClick={() => setView(v)}
+              className={`px-4 py-2 rounded-full text-sm font-semibold border transition ${
+                view === v
+                  ? 'bg-teal-700 text-white border-teal-700'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-teal-400 hover:text-teal-600'
+              }`}
+            >
+              {v === 'rostered' ? 'Rostered Leaders' : 'Free Agents'}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Field row: relative container — sidebar absolutely pinned when it fits, stacked otherwise */}
       <div className={sideBySide ? 'relative lg:pr-[177px] xl:pr-[197px]' : ''}>

@@ -426,12 +426,20 @@ export default async function TeamPage({ params }: Props) {
           </div>
         )}
 
-        {/* Current roster field diagram */}
-        {currentRoster.length > 0 && (
+        {/* Current roster field diagram — falls back to keepers pre-draft */}
+        {(currentRoster.length > 0 || suggestedKeepers.length > 0) && (
           <div className="mb-10">
-            <h2 className="text-2xl font-bold mb-4">{currentSeason.year} Roster</h2>
+            <h2 className="text-2xl font-bold mb-4">
+              {currentRoster.length > 0 ? `${currentSeason.year} Roster` : '2026 Keepers'}
+            </h2>
             <TeamBaseballField
-              players={currentRoster}
+              players={currentRoster.length > 0 ? currentRoster : suggestedKeepers.map(k => ({
+                playerId: k.playerId || k.playerName,
+                playerName: k.playerName,
+                position: k.position,
+                totalPoints: k.projectedFP2026 ?? 0,
+                photoUrl: k.photoUrl,
+              }))}
               rpNames={rpNames.size > 0 ? rpNames : undefined}
               fieldDimensions={id === 3 ? { lf: 325, lcf: 375, cf: 400, rcf: 375, rf: 325 } : undefined}
               stadiumName={id === 3 ? 'Tim Elko Field at Montani Semper Liberi Park' : id === 10 ? 'Muzzy Field, Home of the Bristol Banshees' : undefined}

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import FreeAgentsTable from '@/components/FreeAgentsTable';
 import BaseballFieldLeaders from '@/components/BaseballFieldLeaders';
 import freeAgentsData from '@/data/current/free-agents.json';
+import keeperOverrides from '@/data/keeper-overrides.json';
 import {
   getBattingAvgLeaders,
   getHitsLeaders,
@@ -81,6 +82,19 @@ export default async function PlayerStatsPage() {
   const faBatters = freeAgents.filter((p: { position: string }) => p.position !== 'SP' && p.position !== 'RP');
   const hasFreeAgents = freeAgents.length > 0;
 
+  // Build name → photoUrl from all historical rosters + FA list (most recent wins)
+  const photoUrlByName: Record<string, string> = {};
+  for (const season of seasons) {
+    for (const roster of (season.rosters ?? [])) {
+      for (const p of roster.players) {
+        if (p.photoUrl) photoUrlByName[p.playerName] = p.photoUrl;
+      }
+    }
+  }
+  for (const p of freeAgents as { playerName: string; photoUrl?: string }[]) {
+    if (p.photoUrl) photoUrlByName[p.playerName] = p.photoUrl;
+  }
+
   // Top 25 overall rostered players
   const top25 = [...allPlayers]
     .filter(p => p.totalPoints > 0)
@@ -121,6 +135,12 @@ export default async function PlayerStatsPage() {
     ? new Date().getFullYear() + 1
     : new Date().getFullYear();
 
+  // Build set of all confirmed keepers (for pre-draft filtering)
+  const isPreDraft = allPlayers.length === 0;
+  const allKeeperNames = new Set<string>(
+    Object.values(keeperOverrides as Record<string, string[]>).flat()
+  );
+
   const faNameSet = new Set(freeAgents.map((p: { playerName: string }) => p.playerName));
 
   // Build name → position lookup from ESPN roster + FA data
@@ -130,8 +150,13 @@ export default async function PlayerStatsPage() {
     if (!positionByName[p.playerName]) positionByName[p.playerName] = p.position;
   }
 
+  // Pre-draft: filter out confirmed keepers so we show available/draftable players only
+  const filteredProjections = isPreDraft
+    ? projectionsData.filter(p => !allKeeperNames.has(p['Player Name']))
+    : projectionsData;
+
   const allCombined = hasProjections
-    ? projectionsData.map(p => ({
+    ? filteredProjections.map(p => ({
         playerName: p['Player Name'],
         position: (p.Position && p.Position !== 'nan') ? p.Position : (positionByName[p['Player Name']] || '—'),
         totalPoints: p.ProjectedFP,
@@ -139,6 +164,7 @@ export default async function PlayerStatsPage() {
         delta: p.Projection_vs_MostRecent,
         source: faNameSet.has(p['Player Name']) ? 'FA' as const : 'Rostered' as const,
         isProjection: true as const,
+        photoUrl: photoUrlByName[p['Player Name']],
       }))
     : [
         ...allPlayers.map(p => ({ playerName: p.playerName, position: p.position, totalPoints: p.totalPoints, actualPoints: p.totalPoints, delta: null, source: 'Rostered' as const, isProjection: false as const })),
@@ -200,136 +226,154 @@ export default async function PlayerStatsPage() {
         <h1 className="text-4xl font-bold mb-2">Player Stats</h1>
         <p className="text-gray-500 mb-10">{currentSeason.year} Season &mdash; Top Individual Performances</p>
 
-        {allPlayers.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-sm border p-10 text-center">
-            <div className="text-5xl mb-4">⚾</div>
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">No Player Data Yet</h2>
-            <p className="text-gray-500 text-sm">Roster data hasn&apos;t been loaded for this season.</p>
-          </div>
-        ) : (
-          <>
-            {/* Position Leaders — Baseball Field */}
-            <h2 className="text-2xl font-bold mb-4">Position Leaders</h2>
-            <div className="mb-12">
-              <BaseballFieldLeaders rosteredPlayers={allPlayers} freeAgents={freeAgents} rpNames={rpNames.size > 0 ? rpNames : undefined} />
-            </div>
-
-            {/* Top 25 Overall */}
-            <h2 className="text-2xl font-bold mb-4">Top 25 Overall</h2>
-            <div className="rounded-xl shadow-sm border overflow-hidden mb-12">
-              <div className="overflow-y-auto" style={{ maxHeight: '530px' }}>
-                <table className="min-w-full text-sm">
-                  <thead className="bg-gray-800 text-white sticky top-0 z-10">
-                    <tr>
-                      <th className="px-4 py-3 text-left w-10">#</th>
-                      <th className="px-4 py-3 text-left">Player</th>
-                      <th className="px-4 py-3 text-left">Pos</th>
-                      <th className="px-4 py-3 text-left">Team</th>
-                      <th className="px-4 py-3 text-right">Fantasy Pts</th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white">
-                    {top25.map((p, i) => (
-                      <tr key={p.playerId} className="border-b hover:bg-sky-50 transition">
-                        <td className="px-4 py-3 text-gray-400">{i + 1}</td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-3">
-                            {p.photoUrl && (
-                              <Image
-                                src={p.photoUrl}
-                                alt={p.playerName}
-                                width={36}
-                                height={36}
-                                className="rounded-full object-cover bg-gray-100 flex-shrink-0"
-                                unoptimized
-                              />
-                            )}
-                            <span className="font-medium">{p.playerName}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-gray-500">{p.position}</td>
-                        <td className="px-4 py-3">
-                          <Link href={`/teams/${p.teamId}`} className="hover:text-teal-600 transition">
-                            {p.teamName}
-                          </Link>
-                        </td>
-                        <td className="px-4 py-3 text-right font-bold text-teal-600">
-                          {Math.round(p.totalPoints).toLocaleString()}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Free Agents */}
-            {hasFreeAgents ? (
+        <>
+          {/* Position Leaders — Baseball Field */}
+          {isPreDraft && hasProjections ? (
+            <>
+              <h2 className="text-2xl font-bold mb-4">Position Leaders — Top Projected Non-Keepers</h2>
               <div className="mb-12">
-                <FreeAgentsTable
-                  pitchers={faPitchers}
-                  batters={faBatters}
-                  fetchedAt={freeAgentsData.fetchedAt}
-                  statSeason={(freeAgentsData as { statSeason?: number }).statSeason ?? null}
+                <BaseballFieldLeaders
+                  rosteredPlayers={allCombined}
+                  freeAgents={[]}
+                  rpNames={rpNames.size > 0 ? rpNames : undefined}
+                  draftBoardMode
                 />
               </div>
-            ) : (
-              <div className="mb-12 bg-white rounded-xl border border-dashed border-gray-200 p-8 text-center">
-                <p className="text-gray-400 text-sm font-medium">Free agent data not yet loaded</p>
-                <p className="text-gray-300 text-xs mt-1">Run <code className="bg-gray-100 px-1.5 py-0.5 rounded">npm run fetch-free-agents</code> to populate this section</p>
+            </>
+          ) : null}
+
+          {/* Position Leaders + Top 25 — only when roster data exists */}
+          {allPlayers.length > 0 && (
+            <>
+              {/* Position Leaders — Baseball Field */}
+              <h2 className="text-2xl font-bold mb-4">Position Leaders</h2>
+              <div className="mb-12">
+                <BaseballFieldLeaders rosteredPlayers={allPlayers} freeAgents={freeAgents} rpNames={rpNames.size > 0 ? rpNames : undefined} />
               </div>
-            )}
 
-            {/* ── Projections / MLB Stats ───────────────────────────────── */}
-            <h2 className="text-2xl font-bold mb-1">
-              {hasProjections ? `${projectionYear} Fantasy Projections` : '2025 MLB Stats'}
-            </h2>
-            <p className="text-sm text-gray-500 mb-6">
-              {hasProjections
-                ? 'Model-based projections using weighted 3-year history, age curves, park factors, Statcast xwOBA, and sprint speed.'
-                : 'Real MLB stats from last season — the best predictor for 2026 fantasy performance.'}
-            </p>
+              {/* Top 25 Overall */}
+              <h2 className="text-2xl font-bold mb-4">Top 25 Overall</h2>
+              <div className="rounded-xl shadow-sm border overflow-hidden mb-12">
+                <div className="overflow-y-auto" style={{ maxHeight: '530px' }}>
+                  <table className="min-w-full text-sm">
+                    <thead className="bg-gray-800 text-white sticky top-0 z-10">
+                      <tr>
+                        <th className="px-4 py-3 text-left w-10">#</th>
+                        <th className="px-4 py-3 text-left">Player</th>
+                        <th className="px-4 py-3 text-left">Pos</th>
+                        <th className="px-4 py-3 text-left">Team</th>
+                        <th className="px-4 py-3 text-right">Fantasy Pts</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white">
+                      {top25.map((p, i) => (
+                        <tr key={p.playerId} className="border-b hover:bg-sky-50 transition">
+                          <td className="px-4 py-3 text-gray-400">{i + 1}</td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              {p.photoUrl && (
+                                <Image
+                                  src={p.photoUrl}
+                                  alt={p.playerName}
+                                  width={36}
+                                  height={36}
+                                  className="rounded-full object-cover bg-gray-100 flex-shrink-0"
+                                  unoptimized
+                                />
+                              )}
+                              <span className="font-medium">{p.playerName}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-gray-500">{p.position}</td>
+                          <td className="px-4 py-3">
+                            <Link href={`/teams/${p.teamId}`} className="hover:text-teal-600 transition">
+                              {p.teamName}
+                            </Link>
+                          </td>
+                          <td className="px-4 py-3 text-right font-bold text-teal-600">
+                            {Math.round(p.totalPoints).toLocaleString()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
 
-            <ProjectedPointsTable
-              players={allCombined}
-              isProjection={hasProjections}
-              targetYear={projectionYear}
-              recentYear={projectionYear - 1}
-            />
+              {/* Free Agents */}
+              {hasFreeAgents ? (
+                <div className="mb-12">
+                  <FreeAgentsTable
+                    pitchers={faPitchers}
+                    batters={faBatters}
+                    fetchedAt={freeAgentsData.fetchedAt}
+                    statSeason={(freeAgentsData as { statSeason?: number }).statSeason ?? null}
+                  />
+                </div>
+              ) : (
+                <div className="mb-12 bg-white rounded-xl border border-dashed border-gray-200 p-8 text-center">
+                  <p className="text-gray-400 text-sm font-medium">Free agent data not yet loaded</p>
+                  <p className="text-gray-300 text-xs mt-1">Run <code className="bg-gray-100 px-1.5 py-0.5 rounded">npm run fetch-free-agents</code> to populate this section</p>
+                </div>
+              )}
+            </>
+          )}
 
-            {/* ── EROSP Section ─────────────────────────────────────────── */}
-            {erospMeta ? (
-              <>
-                <h2 className="text-2xl font-bold mb-1 mt-10">
-                  {erospMeta.season} Expected Rest of Season Points (EROSP)
-                </h2>
-                <p className="text-sm text-gray-500 mb-6">
-                  Daily-updated model projecting each player&apos;s remaining fantasy points —
-                  both unconstrained (<strong>Raw</strong>) and within a 10-team daily-lineup
-                  league with 7-SP-start weekly cap (<strong>Startable</strong>).
-                </p>
-                <EROSPTable
-                  players={erospPlayers}
-                  meta={erospMeta}
-                  showTeamColumn={true}
-                  teamNames={teamNameById}
-                />
-              </>
-            ) : null}
+          {/* ── Projections / MLB Stats ───────────────────────────────── */}
+          <h2 className="text-2xl font-bold mb-1">
+            {hasProjections
+              ? isPreDraft
+                ? `${projectionYear} Draft Board — Non-Keeper Projected Points`
+                : `${projectionYear} Fantasy Projections`
+              : '2025 MLB Stats'}
+          </h2>
+          <p className="text-sm text-gray-500 mb-6">
+            {hasProjections
+              ? isPreDraft
+                ? `Projected fantasy points for all available players — confirmed keepers (${allKeeperNames.size} players) excluded. Sorted by projected output.`
+                : 'Model-based projections using weighted 3-year history, age curves, park factors, Statcast xwOBA, and sprint speed.'
+              : 'Real MLB stats from last season — the best predictor for 2026 fantasy performance.'}
+          </p>
 
-            <MlbStatsGrid
-              baLeaders={baLeaders}
-              hitsLeaders={hitsLeaders}
-              hrLeaders={hrLeaders}
-              sbLeaders={sbLeaders}
-              eraLeaders={eraLeaders}
-              savesLeaders={savesLeaders}
-              kLeaders={kLeaders}
-              whipLeaders={whipLeaders}
-              freeAgentNames={freeAgents.map((p: { playerName: string }) => p.playerName)}
-            />
-          </>
-        )}
+          <ProjectedPointsTable
+            players={allCombined}
+            isProjection={hasProjections}
+            targetYear={projectionYear}
+            recentYear={projectionYear - 1}
+          />
+
+          {/* ── EROSP Section ─────────────────────────────────────────── */}
+          {erospMeta ? (
+            <>
+              <h2 className="text-2xl font-bold mb-1 mt-10">
+                {erospMeta.season} Expected Rest of Season Points (EROSP)
+              </h2>
+              <p className="text-sm text-gray-500 mb-6">
+                Daily-updated model projecting each player&apos;s remaining fantasy points —
+                both unconstrained (<strong>Raw</strong>) and within a 10-team daily-lineup
+                league with 7-SP-start weekly cap (<strong>Startable</strong>).
+              </p>
+              <EROSPTable
+                players={erospPlayers}
+                meta={erospMeta}
+                showTeamColumn={true}
+                teamNames={teamNameById}
+              />
+            </>
+          ) : null}
+
+          <MlbStatsGrid
+            baLeaders={baLeaders}
+            hitsLeaders={hitsLeaders}
+            hrLeaders={hrLeaders}
+            sbLeaders={sbLeaders}
+            eraLeaders={eraLeaders}
+            savesLeaders={savesLeaders}
+            kLeaders={kLeaders}
+            whipLeaders={whipLeaders}
+            freeAgentNames={freeAgents.map((p: { playerName: string }) => p.playerName)}
+          />
+        </>
       </main>
     </div>
   );
