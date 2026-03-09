@@ -119,6 +119,22 @@ npm run build            # Production build
 - **BaseballFieldLeaders layout** (`components/BaseballFieldLeaders.tsx`): dynamic `sideBySide` state controls whether the sidebar (Ohtani/DH/Bullpen/Rotation cards) sits alongside the field or drops below. Uses `ResizeObserver` on `wrapperRef` and `sidebarRef`. `checkLayout` computes theoretical field height = `(wrapperWidth - sidebarW - 12) * 0.68` and compares to `sidebar.scrollHeight` (natural content height). When `sideBySide=true`: outer div gets `relative pr-[177px] xl:pr-[197px]`, sidebar is `absolute top-0 right-0 bottom-0 w-[165px] xl:w-[185px]`. When false: sidebar is `mt-3 grid grid-cols-2 gap-2`. Only side-by-side at `lg+`. Bullpen shows 5 players (ranks 1-5), Rotation shows 4 players (ranks 2-5). OhtaniCard and DHCard use horizontal layout (photo left, name/points right). Photos use `object-cover` to prevent stretching. Layout re-checks on view toggle (rostered/FA) since Ohtani may appear/disappear.
 - **TeamBaseballField sidebar** (`components/TeamBaseballField.tsx`): same horizontal OhtaniCard/DHCard layout as BaseballFieldLeaders. Player names use `break-words` (not `truncate`) to prevent names being cut off.
 
+## Recent Work (March 8, 2026)
+
+### Player Data Audit & Projection Age Fix
+
+**Same-name player audit** (checked all 5 seasons 2022–2026):
+- `getTeamTopPlayersAllTime` and all stat aggregation uses `playerId` (ESPN ID) as key — correctly distinguishes same-named players.
+- Only real issue: "Luis Garcia" — two different players: id=`4684365` (SP, 2022) vs id=`40459` (2B Astros, 2023–2024 as "Luis Garcia Jr."). Code handles correctly via IDs; no data corruption.
+- "Luis Robert" → "Luis Robert Jr." (same id=`39631`): name-only change, no issue.
+- 2026 data is pre-season carry-over of 2025 stats — expected behavior until Opening Day.
+
+**Projection age bug (the James Wood case)** — `scripts/generate_projections.py`:
+- **Root cause**: Chadwick register assigns `key_fangraphs = -1` for newer/rookie players, so the FanGraphs ID → MLBAM ID merge fails. Without MLBAM IDs, `fetch_player_info()` can't get birth dates → `calc_age()` returns NaN → players get filled with dataset median age (29.4 or 30.8). This affected 155+ players including James Wood, Paul Skenes, Nick Kurtz, Roman Anthony, etc.
+- **Fix**: Added `norm_name()` function and `chad_name_map` (name→MLBAM dict from Chadwick, unambiguous names only) as a fallback lookup for players missing MLBAM IDs after the FG-ID merge. Applied to both batter and pitcher sections. `norm_name` collapses "J. T." → "J.T." to handle initial spacing.
+- **Data patched**: `scripts/fantasy_projections_2026.csv` and `data/projections/2026.json` corrected in-place. Key fixes: James Wood 29.4→23.5 (FP 361→399), Paul Skenes 30.8→23.8, Roman Anthony 29.4→21.9, Jackson Holliday 29.4→22.3, Agustin Ramirez 29.4→24.6, etc. ~157 players total.
+- For players truly not in Chadwick (e.g. Yariel Rodriguez, Felix Bautista), used MLB Stats API people search (`/api/v1/people/search?names=`) as a one-time manual fix.
+
 ## Key Gotchas
 - ESPN roster data: all pitchers use 'SP' slot (no 'RP'), UTIL = OF + DH
 - MLB Stats API `fields` param: must list nested fields explicitly (e.g., `primaryPosition,abbreviation` not just `primaryPosition`)
