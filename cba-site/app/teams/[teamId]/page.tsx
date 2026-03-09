@@ -11,6 +11,8 @@ import { getTrashTalk, getTeamContent } from '@/lib/store';
 import { TeamBioEditor, TeamStrengthsEditor } from './TeamContentEditor';
 import TeamBaseballField from '@/components/TeamBaseballField';
 import EROSPTable, { type EROSPPlayer, type EROSPMeta } from '@/components/EROSPTable';
+import SuggestedMoves from '@/components/SuggestedMoves';
+import { getSuggestedMoves } from '@/lib/suggested-moves';
 import fs from 'fs';
 import path from 'path';
 
@@ -136,6 +138,30 @@ export default async function TeamPage({ params }: Props) {
 
   // Filter EROSP players to this fantasy team
   const teamErospPlayers = erospPlayers.filter(p => p.fantasy_team_id === id);
+
+  // Load free agents for Suggested Moves
+  let faList: Array<{ playerName: string; photoUrl?: string; position: string }> = [];
+  try {
+    const faPath = path.join(process.cwd(), 'data', 'current', 'free-agents.json');
+    if (fs.existsSync(faPath)) {
+      const faRaw = JSON.parse(fs.readFileSync(faPath, 'utf-8'));
+      faList = (faRaw.players ?? []).map((p: { playerName: string; photoUrl?: string; position: string }) => ({
+        playerName: p.playerName,
+        photoUrl:   p.photoUrl,
+        position:   p.position,
+      }));
+    }
+  } catch { /* FA data unavailable */ }
+
+  // Run Suggested Moves engine
+  const suggestedMovesResult = erospPlayers.length > 0
+    ? getSuggestedMoves({
+        targetTeamId:   id,
+        erospPlayers,
+        keeperOverrides: keeperOverrides as Record<string, string[]>,
+        faList,
+      })
+    : null;
 
   // Build set of true-RP names for the baseball field (EROSP role = 'RP')
   const rpNames = new Set(
@@ -460,6 +486,13 @@ export default async function TeamPage({ params }: Props) {
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Suggested Moves */}
+        {suggestedMovesResult && (
+          <div className="mb-10">
+            <SuggestedMoves result={suggestedMovesResult} />
           </div>
         )}
 
