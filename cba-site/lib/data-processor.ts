@@ -6,6 +6,7 @@ import season2025 from '../data/historical/2025.json';
 import season2026raw from '../data/current/2026.json';
 import projections2026 from '../data/projections/2026.json';
 import keeperOverrides from '../data/keeper-overrides.json';
+import historicalKeeperOverrides from '../data/historical-keeper-overrides.json';
 
 // Strip bad preseason data: if no games have been played, clear playoffTeams
 const totalGames2026 = (season2026raw as SeasonData).standings.reduce(
@@ -243,15 +244,40 @@ export function getTeamTopPlayerForYear(teamId: number, year: number) {
 }
 
 // Returns players designated as keepers for a team in a specific season
+// 2026+ allows 6 keepers; prior seasons only had 5
 export function getTeamKeepersForYear(teamId: number, year: number) {
   const season = getAllSeasons().find(s => s.year === year);
   if (!season) return [];
   const roster = season.rosters?.find(r => r.teamId === teamId);
   if (!roster) return [];
+  const keeperLimit = year >= 2026 ? 6 : 5;
+
+  // Check historical keeper overrides first (most accurate for past seasons)
+  const yearOverrides = (historicalKeeperOverrides as Record<string, Record<string, string[]>>)[String(year)];
+  const historicalNames = yearOverrides?.[String(teamId)];
+  if (historicalNames && historicalNames.length > 0) {
+    return historicalNames
+      .map(name => roster.players.find(p => p.playerName === name))
+      .filter((p): p is NonNullable<typeof p> => p !== undefined);
+  }
+
+  // acquisitionType === 'KEEPER' is only accurate when fetched right after the draft.
+  // Historical season-end fetches return 'DRAFT' for all players, so we only use
+  // this when at least one player is explicitly marked as KEEPER.
+  const hasKeeperAcquisitions = roster.players.some(p => p.acquisitionType === 'KEEPER');
+  if (hasKeeperAcquisitions) {
+    return roster.players
+      .filter(p => p.acquisitionType === 'KEEPER')
+      .sort((a, b) => (a.keeperValue ?? 0) - (b.keeperValue ?? 0))
+      .slice(0, keeperLimit);
+  }
+
+  // Last resort fallback: keeperValue > 0, sorted by round, capped at keeperLimit.
+  // Note: keeperValue reflects projected next-year cost, not actual keeper status — unreliable.
   return roster.players
     .filter(p => (p.keeperValue ?? 0) > 0)
     .sort((a, b) => (a.keeperValue ?? 0) - (b.keeperValue ?? 0))
-    .slice(0, 6);
+    .slice(0, keeperLimit);
 }
 
 // Returns the current week's matchup with the best combined team strength.

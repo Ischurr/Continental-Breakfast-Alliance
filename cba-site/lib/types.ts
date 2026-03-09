@@ -36,6 +36,7 @@ export interface PlayerSeason {
   totalPoints: number;
   photoUrl?: string;
   keeperValue?: number;
+  acquisitionType?: string;
 }
 
 export interface TeamRoster {

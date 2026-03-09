@@ -619,3 +619,54 @@ Applied consistent mobile-first treatment across all data tables:
 for (const p of projections2026.players) {  // TypeError if root is array
 ```
 **Fix**: wrapped existing array in `{ "players": [...] }` — 823 players, shape now correct. Runtime TypeError on dev server resolved.
+
+## Session Work (March 8, 2026 — Keeper Display Fixes)
+
+### Season history keeper count fix (`lib/data-processor.ts`)
+- `getTeamKeepersForYear()` now caps at **5 keepers** for seasons before 2026 and **6 keepers** for 2026+
+- Previously always sliced to 6, which was wrong for all historical seasons
+
+### Historical keeper accuracy investigation + overrides
+- **Root cause of Goldschmidt problem**: ESPN `keeperValue` at season-end reflects each player's *projected cost to be kept next year*, not whether they were actually a keeper. A mid-season free agent pickup (like Goldschmidt) gets `keeperValue=1` by ESPN's default pricing — indistinguishable from a round-1 keeper.
+- **`acquisitionType` doesn't help**: ESPN returns `acquisitionType = 'DRAFT'` for all players when fetched at season-end. The `KEEPER` value is only present in roster data fetched right after the draft — we don't have that for 2022–2025.
+- **`keeperValue <= 5` fallback also fails**: late-round picks who became keepers (e.g. James Wood, `keeperValue=23`) correctly have a high keeperValue, so they'd be excluded by this filter.
+
+### `PlayerSeason` type + fetch-historical.ts update (`lib/types.ts`, `scripts/fetch-historical.ts`)
+- Added optional `acquisitionType?: string` field to `PlayerSeason` interface
+- `fetch-historical.ts` now captures `entry.acquisitionType` for each roster player
+- Historical data re-fetched; all players have `acquisitionType = 'DRAFT'` (season-end limitation noted above)
+- If historical data were ever re-fetched immediately post-draft, the `KEEPER` entries would be picked up automatically by `getTeamKeepersForYear`
+
+### `getTeamKeepersForYear` priority chain (`lib/data-processor.ts`)
+Three-tier lookup, in order:
+1. **`data/historical-keeper-overrides.json`** — manually curated, most accurate. Structure: `{ "2025": { "1": ["Player A", ...] }, ... }`
+2. **`acquisitionType === 'KEEPER'`** — accurate if fetched right after draft; currently unused for historical seasons
+3. **`keeperValue > 0` fallback** — unreliable but better than nothing; only used when no override exists and no KEEPER acquisitions found
+
+### `data/historical-keeper-overrides.json` (new file)
+- Same pattern as `keeper-overrides.json` but keyed by year then team ID
+- Currently empty (`{}` for all years 2022–2025) — needs to be populated with actual keeper lists
+- **To fix the Goldschmidt/Space Cowboys 2025 issue**: add the real 5 keepers under `"2025" → "1"`
+- Format: `{ "2025": { "1": ["Francisco Lindor", "Jose Ramirez", ...], "2": [...] }, ... }`
+
+## Session Work (March 8, 2026 — Missing Projection Players Audit)
+
+### Injury players missing from `data/projections/2026.json`
+
+**Root cause**: `generate_projections.py` requires `MIN_PA = 200` (batters) and `MIN_IP = 30` (pitchers) from the FanGraphs pull. Players who missed those thresholds in 2025 due to injury are silently excluded.
+
+**Audit**: Cross-referenced all rostered players in `data/current/2026.json` against projection names. Found **8 players** missing — 3 notable, 5 fringe arms:
+
+| Player | Team | 2025 pts | Reason |
+|---|---|---|---|
+| Yordan Alvarez | Space Cowboys | 160.75 | 48 games (hand + ankle injury) |
+| Shane McClanahan | Pepperoni Rolls | 0 | 2nd straight missed year (TJ + nerve) |
+| Gerrit Cole | Sky Chiefs | 0 | Missed entire season (UCL) |
+| Jose Ferrer, Louis Varland, Cam Schlittler, Connelly Early, Brandon Sproat | various | — | Fringe/prospect arms, not added |
+
+**Fix**: Manually computed projected FP using the script's actual formula (historical ESPN pts + PA normalization + age/park/playing-time modifiers) and appended to `data/projections/2026.json`:
+- **Yordan Alvarez**: 603.1 FP, 95th percentile (DH, HOU, age 28.5) — comparable to Buxton tier
+- **Shane McClanahan**: 344.3 FP, 69th percentile (SP, TB, age 28.5) — one year of data (2023 only), heavy regression
+- **Gerrit Cole**: 202.9 FP, 51st percentile (SP, NYY, age 35) — limited to ~87 projected IP, age decline
+
+**Going forward**: If a star player misses the PA/IP minimum again, add them manually using the same approach — pull their historical ESPN pts from `data/historical/*.json`, apply the formula from `generate_projections.py` `weighted_fp()` + modifiers. MLBAM IDs can be looked up via `pybaseball playerid_lookup`.
