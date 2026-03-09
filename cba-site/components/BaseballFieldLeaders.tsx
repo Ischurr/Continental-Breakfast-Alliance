@@ -193,11 +193,9 @@ export default function BaseballFieldLeaders({ rosteredPlayers, freeAgents, rpNa
   }, []);
 
   useEffect(() => {
-    const obs = new ResizeObserver(checkLayout);
-    if (wrapperRef.current) obs.observe(wrapperRef.current);
-    if (sidebarRef.current) obs.observe(sidebarRef.current);
+    window.addEventListener('resize', checkLayout);
     checkLayout();
-    return () => obs.disconnect();
+    return () => window.removeEventListener('resize', checkLayout);
   }, [checkLayout]);
 
   // Re-check when view switches (Ohtani may appear/disappear, changing sidebar height)
