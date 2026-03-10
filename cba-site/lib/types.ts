@@ -142,3 +142,12 @@ export interface TeamContentOverride {
 }
 
 export type TeamContentOverrides = Record<number, TeamContentOverride>;
+
+export interface DinosContent {
+  bio?: string;
+  sacckoText?: string;
+  championshipText?: string;
+  exitText?: string;
+  legacyQuote?: string;
+  legacyText?: string;
+}

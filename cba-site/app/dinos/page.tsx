@@ -5,6 +5,15 @@ import { SeasonData } from '@/lib/types';
 import season2022 from '@/data/historical/2022.json';
 import season2023 from '@/data/historical/2023.json';
 import season2024 from '@/data/historical/2024.json';
+import { getDinosContent } from '@/lib/store';
+import { DinosBioEditor, DinosCircumstanceParagraph, DinosLegacyEditor } from './DinosContentEditor';
+
+const DEFAULT_BIO = `Three seasons of prehistoric chaos, one disgraceful exit, and a championship that technically happened. The Dinos finished last in 2022, refused to serve their Saccko punishment, and were dragged into 2023 under a cloud of dishonor. They proceeded to \u2014 accidentally, it seemed \u2014 win the whole league. The title was subsequently vacated. Then they went extinct. A fitting end.`;
+const DEFAULT_SACCKO = `The Dinwiddie Dinos finished 9th in the inaugural CBA season, landing them squarely in the Saccko bracket \u2014 the league\u2019s punishment bracket for the worst-performing teams. Andrew Sharpe declined to participate. The punishment went unserved. The league took note.`;
+const DEFAULT_CHAMPIONSHIP = `In an outcome that still baffles historians, the Dinos rebounded from their Saccko-bracket disgrace to go 14-7 and win the 2023 Continental Breakfast Alliance title. The league, already simmering over the unserved punishment, found this insufferable. The championship was subsequently vacated. The trophy remains unclaimed.`;
+const DEFAULT_EXIT = `Following the 2024 season, Andrew Sharpe was removed from the league. The Dinwiddie Dinos played their final game and were replaced by the Bristol Banshees ahead of 2025. The Banshees, in their first act as a franchise, accepted the Saccko rules without complaint and then won the championship. Point made.`;
+const DEFAULT_LEGACY_QUOTE = `\u201cHe won the league and got kicked out for it. That\u2019s a sentence that has never been written before.\u201d`;
+const DEFAULT_LEGACY_TEXT = `The Dinwiddie Dinos played three seasons in the Continental Breakfast Alliance under Andrew Sharpe. They refused a punishment, accidentally won the title, had it vacated, and were replaced by a franchise that immediately won the championship the right way. Their slot was inherited by the Bristol Banshees, who also inherited \u2014 in a cruel twist of prehistory \u2014 Juan Soto.`;
 
 const DINO_ID = 10;
 const DINO_SEASONS = [season2022, season2023, season2024] as SeasonData[];
@@ -77,10 +86,11 @@ function getDinoH2H() {
     });
 }
 
-export default function DinoMemorialPage() {
+export default async function DinoMemorialPage() {
   const history = getDinoSeasonHistory();
   const topPlayers = getDinoTopPlayers(6);
   const h2h = getDinoH2H();
+  const content = await getDinosContent();
 
   const totalWins = history.reduce((s, h) => s + (h.standing?.wins ?? 0), 0);
   const totalLosses = history.reduce((s, h) => s + (h.standing?.losses ?? 0), 0);
@@ -105,7 +115,7 @@ export default function DinoMemorialPage() {
           </Link>
 
           <div className="flex items-center gap-3 mb-5">
-            <span className="border border-stone-400/50 text-stone-400 text-[11px] font-bold px-3 py-1 rounded-full tracking-[0.18em] uppercase">
+            <span className="border border-stone-400/50 text-stone-400 text-sm font-bold px-3 py-1 rounded-full tracking-[0.18em] uppercase">
               † In Memoriam
             </span>
             <span className="text-stone-500 text-xs tracking-wide">2022 – 2024</span>
@@ -121,13 +131,7 @@ export default function DinoMemorialPage() {
             <div className="flex-1 min-w-0">
               <h1 className="text-4xl font-bold mb-1 text-white/90">Dinwiddie Dinos</h1>
               <p className="text-lg text-stone-400 mb-4">Andrew Sharpe · Dinwiddie, VA</p>
-              <p className="text-sm text-stone-300/75 max-w-2xl leading-relaxed">
-                Three seasons of prehistoric chaos, one disgraceful exit, and a championship
-                that technically happened. The Dinos finished last in 2022, refused to serve
-                their Saccko punishment, and were dragged into 2023 under a cloud of dishonor.
-                They proceeded to &mdash; accidentally, it seemed &mdash; win the whole league.
-                The title was subsequently vacated. Then they went extinct. A fitting end.
-              </p>
+              <DinosBioEditor initialValue={content.bio ?? DEFAULT_BIO} />
             </div>
           </div>
 
@@ -314,27 +318,22 @@ export default function DinoMemorialPage() {
           <div className="bg-red-700 px-5 py-3">
             <p className="text-white font-bold text-sm tracking-wide">Circumstances of Removal</p>
           </div>
-          <div className="bg-red-50 px-5 py-5 space-y-3 text-sm text-stone-700 leading-relaxed">
-            <p>
-              <span className="font-semibold text-red-700">2022 Saccko Bracket:</span> The Dinwiddie Dinos finished
-              9th in the inaugural CBA season, landing them squarely in the Saccko bracket &mdash; the
-              league&apos;s punishment bracket for the worst-performing teams. Andrew Sharpe declined to
-              participate. The punishment went unserved. The league took note.
-            </p>
-            <p>
-              <span className="font-semibold text-red-700">2023 &ldquo;Championship&rdquo;:</span> In an outcome that
-              still baffles historians, the Dinos rebounded from their Saccko-bracket disgrace to go
-              14-7 and win the 2023 Continental Breakfast Alliance title. The league, already simmering
-              over the unserved punishment, found this insufferable. The championship was subsequently
-              vacated. The trophy remains unclaimed.
-            </p>
-            <p>
-              <span className="font-semibold text-red-700">Exit from the League:</span> Following the 2024 season,
-              Andrew Sharpe was removed from the league. The Dinwiddie Dinos played their final game
-              and were replaced by the Bristol Banshees ahead of 2025. The Banshees, in their first
-              act as a franchise, accepted the Saccko rules without complaint and then won the championship.
-              Point made.
-            </p>
+          <div className="bg-red-50 px-5 py-5 space-y-3">
+            <DinosCircumstanceParagraph
+              label="2022 Saccko Bracket:"
+              field="sacckoText"
+              initialValue={content.sacckoText ?? DEFAULT_SACCKO}
+            />
+            <DinosCircumstanceParagraph
+              label={'2023 \u201cChampionship\u201d:'}
+              field="championshipText"
+              initialValue={content.championshipText ?? DEFAULT_CHAMPIONSHIP}
+            />
+            <DinosCircumstanceParagraph
+              label="Exit from the League:"
+              field="exitText"
+              initialValue={content.exitText ?? DEFAULT_EXIT}
+            />
           </div>
         </div>
 
@@ -344,16 +343,20 @@ export default function DinoMemorialPage() {
           style={{ background: 'linear-gradient(135deg, #2C2C2C, #1A2E1A)' }}
         >
           <p className="text-stone-500 text-xs font-semibold uppercase tracking-widest mb-3">Legacy</p>
-          <p className="text-lg font-medium text-white/75 italic mb-3">
-            &ldquo;He won the league and got kicked out for it. That&rsquo;s a sentence that has never been written before.&rdquo;
-          </p>
-          <p className="text-sm text-stone-400 max-w-xl mx-auto leading-relaxed">
-            The Dinwiddie Dinos played three seasons in the Continental Breakfast Alliance under
-            Andrew Sharpe. They refused a punishment, accidentally won the title, had it vacated,
-            and were replaced by a franchise that immediately won the championship the right way.
-            Their slot was inherited by the Bristol Banshees, who also inherited &mdash; in a cruel
-            twist of prehistory &mdash; Juan Soto.
-          </p>
+          <div className="mb-3">
+            <DinosLegacyEditor
+              field="legacyQuote"
+              initialValue={content.legacyQuote ?? DEFAULT_LEGACY_QUOTE}
+              className="text-lg font-medium text-white/75 italic text-center"
+            />
+          </div>
+          <div className="max-w-xl mx-auto">
+            <DinosLegacyEditor
+              field="legacyText"
+              initialValue={content.legacyText ?? DEFAULT_LEGACY_TEXT}
+              className="text-sm text-stone-400 leading-relaxed"
+            />
+          </div>
         </div>
 
       </main>

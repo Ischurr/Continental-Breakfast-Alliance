@@ -30,13 +30,17 @@ export class ESPNFantasyAPI {
     return {};
   }
 
-  async fetchLeagueData(views: string[] = ['mTeam', 'mMatchup', 'mStandings']) {
+  async fetchLeagueData(views: string[] = ['mTeam', 'mMatchup', 'mStandings'], scoringPeriodId?: number) {
     const url = `${ESPN_BASE_URL}/${this.config.seasonId}/segments/0/leagues/${this.config.leagueId}`;
+    const searchParams = new URLSearchParams(views.map(v => ['view', v]));
+    if (scoringPeriodId !== undefined) {
+      searchParams.append('scoringPeriodId', String(scoringPeriodId));
+    }
 
     try {
       const response = await axios.get(url, {
         headers: this.getHeaders(),
-        params: new URLSearchParams(views.map(v => ['view', v])),
+        params: searchParams,
       });
       return response.data;
     } catch (error) {

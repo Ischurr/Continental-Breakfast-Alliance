@@ -8,6 +8,76 @@ import * as path from 'path';
 
 const POSITION_MAP: Record<number, string> = { 0: 'C', 1: '1B', 2: '2B', 3: '3B', 4: 'SS', 5: 'OF', 6: 'OF', 7: 'OF', 12: 'DH', 13: 'SP', 14: 'SP', 15: 'RP', 16: 'RP' };
 
+type PlayerAccum = {
+  points: number;
+  playerName: string;
+  position: string;
+  photoUrl: string;
+  keeperValue?: number;
+  acquisitionType?: string;
+};
+
+async function buildAccumulatedPoints(
+  client: ReturnType<typeof createESPNClient>,
+  maxPeriod: number,
+): Promise<Map<number, Map<string, PlayerAccum>>> {
+  // teamId → (playerId → accumulated season data)
+  const result = new Map<number, Map<string, PlayerAccum>>();
+
+  for (let period = 1; period <= maxPeriod; period++) {
+    process.stdout.write(`\r  Scanning scoring period ${period}/${maxPeriod}...`);
+    try {
+      const data = await client.fetchLeagueData(['mRoster'], period);
+      for (const team of (data.teams as Record<string, unknown>[])) {
+        const teamId = team.id as number;
+        if (!result.has(teamId)) result.set(teamId, new Map());
+        const teamMap = result.get(teamId)!;
+
+        const entries = ((team.roster as Record<string, unknown> | undefined)?.entries ?? []) as Record<string, unknown>[];
+        for (const entry of entries) {
+          const ppe = entry.playerPoolEntry as Record<string, unknown> | undefined;
+          const player = ppe?.player as Record<string, unknown> | undefined;
+          if (!player) continue;
+
+          const playerId = String(player.id ?? entry.playerId);
+          const stats = (player.stats as Record<string, unknown>[] | undefined) ?? [];
+
+          // Full-season actual total (statSourceId=0, statSplitTypeId=0).
+          // We always overwrite with the latest value — iterating periods in order means
+          // the last time we see a player on this team gives their most up-to-date season
+          // total, which equals points scored while on this team.
+          const seasonStat = stats.find(s =>
+            (s as Record<string, unknown>).statSourceId === 0 &&
+            (s as Record<string, unknown>).statSplitTypeId === 0
+          );
+          const seasonTotal = ((seasonStat as Record<string, unknown> | undefined)?.appliedTotal as number) ?? 0;
+
+          const eligibleSlots = (player.eligibleSlots as number[]) ?? [];
+          const position = POSITION_MAP[eligibleSlots[0]] ?? 'UTIL';
+          const keeperValue = (ppe?.keeperValue as number) ?? 0;
+          const acquisitionType = entry.acquisitionType as string | undefined;
+
+          const existing = teamMap.get(playerId);
+          teamMap.set(playerId, {
+            points: seasonTotal, // always take latest full-season total
+            playerName: (player.fullName as string) ?? existing?.playerName ?? 'Unknown',
+            position: existing?.position ?? position,
+            photoUrl: `https://a.espncdn.com/i/headshots/mlb/players/full/${playerId}.png`,
+            keeperValue: keeperValue > 0 ? keeperValue : existing?.keeperValue,
+            acquisitionType: acquisitionType || existing?.acquisitionType,
+          });
+        }
+      }
+    } catch (err) {
+      console.warn(`\n  Warning: failed to fetch period ${period}:`, (err as Error).message);
+    }
+    await new Promise(resolve => setTimeout(resolve, 300));
+  }
+
+  process.stdout.write('\n');
+  return result;
+}
+
 function extractRostersFromTeams(teams: Record<string, unknown>[]) {
   return teams.map((team) => {
     const roster = team.roster as Record<string, unknown> | undefined;
@@ -47,6 +117,43 @@ async function fetchHistoricalData(year: number) {
   // Build SWID → "First Last" map from the members array included in the response
   const members = (data.members ?? []) as Record<string, unknown>[];
   const memberMap = new Map(members.map(m => [m.id as string, `${m.firstName} ${m.lastName}`]));
+
+  // Determine the last scoring period from the schedule
+  const maxPeriod: number = data.schedule && (data.schedule as Record<string, unknown>[]).length > 0
+    ? Math.max(...(data.schedule as Record<string, unknown>[]).map(m => (m.matchupPeriodId as number) ?? 0))
+    : 26;
+
+  console.log(`  Scanning ${maxPeriod} scoring periods for all rostered players...`);
+  const accumulated = await buildAccumulatedPoints(client, maxPeriod);
+
+  const endOfSeasonRosters = extractRostersFromTeams(data.teams as Record<string, unknown>[]);
+
+  // Merge: add any player that appeared mid-season but is absent from the end-of-season snapshot
+  const mergedRosters = endOfSeasonRosters.map(teamRoster => {
+    const { teamId, players } = teamRoster;
+    const accumMap = accumulated.get(teamId);
+    if (!accumMap) return teamRoster;
+
+    const existingIds = new Set(players.map(p => p.playerId));
+    const extraPlayers = [];
+    for (const [playerId, accum] of accumMap) {
+      if (existingIds.has(playerId)) continue; // already captured in end-of-season snapshot
+      if (accum.points <= 0) continue;          // never scored, skip
+      extraPlayers.push({
+        playerId,
+        playerName: accum.playerName,
+        position: accum.position,
+        totalPoints: accum.points,
+        photoUrl: accum.photoUrl,
+        keeperValue: accum.keeperValue,
+        acquisitionType: accum.acquisitionType,
+      });
+    }
+    if (extraPlayers.length > 0) {
+      console.log(`  Team ${teamId}: added ${extraPlayers.length} mid-season player(s): ${extraPlayers.map(p => p.playerName).join(', ')}`);
+    }
+    return { teamId, players: [...players, ...extraPlayers] };
+  });
 
   const seasonData: SeasonData = {
     year,
@@ -98,7 +205,7 @@ async function fetchHistoricalData(year: number) {
       };
     }),
     weeklyStats: [],
-    rosters: extractRostersFromTeams(data.teams as Record<string, unknown>[]),
+    rosters: mergedRosters,
     playoffTeams: data.teams
       .filter((team: Record<string, unknown>) => {
         const ps = team.playoffSeed as number | undefined;

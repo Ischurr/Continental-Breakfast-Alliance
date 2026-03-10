@@ -6,7 +6,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import type { TrashTalkData, PollsData, TeamContentOverrides } from './types';
+import type { TrashTalkData, PollsData, TeamContentOverrides, DinosContent } from './types';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const IS_VERCEL = !!process.env['VERCEL'];
@@ -129,4 +129,25 @@ export async function setTeamContent(data: TeamContentOverrides): Promise<void> 
     return;
   }
   fsWrite(path.join(DATA_DIR, 'team-content.json'), JSON.stringify(data, null, 2));
+}
+
+// ── Dinos content overrides ────────────────────────────────────────────────────
+
+export async function getDinosContent(): Promise<DinosContent> {
+  if (useKV()) {
+    return (await kvGet<DinosContent>('dinos-content')) ?? {};
+  }
+  try {
+    return JSON.parse(fs.readFileSync(path.join(DATA_DIR, 'dinos-content.json'), 'utf-8'));
+  } catch {
+    return {};
+  }
+}
+
+export async function setDinosContent(data: DinosContent): Promise<void> {
+  if (useKV()) {
+    await kvSet('dinos-content', data);
+    return;
+  }
+  fsWrite(path.join(DATA_DIR, 'dinos-content.json'), JSON.stringify(data, null, 2));
 }
