@@ -795,3 +795,19 @@ Added an "In Memoriam" page for the Dinwiddie Dinos (team ID 10, 2022–2024), t
 - 2024: went 13-9, no playoffs → removed from league after season
 - Replaced by Bristol Banshees (2025), who won the championship in their first year
 - Juan Soto was on the Dinos all 3 seasons; inherited by Banshees
+
+## Session Work (March 9, 2026 — Historical Keeper Overrides + Dropped-Player Bug)
+
+### `data/historical-keeper-overrides.json` fully populated
+- All 10 teams × 3 years (2023, 2024, 2025) manually entered from commissioner records
+- 5 keepers per team per year (6-keeper rule started in 2026)
+- id=10 maps to Dinwiddie Dinos in 2023/2024 and Bristol Banshees in 2025; id=6 maps to Delmarva Shureburds in 2023/2024 and Delmarva Emus in 2025
+
+### Dropped-keeper bug + partial fix (`lib/data-processor.ts`)
+- **Root cause**: `getTeamKeepersForYear()` called `roster.players.find(p => p.playerName === name)` and filtered out `undefined` — silently dropping any keeper who was dropped mid-season (not in the end-of-season ESPN roster snapshot)
+- **Confirmed affected players**: Anthony Santander (Emus 2025), Yu Darvish (Emus 2023) — likely others exist across all teams
+- **Partial fix applied**: missing players now return `{ playerId: '', playerName: name, position: '', totalPoints: 0 }` placeholder so they appear in the UI rather than being hidden
+- **Known gap**: `totalPoints: 0` is wrong — these players scored real points before being dropped, but that data is absent from the end-of-season roster snapshots
+
+### TODO: Historical points re-fetch
+`scripts/fetch-historical.ts` needs to be updated to capture all players who scored for a team during the season, not just those still on the roster at year's end. The fix is to call ESPN's per-scoring-period (weekly) roster API for each team for each week, accumulate per-player totals, and merge them into the roster data. Once done, dropped keepers will show real point totals instead of 0.
