@@ -841,3 +841,15 @@ Added an "In Memoriam" page for the Dinwiddie Dinos (team ID 10, 2022–2024), t
 - `app/dinos/page.tsx` — made `async`, loads `getDinosContent()`, defaults fall back to original hardcoded text if nothing stored yet
 
 **How to edit**: visit `/dinos`, click 🔒 in the header, enter admin PIN → ✏️ icons appear on all text sections.
+
+## Session Work (March 10, 2026 — Scoring Leaders PA Fix + Team Page Tweaks)
+
+### All-Time Scoring Leaders PA fix (`lib/types.ts`, `lib/data-processor.ts`, `app/stats/teams/page.tsx`)
+- **Bug**: Total PA column in the All-Time Scoring Leaders table was summing `pointsAgainst` across ALL seasons for team ID 10, while `totalPointsFor` correctly only counted from 2025 (via `TEAM_JOIN_YEAR`). Result: Banshees showed 1 season of PF but 4 seasons of PA.
+- **Fix**: Added `totalPointsAgainst` field to `AllTimeStandings` type and accumulated it inside `calculateAllTimeStandings()` alongside `totalPointsFor` — so both fields respect the same join-year filter.
+- Page now reads `team.totalPointsAgainst` directly instead of doing a raw `seasons.reduce()` with no filtering.
+
+### Team page Season History header (`app/teams/[teamId]/page.tsx`)
+- Added unique player count subtitle below "Season History" heading: "X unique players across N seasons"
+- Uses `getTotalUniquePlayersEmployed(id)` (already existed in `lib/data-processor.ts`)
+- Owner display now prefers `meta?.owner` from `data/teams.json` over `team.owner` from season data

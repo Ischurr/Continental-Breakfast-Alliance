@@ -28,6 +28,23 @@ export function getAllSeasons(): SeasonData[] {
   return [season2022, season2023, season2024, season2025, season2026] as SeasonData[];
 }
 
+// Count unique players ever rostered by a team across all completed seasons.
+// Each player is counted once regardless of how many seasons they appeared.
+// Respects TEAM_JOIN_YEAR so replacement franchises only count from their start year.
+export function getTotalUniquePlayersEmployed(teamId: number): number {
+  const seen = new Set<string>();
+  const joinYear = TEAM_JOIN_YEAR[teamId];
+  for (const season of getAllSeasons()) {
+    if (joinYear !== undefined && season.year < joinYear) continue;
+    const roster = season.rosters?.find(r => r.teamId === teamId);
+    if (!roster) continue;
+    for (const player of roster.players) {
+      if (player.playerId) seen.add(player.playerId);
+    }
+  }
+  return seen.size;
+}
+
 // Historical seasons only (completed, with real standings) — used for all-time stats
 export function getCompletedSeasons(): SeasonData[] {
   return getAllSeasons().filter(s =>
@@ -86,6 +103,7 @@ export function calculateAllTimeStandings(): AllTimeStandings[] {
           playoffAppearances: 0,
           loserBracketAppearances: 0,
           totalPointsFor: 0,
+          totalPointsAgainst: 0,
           averageFinish: 0,
           bestFinish: 100,
           worstFinish: 0,
@@ -97,6 +115,7 @@ export function calculateAllTimeStandings(): AllTimeStandings[] {
       stats.totalLosses += standing.losses;
       stats.totalTies += standing.ties;
       stats.totalPointsFor += standing.pointsFor;
+      stats.totalPointsAgainst += standing.pointsAgainst;
 
       const finish = index + 1;
       if (finish < stats.bestFinish) stats.bestFinish = finish;

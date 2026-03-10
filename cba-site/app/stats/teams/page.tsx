@@ -1,8 +1,7 @@
 import Header from '@/components/Header';
-import { getAllSeasons, getCurrentSeason, calculateAllTimeStandings, getBiggestWins, getHighestScores, getTeamHeadToHead } from '@/lib/data-processor';
+import { getCurrentSeason, calculateAllTimeStandings, getBiggestWins, getHighestScores, getTeamHeadToHead } from '@/lib/data-processor';
 
 export default function TeamStatsPage() {
-  const seasons = getAllSeasons();
   const currentSeason = getCurrentSeason();
   const allTimeStandings = calculateAllTimeStandings();
   const biggestWins = getBiggestWins(10);
@@ -129,10 +128,7 @@ export default function TeamStatsPage() {
               {[...allTimeStandings]
                 .sort((a, b) => b.totalPointsFor - a.totalPointsFor)
                 .map((team, i) => {
-                  const paData = seasons.reduce((sum, season) => {
-                    const standing = season.standings.find(s => s.teamId === team.teamId);
-                    return sum + (standing?.pointsAgainst ?? 0);
-                  }, 0);
+                  const paData = team.totalPointsAgainst;
                   const scoreDiff = team.totalPointsFor - paData;
 
                   return (

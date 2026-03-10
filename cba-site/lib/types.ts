@@ -85,6 +85,7 @@ export interface AllTimeStandings {
   playoffAppearances: number;
   loserBracketAppearances: number;
   totalPointsFor: number;
+  totalPointsAgainst: number;
   averageFinish: number;
   bestFinish: number;
   worstFinish: number;

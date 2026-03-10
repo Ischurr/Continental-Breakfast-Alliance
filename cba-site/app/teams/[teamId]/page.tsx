@@ -1,5 +1,5 @@
 import Header from '@/components/Header';
-import { getCurrentSeason, calculateAllTimeStandings, getTeamHeadToHead, getTeamSeasonHistory, getTeamTopPlayersAllTime, getTeamTopPlayerForYear, getTeamKeepersForYear, getSuggestedKeepers } from '@/lib/data-processor';
+import { getCurrentSeason, calculateAllTimeStandings, getTeamHeadToHead, getTeamSeasonHistory, getTeamTopPlayersAllTime, getTeamTopPlayerForYear, getTeamKeepersForYear, getSuggestedKeepers, getTotalUniquePlayersEmployed } from '@/lib/data-processor';
 import teamsMetadata from '@/data/teams.json';
 import keeperOverrides from '@/data/keeper-overrides.json';
 import Link from 'next/link';
@@ -78,6 +78,7 @@ export default async function TeamPage({ params }: Props) {
 
   const meta = teamsMetadata.teams.find(t => t.id === id);
   const allTimeStats = calculateAllTimeStandings().find(t => t.teamId === id);
+  const totalPlayersEmployed = getTotalUniquePlayersEmployed(id);
   const seasonHistory = getTeamSeasonHistory(id);
   const topPlayersAllTime = getTeamTopPlayersAllTime(id, 6);
   // Keeper display logic:
@@ -203,7 +204,7 @@ export default async function TeamPage({ params }: Props) {
             )}
             <div className="flex-1 min-w-0">
               <h1 className="text-4xl font-bold mb-1">{team.name}</h1>
-              <p className="text-lg opacity-80 mb-4">{team.owner}</p>
+              <p className="text-lg opacity-80 mb-4">{meta?.owner ?? team.owner}</p>
               {id === 3 && (
                 <span className="inline-block bg-[#C91920] text-white text-xs font-bold px-3 py-1 rounded-full mb-3 tracking-wide">#LETSGETBAKED</span>
               )}
@@ -516,7 +517,12 @@ export default async function TeamPage({ params }: Props) {
         )}
 
         {/* Season-by-season history */}
-        <h2 className="text-2xl font-bold mb-5">Season History</h2>
+        <div className="flex items-baseline gap-3 mb-5">
+          <h2 className="text-2xl font-bold">Season History</h2>
+          <span className="text-sm text-gray-400 font-normal">
+            {totalPlayersEmployed} unique players across {seasonHistory.length} season{seasonHistory.length !== 1 ? 's' : ''}
+          </span>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
           {[...seasonHistory].reverse().map(({ year, standing, finish, madePlayoffs, inLoserBracket, wasChampion }) => {
             const topPlayer = getTeamTopPlayerForYear(id, year);
