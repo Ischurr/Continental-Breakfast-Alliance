@@ -5,6 +5,8 @@ Produces per-PA (hitters) and per-IP (pitchers) true-talent rate estimates
 by blending 3 years of historical FanGraphs data with age and Statcast adjustments.
 """
 
+import re
+import unicodedata
 from typing import Dict, List, Optional
 import numpy as np
 import pandas as pd
@@ -15,6 +17,21 @@ from .config import (
     XWOBA_DAMP, XWOBA_LG_AVG,
     PARK_FACTORS, TEAM_NORMALIZE,
 )
+
+# ---------------------------------------------------------------------------
+# Name normalization for Chadwick fallback lookup
+# ---------------------------------------------------------------------------
+
+def _norm_player_name(n: str) -> str:
+    """
+    Normalize a FanGraphs player name to match the Chadwick name_to_mlbam keys.
+    Strips accents, lowercases, removes suffixes (Jr./Sr./II/III/IV).
+    """
+    n = unicodedata.normalize("NFKD", n).encode("ascii", "ignore").decode()
+    n = re.sub(r"\b(jr|sr|ii|iii|iv)\b\.?", "", n.lower())
+    n = re.sub(r"[^a-z ]", "", n)
+    return " ".join(n.split())
+
 
 # ---------------------------------------------------------------------------
 # League-average rate benchmarks (used for regression to mean)
@@ -123,6 +140,7 @@ def estimate_hitter_talent(
     sprint_speed_df: Optional[pd.DataFrame],
     target_season: int,
     fg_to_mlbam: Dict[int, int],
+    name_to_mlbam: Optional[Dict[str, int]] = None,
 ) -> pd.DataFrame:
     """
     Returns DataFrame indexed by MLBAM ID with talent rate columns.
@@ -135,8 +153,30 @@ def estimate_hitter_talent(
     if base_year is None:
         return pd.DataFrame()
 
+    # Build base roster from most recent year, then fill in prior-year players
+    # (handles injury cases: batters who missed the most recent season entirely)
     base_df = batting_by_year[base_year].copy()
+    seen_fgids = set(base_df["IDfg"].dropna().astype(int).tolist())
+    for fallback_year in [y for y in [y1, y2, y3] if y and y != base_year and y in batting_by_year]:
+        fb_df = batting_by_year[fallback_year].copy()
+        new_players = fb_df[~fb_df["IDfg"].isin(seen_fgids)]
+        if not new_players.empty:
+            base_df = pd.concat([base_df, new_players], ignore_index=True)
+            seen_fgids |= set(new_players["IDfg"].dropna().astype(int).tolist())
+
     base_df["mlbam_id"] = base_df["IDfg"].map(fg_to_mlbam)
+
+    # Fix 1: name-based fallback for newer players missing from Chadwick fg→mlbam mapping
+    if name_to_mlbam:
+        n_before = base_df["mlbam_id"].notna().sum()
+        mask = base_df["mlbam_id"].isna()
+        for idx in base_df[mask].index:
+            norm = _norm_player_name(str(base_df.at[idx, "Name"]))
+            if norm in name_to_mlbam:
+                base_df.at[idx, "mlbam_id"] = name_to_mlbam[norm]
+        n_after = base_df["mlbam_id"].notna().sum()
+        if n_after > n_before:
+            print(f"    Name fallback resolved {n_after - n_before} hitter(s) missing from Chadwick.")
 
     # Merge player info (age, position)
     if not player_info_df.empty:
@@ -256,7 +296,7 @@ def estimate_hitter_talent(
     if not rows:
         return pd.DataFrame()
 
-    result_df = pd.DataFrame(rows).set_index("mlbam_id")
+    result_df = pd.DataFrame(rows).drop_duplicates(subset=["mlbam_id"], keep="first").set_index("mlbam_id")
     print(f"    Hitter talent: {len(result_df):,} players estimated.")
     return result_df
 
@@ -300,6 +340,7 @@ def estimate_pitcher_talent(
     player_info_df: pd.DataFrame,
     target_season: int,
     fg_to_mlbam: Dict[int, int],
+    name_to_mlbam: Optional[Dict[str, int]] = None,
 ) -> pd.DataFrame:
     """
     Returns DataFrame indexed by MLBAM ID with pitcher talent rate columns.
@@ -310,8 +351,31 @@ def estimate_pitcher_talent(
     if base_year is None:
         return pd.DataFrame()
 
+    # Fix 2: include pitchers from prior years absent from the most recent year
+    # (handles injury cases: pitchers who missed the most recent season entirely, e.g. Gerrit Cole)
     base_df = pitching_by_year[base_year].copy()
+    seen_fgids = set(base_df["IDfg"].dropna().astype(int).tolist())
+    for fallback_year in [y for y in [y1, y2, y3] if y and y != base_year and y in pitching_by_year]:
+        fb_df = pitching_by_year[fallback_year].copy()
+        new_players = fb_df[~fb_df["IDfg"].isin(seen_fgids)]
+        if not new_players.empty:
+            base_df = pd.concat([base_df, new_players], ignore_index=True)
+            seen_fgids |= set(new_players["IDfg"].dropna().astype(int).tolist())
+            print(f"    Added {len(new_players)} pitcher(s) from {fallback_year} not in {base_year}.")
+
     base_df["mlbam_id"] = base_df["IDfg"].map(fg_to_mlbam)
+
+    # Fix 1: name-based fallback for newer players missing from Chadwick fg→mlbam mapping
+    if name_to_mlbam:
+        n_before = base_df["mlbam_id"].notna().sum()
+        mask = base_df["mlbam_id"].isna()
+        for idx in base_df[mask].index:
+            norm = _norm_player_name(str(base_df.at[idx, "Name"]))
+            if norm in name_to_mlbam:
+                base_df.at[idx, "mlbam_id"] = name_to_mlbam[norm]
+        n_after = base_df["mlbam_id"].notna().sum()
+        if n_after > n_before:
+            print(f"    Name fallback resolved {n_after - n_before} pitcher(s) missing from Chadwick.")
 
     # Merge player info
     if not player_info_df.empty:
@@ -407,6 +471,6 @@ def estimate_pitcher_talent(
     if not rows:
         return pd.DataFrame()
 
-    result_df = pd.DataFrame(rows).set_index("mlbam_id")
+    result_df = pd.DataFrame(rows).drop_duplicates(subset=["mlbam_id"], keep="first").set_index("mlbam_id")
     print(f"    Pitcher talent: {len(result_df):,} pitchers estimated.")
     return result_df

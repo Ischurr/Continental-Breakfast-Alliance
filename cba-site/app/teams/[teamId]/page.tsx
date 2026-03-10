@@ -1,6 +1,5 @@
 import Header from '@/components/Header';
-import StandingsTable from '@/components/StandingsTable';
-import { getAllSeasons, getCurrentSeason, calculateAllTimeStandings, getTeamHeadToHead, getTeamSeasonHistory, getTeamTopPlayersAllTime, getTeamTopPlayerForYear, getTeamKeepersForYear, getSuggestedKeepers } from '@/lib/data-processor';
+import { getCurrentSeason, calculateAllTimeStandings, getTeamHeadToHead, getTeamSeasonHistory, getTeamTopPlayersAllTime, getTeamTopPlayerForYear, getTeamKeepersForYear, getSuggestedKeepers } from '@/lib/data-processor';
 import teamsMetadata from '@/data/teams.json';
 import keeperOverrides from '@/data/keeper-overrides.json';
 import Link from 'next/link';
@@ -72,7 +71,6 @@ export default async function TeamPage({ params }: Props) {
   const { teamId } = await params;
   const id = parseInt(teamId, 10);
 
-  const seasons = getAllSeasons();
   const currentSeason = getCurrentSeason();
   const team = currentSeason.teams.find(t => t.id === id);
 
@@ -136,8 +134,21 @@ export default async function TeamPage({ params }: Props) {
     }
   } catch { /* EROSP data not yet generated */ }
 
-  // Filter EROSP players to this fantasy team
-  const teamErospPlayers = erospPlayers.filter(p => p.fantasy_team_id === id);
+  // Filter EROSP players to this fantasy team.
+  // Pre-draft: all players have fantasy_team_id=0, so fall back to keeper-override name matching.
+  const isPreDraft = erospPlayers.length > 0 && erospPlayers.every(p => p.fantasy_team_id === 0);
+  let teamErospPlayers: EROSPPlayer[];
+  if (isPreDraft) {
+    const keeperNames = new Set(
+      ((keeperOverrides as Record<string, string[]>)[String(id)] ?? [])
+        .map(n => n.toLowerCase().replace(/[^a-z0-9]/g, ''))
+    );
+    teamErospPlayers = erospPlayers.filter(p =>
+      keeperNames.has(p.name.toLowerCase().replace(/[^a-z0-9]/g, ''))
+    );
+  } else {
+    teamErospPlayers = erospPlayers.filter(p => p.fantasy_team_id === id);
+  }
 
   // Load free agents for Suggested Moves
   let faList: Array<{ playerName: string; photoUrl?: string; position: string }> = [];

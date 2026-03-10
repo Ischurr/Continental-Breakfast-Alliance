@@ -401,7 +401,6 @@ function scoreFACandidates(
   const faPoolStd  = std(faErosps, faPoolMean);
 
   const minAbsolute = config.minUpgradeAbsolute[pos] ?? config.minUpgradeAbsolute['SP'] ?? 15;
-  const minPct      = config.minUpgradePct[pos]      ?? 0.08;
 
   const candidates: FACandidate[] = [];
 

@@ -612,6 +612,65 @@ def build_name_to_mlbam(id_map_df: pd.DataFrame) -> Dict[str, int]:
     return out
 
 
+def build_name_to_mlbam_from_chadwick() -> Dict[str, int]:
+    """
+    Build a name → MLBAM ID lookup directly from the raw Chadwick CSV cache,
+    WITHOUT deduplicating on key_fangraphs.
+
+    This is needed for newer/rookie players whose key_fangraphs = -1 (FanGraphs
+    hasn't assigned them an ID yet). fetch_id_map() drops all but one of those
+    rows via drop_duplicates(subset=["key_fangraphs"]), so they don't appear in
+    the standard name_to_mlbam dict.
+
+    Names are normalized (accents stripped, suffixes removed, alphanumeric only).
+    Ambiguous names (same normalized name → different mlbam_ids) are excluded.
+    """
+    import re, unicodedata
+
+    cache_path = CACHE_DIR / "chadwick_register.csv"
+    if not cache_path.exists():
+        print("    WARNING: Chadwick cache not found; build_name_to_mlbam_from_chadwick() returning empty.")
+        return {}
+
+    df = pd.read_csv(cache_path, low_memory=False)
+    df = df[["name_first", "name_last", "key_mlbam"]].copy()
+    df["key_mlbam"] = pd.to_numeric(df["key_mlbam"], errors="coerce")
+    df = df.dropna(subset=["key_mlbam"])
+    df["key_mlbam"] = df["key_mlbam"].astype(int)
+
+    df["full_name"] = (
+        df["name_first"].fillna("").str.strip() + " " +
+        df["name_last"].fillna("").str.strip()
+    ).str.strip()
+
+    def _norm(n: str) -> str:
+        n = unicodedata.normalize("NFKD", n).encode("ascii", "ignore").decode()
+        n = re.sub(r"\b(jr|sr|ii|iii|iv)\b\.?", "", n.lower())
+        n = re.sub(r"[^a-z ]", "", n)
+        return " ".join(n.split())
+
+    df["norm_name"] = df["full_name"].apply(_norm)
+    df = df[df["norm_name"].str.len() > 0]
+
+    # Build mapping; skip ambiguous names (same norm_name → different mlbam_ids)
+    name_to_id: Dict[str, int] = {}
+    ambiguous: set = set()
+    for _, row in df.iterrows():
+        norm = row["norm_name"]
+        mid  = int(row["key_mlbam"])
+        if norm in ambiguous:
+            continue
+        if norm in name_to_id and name_to_id[norm] != mid:
+            ambiguous.add(norm)
+            del name_to_id[norm]
+        else:
+            name_to_id[norm] = mid
+
+    print(f"    Chadwick name→MLBAM (raw): {len(name_to_id):,} unambiguous mappings "
+          f"({len(ambiguous):,} ambiguous names excluded).")
+    return name_to_id
+
+
 def build_fangraphs_to_mlbam(id_map_df: pd.DataFrame) -> Dict[int, int]:
     """Build FanGraphs ID → MLBAM ID mapping."""
     return dict(zip(id_map_df["key_fangraphs"], id_map_df["key_mlbam"]))

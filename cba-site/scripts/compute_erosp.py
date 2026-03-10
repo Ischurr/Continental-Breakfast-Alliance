@@ -53,7 +53,8 @@ from erosp.ingest import (
     fetch_statcast_xwoba, fetch_sprint_speed,
     fetch_schedule_summary,
     load_espn_data,
-    build_name_to_mlbam, build_fangraphs_to_mlbam, espn_name_to_mlbam,
+    build_name_to_mlbam, build_name_to_mlbam_from_chadwick,
+    build_fangraphs_to_mlbam, espn_name_to_mlbam,
 )
 from erosp.talent import estimate_hitter_talent, estimate_pitcher_talent
 from erosp.playing_time import build_playing_time
@@ -99,7 +100,9 @@ print(f"{'='*65}\n")
 print("─── Step 1: ID mapping ───────────────────────────────────────────")
 id_map_df      = fetch_id_map()
 fg_to_mlbam    = build_fangraphs_to_mlbam(id_map_df)
-name_to_mlbam  = build_name_to_mlbam(id_map_df)
+# Use raw Chadwick (no key_fangraphs dedup) so players with key_fangraphs=-1
+# (e.g. James Wood, Paul Skenes, Nick Kurtz, Roman Anthony) are included.
+name_to_mlbam  = build_name_to_mlbam_from_chadwick()
 print()
 
 
@@ -156,6 +159,9 @@ for df in pitching_by_year.values():
     all_fgids |= set(df["IDfg"].dropna().astype(int).tolist())
 
 all_mlbam_ids = [fg_to_mlbam[fgid] for fgid in all_fgids if fgid in fg_to_mlbam]
+# Also include MLBAM IDs from the name fallback (players with key_fangraphs=-1)
+name_fallback_ids = list(name_to_mlbam.values())
+all_mlbam_ids = list(set(all_mlbam_ids) | set(name_fallback_ids))
 player_info_df = fetch_player_info(all_mlbam_ids)
 print()
 
@@ -183,6 +189,7 @@ hitter_talent_df = estimate_hitter_talent(
     sprint_speed_df    = sprint_speed_df,
     target_season      = TARGET_SEASON,
     fg_to_mlbam        = fg_to_mlbam,
+    name_to_mlbam      = name_to_mlbam,
 )
 
 print("  Pitchers:")
@@ -192,6 +199,7 @@ pitcher_talent_df = estimate_pitcher_talent(
     player_info_df   = player_info_df,
     target_season    = TARGET_SEASON,
     fg_to_mlbam      = fg_to_mlbam,
+    name_to_mlbam    = name_to_mlbam,
 )
 print()
 
