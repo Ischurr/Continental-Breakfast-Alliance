@@ -721,6 +721,77 @@ Position eligibility mapping: `role='SP'→SP`, `role='RP'→RP`, `pos='TWP'→O
 - Guarded by `erospPlayers.length > 0` (no-op if EROSP not yet generated)
 
 ### Pre-draft behavior (current state, March 9)
-All EROSP players have `fantasy_team_id=0` pre-draft → engine uses keeper-overrides.json. Each team has 6 keepers, leaving most position slots empty. Recommendations reflect genuine FA availability (from free-agents.json) against those keeper gaps. 5 keepers missing from EROSP (James Wood, Paul Skenes, Nick Kurtz, Roman Anthony, Gerrit Cole — injury/prospect cases) make those teams appear slightly weaker at those positions.
+All EROSP players have `fantasy_team_id=0` pre-draft → engine uses keeper-overrides.json. Each team has 6 keepers, leaving most position slots empty. Recommendations reflect genuine FA availability (from free-agents.json) against those keeper gaps.
 
 Post-draft: run `npx tsx scripts/fetch-rosters-2026.ts` → EROSP daily cron will pick up team assignments → feature auto-upgrades to full-roster analysis.
+
+## Session Work (March 9, 2026 — EROSP Pipeline Fixes)
+
+### All 5 missing keeper players resolved
+
+**Root cause**: `fetch_id_map()` in `scripts/erosp/ingest.py` calls `drop_duplicates(subset=["key_fangraphs"])` which collapses ALL rows with `key_fangraphs=-1` to a single row. Newer/rookie players (Wood, Skenes, Kurtz, Anthony) have valid `key_mlbam` but `key_fangraphs=-1`, so they were all dropped except one.
+
+**Fix 1 — `build_name_to_mlbam_from_chadwick()` (new function in `ingest.py`)**:
+- Reads raw `erosp_cache/chadwick_register.csv` directly, no FG-ID dedup
+- Normalizes names (strip accents, remove Jr/Sr/II/III suffixes, alphanumeric only)
+- Excludes ambiguous names (same normalized name → different MLBAM IDs)
+- Returns ~21k unambiguous name→MLBAM mappings vs. ~12k from the FG-ID-deduped path
+
+**Fix 2 — Prior-year player inclusion (in `talent.py`)**:
+- `estimate_hitter_talent` and `estimate_pitcher_talent` now include players from fallback years (y1/y2/y3) who are absent from `base_year`
+- Resolved Gerrit Cole (missed all of 2025; found in 2024 pitching data)
+
+**Fix 3 — Team page pre-draft EROSP filter (`app/teams/[teamId]/page.tsx`)**:
+- All players have `fantasy_team_id=0` pre-draft, so filtering by that field returned empty
+- Fixed: detects pre-draft state (`erospPlayers.every(p => p.fantasy_team_id === 0)`), then name-matches against `keeper-overrides.json`
+
+**Fix 4 — Position resolution for name-fallback players (`compute_erosp.py`)**:
+- Name-fallback MLBAM IDs (from `build_name_to_mlbam_from_chadwick`) added to the `fetch_player_info()` call so birth dates and positions are fetched for these players too
+
+**Results**: `data/erosp/latest.json` grew from 782 → 1,495 players. All 5 keepers confirmed:
+- James Wood: OF, EROSP_S=292.9
+- Paul Skenes: SP, EROSP_S=341.1
+- Nick Kurtz: 1B, EROSP_S=568.2
+- Roman Anthony: OF, EROSP_S=403.2
+- Gerrit Cole: SP, EROSP_S=242.4
+
+**Dead code removed**: `StandingsTable` import, `seasons` variable, `minPct` variable
+
+## Session Work (March 9, 2026 — Dinwiddie Dinos Memorial Page)
+
+### Overview
+Added an "In Memoriam" page for the Dinwiddie Dinos (team ID 10, 2022–2024), the defunct franchise that was kicked out of the league after refusing their Saccko punishment. Accessible at `/dinos`.
+
+### New Files
+
+#### `app/dinos/page.tsx`
+- Static server component — reads directly from `data/historical/2022.json`, `2023.json`, `2024.json`
+- Bypasses `TEAM_JOIN_YEAR` filter in `data-processor.ts` (which excludes pre-2025 data for team ID 10)
+- All stats computed inline: `getDinoSeasonHistory()`, `getDinoTopPlayers()`, `getDinoH2H()`
+- **Header**: dark charcoal/forest-green gradient, grayscale+faded logo, "† In Memoriam" badge, years "2022–2024"
+- **Vacated championship banner**: struck-through gray "2023 Champion" pill + red "Vacated" badge
+- **Stats row**: Championships card shows struck-through `1` with red "Vacated" sublabel; Saccko Finishes card shows red "Refused to serve" sublabel
+- **Season history cards**: 2023 card shows "~~Champion~~" + "Vacated" badges; 2022 card shows "Saccko" + "Unpunished" badges
+- **Top Players All-Time**: Juan Soto leads across 3 seasons (~2,065 pts), followed by Marcus Semien, Corbin Carroll, Gunnar Henderson
+- **Head-to-Head Records**: sorted by win %; Dinos went 7-0 vs Whistlepigs, 8-3 vs Pepperoni Rolls
+- **"Circumstances of Removal" section**: red-bordered card with 3 paragraphs documenting the 2022 Saccko refusal, the vacated 2023 championship, and the exit from the league
+- **Legacy card**: dark footer with quote: "He won the league and got kicked out for it. That's a sentence that has never been written before."
+
+### Modified Files
+
+#### `app/teams/page.tsx`
+- Added `Link` import
+- Added "† In Memoriam" card below the active team grid linking to `/dinos`
+- Shows "Andrew Sharpe · 2023 Champions (vacated)" in small red text
+
+#### `components/Header.tsx`
+- `teamItems` array now appends `{ href: '/dinos', label: '† Dinwiddie Dinos', dimmed: true }` after active teams
+- `NavDropdown` updated to accept `dimmed?: boolean` on items: renders a `border-t` divider before dimmed items, styles them gray instead of teal
+- Mobile menu: Dinos added below active teams list with teal divider + faded color
+
+### Key Lore
+- 2022: finished 9th (Saccko bracket) → **refused to serve punishment**
+- 2023: went 14-7, won the championship → **title subsequently vacated**
+- 2024: went 13-9, no playoffs → removed from league after season
+- Replaced by Bristol Banshees (2025), who won the championship in their first year
+- Juan Soto was on the Dinos all 3 seasons; inherited by Banshees

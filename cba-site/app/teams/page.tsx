@@ -1,5 +1,6 @@
 import Header from '@/components/Header';
 import HeroHelmets from '@/components/HeroHelmets';
+import Link from 'next/link';
 import TeamCard from '@/components/TeamCard';
 import { getAllSeasons, getCurrentSeason, calculateAllTimeStandings } from '@/lib/data-processor';
 import teamsMetadata from '@/data/teams.json';
@@ -46,6 +47,21 @@ export default function TeamsPage() {
               />
             );
           })}
+        </div>
+        {/* Memorial link for the defunct Dinwiddie Dinos */}
+        <div className="mt-10 pt-8 border-t border-sky-200">
+          <Link
+            href="/dinos"
+            className="flex items-center gap-4 bg-white rounded-xl border border-stone-200 px-6 py-4 shadow-sm hover:bg-stone-50 transition group w-fit"
+          >
+            <div className="text-stone-400 text-2xl leading-none">†</div>
+            <div>
+              <p className="text-xs font-semibold text-stone-400 uppercase tracking-widest mb-0.5">In Memoriam</p>
+              <p className="font-semibold text-stone-700 group-hover:text-stone-900 transition">Dinwiddie Dinos (2022–2024)</p>
+              <p className="text-xs text-stone-400">Andrew Sharpe · 2023 Champions <span className="text-red-400">(vacated)</span></p>
+            </div>
+            <span className="ml-2 text-stone-300 group-hover:text-stone-500 transition text-sm">→</span>
+          </Link>
         </div>
       </main>
     </div>

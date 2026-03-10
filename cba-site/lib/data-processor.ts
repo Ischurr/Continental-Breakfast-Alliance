@@ -256,9 +256,11 @@ export function getTeamKeepersForYear(teamId: number, year: number) {
   const yearOverrides = (historicalKeeperOverrides as Record<string, Record<string, string[]>>)[String(year)];
   const historicalNames = yearOverrides?.[String(teamId)];
   if (historicalNames && historicalNames.length > 0) {
-    return historicalNames
-      .map(name => roster.players.find(p => p.playerName === name))
-      .filter((p): p is NonNullable<typeof p> => p !== undefined);
+    return historicalNames.map(name => {
+      const found = roster.players.find(p => p.playerName === name);
+      // Player may have been dropped mid-season and not appear in end-of-season roster snapshot
+      return found ?? { playerId: '', playerName: name, position: '', totalPoints: 0 };
+    });
   }
 
   // acquisitionType === 'KEEPER' is only accurate when fetched right after the draft.

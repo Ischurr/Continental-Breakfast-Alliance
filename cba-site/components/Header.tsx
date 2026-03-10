@@ -11,7 +11,7 @@ function NavDropdown({
   items,
 }: {
   label: string;
-  items: { href: string; label: string }[];
+  items: { href: string; label: string; dimmed?: boolean }[];
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -45,15 +45,17 @@ function NavDropdown({
       </button>
       {open && (
         <div className="absolute top-full left-0 mt-1 bg-white text-gray-800 rounded-lg shadow-xl border border-gray-100 py-1 min-w-48 z-50">
-          {items.map(item => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="block px-4 py-2 text-sm hover:bg-sky-50 hover:text-teal-700 transition"
-              onClick={() => setOpen(false)}
-            >
-              {item.label}
-            </Link>
+          {items.map((item, i) => (
+            <span key={item.href}>
+              {item.dimmed && <div className="border-t border-gray-100 my-1" />}
+              <Link
+                href={item.href}
+                className={`block px-4 py-2 text-sm transition ${item.dimmed ? 'text-gray-400 hover:bg-stone-50 hover:text-stone-600' : 'hover:bg-sky-50 hover:text-teal-700'}`}
+                onClick={() => setOpen(false)}
+              >
+                {item.label}
+              </Link>
+            </span>
           ))}
         </div>
       )}
@@ -66,7 +68,10 @@ export default function Header() {
   const [teamsExpanded, setTeamsExpanded] = useState(false);
   const [statsExpanded, setStatsExpanded] = useState(false);
 
-  const teamItems = TEAMS.map(team => ({ href: `/teams/${team.id}`, label: team.name }));
+  const teamItems = [
+    ...TEAMS.map(team => ({ href: `/teams/${team.id}`, label: team.name, dimmed: false })),
+    { href: '/dinos', label: '† Dinwiddie Dinos', dimmed: true },
+  ];
   const statsItems = [
     { href: '/stats/players', label: 'Player Stats' },
     { href: '/stats/teams', label: 'Team Stats' },
@@ -145,6 +150,15 @@ export default function Header() {
                     {team.name}
                   </Link>
                 ))}
+                <div className="border-t border-teal-700 pt-2">
+                  <Link
+                    href="/dinos"
+                    className="text-teal-400/60 hover:text-teal-200 transition"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    † Dinwiddie Dinos
+                  </Link>
+                </div>
               </div>
             )}
 
