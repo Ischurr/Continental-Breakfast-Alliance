@@ -809,5 +809,35 @@ Added an "In Memoriam" page for the Dinwiddie Dinos (team ID 10, 2022–2024), t
 - **Partial fix applied**: missing players now return `{ playerId: '', playerName: name, position: '', totalPoints: 0 }` placeholder so they appear in the UI rather than being hidden
 - **Known gap**: `totalPoints: 0` is wrong — these players scored real points before being dropped, but that data is absent from the end-of-season roster snapshots
 
-### TODO: Historical points re-fetch
-`scripts/fetch-historical.ts` needs to be updated to capture all players who scored for a team during the season, not just those still on the roster at year's end. The fix is to call ESPN's per-scoring-period (weekly) roster API for each team for each week, accumulate per-player totals, and merge them into the roster data. Once done, dropped keepers will show real point totals instead of 0.
+### Historical points re-fetch — COMPLETED (March 10, 2026)
+- `scripts/fetch-historical.ts` now scans all scoring periods (1..maxPeriod) using `mRoster&scoringPeriodId=N`
+- For each period, records the last-seen full-season `statSplitTypeId=0` total per player per team
+- Players absent from the end-of-season snapshot but found in weekly scans get merged in with real point totals
+- `espn-api.ts` `fetchLeagueData` now accepts optional `scoringPeriodId` param
+- Historical JSONs regenerated: ~50 players/team vs ~30 before; dropped keepers now have real points
+- Anthony Santander (Emus 2025, 89.5 pts) and Yu Darvish (Emus 2023, 124 pts) confirmed fixed
+- **Key insight**: ESPN does NOT return per-period stats (`statSplitTypeId=1`) in `mRoster` view — must use full-season stat and take the last value seen per player per team
+
+## Session Work (March 10, 2026 — Dinos Page Polish)
+
+### Dinos page styling + admin-editable content
+
+**In Memoriam badge**: `text-[11px]` → `text-sm` (slightly larger, matches hierarchy better)
+
+**Bio paragraph**: removed `max-w-2xl` constraint so the text runs the full width of the dark header box, consistent with other team page bios.
+
+**Admin-editable text fields** — same admin PIN pattern as team pages:
+- **`DinosBioEditor`**: bio in the dark header; includes 🔒 admin unlock button
+- **`DinosCircumstanceParagraph`**: each of the three "Circumstances of Removal" paragraphs (sacckoText, championshipText, exitText) gets a ✏️ edit button when admin is unlocked
+- **`DinosLegacyEditor`**: legacy quote and legacy description text in the dark footer card
+
+**New files:**
+- `app/dinos/DinosContentEditor.tsx` — three client components for editable sections
+- `app/dinos/actions.ts` — `updateDinosContent()` server action; persists to KV key `dinos-content` (fallback: `data/dinos-content.json`)
+
+**Modified:**
+- `lib/types.ts` — added `DinosContent` interface (`bio`, `sacckoText`, `championshipText`, `exitText`, `legacyQuote`, `legacyText`)
+- `lib/store.ts` — added `getDinosContent()` / `setDinosContent()` using the same KV-or-JSON pattern
+- `app/dinos/page.tsx` — made `async`, loads `getDinosContent()`, defaults fall back to original hardcoded text if nothing stored yet
+
+**How to edit**: visit `/dinos`, click 🔒 in the header, enter admin PIN → ✏️ icons appear on all text sections.
