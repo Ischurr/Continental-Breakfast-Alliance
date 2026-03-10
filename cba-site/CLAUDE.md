@@ -849,7 +849,8 @@ Added an "In Memoriam" page for the Dinwiddie Dinos (team ID 10, 2022–2024), t
 - **Fix**: Added `totalPointsAgainst` field to `AllTimeStandings` type and accumulated it inside `calculateAllTimeStandings()` alongside `totalPointsFor` — so both fields respect the same join-year filter.
 - Page now reads `team.totalPointsAgainst` directly instead of doing a raw `seasons.reduce()` with no filtering.
 
-### Team page Season History header (`app/teams/[teamId]/page.tsx`)
-- Added unique player count subtitle below "Season History" heading: "X unique players across N seasons"
-- Uses `getTotalUniquePlayersEmployed(id)` (already existed in `lib/data-processor.ts`)
-- Owner display now prefers `meta?.owner` from `data/teams.json` over `team.owner` from season data
+### Players Employed stat + Season History subtitle (`lib/data-processor.ts`, `app/teams/[teamId]/page.tsx`)
+- **New function `getTotalUniquePlayersEmployed(teamId)`**: iterates all seasons, collects unique `playerId` values in a Set (so a player who played in 2022, left, and returned in 2024 still counts as 1). Respects `TEAM_JOIN_YEAR` (Banshees only counted from 2025).
+- Results across the league: Fuzzy Bottoms 201, Folksy Ferrets 185, Chinook 178, Mega Rats 165, Sky Chiefs 157, Emus 156, Space Cowboys 153, Whistlepigs 152, Pepperoni Rolls 143, Banshees 51 (1 season).
+- Stat is surfaced as a muted subtitle next to the "Season History" heading: "X unique players across N seasons" — fits semantically there rather than in the all-time stats card grid.
+- **Owner GUID fix**: `team.owner` in ESPN season data stores the user's SWID cookie (UUID format like `{6507D6E3-...}`), not their real name. Fixed by preferring `meta?.owner` from `data/teams.json` which has actual names (Ian Schurr, Owen Hart, etc.).
