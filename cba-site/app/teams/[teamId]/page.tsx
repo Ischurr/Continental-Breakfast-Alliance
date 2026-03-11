@@ -1,5 +1,6 @@
 import Header from '@/components/Header';
-import { getCurrentSeason, calculateAllTimeStandings, getTeamHeadToHead, getTeamSeasonHistory, getTeamTopPlayersAllTime, getTeamTopPlayerForYear, getTeamKeepersForYear, getSuggestedKeepers, getTotalUniquePlayersEmployed } from '@/lib/data-processor';
+import { getCurrentSeason, calculateAllTimeStandings, getTeamHeadToHead, getTeamSeasonHistory, getTeamTopPlayersAllTime, getTeamTopPlayerForYear, getTeamKeepersForYear, getSuggestedKeepers, getTotalUniquePlayersEmployed, getTeamRecords } from '@/lib/data-processor';
+import ManagerHistory from '@/components/ManagerHistory';
 import teamsMetadata from '@/data/teams.json';
 import keeperOverrides from '@/data/keeper-overrides.json';
 import Link from 'next/link';
@@ -79,6 +80,7 @@ export default async function TeamPage({ params }: Props) {
   const meta = teamsMetadata.teams.find(t => t.id === id);
   const allTimeStats = calculateAllTimeStandings().find(t => t.teamId === id);
   const totalPlayersEmployed = getTotalUniquePlayersEmployed(id);
+  const teamRecords = getTeamRecords(id);
   const seasonHistory = getTeamSeasonHistory(id);
   const topPlayersAllTime = getTeamTopPlayersAllTime(id, 6);
   // Keeper display logic:
@@ -517,12 +519,7 @@ export default async function TeamPage({ params }: Props) {
         )}
 
         {/* Season-by-season history */}
-        <div className="flex items-baseline gap-3 mb-5">
-          <h2 className="text-2xl font-bold">Season History</h2>
-          <span className="text-sm text-gray-400 font-normal">
-            {totalPlayersEmployed} unique players across {seasonHistory.length} season{seasonHistory.length !== 1 ? 's' : ''}
-          </span>
-        </div>
+        <h2 className="text-2xl font-bold mb-5">Season History</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
           {[...seasonHistory].reverse().map(({ year, standing, finish, madePlayoffs, inLoserBracket, wasChampion }) => {
             const topPlayer = getTeamTopPlayerForYear(id, year);
@@ -622,6 +619,16 @@ export default async function TeamPage({ params }: Props) {
             );
           })}
         </div>
+
+        {/* Manager History */}
+        <ManagerHistory
+          records={teamRecords}
+          trades={teamPosts}
+          totalPlayersEmployed={totalPlayersEmployed}
+          totalSeasons={seasonHistory.length}
+          teamId={id}
+          teamColor={meta?.primaryColor ?? '#0f766e'}
+        />
 
         {/* Head-to-Head records */}
         <h2 className="text-2xl font-bold mb-5">Head-to-Head Records</h2>

@@ -114,6 +114,11 @@ export default async function DinoMemorialPage() {
             ← All Teams
           </Link>
 
+          <div className="mb-5 flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-stone-400">
+            <span className="text-stone-500">⚖️</span>
+            <span>All player rights, contracts, and draft position inherited by the <Link href="/teams/10" className="text-teal-400 hover:text-teal-300 font-medium">Bristol Banshees</Link> ahead of the 2025 season.</span>
+          </div>
+
           <div className="flex items-center gap-3 mb-5">
             <span className="border border-stone-400/50 text-stone-400 text-sm font-bold px-3 py-1 rounded-full tracking-[0.18em] uppercase">
               † In Memoriam

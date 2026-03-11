@@ -412,6 +412,116 @@ export function getSuggestedKeepers(teamId: number, limit = 7, rosterYear = 2025
     .slice(0, limit);
 }
 
+export interface TeamWeekRecord {
+  year: number;
+  week: number;
+  points: number;
+  opponentName: string;
+}
+
+export interface TeamMarginRecord {
+  year: number;
+  week: number;
+  margin: number;
+  myPoints: number;
+  oppPoints: number;
+  opponentName: string;
+}
+
+export interface TeamSeasonRecord {
+  year: number;
+  wins: number;
+  losses: number;
+  finish: number;
+  pf: number;
+}
+
+export interface TeamRecords {
+  highWeek: TeamWeekRecord | null;
+  lowWeek: TeamWeekRecord | null;
+  biggestWin: TeamMarginRecord | null;
+  biggestLoss: TeamMarginRecord | null;
+  bestSeason: TeamSeasonRecord | null;
+  worstSeason: TeamSeasonRecord | null;
+  bestScoringSeasonPF: TeamSeasonRecord | null;
+  worstScoringSeasonPF: TeamSeasonRecord | null;
+  // Total player-season appearances: same player on roster across 3 seasons = 3
+  totalRosterEntries: number;
+}
+
+export function getTeamRecords(teamId: number): TeamRecords {
+  const seasons = getAllSeasons().filter(s =>
+    teamCountsInSeason(teamId, s.year) &&
+    s.standings.reduce((sum, st) => sum + st.wins + st.losses, 0) > 0
+  );
+
+  let highWeek: TeamWeekRecord | null = null;
+  let lowWeek: TeamWeekRecord | null = null;
+  let biggestWin: TeamMarginRecord | null = null;
+  let biggestLoss: TeamMarginRecord | null = null;
+  let totalRosterEntries = 0;
+
+  for (const season of seasons) {
+    const roster = season.rosters?.find(r => r.teamId === teamId);
+    if (roster) totalRosterEntries += roster.players.length;
+    for (const matchup of season.matchups) {
+      const isHome = matchup.home.teamId === teamId;
+      const isAway = matchup.away.teamId === teamId;
+      if (!isHome && !isAway) continue;
+      if (matchup.winner === undefined) continue;
+
+      const myPoints = isHome ? matchup.home.totalPoints : matchup.away.totalPoints;
+      const oppPoints = isHome ? matchup.away.totalPoints : matchup.home.totalPoints;
+      const oppId = isHome ? matchup.away.teamId : matchup.home.teamId;
+      const oppTeam = season.teams.find(t => t.id === oppId);
+      const opponentName = oppTeam?.name ?? `Team ${oppId}`;
+
+      if (myPoints > 0) {
+        if (!highWeek || myPoints > highWeek.points) {
+          highWeek = { year: season.year, week: matchup.week, points: myPoints, opponentName };
+        }
+        if (!lowWeek || myPoints < lowWeek.points) {
+          lowWeek = { year: season.year, week: matchup.week, points: myPoints, opponentName };
+        }
+      }
+
+      if (matchup.winner === teamId) {
+        const margin = myPoints - oppPoints;
+        if (!biggestWin || margin > biggestWin.margin) {
+          biggestWin = { year: season.year, week: matchup.week, margin, myPoints, oppPoints, opponentName };
+        }
+      } else {
+        const lossMargin = oppPoints - myPoints;
+        if (!biggestLoss || lossMargin > biggestLoss.margin) {
+          biggestLoss = { year: season.year, week: matchup.week, margin: lossMargin, myPoints, oppPoints, opponentName };
+        }
+      }
+    }
+  }
+
+  let bestSeason: TeamSeasonRecord | null = null;
+  let worstSeason: TeamSeasonRecord | null = null;
+  let bestScoringSeasonPF: TeamSeasonRecord | null = null;
+  let worstScoringSeasonPF: TeamSeasonRecord | null = null;
+
+  for (const season of seasons) {
+    const standing = season.standings.find(s => s.teamId === teamId);
+    if (!standing) continue;
+    const sortedStandings = [...season.standings].sort(
+      (a, b) => b.wins - a.wins || b.pointsFor - a.pointsFor
+    );
+    const finish = sortedStandings.findIndex(s => s.teamId === teamId) + 1;
+    const s: TeamSeasonRecord = { year: season.year, wins: standing.wins, losses: standing.losses, finish, pf: standing.pointsFor };
+
+    if (!bestSeason || s.wins > bestSeason.wins || (s.wins === bestSeason.wins && s.finish < bestSeason.finish)) bestSeason = s;
+    if (!worstSeason || s.wins < worstSeason.wins || (s.wins === worstSeason.wins && s.finish > worstSeason.finish)) worstSeason = s;
+    if (!bestScoringSeasonPF || s.pf > bestScoringSeasonPF.pf) bestScoringSeasonPF = s;
+    if (!worstScoringSeasonPF || s.pf < worstScoringSeasonPF.pf) worstScoringSeasonPF = s;
+  }
+
+  return { highWeek, lowWeek, biggestWin, biggestLoss, bestSeason, worstSeason, bestScoringSeasonPF, worstScoringSeasonPF, totalRosterEntries };
+}
+
 // Returns top N historically high-scoring players who are NOT on any current roster.
 export function getNotableAvailablePlayers(limit = 5) {
   const seasons = getAllSeasons();

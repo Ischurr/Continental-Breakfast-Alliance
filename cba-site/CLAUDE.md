@@ -854,3 +854,34 @@ Added an "In Memoriam" page for the Dinwiddie Dinos (team ID 10, 2022–2024), t
 - Results across the league: Fuzzy Bottoms 201, Folksy Ferrets 185, Chinook 178, Mega Rats 165, Sky Chiefs 157, Emus 156, Space Cowboys 153, Whistlepigs 152, Pepperoni Rolls 143, Banshees 51 (1 season).
 - Stat is surfaced as a muted subtitle next to the "Season History" heading: "X unique players across N seasons" — fits semantically there rather than in the all-time stats card grid.
 - **Owner GUID fix**: `team.owner` in ESPN season data stores the user's SWID cookie (UUID format like `{6507D6E3-...}`), not their real name. Fixed by preferring `meta?.owner` from `data/teams.json` which has actual names (Ian Schurr, Owen Hart, etc.).
+
+## Session Work (March 10, 2026 — Playoffs Vacated Championship + Manager History)
+
+### Vacated 2023 championship on playoffs page (`app/playoffs/page.tsx`)
+- **Problem**: 2023 playoffs page showed Dinwiddie Dinos as champion; their title was vacated so the runner-up (Manhattan Mega Rats, Caleb Tisdale) should be shown.
+- **Fix**: Added `VACATED_CHAMPIONSHIPS` constant (`{ 2023: { from: 10, to: 4 } }`) and `applyVacatedOverride()` function that:
+  - Overrides `season.champion` → Mega Rats (id=4)
+  - Flips the championship matchup winner from Dinos → Mega Rats (only the final matchup where both teams played)
+  - Does NOT touch historical JSON data — Dinos page lore is unaffected
+- `isVacated` flag passed to `PlayoffBracket` for display tweaks:
+  - Champion box header: "★ 2023 Champion (title awarded)"
+  - Small red footnote: "† Original winner vacated"
+  - Header badge: "★ Manhattan Mega Rats — 2023 Champion (title awarded)"
+- Background photo automatically switches to NYC (Mega Rats `cityPhotoUrl`) since `champ` now resolves to id=4
+- To add future vacated championships: add entry to `VACATED_CHAMPIONSHIPS` at top of `app/playoffs/page.tsx`
+
+### Manager History component (`components/ManagerHistory.tsx`, `lib/data-processor.ts`, `app/teams/[teamId]/page.tsx`)
+- **New `getTeamRecords(teamId)` function** in `lib/data-processor.ts`: iterates all qualifying seasons/matchups and computes:
+  - `highWeek` / `lowWeek` — highest/lowest single-week score (skips 0-point weeks)
+  - `biggestWin` / `biggestLoss` — largest margin of victory/defeat
+  - `bestSeason` / `worstSeason` — by win total + finish
+  - `bestScoringSeasonPF` / `worstScoringSeasonPF` — by total points scored
+  - `totalRosterEntries` — total player-season appearances (same player in 3 seasons = 3)
+  - Respects `TEAM_JOIN_YEAR` filter (Banshees only counts 2025+)
+- **New `components/ManagerHistory.tsx`**: server component with two sections:
+  - **Franchise Records**: `2×4` responsive grid of `RecordCard` components (teal/red/indigo/amber accents). Cards: Unique Players, Total Transactions, High Score, Low Score, Biggest Win, Biggest Loss, Best Season, Worst Season, Most/Fewest Points in a Season. Deduplication: Best Scoring / Worst Scoring only shown if they differ from Best/Worst season year.
+  - **Trade Log**: shows all trade-type message board posts involving the team, from this team's perspective (Gave/Received columns, team color header strip, optional comment). Returns `null` if no records and no trades.
+- **Team page**: `ManagerHistory` inserted between Season History grid and Head-to-Head table. Unique players count moved from the Season History heading subtitle into the ManagerHistory component cards.
+
+### Dinos page — inherited assets note (`app/dinos/page.tsx`)
+- Added a small `bg-white/5` banner below the back link noting: "All player rights, contracts, and draft position inherited by the Bristol Banshees ahead of the 2025 season." Links to `/teams/10`.
