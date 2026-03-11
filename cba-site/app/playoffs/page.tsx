@@ -11,6 +11,26 @@ import { useState } from 'react';
 const allSeasons = getAllSeasons();
 const activeSeason = getCurrentSeason();
 
+// Vacated championships: original champion ID → awarded champion ID (runner-up)
+const VACATED_CHAMPIONSHIPS: Record<number, { from: number; to: number }> = {
+  2023: { from: 10, to: 4 }, // Dinwiddie Dinos title vacated; Mega Rats were runner-up
+};
+
+function applyVacatedOverride(season: SeasonData): SeasonData {
+  const override = VACATED_CHAMPIONSHIPS[season.year];
+  if (!override) return season;
+  return {
+    ...season,
+    champion: override.to,
+    matchups: season.matchups.map(m =>
+      m.winner === override.from &&
+      (m.home.teamId === override.to || m.away.teamId === override.to)
+        ? { ...m, winner: override.to }
+        : m
+    ),
+  };
+}
+
 type TeamMeta = { id: number; primaryColor: string; cityPhotoUrl?: string };
 const teamsMeta: TeamMeta[] = teamsMetadata.teams;
 
@@ -66,7 +86,7 @@ function AdvancesSlot({ team }: { team: SeasonData['teams'][0] | undefined }) {
 
 // ─── Bracket renderer ──────────────────────────────────────────────────────────
 
-function PlayoffBracket({ season, hasBg }: { season: SeasonData; hasBg: boolean }) {
+function PlayoffBracket({ season, hasBg, isVacated }: { season: SeasonData; hasBg: boolean; isVacated?: boolean }) {
   const getTeam = (id: number) => season.teams.find(t => t.id === id);
 
   const sorted = [...season.standings].sort((a, b) => b.wins - a.wins || b.pointsFor - a.pointsFor);
@@ -157,7 +177,7 @@ function PlayoffBracket({ season, hasBg }: { season: SeasonData; hasBg: boolean 
   const champBox = champ ? (
     <>
       <div className="bg-yellow-400 text-yellow-900 text-[11px] font-bold px-3 py-1.5 rounded-t-lg text-center">
-        ★ {season.year} Champion
+        ★ {season.year} Champion{isVacated ? ' (title awarded)' : ''}
       </div>
       <div className="bg-green-50 border-2 border-green-300 border-t-0 rounded-b-xl p-4 text-center shadow-sm">
         <div className="text-2xl mb-1">★</div>
@@ -165,6 +185,9 @@ function PlayoffBracket({ season, hasBg }: { season: SeasonData; hasBg: boolean 
           {champ.name}
         </Link>
         <p className="text-xs text-green-600 mt-1">{champ.owner}</p>
+        {isVacated && (
+          <p className="text-[10px] text-red-400 mt-1.5">† Original winner vacated</p>
+        )}
       </div>
     </>
   ) : champMatchup ? (
@@ -289,7 +312,9 @@ function PlayoffBracket({ season, hasBg }: { season: SeasonData; hasBg: boolean 
 export default function PlayoffsPage() {
   const [selectedYear, setSelectedYear] = useState(activeSeason.year);
 
-  const season = allSeasons.find(s => s.year === selectedYear) ?? activeSeason;
+  const rawSeason = allSeasons.find(s => s.year === selectedYear) ?? activeSeason;
+  const season = applyVacatedOverride(rawSeason);
+  const isVacated = !!VACATED_CHAMPIONSHIPS[selectedYear];
 
   const currentWeek = season.matchups.filter(m => m.winner !== undefined).length > 0
     ? Math.max(...season.matchups.filter(m => m.winner !== undefined).map(m => m.week))
@@ -350,7 +375,7 @@ export default function PlayoffsPage() {
               </h1>
               {champ && (
                 <span className="mt-2 md:mt-0 text-sm bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full font-semibold">
-                  ★ {champ.name} — {season.year} Champion
+                  ★ {champ.name} — {season.year} Champion{isVacated ? ' (title awarded)' : ''}
                 </span>
               )}
             </div>
@@ -383,7 +408,7 @@ export default function PlayoffsPage() {
             <h2 className={`text-xl font-bold mb-6 ${hasBg ? 'text-white' : 'text-gray-700'}`}>
               Playoff Bracket
             </h2>
-            <PlayoffBracket season={season} hasBg={hasBg} />
+            <PlayoffBracket season={season} hasBg={hasBg} isVacated={isVacated} />
           </div>
         </div>
 
