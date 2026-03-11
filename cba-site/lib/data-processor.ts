@@ -436,6 +436,14 @@ export interface TeamSeasonRecord {
   pf: number;
 }
 
+export interface TeamBestPickup {
+  playerName: string;
+  position: string;
+  totalPoints: number;
+  photoUrl?: string;
+  year: number;
+}
+
 export interface TeamRecords {
   highWeek: TeamWeekRecord | null;
   lowWeek: TeamWeekRecord | null;
@@ -447,6 +455,8 @@ export interface TeamRecords {
   worstScoringSeasonPF: TeamSeasonRecord | null;
   // Total player-season appearances: same player on roster across 3 seasons = 3
   totalRosterEntries: number;
+  // Highest single-season points by a non-keeper (inaugural season = all players qualify)
+  bestPickup: TeamBestPickup | null;
 }
 
 export function getTeamRecords(teamId: number): TeamRecords {
@@ -460,10 +470,32 @@ export function getTeamRecords(teamId: number): TeamRecords {
   let biggestWin: TeamMarginRecord | null = null;
   let biggestLoss: TeamMarginRecord | null = null;
   let totalRosterEntries = 0;
+  let bestPickup: TeamBestPickup | null = null;
 
   for (const season of seasons) {
     const roster = season.rosters?.find(r => r.teamId === teamId);
-    if (roster) totalRosterEntries += roster.players.length;
+    if (roster) {
+      totalRosterEntries += roster.players.length;
+      // For the inaugural season, everyone was drafted so all qualify as "picks".
+      // For subsequent seasons, exclude players who were kept from the prior year.
+      const isFirstSeason = season.year === seasons[0].year;
+      const keeperNames = isFirstSeason
+        ? new Set<string>()
+        : new Set(getTeamKeepersForYear(teamId, season.year).map(k => k.playerName));
+      for (const player of roster.players) {
+        if (keeperNames.has(player.playerName)) continue;
+        if (player.totalPoints <= 0) continue;
+        if (!bestPickup || player.totalPoints > bestPickup.totalPoints) {
+          bestPickup = {
+            playerName: player.playerName,
+            position: player.position,
+            totalPoints: player.totalPoints,
+            photoUrl: player.photoUrl,
+            year: season.year,
+          };
+        }
+      }
+    }
     for (const matchup of season.matchups) {
       const isHome = matchup.home.teamId === teamId;
       const isAway = matchup.away.teamId === teamId;
@@ -519,7 +551,7 @@ export function getTeamRecords(teamId: number): TeamRecords {
     if (!worstScoringSeasonPF || s.pf < worstScoringSeasonPF.pf) worstScoringSeasonPF = s;
   }
 
-  return { highWeek, lowWeek, biggestWin, biggestLoss, bestSeason, worstSeason, bestScoringSeasonPF, worstScoringSeasonPF, totalRosterEntries };
+  return { highWeek, lowWeek, biggestWin, biggestLoss, bestSeason, worstSeason, bestScoringSeasonPF, worstScoringSeasonPF, totalRosterEntries, bestPickup };
 }
 
 // Returns top N historically high-scoring players who are NOT on any current roster.

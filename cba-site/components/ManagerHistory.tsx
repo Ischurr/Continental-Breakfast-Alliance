@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { TeamRecords } from '@/lib/data-processor';
 import { TrashTalkPost } from '@/lib/types';
 import teamsMetadata from '@/data/teams.json';
@@ -36,6 +37,36 @@ function RecordCard({
       <p className={`text-xl font-bold ${accentClasses[accent]} leading-tight`}>{value}</p>
       {sub1 && <p className="text-xs text-gray-500 mt-1">{sub1}</p>}
       {sub2 && <p className="text-xs text-gray-400">{sub2}</p>}
+    </div>
+  );
+}
+
+function BestMoveCard({ pickup }: { pickup: NonNullable<TeamRecords['bestPickup']> }) {
+  return (
+    <div className="bg-white rounded-xl border border-amber-200 shadow-sm px-5 py-4 col-span-2 flex items-center gap-4">
+      {pickup.photoUrl ? (
+        <Image
+          src={pickup.photoUrl}
+          alt={pickup.playerName}
+          width={52}
+          height={52}
+          className="rounded-full object-cover bg-gray-100 flex-shrink-0 border-2 border-amber-200"
+          unoptimized
+        />
+      ) : (
+        <div className="w-[52px] h-[52px] rounded-full bg-amber-50 border-2 border-amber-200 flex-shrink-0 flex items-center justify-center">
+          <span className="text-amber-400 text-lg">★</span>
+        </div>
+      )}
+      <div className="flex-1 min-w-0">
+        <p className="text-[10px] font-semibold text-amber-500 uppercase tracking-widest mb-0.5">Best Pick</p>
+        <p className="font-bold text-gray-800 text-base leading-tight truncate">{pickup.playerName}</p>
+        <p className="text-xs text-gray-400">{pickup.position} · {pickup.year}</p>
+      </div>
+      <div className="text-right flex-shrink-0">
+        <p className="text-xl font-bold text-amber-600">{Math.round(pickup.totalPoints).toLocaleString()}</p>
+        <p className="text-xs text-gray-400">pts</p>
+      </div>
     </div>
   );
 }
@@ -79,6 +110,7 @@ export default function ManagerHistory({ records, trades, totalPlayersEmployed, 
                 accent="indigo"
               />
             )}
+            {records.bestPickup && <BestMoveCard pickup={records.bestPickup} />}
             {highWeek && (
               <RecordCard
                 label="High Score"
