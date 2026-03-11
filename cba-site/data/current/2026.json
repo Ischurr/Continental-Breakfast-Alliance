@@ -169,11 +169,11 @@
       "id": "2026-0",
       "week": 1,
       "home": {
-        "teamId": 11,
+        "teamId": 2,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 4,
+        "teamId": 10,
         "totalPoints": 0
       }
     },
@@ -181,11 +181,11 @@
       "id": "2026-1",
       "week": 1,
       "home": {
-        "teamId": 2,
+        "teamId": 6,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 7,
+        "teamId": 11,
         "totalPoints": 0
       }
     },
@@ -193,19 +193,7 @@
       "id": "2026-2",
       "week": 1,
       "home": {
-        "teamId": 10,
-        "totalPoints": 0
-      },
-      "away": {
-        "teamId": 6,
-        "totalPoints": 0
-      }
-    },
-    {
-      "id": "2026-3",
-      "week": 1,
-      "home": {
-        "teamId": 9,
+        "teamId": 3,
         "totalPoints": 0
       },
       "away": {
@@ -214,14 +202,26 @@
       }
     },
     {
-      "id": "2026-4",
+      "id": "2026-3",
       "week": 1,
       "home": {
-        "teamId": 3,
+        "teamId": 7,
         "totalPoints": 0
       },
       "away": {
+        "teamId": 4,
+        "totalPoints": 0
+      }
+    },
+    {
+      "id": "2026-4",
+      "week": 1,
+      "home": {
         "teamId": 1,
+        "totalPoints": 0
+      },
+      "away": {
+        "teamId": 9,
         "totalPoints": 0
       }
     },
@@ -229,11 +229,11 @@
       "id": "2026-5",
       "week": 2,
       "home": {
-        "teamId": 11,
+        "teamId": 6,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 6,
+        "teamId": 10,
         "totalPoints": 0
       }
     },
@@ -241,11 +241,11 @@
       "id": "2026-6",
       "week": 2,
       "home": {
-        "teamId": 4,
+        "teamId": 9,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 7,
+        "teamId": 11,
         "totalPoints": 0
       }
     },
@@ -257,7 +257,7 @@
         "totalPoints": 0
       },
       "away": {
-        "teamId": 10,
+        "teamId": 4,
         "totalPoints": 0
       }
     },
@@ -265,11 +265,11 @@
       "id": "2026-8",
       "week": 2,
       "home": {
-        "teamId": 9,
+        "teamId": 8,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 1,
+        "teamId": 7,
         "totalPoints": 0
       }
     },
@@ -277,11 +277,11 @@
       "id": "2026-9",
       "week": 2,
       "home": {
-        "teamId": 3,
+        "teamId": 1,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 8,
+        "teamId": 3,
         "totalPoints": 0
       }
     },
@@ -289,7 +289,7 @@
       "id": "2026-10",
       "week": 3,
       "home": {
-        "teamId": 7,
+        "teamId": 4,
         "totalPoints": 0
       },
       "away": {
@@ -301,31 +301,7 @@
       "id": "2026-11",
       "week": 3,
       "home": {
-        "teamId": 9,
-        "totalPoints": 0
-      },
-      "away": {
         "teamId": 3,
-        "totalPoints": 0
-      }
-    },
-    {
-      "id": "2026-12",
-      "week": 3,
-      "home": {
-        "teamId": 8,
-        "totalPoints": 0
-      },
-      "away": {
-        "teamId": 1,
-        "totalPoints": 0
-      }
-    },
-    {
-      "id": "2026-13",
-      "week": 3,
-      "home": {
-        "teamId": 2,
         "totalPoints": 0
       },
       "away": {
@@ -334,14 +310,38 @@
       }
     },
     {
-      "id": "2026-14",
+      "id": "2026-12",
       "week": 3,
       "home": {
-        "teamId": 11,
+        "teamId": 2,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 4,
+        "teamId": 11,
+        "totalPoints": 0
+      }
+    },
+    {
+      "id": "2026-13",
+      "week": 3,
+      "home": {
+        "teamId": 1,
+        "totalPoints": 0
+      },
+      "away": {
+        "teamId": 8,
+        "totalPoints": 0
+      }
+    },
+    {
+      "id": "2026-14",
+      "week": 3,
+      "home": {
+        "teamId": 9,
+        "totalPoints": 0
+      },
+      "away": {
+        "teamId": 7,
         "totalPoints": 0
       }
     },
@@ -349,19 +349,7 @@
       "id": "2026-15",
       "week": 4,
       "home": {
-        "teamId": 3,
-        "totalPoints": 0
-      },
-      "away": {
-        "teamId": 1,
-        "totalPoints": 0
-      }
-    },
-    {
-      "id": "2026-16",
-      "week": 4,
-      "home": {
-        "teamId": 11,
+        "teamId": 6,
         "totalPoints": 0
       },
       "away": {
@@ -370,10 +358,22 @@
       }
     },
     {
+      "id": "2026-16",
+      "week": 4,
+      "home": {
+        "teamId": 9,
+        "totalPoints": 0
+      },
+      "away": {
+        "teamId": 11,
+        "totalPoints": 0
+      }
+    },
+    {
       "id": "2026-17",
       "week": 4,
       "home": {
-        "teamId": 6,
+        "teamId": 8,
         "totalPoints": 0
       },
       "away": {
@@ -389,7 +389,7 @@
         "totalPoints": 0
       },
       "away": {
-        "teamId": 9,
+        "teamId": 7,
         "totalPoints": 0
       }
     },
@@ -397,11 +397,11 @@
       "id": "2026-19",
       "week": 4,
       "home": {
-        "teamId": 7,
+        "teamId": 1,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 8,
+        "teamId": 3,
         "totalPoints": 0
       }
     },
@@ -409,11 +409,11 @@
       "id": "2026-20",
       "week": 5,
       "home": {
-        "teamId": 1,
+        "teamId": 9,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 9,
+        "teamId": 10,
         "totalPoints": 0
       }
     },
@@ -425,7 +425,7 @@
         "totalPoints": 0
       },
       "away": {
-        "teamId": 3,
+        "teamId": 6,
         "totalPoints": 0
       }
     },
@@ -433,11 +433,11 @@
       "id": "2026-22",
       "week": 5,
       "home": {
-        "teamId": 8,
+        "teamId": 7,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 10,
+        "teamId": 11,
         "totalPoints": 0
       }
     },
@@ -445,43 +445,7 @@
       "id": "2026-23",
       "week": 5,
       "home": {
-        "teamId": 4,
-        "totalPoints": 0
-      },
-      "away": {
-        "teamId": 7,
-        "totalPoints": 0
-      }
-    },
-    {
-      "id": "2026-24",
-      "week": 5,
-      "home": {
-        "teamId": 11,
-        "totalPoints": 0
-      },
-      "away": {
-        "teamId": 6,
-        "totalPoints": 0
-      }
-    },
-    {
-      "id": "2026-25",
-      "week": 6,
-      "home": {
-        "teamId": 10,
-        "totalPoints": 0
-      },
-      "away": {
-        "teamId": 11,
-        "totalPoints": 0
-      }
-    },
-    {
-      "id": "2026-26",
-      "week": 6,
-      "home": {
-        "teamId": 6,
+        "teamId": 1,
         "totalPoints": 0
       },
       "away": {
@@ -490,10 +454,58 @@
       }
     },
     {
+      "id": "2026-24",
+      "week": 5,
+      "home": {
+        "teamId": 3,
+        "totalPoints": 0
+      },
+      "away": {
+        "teamId": 4,
+        "totalPoints": 0
+      }
+    },
+    {
+      "id": "2026-25",
+      "week": 6,
+      "home": {
+        "teamId": 6,
+        "totalPoints": 0
+      },
+      "away": {
+        "teamId": 10,
+        "totalPoints": 0
+      }
+    },
+    {
+      "id": "2026-26",
+      "week": 6,
+      "home": {
+        "teamId": 11,
+        "totalPoints": 0
+      },
+      "away": {
+        "teamId": 4,
+        "totalPoints": 0
+      }
+    },
+    {
       "id": "2026-27",
       "week": 6,
       "home": {
-        "teamId": 4,
+        "teamId": 1,
+        "totalPoints": 0
+      },
+      "away": {
+        "teamId": 9,
+        "totalPoints": 0
+      }
+    },
+    {
+      "id": "2026-28",
+      "week": 6,
+      "home": {
+        "teamId": 8,
         "totalPoints": 0
       },
       "away": {
@@ -502,22 +514,10 @@
       }
     },
     {
-      "id": "2026-28",
-      "week": 6,
-      "home": {
-        "teamId": 3,
-        "totalPoints": 0
-      },
-      "away": {
-        "teamId": 1,
-        "totalPoints": 0
-      }
-    },
-    {
       "id": "2026-29",
       "week": 6,
       "home": {
-        "teamId": 9,
+        "teamId": 3,
         "totalPoints": 0
       },
       "away": {
@@ -529,7 +529,19 @@
       "id": "2026-30",
       "week": 7,
       "home": {
-        "teamId": 2,
+        "teamId": 9,
+        "totalPoints": 0
+      },
+      "away": {
+        "teamId": 10,
+        "totalPoints": 0
+      }
+    },
+    {
+      "id": "2026-31",
+      "week": 7,
+      "home": {
+        "teamId": 8,
         "totalPoints": 0
       },
       "away": {
@@ -538,10 +550,10 @@
       }
     },
     {
-      "id": "2026-31",
+      "id": "2026-32",
       "week": 7,
       "home": {
-        "teamId": 10,
+        "teamId": 6,
         "totalPoints": 0
       },
       "away": {
@@ -550,26 +562,14 @@
       }
     },
     {
-      "id": "2026-32",
-      "week": 7,
-      "home": {
-        "teamId": 1,
-        "totalPoints": 0
-      },
-      "away": {
-        "teamId": 8,
-        "totalPoints": 0
-      }
-    },
-    {
       "id": "2026-33",
       "week": 7,
       "home": {
-        "teamId": 9,
+        "teamId": 3,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 6,
+        "teamId": 2,
         "totalPoints": 0
       }
     },
@@ -577,11 +577,11 @@
       "id": "2026-34",
       "week": 7,
       "home": {
-        "teamId": 7,
+        "teamId": 1,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 3,
+        "teamId": 7,
         "totalPoints": 0
       }
     },
@@ -589,11 +589,11 @@
       "id": "2026-35",
       "week": 8,
       "home": {
-        "teamId": 9,
+        "teamId": 8,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 1,
+        "teamId": 10,
         "totalPoints": 0
       }
     },
@@ -605,7 +605,7 @@
         "totalPoints": 0
       },
       "away": {
-        "teamId": 3,
+        "teamId": 11,
         "totalPoints": 0
       }
     },
@@ -613,11 +613,11 @@
       "id": "2026-37",
       "week": 8,
       "home": {
-        "teamId": 2,
+        "teamId": 9,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 8,
+        "teamId": 4,
         "totalPoints": 0
       }
     },
@@ -625,7 +625,7 @@
       "id": "2026-38",
       "week": 8,
       "home": {
-        "teamId": 11,
+        "teamId": 2,
         "totalPoints": 0
       },
       "away": {
@@ -637,31 +637,7 @@
       "id": "2026-39",
       "week": 8,
       "home": {
-        "teamId": 4,
-        "totalPoints": 0
-      },
-      "away": {
-        "teamId": 10,
-        "totalPoints": 0
-      }
-    },
-    {
-      "id": "2026-40",
-      "week": 9,
-      "home": {
-        "teamId": 7,
-        "totalPoints": 0
-      },
-      "away": {
         "teamId": 1,
-        "totalPoints": 0
-      }
-    },
-    {
-      "id": "2026-41",
-      "week": 9,
-      "home": {
-        "teamId": 8,
         "totalPoints": 0
       },
       "away": {
@@ -670,14 +646,38 @@
       }
     },
     {
-      "id": "2026-42",
+      "id": "2026-40",
       "week": 9,
       "home": {
-        "teamId": 10,
+        "teamId": 11,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 9,
+        "teamId": 10,
+        "totalPoints": 0
+      }
+    },
+    {
+      "id": "2026-41",
+      "week": 9,
+      "home": {
+        "teamId": 1,
+        "totalPoints": 0
+      },
+      "away": {
+        "teamId": 8,
+        "totalPoints": 0
+      }
+    },
+    {
+      "id": "2026-42",
+      "week": 9,
+      "home": {
+        "teamId": 6,
+        "totalPoints": 0
+      },
+      "away": {
+        "teamId": 4,
         "totalPoints": 0
       }
     },
@@ -685,7 +685,7 @@
       "id": "2026-43",
       "week": 9,
       "home": {
-        "teamId": 6,
+        "teamId": 9,
         "totalPoints": 0
       },
       "away": {
@@ -697,67 +697,7 @@
       "id": "2026-44",
       "week": 9,
       "home": {
-        "teamId": 4,
-        "totalPoints": 0
-      },
-      "away": {
-        "teamId": 11,
-        "totalPoints": 0
-      }
-    },
-    {
-      "id": "2026-45",
-      "week": 10,
-      "home": {
-        "teamId": 2,
-        "totalPoints": 0
-      },
-      "away": {
-        "teamId": 1,
-        "totalPoints": 0
-      }
-    },
-    {
-      "id": "2026-46",
-      "week": 10,
-      "home": {
-        "teamId": 10,
-        "totalPoints": 0
-      },
-      "away": {
         "teamId": 3,
-        "totalPoints": 0
-      }
-    },
-    {
-      "id": "2026-47",
-      "week": 10,
-      "home": {
-        "teamId": 4,
-        "totalPoints": 0
-      },
-      "away": {
-        "teamId": 9,
-        "totalPoints": 0
-      }
-    },
-    {
-      "id": "2026-48",
-      "week": 10,
-      "home": {
-        "teamId": 11,
-        "totalPoints": 0
-      },
-      "away": {
-        "teamId": 8,
-        "totalPoints": 0
-      }
-    },
-    {
-      "id": "2026-49",
-      "week": 10,
-      "home": {
-        "teamId": 6,
         "totalPoints": 0
       },
       "away": {
@@ -766,14 +706,74 @@
       }
     },
     {
-      "id": "2026-50",
-      "week": 11,
+      "id": "2026-45",
+      "week": 10,
       "home": {
-        "teamId": 6,
+        "teamId": 8,
         "totalPoints": 0
       },
       "away": {
+        "teamId": 10,
+        "totalPoints": 0
+      }
+    },
+    {
+      "id": "2026-46",
+      "week": 10,
+      "home": {
+        "teamId": 9,
+        "totalPoints": 0
+      },
+      "away": {
+        "teamId": 6,
+        "totalPoints": 0
+      }
+    },
+    {
+      "id": "2026-47",
+      "week": 10,
+      "home": {
+        "teamId": 7,
+        "totalPoints": 0
+      },
+      "away": {
+        "teamId": 11,
+        "totalPoints": 0
+      }
+    },
+    {
+      "id": "2026-48",
+      "week": 10,
+      "home": {
+        "teamId": 3,
+        "totalPoints": 0
+      },
+      "away": {
+        "teamId": 4,
+        "totalPoints": 0
+      }
+    },
+    {
+      "id": "2026-49",
+      "week": 10,
+      "home": {
         "teamId": 1,
+        "totalPoints": 0
+      },
+      "away": {
+        "teamId": 2,
+        "totalPoints": 0
+      }
+    },
+    {
+      "id": "2026-50",
+      "week": 11,
+      "home": {
+        "teamId": 4,
+        "totalPoints": 0
+      },
+      "away": {
+        "teamId": 10,
         "totalPoints": 0
       }
     },
@@ -781,11 +781,11 @@
       "id": "2026-51",
       "week": 11,
       "home": {
-        "teamId": 4,
+        "teamId": 1,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 3,
+        "teamId": 6,
         "totalPoints": 0
       }
     },
@@ -793,11 +793,11 @@
       "id": "2026-52",
       "week": 11,
       "home": {
-        "teamId": 11,
+        "teamId": 2,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 9,
+        "teamId": 11,
         "totalPoints": 0
       }
     },
@@ -805,7 +805,7 @@
       "id": "2026-53",
       "week": 11,
       "home": {
-        "teamId": 10,
+        "teamId": 9,
         "totalPoints": 0
       },
       "away": {
@@ -817,11 +817,11 @@
       "id": "2026-54",
       "week": 11,
       "home": {
-        "teamId": 7,
+        "teamId": 3,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 2,
+        "teamId": 7,
         "totalPoints": 0
       }
     },
@@ -829,11 +829,11 @@
       "id": "2026-55",
       "week": 12,
       "home": {
-        "teamId": 10,
+        "teamId": 1,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 1,
+        "teamId": 10,
         "totalPoints": 0
       }
     },
@@ -841,11 +841,11 @@
       "id": "2026-56",
       "week": 12,
       "home": {
-        "teamId": 11,
+        "teamId": 3,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 3,
+        "teamId": 6,
         "totalPoints": 0
       }
     },
@@ -853,11 +853,11 @@
       "id": "2026-57",
       "week": 12,
       "home": {
-        "teamId": 8,
+        "teamId": 9,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 9,
+        "teamId": 11,
         "totalPoints": 0
       }
     },
@@ -869,7 +869,7 @@
         "totalPoints": 0
       },
       "away": {
-        "teamId": 2,
+        "teamId": 4,
         "totalPoints": 0
       }
     },
@@ -877,11 +877,11 @@
       "id": "2026-59",
       "week": 12,
       "home": {
-        "teamId": 4,
+        "teamId": 8,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 6,
+        "teamId": 2,
         "totalPoints": 0
       }
     },
@@ -889,11 +889,11 @@
       "id": "2026-60",
       "week": 13,
       "home": {
-        "teamId": 2,
+        "teamId": 8,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 1,
+        "teamId": 10,
         "totalPoints": 0
       }
     },
@@ -905,7 +905,7 @@
         "totalPoints": 0
       },
       "away": {
-        "teamId": 3,
+        "teamId": 6,
         "totalPoints": 0
       }
     },
@@ -913,11 +913,11 @@
       "id": "2026-62",
       "week": 13,
       "home": {
-        "teamId": 10,
+        "teamId": 2,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 9,
+        "teamId": 11,
         "totalPoints": 0
       }
     },
@@ -925,11 +925,11 @@
       "id": "2026-63",
       "week": 13,
       "home": {
-        "teamId": 6,
+        "teamId": 9,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 8,
+        "teamId": 4,
         "totalPoints": 0
       }
     },
@@ -937,11 +937,11 @@
       "id": "2026-64",
       "week": 13,
       "home": {
-        "teamId": 4,
+        "teamId": 1,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 11,
+        "teamId": 3,
         "totalPoints": 0
       }
     },
@@ -949,11 +949,11 @@
       "id": "2026-65",
       "week": 14,
       "home": {
-        "teamId": 11,
+        "teamId": 4,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 1,
+        "teamId": 10,
         "totalPoints": 0
       }
     },
@@ -961,11 +961,11 @@
       "id": "2026-66",
       "week": 14,
       "home": {
-        "teamId": 9,
+        "teamId": 2,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 3,
+        "teamId": 6,
         "totalPoints": 0
       }
     },
@@ -973,11 +973,11 @@
       "id": "2026-67",
       "week": 14,
       "home": {
-        "teamId": 8,
+        "teamId": 1,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 7,
+        "teamId": 11,
         "totalPoints": 0
       }
     },
@@ -985,11 +985,11 @@
       "id": "2026-68",
       "week": 14,
       "home": {
-        "teamId": 6,
+        "teamId": 9,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 2,
+        "teamId": 3,
         "totalPoints": 0
       }
     },
@@ -997,11 +997,11 @@
       "id": "2026-69",
       "week": 14,
       "home": {
-        "teamId": 10,
+        "teamId": 8,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 4,
+        "teamId": 7,
         "totalPoints": 0
       }
     },
@@ -1009,11 +1009,11 @@
       "id": "2026-70",
       "week": 15,
       "home": {
-        "teamId": 7,
+        "teamId": 3,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 1,
+        "teamId": 10,
         "totalPoints": 0
       }
     },
@@ -1021,11 +1021,11 @@
       "id": "2026-71",
       "week": 15,
       "home": {
-        "teamId": 2,
+        "teamId": 8,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 3,
+        "teamId": 6,
         "totalPoints": 0
       }
     },
@@ -1033,11 +1033,11 @@
       "id": "2026-72",
       "week": 15,
       "home": {
-        "teamId": 6,
+        "teamId": 9,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 9,
+        "teamId": 11,
         "totalPoints": 0
       }
     },
@@ -1045,11 +1045,11 @@
       "id": "2026-73",
       "week": 15,
       "home": {
-        "teamId": 4,
+        "teamId": 1,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 8,
+        "teamId": 4,
         "totalPoints": 0
       }
     },
@@ -1057,11 +1057,11 @@
       "id": "2026-74",
       "week": 15,
       "home": {
-        "teamId": 11,
+        "teamId": 2,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 10,
+        "teamId": 7,
         "totalPoints": 0
       }
     },
@@ -1069,11 +1069,11 @@
       "id": "2026-75",
       "week": 16,
       "home": {
-        "teamId": 6,
+        "teamId": 4,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 1,
+        "teamId": 10,
         "totalPoints": 0
       }
     },
@@ -1081,11 +1081,11 @@
       "id": "2026-76",
       "week": 16,
       "home": {
-        "teamId": 10,
+        "teamId": 6,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 3,
+        "teamId": 11,
         "totalPoints": 0
       }
     },
@@ -1093,7 +1093,7 @@
       "id": "2026-77",
       "week": 16,
       "home": {
-        "teamId": 4,
+        "teamId": 3,
         "totalPoints": 0
       },
       "away": {
@@ -1105,19 +1105,7 @@
       "id": "2026-78",
       "week": 16,
       "home": {
-        "teamId": 11,
-        "totalPoints": 0
-      },
-      "away": {
-        "teamId": 8,
-        "totalPoints": 0
-      }
-    },
-    {
-      "id": "2026-79",
-      "week": 16,
-      "home": {
-        "teamId": 7,
+        "teamId": 1,
         "totalPoints": 0
       },
       "away": {
@@ -1126,14 +1114,26 @@
       }
     },
     {
-      "id": "2026-80",
-      "week": 17,
+      "id": "2026-79",
+      "week": 16,
       "home": {
-        "teamId": 10,
+        "teamId": 8,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 1,
+        "teamId": 7,
+        "totalPoints": 0
+      }
+    },
+    {
+      "id": "2026-80",
+      "week": 17,
+      "home": {
+        "teamId": 8,
+        "totalPoints": 0
+      },
+      "away": {
+        "teamId": 10,
         "totalPoints": 0
       }
     },
@@ -1141,11 +1141,11 @@
       "id": "2026-81",
       "week": 17,
       "home": {
-        "teamId": 11,
+        "teamId": 2,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 3,
+        "teamId": 6,
         "totalPoints": 0
       }
     },
@@ -1153,7 +1153,31 @@
       "id": "2026-82",
       "week": 17,
       "home": {
-        "teamId": 8,
+        "teamId": 3,
+        "totalPoints": 0
+      },
+      "away": {
+        "teamId": 11,
+        "totalPoints": 0
+      }
+    },
+    {
+      "id": "2026-83",
+      "week": 17,
+      "home": {
+        "teamId": 7,
+        "totalPoints": 0
+      },
+      "away": {
+        "teamId": 4,
+        "totalPoints": 0
+      }
+    },
+    {
+      "id": "2026-84",
+      "week": 17,
+      "home": {
+        "teamId": 1,
         "totalPoints": 0
       },
       "away": {
@@ -1162,38 +1186,14 @@
       }
     },
     {
-      "id": "2026-83",
-      "week": 17,
-      "home": {
-        "teamId": 4,
-        "totalPoints": 0
-      },
-      "away": {
-        "teamId": 2,
-        "totalPoints": 0
-      }
-    },
-    {
-      "id": "2026-84",
-      "week": 17,
-      "home": {
-        "teamId": 6,
-        "totalPoints": 0
-      },
-      "away": {
-        "teamId": 7,
-        "totalPoints": 0
-      }
-    },
-    {
       "id": "2026-85",
       "week": 18,
       "home": {
-        "teamId": 4,
+        "teamId": 7,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 1,
+        "teamId": 10,
         "totalPoints": 0
       }
     },
@@ -1205,7 +1205,7 @@
         "totalPoints": 0
       },
       "away": {
-        "teamId": 3,
+        "teamId": 11,
         "totalPoints": 0
       }
     },
@@ -1213,11 +1213,11 @@
       "id": "2026-87",
       "week": 18,
       "home": {
-        "teamId": 2,
+        "teamId": 8,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 9,
+        "teamId": 4,
         "totalPoints": 0
       }
     },
@@ -1225,11 +1225,11 @@
       "id": "2026-88",
       "week": 18,
       "home": {
-        "teamId": 10,
+        "teamId": 3,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 8,
+        "teamId": 9,
         "totalPoints": 0
       }
     },
@@ -1237,11 +1237,11 @@
       "id": "2026-89",
       "week": 18,
       "home": {
-        "teamId": 11,
+        "teamId": 1,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 7,
+        "teamId": 2,
         "totalPoints": 0
       }
     },
@@ -1249,11 +1249,11 @@
       "id": "2026-90",
       "week": 19,
       "home": {
-        "teamId": 11,
+        "teamId": 9,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 1,
+        "teamId": 10,
         "totalPoints": 0
       }
     },
@@ -1261,11 +1261,11 @@
       "id": "2026-91",
       "week": 19,
       "home": {
-        "teamId": 4,
+        "teamId": 3,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 3,
+        "teamId": 6,
         "totalPoints": 0
       }
     },
@@ -1273,11 +1273,11 @@
       "id": "2026-92",
       "week": 19,
       "home": {
-        "teamId": 7,
+        "teamId": 11,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 9,
+        "teamId": 4,
         "totalPoints": 0
       }
     },
@@ -1285,11 +1285,11 @@
       "id": "2026-93",
       "week": 19,
       "home": {
-        "teamId": 2,
+        "teamId": 8,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 8,
+        "teamId": 2,
         "totalPoints": 0
       }
     },
@@ -1297,11 +1297,11 @@
       "id": "2026-94",
       "week": 19,
       "home": {
-        "teamId": 6,
+        "teamId": 1,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 10,
+        "teamId": 7,
         "totalPoints": 0
       }
     },
@@ -1309,11 +1309,11 @@
       "id": "2026-95",
       "week": 20,
       "home": {
-        "teamId": 4,
+        "teamId": 11,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 1,
+        "teamId": 10,
         "totalPoints": 0
       }
     },
@@ -1321,11 +1321,11 @@
       "id": "2026-96",
       "week": 20,
       "home": {
-        "teamId": 8,
+        "teamId": 9,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 3,
+        "teamId": 6,
         "totalPoints": 0
       }
     },
@@ -1333,11 +1333,11 @@
       "id": "2026-97",
       "week": 20,
       "home": {
-        "teamId": 11,
+        "teamId": 1,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 9,
+        "teamId": 8,
         "totalPoints": 0
       }
     },
@@ -1345,11 +1345,11 @@
       "id": "2026-98",
       "week": 20,
       "home": {
-        "teamId": 10,
+        "teamId": 3,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 2,
+        "teamId": 4,
         "totalPoints": 0
       }
     },
@@ -1357,7 +1357,7 @@
       "id": "2026-99",
       "week": 20,
       "home": {
-        "teamId": 6,
+        "teamId": 2,
         "totalPoints": 0
       },
       "away": {
@@ -1369,11 +1369,11 @@
       "id": "2026-100",
       "week": 21,
       "home": {
-        "teamId": 6,
+        "teamId": 9,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 1,
+        "teamId": 10,
         "totalPoints": 0
       }
     },
@@ -1381,11 +1381,11 @@
       "id": "2026-101",
       "week": 21,
       "home": {
-        "teamId": 7,
+        "teamId": 8,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 3,
+        "teamId": 6,
         "totalPoints": 0
       }
     },
@@ -1393,11 +1393,11 @@
       "id": "2026-102",
       "week": 21,
       "home": {
-        "teamId": 4,
+        "teamId": 11,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 9,
+        "teamId": 4,
         "totalPoints": 0
       }
     },
@@ -1405,11 +1405,11 @@
       "id": "2026-103",
       "week": 21,
       "home": {
-        "teamId": 2,
+        "teamId": 1,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 8,
+        "teamId": 2,
         "totalPoints": 0
       }
     },
@@ -1417,11 +1417,11 @@
       "id": "2026-104",
       "week": 21,
       "home": {
-        "teamId": 11,
+        "teamId": 3,
         "totalPoints": 0
       },
       "away": {
-        "teamId": 10,
+        "teamId": 7,
         "totalPoints": 0
       }
     }
