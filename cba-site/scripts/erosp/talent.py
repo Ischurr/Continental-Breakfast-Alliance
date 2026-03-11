@@ -277,7 +277,19 @@ def estimate_hitter_talent(
         adjusted["sb_rate"]     = np.clip(adjusted["sb_rate"],      0.00, 0.08)
         adjusted["gidp_rate"]   = np.clip(adjusted["gidp_rate"],    0.00, 0.10)
 
-        park_abbrev = row.get("team_norm", "")
+        # For multi-team players FanGraphs uses "- - -"; fall back to prior years for a real team
+        park_abbrev = str(row.get("team_norm", ""))
+        if park_abbrev in ("- - -", ""):
+            for fallback_year in [y2, y3]:
+                if not fallback_year or fallback_year not in batting_by_year:
+                    continue
+                prior = batting_by_year[fallback_year]
+                prior_match = prior[prior["IDfg"] == fgid]
+                if not prior_match.empty:
+                    candidate = str(prior_match.iloc[0].get("team_norm", ""))
+                    if candidate not in ("- - -", ""):
+                        park_abbrev = candidate
+                        break
         park_factor = PARK_FACTORS.get(str(park_abbrev), 1.00)
 
         rows.append({
@@ -287,7 +299,7 @@ def estimate_hitter_talent(
             "age":         age,
             "age_mod":     age_mod,
             "xwoba_adj":   xwoba_adj,
-            "mlb_team":    str(row.get("team_norm", "")),
+            "mlb_team":    park_abbrev,
             "park_factor": park_factor,
             "mlb_position": str(row.get("mlb_position", "")),
             **{k: round(v, 6) for k, v in adjusted.items()},
@@ -451,7 +463,19 @@ def estimate_pitcher_talent(
             role = str(row.get("role", "SP"))
 
         # Park factor is inverse for pitchers (pitcher-friendly = better)
+        # For multi-team players FanGraphs uses "- - -"; fall back to prior years for a real team
         park_abbrev = str(row.get("team_norm", ""))
+        if park_abbrev in ("- - -", ""):
+            for fallback_year in [y2, y3]:
+                if not fallback_year or fallback_year not in pitching_by_year:
+                    continue
+                prior = pitching_by_year[fallback_year]
+                prior_match = prior[prior["IDfg"] == fgid]
+                if not prior_match.empty:
+                    candidate = str(prior_match.iloc[0].get("team_norm", ""))
+                    if candidate not in ("- - -", ""):
+                        park_abbrev = candidate
+                        break
         pf_raw = PARK_FACTORS.get(park_abbrev, 1.00)
         park_factor_pitcher = 2.0 - pf_raw   # invert: COL 1.15 → 0.85
 
