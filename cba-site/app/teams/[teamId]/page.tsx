@@ -59,6 +59,7 @@ const WVPR_AFFILIATES = [
   { name: 'Frost Whitetails', level: 'A', location: 'Frost, WV', primaryColor: '#4A4A4A', accentColor: '#FF6700' },
 ];
 
+
 interface Props {
   params: Promise<{ teamId: string }>;
 }

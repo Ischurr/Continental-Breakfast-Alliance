@@ -419,14 +419,6 @@ export interface TeamWeekRecord {
   opponentName: string;
 }
 
-export interface TeamMarginRecord {
-  year: number;
-  week: number;
-  margin: number;
-  myPoints: number;
-  oppPoints: number;
-  opponentName: string;
-}
 
 export interface TeamSeasonRecord {
   year: number;
@@ -442,21 +434,22 @@ export interface TeamBestPickup {
   totalPoints: number;
   photoUrl?: string;
   year: number;
+  fromTeamName?: string;
 }
 
 export interface TeamRecords {
   highWeek: TeamWeekRecord | null;
   lowWeek: TeamWeekRecord | null;
-  biggestWin: TeamMarginRecord | null;
-  biggestLoss: TeamMarginRecord | null;
   bestSeason: TeamSeasonRecord | null;
   worstSeason: TeamSeasonRecord | null;
   bestScoringSeasonPF: TeamSeasonRecord | null;
   worstScoringSeasonPF: TeamSeasonRecord | null;
   // Total player-season appearances: same player on roster across 3 seasons = 3
   totalRosterEntries: number;
-  // Highest single-season points by a non-keeper (inaugural season = all players qualify)
+  // Best waiver/FA pickup (acquisitionType === 'ADD')
   bestPickup: TeamBestPickup | null;
+  // Best player acquired via trade (acquisitionType === 'TRADE')
+  bestTrade: TeamBestPickup | null;
 }
 
 export function getTeamRecords(teamId: number): TeamRecords {
@@ -467,32 +460,48 @@ export function getTeamRecords(teamId: number): TeamRecords {
 
   let highWeek: TeamWeekRecord | null = null;
   let lowWeek: TeamWeekRecord | null = null;
-  let biggestWin: TeamMarginRecord | null = null;
-  let biggestLoss: TeamMarginRecord | null = null;
   let totalRosterEntries = 0;
   let bestPickup: TeamBestPickup | null = null;
+  let bestTrade: TeamBestPickup | null = null;
+  const allSeasons = getAllSeasons();
 
   for (const season of seasons) {
     const roster = season.rosters?.find(r => r.teamId === teamId);
     if (roster) {
       totalRosterEntries += roster.players.length;
-      // For the inaugural season, everyone was drafted so all qualify as "picks".
-      // For subsequent seasons, exclude players who were kept from the prior year.
-      const isFirstSeason = season.year === seasons[0].year;
-      const keeperNames = isFirstSeason
-        ? new Set<string>()
-        : new Set(getTeamKeepersForYear(teamId, season.year).map(k => k.playerName));
       for (const player of roster.players) {
-        if (keeperNames.has(player.playerName)) continue;
         if (player.totalPoints <= 0) continue;
-        if (!bestPickup || player.totalPoints > bestPickup.totalPoints) {
-          bestPickup = {
-            playerName: player.playerName,
-            position: player.position,
-            totalPoints: player.totalPoints,
-            photoUrl: player.photoUrl,
-            year: season.year,
-          };
+        if (player.acquisitionType === 'ADD') {
+          if (!bestPickup || player.totalPoints > bestPickup.totalPoints) {
+            bestPickup = {
+              playerName: player.playerName,
+              position: player.position,
+              totalPoints: player.totalPoints,
+              photoUrl: player.photoUrl,
+              year: season.year,
+            };
+          }
+        }
+        if (player.acquisitionType === 'TRADE') {
+          if (!bestTrade || player.totalPoints > bestTrade.totalPoints) {
+            // Try to find which team had this player the prior season
+            const prevRosters = allSeasons.find(s => s.year === season.year - 1)?.rosters ?? [];
+            const prevEntry = prevRosters
+              .filter(r => r.teamId !== teamId)
+              .flatMap(r => r.players.map(p => ({ ...p, teamId: r.teamId })))
+              .find(p => p.playerName === player.playerName);
+            const fromTeam = prevEntry
+              ? season.teams.find(t => t.id === prevEntry.teamId)
+              : null;
+            bestTrade = {
+              playerName: player.playerName,
+              position: player.position,
+              totalPoints: player.totalPoints,
+              photoUrl: player.photoUrl,
+              year: season.year,
+              fromTeamName: fromTeam?.name,
+            };
+          }
         }
       }
     }
@@ -503,7 +512,6 @@ export function getTeamRecords(teamId: number): TeamRecords {
       if (matchup.winner === undefined) continue;
 
       const myPoints = isHome ? matchup.home.totalPoints : matchup.away.totalPoints;
-      const oppPoints = isHome ? matchup.away.totalPoints : matchup.home.totalPoints;
       const oppId = isHome ? matchup.away.teamId : matchup.home.teamId;
       const oppTeam = season.teams.find(t => t.id === oppId);
       const opponentName = oppTeam?.name ?? `Team ${oppId}`;
@@ -514,18 +522,6 @@ export function getTeamRecords(teamId: number): TeamRecords {
         }
         if (!lowWeek || myPoints < lowWeek.points) {
           lowWeek = { year: season.year, week: matchup.week, points: myPoints, opponentName };
-        }
-      }
-
-      if (matchup.winner === teamId) {
-        const margin = myPoints - oppPoints;
-        if (!biggestWin || margin > biggestWin.margin) {
-          biggestWin = { year: season.year, week: matchup.week, margin, myPoints, oppPoints, opponentName };
-        }
-      } else {
-        const lossMargin = oppPoints - myPoints;
-        if (!biggestLoss || lossMargin > biggestLoss.margin) {
-          biggestLoss = { year: season.year, week: matchup.week, margin: lossMargin, myPoints, oppPoints, opponentName };
         }
       }
     }
@@ -551,7 +547,7 @@ export function getTeamRecords(teamId: number): TeamRecords {
     if (!worstScoringSeasonPF || s.pf < worstScoringSeasonPF.pf) worstScoringSeasonPF = s;
   }
 
-  return { highWeek, lowWeek, biggestWin, biggestLoss, bestSeason, worstSeason, bestScoringSeasonPF, worstScoringSeasonPF, totalRosterEntries, bestPickup };
+  return { highWeek, lowWeek, bestSeason, worstSeason, bestScoringSeasonPF, worstScoringSeasonPF, totalRosterEntries, bestPickup, bestTrade };
 }
 
 // Returns top N historically high-scoring players who are NOT on any current roster.

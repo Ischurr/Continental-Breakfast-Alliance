@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { TeamRecords } from '@/lib/data-processor';
+import { TeamRecords, TeamBestPickup } from '@/lib/data-processor';
 import { TrashTalkPost } from '@/lib/types';
 import teamsMetadata from '@/data/teams.json';
 
@@ -71,17 +71,47 @@ function BestMoveCard({ pickup }: { pickup: NonNullable<TeamRecords['bestPickup'
   );
 }
 
+function BestTradeCard({ trade }: { trade: TeamBestPickup }) {
+  return (
+    <div className="bg-white rounded-xl border border-indigo-200 shadow-sm px-5 py-4 col-span-2 flex items-center gap-4">
+      {trade.photoUrl ? (
+        <Image
+          src={trade.photoUrl}
+          alt={trade.playerName}
+          width={52}
+          height={52}
+          className="rounded-full object-cover bg-gray-100 flex-shrink-0 border-2 border-indigo-200"
+          unoptimized
+        />
+      ) : (
+        <div className="w-[52px] h-[52px] rounded-full bg-indigo-50 border-2 border-indigo-200 flex-shrink-0 flex items-center justify-center">
+          <span className="text-indigo-400 text-lg">⇄</span>
+        </div>
+      )}
+      <div className="flex-1 min-w-0">
+        <p className="text-[10px] font-semibold text-indigo-500 uppercase tracking-widest mb-0.5">Best Trade</p>
+        <p className="font-bold text-gray-800 text-base leading-tight truncate">{trade.playerName}</p>
+        <p className="text-xs text-gray-400">{trade.position} · {trade.year}{trade.fromTeamName ? ` · from ${trade.fromTeamName}` : ''}</p>
+      </div>
+      <div className="text-right flex-shrink-0">
+        <p className="text-xl font-bold text-indigo-600">{Math.round(trade.totalPoints).toLocaleString()}</p>
+        <p className="text-xs text-gray-400">pts</p>
+      </div>
+    </div>
+  );
+}
+
 function teamName(id: number): string {
   return teamsMetadata.teams.find(t => t.id === id)?.displayName ?? `Team ${id}`;
 }
 
 export default function ManagerHistory({ records, trades, totalPlayersEmployed, totalSeasons, teamId, teamColor }: Props) {
   const {
-    highWeek, lowWeek, biggestWin, biggestLoss,
+    highWeek, lowWeek,
     bestSeason, worstSeason, bestScoringSeasonPF, worstScoringSeasonPF,
   } = records;
 
-  const hasRecords = highWeek || biggestWin || bestSeason;
+  const hasRecords = highWeek || bestSeason || records.bestPickup;
   const tradeLog = trades.filter(p => p.postType === 'trade');
 
   if (!hasRecords && tradeLog.length === 0) return null;
@@ -111,6 +141,7 @@ export default function ManagerHistory({ records, trades, totalPlayersEmployed, 
               />
             )}
             {records.bestPickup && <BestMoveCard pickup={records.bestPickup} />}
+            {records.bestTrade && <BestTradeCard trade={records.bestTrade} />}
             {highWeek && (
               <RecordCard
                 label="High Score"
@@ -126,24 +157,6 @@ export default function ManagerHistory({ records, trades, totalPlayersEmployed, 
                 value={`${lowWeek.points.toFixed(1)} pts`}
                 sub1={`Wk ${lowWeek.week}, ${lowWeek.year}`}
                 sub2={`vs. ${lowWeek.opponentName}`}
-                accent="red"
-              />
-            )}
-            {biggestWin && (
-              <RecordCard
-                label="Biggest Win"
-                value={`+${biggestWin.margin.toFixed(1)} pts`}
-                sub1={`${biggestWin.myPoints.toFixed(1)}–${biggestWin.oppPoints.toFixed(1)}`}
-                sub2={`Wk ${biggestWin.week}, ${biggestWin.year} vs. ${biggestWin.opponentName}`}
-                accent="teal"
-              />
-            )}
-            {biggestLoss && (
-              <RecordCard
-                label="Biggest Loss"
-                value={`−${biggestLoss.margin.toFixed(1)} pts`}
-                sub1={`${biggestLoss.myPoints.toFixed(1)}–${biggestLoss.oppPoints.toFixed(1)}`}
-                sub2={`Wk ${biggestLoss.week}, ${biggestLoss.year} vs. ${biggestLoss.opponentName}`}
                 accent="red"
               />
             )}

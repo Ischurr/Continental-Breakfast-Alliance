@@ -873,18 +873,19 @@ Added an "In Memoriam" page for the Dinwiddie Dinos (team ID 10, 2022–2024), t
 ### Manager History component (`components/ManagerHistory.tsx`, `lib/data-processor.ts`, `app/teams/[teamId]/page.tsx`)
 - **New `getTeamRecords(teamId)` function** in `lib/data-processor.ts`: iterates all qualifying seasons/matchups and computes:
   - `highWeek` / `lowWeek` — highest/lowest single-week score (skips 0-point weeks)
-  - `biggestWin` / `biggestLoss` — largest margin of victory/defeat
   - `bestSeason` / `worstSeason` — by win total + finish
   - `bestScoringSeasonPF` / `worstScoringSeasonPF` — by total points scored
   - `totalRosterEntries` — total player-season appearances (same player in 3 seasons = 3)
+  - `bestPickup` — best waiver/FA add (`acquisitionType === 'ADD'`)
+  - `bestTrade` — best player acquired via trade (`acquisitionType === 'TRADE'`), with prior-season roster lookup to infer `fromTeamName`
   - Respects `TEAM_JOIN_YEAR` filter (Banshees only counts 2025+)
+- **`acquisitionType` data**: historical JSON has real values — `DRAFT`, `ADD` (waiver/FA), `TRADE` (ESPN-tracked), `undefined` (keepers/unknown). Counts per year: ~137 DRAFT, ~147 ADD, ~4–19 TRADE, ~200 undefined.
 - **New `components/ManagerHistory.tsx`**: server component with two sections:
-  - **Franchise Records**: `2×4` responsive grid of `RecordCard` components (teal/red/indigo/amber accents). Cards: Unique Players, Total Transactions, High Score, Low Score, Biggest Win, Biggest Loss, Best Season, Worst Season, Most/Fewest Points in a Season. Deduplication: Best Scoring / Worst Scoring only shown if they differ from Best/Worst season year.
-  - **Trade Log**: shows all trade-type message board posts involving the team, from this team's perspective (Gave/Received columns, team color header strip, optional comment). Returns `null` if no records and no trades.
-- **Team page**: `ManagerHistory` inserted between Season History grid and Head-to-Head table. Unique players count moved from the Season History heading subtitle into the ManagerHistory component cards.
-- **`totalRosterEntries`** field added to `TeamRecords`: total player-season appearances (same player over 3 seasons = 3 entries). Displayed as "Total Transactions" card with indigo accent.
-- **`TeamBestPickup` interface** and `bestPickup` field in `TeamRecords`: highest single-season scorer who was NOT a keeper. Inaugural season logic: first-ever season for a team uses an empty keeper set (all players were drafted, so exclusion can't be reliably computed). Subsequent seasons use `getTeamKeepersForYear` (three-tier: historical-keeper-overrides → acquisitionType=KEEPER → keeperValue fallback).
-- **`BestMoveCard` sub-component**: `col-span-2` amber-bordered card with 52px circular player photo (or amber star placeholder), "BEST PICK" label, truncated player name, position+year, and right-aligned points total. Positioned after Unique Players + Total Transactions in the grid.
+  - **Franchise Records**: responsive grid of `RecordCard` components. Cards: Unique Players, Total Transactions, Best Pick (amber, `col-span-2`), Best Trade (indigo, `col-span-2`), High Score, Low Score, Best Season, Worst Season, Most/Fewest Points in a Season.
+  - **Trade Log**: shows all trade-type message board posts involving the team.
+- **`BestMoveCard`** (amber): "BEST PICK" — waiver/FA adds only (`acquisitionType === 'ADD'`), excludes draft picks
+- **`BestTradeCard`** (indigo): "BEST TRADE" — ESPN-tracked trades (`acquisitionType === 'TRADE'`); shows `· from [Team]` when prior-season roster cross-reference identifies the source team
+- **Removed**: `biggestWin` / `biggestLoss` cards and `TeamMarginRecord` interface
 
 ### Dinos page — inherited assets note (`app/dinos/page.tsx`)
 - Added a small `bg-white/5` banner below the back link noting: "All player rights, contracts, and draft position inherited by the Bristol Banshees ahead of the 2025 season." Links to `/teams/10`.
