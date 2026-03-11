@@ -99,6 +99,14 @@ def estimate_sp_playing_time(
     # Teams with many SPs → some pitchers get fewer starts
     team_sp_counts = sp_df.groupby("mlb_team").size()
 
+    # Composite quality score: mirrors per-IP FP formula (K+1, ER-2, BB-1)
+    sp_df = sp_df.copy()
+    sp_df["_quality"] = (
+        sp_df["k_per_ip"].fillna(0)
+        - 2 * sp_df["er_per_ip"].fillna(0.467)
+        - sp_df["bb_per_ip"].fillna(0.330)
+    )
+
     for mlbam_id, row in sp_df.iterrows():
         team = str(row.get("mlb_team", ""))
         n_sp_on_team = int(team_sp_counts.get(team, 5))
@@ -106,19 +114,18 @@ def estimate_sp_playing_time(
         if n_sp_on_team <= 5:
             # Standard 5-man rotation: each gets ~32 starts / 162 games ≈ 0.198
             p_start = 1.0 / ROTATION_DAYS
-        elif n_sp_on_team <= 7:
-            # 6-7 SPs: spot starters; 6th man gets ~15, 7th ~8 starts
-            # Sort by ip_per_gs as proxy for quality to determine ranking
-            team_sps = sp_df[sp_df["mlb_team"] == team].sort_values("ip_per_gs", ascending=False)
+        else:
+            # 6+ SPs: rank by quality, give top 5 full rotation slots
+            team_sps = sp_df[sp_df["mlb_team"] == team].sort_values("_quality", ascending=False)
             rank = list(team_sps.index).index(mlbam_id) if mlbam_id in team_sps.index else n_sp_on_team - 1
             if rank < 5:
                 p_start = 1.0 / ROTATION_DAYS
             elif rank == 5:
                 p_start = 15.0 / FULL_SEASON_GAMES   # spot/6th starter
-            else:
+            elif rank == 6:
                 p_start = 8.0 / FULL_SEASON_GAMES
-        else:
-            p_start = max(5.0 / FULL_SEASON_GAMES, 1.0 / n_sp_on_team)
+            else:
+                p_start = 3.0 / FULL_SEASON_GAMES    # fringe/emergency starter
 
         result.at[mlbam_id, "p_start_per_day"] = round(float(p_start), 4)
 

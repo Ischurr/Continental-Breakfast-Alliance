@@ -32,7 +32,7 @@ const TEAMS = [
   },
   {
     id: 6, name: 'Emus',
-    logo: 'https://mystique-api.fantasy.espn.com/apis/v1/domains/lm/images/91042200-9a25-11f0-b1c3-bf61c28fbeb9',
+    logo: 'https://content.sportslogos.net/news/2017/08/jwzbfi703gbaujbpvfm5iqjg9.gif',
     coordinates: [-75.60, 38.36] as [number, number],
     dx: 55, dy: 5,
   },

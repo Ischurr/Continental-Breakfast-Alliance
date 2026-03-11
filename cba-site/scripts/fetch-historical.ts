@@ -5,6 +5,13 @@ import { createESPNClient } from '../lib/espn-api';
 import { SeasonData } from '../lib/types';
 import * as fs from 'fs';
 import * as path from 'path';
+import teamsJson from '../data/teams.json';
+
+const LOGO_OVERRIDES: Record<number, string> = Object.fromEntries(
+  (teamsJson as Array<{ id: number; logoUrl?: string }>)
+    .filter(t => t.logoUrl)
+    .map(t => [t.id, t.logoUrl!])
+);
 
 const POSITION_MAP: Record<number, string> = { 0: 'C', 1: '1B', 2: '2B', 3: '3B', 4: 'SS', 5: 'OF', 6: 'OF', 7: 'OF', 12: 'DH', 13: 'SP', 14: 'SP', 15: 'RP', 16: 'RP' };
 
@@ -166,7 +173,7 @@ async function fetchHistoricalData(year: number) {
         ? (memberMap.get(team.owners[0] as string) ?? team.owners[0])
         : 'Unknown',
       abbrev: team.abbrev,
-      logoUrl: team.logo,
+      logoUrl: LOGO_OVERRIDES[team.id as number] ?? team.logo,
       divisionId: team.divisionId,
     })),
     standings: data.teams.map((team: Record<string, unknown>) => {
