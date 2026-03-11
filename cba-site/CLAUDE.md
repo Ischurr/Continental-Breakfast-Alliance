@@ -889,3 +889,22 @@ Added an "In Memoriam" page for the Dinwiddie Dinos (team ID 10, 2022–2024), t
 
 ### Dinos page — inherited assets note (`app/dinos/page.tsx`)
 - Added a small `bg-white/5` banner below the back link noting: "All player rights, contracts, and draft position inherited by the Bristol Banshees ahead of the 2025 season." Links to `/teams/10`.
+
+## Session Work (March 11, 2026 — EROSP Pipeline Bug Fixes)
+
+### SP rotation slot bug fixed (`scripts/erosp/playing_time.py`)
+- **Bug**: teams with 8+ SPs all received equal projected starts via `1/n_sp_on_team` formula (9 BOS SPs → everyone got 18 starts, including Crochet)
+- **Fix**: collapsed `elif n_sp_on_team <= 7` / `else` into a single `else` branch for all 6+ SP teams; top 5 quality SPs get full rotation (32 starts), rank 5 → 15 starts, rank 6 → 8 starts, rank 7+ → 3 starts
+- **Quality sort**: changed from `ip_per_gs` (durability proxy) to composite `k_per_ip - 2*er_per_ip - bb_per_ip` which mirrors the actual FP formula per IP
+- All ~31 teams with 6+ SPs now have correctly tiered rotation projections; Crochet moved from 18 → 32.4 projected starts
+
+### Multi-team player "- - -" team bug fixed (`scripts/erosp/talent.py`)
+- **Bug**: FanGraphs returns `"- - -"` as the team abbreviation for players traded mid-season (aggregate stats row). This caused ~27 SPs and ~60+ hitters to be grouped into a fake "- - -" team, producing wrong park factors and a distorted cap_factor (~0.661) from the inflated team size
+- **Fix**: added prior-year fallback in both `estimate_pitcher_talent` and `estimate_hitter_talent`: when `team_norm == "- - -"`, iterate y2/y3 to find the most recent year with a valid team abbreviation
+- Merrill Kelly (ARI), Kyle Harrison (SF), Zack Littell (TB), Taj Bradley (TB) now correctly assigned
+- 83 remaining "- - -" players are genuine multi-year journeymen/free agents — correct behavior
+
+### EROSP audit findings (non-issues confirmed)
+- Missing ESPN IDs (1,398 players): expected pre-draft; ESPN only returns IDs for rostered players
+- Low start_probability for 6th/7th starters despite good fp_per_start: correct modeling — daily_ev below replacement threshold for limited-start players
+- All other outliers (Judge 734 EROSP, top closers 300+) verified as legitimate projections
