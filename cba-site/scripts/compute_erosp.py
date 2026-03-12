@@ -52,6 +52,7 @@ from erosp.ingest import (
     fetch_batting_stats, fetch_pitching_stats,
     fetch_statcast_xwoba, fetch_sprint_speed,
     fetch_schedule_summary,
+    fetch_injured_players,
     load_espn_data,
     build_name_to_mlbam, build_name_to_mlbam_from_chadwick,
     build_fangraphs_to_mlbam, espn_name_to_mlbam,
@@ -234,6 +235,32 @@ try:
 except Exception as exc:
     print(f"  Steamer projections unavailable ({exc}); using defaults.")
 
+# Steamer GS/IP projections for SPs (overrides rotation-tiering heuristic)
+steamer_gs_map: dict = {}
+steamer_ip_map: dict = {}
+try:
+    import requests as _requests
+    steamer_pit_url = (
+        "https://www.fangraphs.com/api/projections"
+        "?type=steamer&stats=pit&pos=all&team=0&players=0&lg=all"
+    )
+    resp_pit = _requests.get(steamer_pit_url, timeout=12,
+                             headers={"User-Agent": "Mozilla/5.0"})
+    if resp_pit.status_code == 200:
+        pit_data = resp_pit.json()
+        if pit_data and isinstance(pit_data, list) and len(pit_data) > 50:
+            pit_df = pd.DataFrame(pit_data)
+            if "GS" in pit_df.columns and "IP" in pit_df.columns and "playerid" in pit_df.columns:
+                pit_df["playerid"] = pd.to_numeric(pit_df["playerid"], errors="coerce")
+                pit_df["GS"]       = pd.to_numeric(pit_df["GS"],       errors="coerce")
+                pit_df["IP"]       = pd.to_numeric(pit_df["IP"],       errors="coerce")
+                valid_pit = pit_df.dropna(subset=["playerid", "GS"])
+                steamer_gs_map = dict(zip(valid_pit["playerid"].astype(int), valid_pit["GS"].fillna(0)))
+                steamer_ip_map = dict(zip(valid_pit["playerid"].astype(int), valid_pit["IP"].fillna(0)))
+                print(f"  Steamer GS/IP projections: {len(steamer_gs_map):,} pitchers.")
+except Exception as exc:
+    print(f"  Steamer pitcher projections unavailable ({exc}); using rotation heuristic.")
+
 playing_time_df = build_playing_time(
     hitter_talent_df  = hitter_talent_df,
     pitcher_talent_df = pitcher_talent_df,
@@ -241,7 +268,21 @@ playing_time_df = build_playing_time(
     pitching_by_year  = pitching_by_year,
     target_season     = TARGET_SEASON,
     steamer_pa_map    = steamer_pa_map if steamer_pa_map else None,
+    steamer_gs_map    = steamer_gs_map if steamer_gs_map else None,
+    steamer_ip_map    = steamer_ip_map if steamer_ip_map else None,
 )
+print()
+
+
+# ---------------------------------------------------------------------------
+# STEP 9b: Injury map
+# ---------------------------------------------------------------------------
+print("─── Step 9b: Injury map ─────────────────────────────────────────")
+injury_map: dict = {}
+try:
+    injury_map = fetch_injured_players(TARGET_SEASON)
+except Exception as exc:
+    print(f"  WARNING: Could not fetch injury data ({exc}). Proceeding without.")
 print()
 
 
@@ -250,11 +291,12 @@ print()
 # ---------------------------------------------------------------------------
 print("─── Step 10: EROSP raw ──────────────────────────────────────────")
 projection_df = compute_all_erosp_raw(
-    hitter_talent_df    = hitter_talent_df,
-    pitcher_talent_df   = pitcher_talent_df,
-    playing_time_df     = playing_time_df,
-    schedule_summary    = schedule_summary,
+    hitter_talent_df      = hitter_talent_df,
+    pitcher_talent_df     = pitcher_talent_df,
+    playing_time_df       = playing_time_df,
+    schedule_summary      = schedule_summary,
     mlb_team_abbrev_to_id = abbrev_to_team_id,
+    injury_map            = injury_map if injury_map else None,
 )
 print()
 

@@ -10,6 +10,8 @@ from typing import Dict
 import numpy as np
 import pandas as pd
 
+from typing import Dict, Optional
+
 from .config import SCORING, FULL_SEASON_GAMES
 
 
@@ -42,6 +44,7 @@ def fp_per_pa(rates: dict) -> float:
         rates.get("r_per_pa",    0) * SCORING["r"]      +
         rates.get("rbi_per_pa",  0) * SCORING["rbi"]    +
         rates.get("bb_rate",     0) * SCORING["bb"]     +
+        rates.get("hbp_rate",    0) * SCORING["hbp"]    +
         rates.get("k_rate",      0) * SCORING["k"]      +
         rates.get("sb_rate",     0) * SCORING["sb"]     +
         rates.get("cs_rate",     0) * SCORING["cs"]     +
@@ -173,6 +176,7 @@ def compute_all_erosp_raw(
     playing_time_df: pd.DataFrame,
     schedule_summary: Dict[int, dict],
     mlb_team_abbrev_to_id: Dict[str, int],
+    injury_map: Optional[Dict[int, dict]] = None,
 ) -> pd.DataFrame:
     """
     Compute EROSP_raw (unconditional expected rest-of-season fantasy points) for all players.
@@ -200,6 +204,9 @@ def compute_all_erosp_raw(
             team_abbrev = str(talent_row.get("mlb_team", ""))
             sched = abbrev_to_schedule.get(team_abbrev, {})
             games_remaining = int(sched.get("games_remaining", FULL_SEASON_GAMES))
+            # Reduce games_remaining for injured players
+            if injury_map and mlbam_id in injury_map:
+                games_remaining = max(0, games_remaining - int(injury_map[mlbam_id].get("games_missed_est", 0)))
             avg_pf = float(sched.get("avg_park_factor_remaining", talent_row.get("park_factor", 1.0)))
 
             talent_dict = talent_row.to_dict()
@@ -238,6 +245,8 @@ def compute_all_erosp_raw(
             team_abbrev = str(talent_row.get("mlb_team", ""))
             sched = abbrev_to_schedule.get(team_abbrev, {})
             games_remaining = int(sched.get("games_remaining", FULL_SEASON_GAMES))
+            if injury_map and mlbam_id in injury_map:
+                games_remaining = max(0, games_remaining - int(injury_map[mlbam_id].get("games_missed_est", 0)))
             avg_pf = float(sched.get("avg_park_factor_remaining",
                                      talent_row.get("park_factor", 1.0)))
 
@@ -281,6 +290,8 @@ def compute_all_erosp_raw(
             team_abbrev = str(talent_row.get("mlb_team", ""))
             sched = abbrev_to_schedule.get(team_abbrev, {})
             games_remaining = int(sched.get("games_remaining", FULL_SEASON_GAMES))
+            if injury_map and mlbam_id in injury_map:
+                games_remaining = max(0, games_remaining - int(injury_map[mlbam_id].get("games_missed_est", 0)))
             avg_pf = float(sched.get("avg_park_factor_remaining",
                                      talent_row.get("park_factor", 1.0)))
 

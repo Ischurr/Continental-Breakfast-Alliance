@@ -80,12 +80,17 @@ def estimate_sp_playing_time(
     pitcher_talent_df: pd.DataFrame,
     pitching_by_year: Dict,
     current_season_year: int,
+    steamer_gs_map: Optional[Dict[int, float]] = None,
+    steamer_ip_map: Optional[Dict[int, float]] = None,
 ) -> pd.DataFrame:
     """
     Returns DataFrame (same index as pitcher_talent_df, SP only) with:
       p_start_per_day: probability of starting on a given team-game day
       ip_per_start:    expected IP per start
       is_sp:           True if classified as a starting pitcher
+
+    When steamer_gs_map / steamer_ip_map are provided, projected GS/IP override
+    the rotation-tiering heuristic for pitchers that Steamer covers.
     """
     sp_df = pitcher_talent_df[pitcher_talent_df["role"] == "SP"].copy()
     result = sp_df[["name", "mlb_team"]].copy()
@@ -128,6 +133,31 @@ def estimate_sp_playing_time(
                 p_start = 3.0 / FULL_SEASON_GAMES    # fringe/emergency starter
 
         result.at[mlbam_id, "p_start_per_day"] = round(float(p_start), 4)
+
+    # Override with Steamer projections where available — they're more accurate
+    # than the rotation-tiering heuristic (account for depth chart, injuries, age).
+    # p_start = projected_GS / FULL_SEASON (not games_remaining — the projection
+    # formula scales to remaining games later via games_remaining * daily_ev).
+    if steamer_gs_map or steamer_ip_map:
+        for mlbam_id, row in sp_df.iterrows():
+            fgid = int(row.get("fgid", 0))
+            if not fgid:
+                continue
+            gs_proj = steamer_gs_map.get(fgid) if steamer_gs_map else None
+            ip_proj = steamer_ip_map.get(fgid) if steamer_ip_map else None
+
+            if gs_proj is not None and gs_proj > 0:
+                p_start = float(gs_proj) / FULL_SEASON_GAMES
+                # Cap at 1/ROTATION_DAYS — no pitcher can start every 4th game
+                result.at[mlbam_id, "p_start_per_day"] = round(
+                    float(min(p_start, 1.0 / ROTATION_DAYS)), 4
+                )
+
+            if gs_proj and ip_proj and float(gs_proj) > 0:
+                ip_per_start = float(ip_proj) / float(gs_proj)
+                result.at[mlbam_id, "ip_per_start"] = round(
+                    float(np.clip(ip_per_start, 3.0, 9.0)), 2
+                )
 
     return result
 
@@ -184,6 +214,8 @@ def build_playing_time(
     pitching_by_year: Dict,
     target_season: int,
     steamer_pa_map: Optional[Dict[int, float]] = None,
+    steamer_gs_map: Optional[Dict[int, float]] = None,
+    steamer_ip_map: Optional[Dict[int, float]] = None,
 ) -> pd.DataFrame:
     """
     Returns a combined DataFrame indexed by mlbam_id with all playing time columns.
@@ -214,7 +246,11 @@ def build_playing_time(
     # SPs
     sp_talent = pitcher_talent_df[pitcher_talent_df["role"] == "SP"] if not pitcher_talent_df.empty else pd.DataFrame()
     if not sp_talent.empty:
-        sp = estimate_sp_playing_time(pitcher_talent_df, pitching_by_year, current_season_year)
+        sp = estimate_sp_playing_time(
+            pitcher_talent_df, pitching_by_year, current_season_year,
+            steamer_gs_map=steamer_gs_map,
+            steamer_ip_map=steamer_ip_map,
+        )
         sp["player_type"]   = "sp"
         sp["is_sp"]         = True
         sp["is_rp"]         = False

@@ -2,7 +2,7 @@
 League configuration and scoring constants for EROSP computation.
 
 CBA League Scoring:
-  Hitters: H+1, R+1, TB+1, RBI+1, BB+1, IBB+1, K-1, SB+2, CS-1, GIDP-0.25
+  Hitters: H+1, R+1, TB+1, RBI+1, BB+1, IBB+1, HBP+1, K-1, SB+2, CS-1, GIDP-0.25
   Pitchers: IP+3, H-1, ER-2, BB-1, K+1, W+3, L-3, SV+5, BS-2, HD+3, QS+3
   (Ignored in v1: GWRBI, CYC, OFAST, DPT, PKO, E, NH, PG, CG, SO bonus, GWRBI)
 """
@@ -26,6 +26,7 @@ SCORING: Dict[str, float] = {
     "sb":      2.0,
     "cs":     -1.0,
     "gidp":   -0.25,
+    "hbp":     1.0,   # hit by pitch (+1 pt, same as BB)
     # Pitcher per-event
     "ip":      3.0,   # per full inning
     "ha":     -1.0,   # H allowed
@@ -95,17 +96,22 @@ BLEND_WEIGHTS_2YR = [0.60, 0.40]
 MEAN_REGRESSION   = 0.15   # pull 1-year samples 15% toward league mean
 
 # ---------------------------------------------------------------------------
-# Age curve
+# Age curve  (asymmetric; research-based)
 # ---------------------------------------------------------------------------
-AGE_PEAK       = 28.0
-AGE_CURVE_RATE = 0.006   # ±0.6% per year from peak
-AGE_MOD_MIN    = 0.90
-AGE_MOD_MAX    = 1.10
+AGE_PEAK                   = 27.0   # hitters and pitchers both peak ~27
+AGE_GROWTH_RATE            = 0.009  # +0.9%/yr below peak
+AGE_DECLINE_EARLY          = 0.010  # -1.0%/yr from peak through 32
+AGE_DECLINE_LATE           = 0.025  # -2.5%/yr after 32 (steeper attrition)
+AGE_DECLINE_FAST_THRESHOLD = 32.0   # age where decline rate accelerates
+AGE_PITCHER_DECLINE_MULT   = 1.4    # pitchers decline ~40% faster post-peak
+AGE_MOD_MIN                = 0.65   # floor (prevents absurd projections for old players)
+AGE_MOD_MAX                = 1.15   # ceiling
 
 # ---------------------------------------------------------------------------
 # Statcast adjustments
 # ---------------------------------------------------------------------------
-XWOBA_DAMP      = 0.3   # (player_xwOBA / lg_xwOBA)^0.3 — dampened multiplicative adj
+XWOBA_DAMP      = 0.5   # (player_xwOBA / lg_xwOBA)^0.5 — dampened multiplicative adj
+                        # raised from 0.3: xwOBA is meaningfully predictive; 0.3 was too flat
 XWOBA_LG_AVG    = 0.320  # approximate MLB league-average xwOBA
 
 # ---------------------------------------------------------------------------
@@ -130,6 +136,16 @@ FULL_SEASON_GAMES   = 162
 # Minimum qualifying thresholds for rate computations
 MIN_PA_QUALIFIER  = 100   # minimum PA for per-PA rate to be considered reliable
 MIN_IP_QUALIFIER  = 20    # minimum IP for per-IP rate
+
+# ---------------------------------------------------------------------------
+# Sample-size weighting for multi-year blending
+# ---------------------------------------------------------------------------
+# Year weights (50/30/20) are scaled by actual_pa / PA_FULL_SEASON before renorm.
+# Single-year samples get more regression when PA is low.
+PA_FULL_SEASON        = 600    # PA threshold for full year-weight (hitters)
+IP_FULL_SEASON        = 150    # IP threshold for full year-weight (pitchers)
+MEAN_REGRESSION_HIGH  = 0.15   # regression at full PA (600)
+MEAN_REGRESSION_LOW   = 0.35   # regression at minimum PA (200)
 
 # ---------------------------------------------------------------------------
 # Park factors (5-year regressed, from generate_projections.py)

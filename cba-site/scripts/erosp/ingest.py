@@ -206,6 +206,12 @@ def fetch_batting_stats(years: List[int], min_pa: int = 100) -> Dict[int, pd.Dat
         else:
             df["CS"] = df["SB"] * 0.28   # ~22% caught rate approximation
 
+        # HBP (hit by pitch)
+        if "HBP" in df.columns:
+            df["HBP"] = pd.to_numeric(df["HBP"], errors="coerce").fillna(0)
+        else:
+            df["HBP"] = df["PA"] * 0.010   # ~1% of PA fallback (league avg ~0.8%)
+
         # GIDP
         for gidp_col in ["GIDP", "GDP", "Gidp"]:
             if gidp_col in df.columns:
@@ -244,6 +250,7 @@ def fetch_batting_stats(years: List[int], min_pa: int = 100) -> Dict[int, pd.Dat
         df["r_per_pa"]    = df["R"]   / pa
         df["rbi_per_pa"]  = df["RBI"] / pa
         df["gidp_rate"]   = df["GIDP"] / pa
+        df["hbp_rate"]    = df["HBP"]  / pa
 
         df["team_norm"]   = df["Team"].apply(_normalize_team)
         df["year"]        = year
@@ -425,6 +432,87 @@ def fetch_sprint_speed(year: int) -> Optional[pd.DataFrame]:
     print(f"    Sprint speed {year}: {len(df):,} players, "
           f"median {df['sprint_speed'].median():.1f} ft/s.")
     return df[["mlbam_id", "sprint_speed", "speed_pct"]].copy()
+
+
+# ---------------------------------------------------------------------------
+# Current IL / injury status from MLB Stats API
+# ---------------------------------------------------------------------------
+
+def _il_code_to_games(code: str) -> int:
+    """Conservative estimate of games still to be missed based on IL type."""
+    return {"D7": 7, "D10": 14, "D15": 21, "D60": 60}.get(str(code).upper(), 14)
+
+
+def fetch_injured_players(season: int = 2026) -> Dict[int, dict]:
+    """
+    Fetch current IL status for all 30 MLB teams (cached daily).
+
+    Returns Dict[mlbam_id → {"il_type": str, "games_missed_est": int}]
+    where games_missed_est is the estimated remaining games the player will miss.
+
+    Uses MLB Stats API team roster (rosterType=40Man) with status hydration.
+    Falls back to IL-type estimates when expectedActivationDate is unavailable.
+    """
+    import requests
+
+    today = datetime.date.today()
+    cache_path = CACHE_DIR / f"injured_players_{season}_{today.strftime('%Y%m%d')}.json"
+
+    if cache_path.exists():
+        print(f"    Cache hit  → {cache_path.name}")
+        with open(cache_path) as f:
+            return {int(k): v for k, v in json.load(f).items()}
+
+    print(f"    Fetching IL status ({season}) — 30 teams…")
+    result: Dict[int, dict] = {}
+
+    for team_id in sorted(MLB_TEAM_ID_TO_ABBREV.keys()):
+        url = (
+            f"https://statsapi.mlb.com/api/v1/teams/{team_id}/roster"
+            f"?rosterType=40Man&season={season}"
+            f"&fields=roster,person,id,fullName,status,code,expectedActivationDate"
+        )
+        try:
+            resp = requests.get(url, timeout=10)
+            if resp.status_code != 200:
+                continue
+            for entry in resp.json().get("roster", []):
+                person = entry.get("person", {})
+                mlbam_id = person.get("id")
+                if not mlbam_id:
+                    continue
+
+                status   = entry.get("status", {})
+                il_code  = status.get("code", "A")
+
+                # Only include players not on the active roster
+                if il_code in ("A", ""):
+                    continue
+
+                # Use expectedActivationDate when available for precision
+                act_str = entry.get("expectedActivationDate", "")
+                if act_str:
+                    try:
+                        act_date = datetime.date.fromisoformat(act_str[:10])
+                        games_missed_est = max(0, (act_date - today).days)
+                    except (ValueError, TypeError):
+                        games_missed_est = _il_code_to_games(il_code)
+                else:
+                    games_missed_est = _il_code_to_games(il_code)
+
+                result[int(mlbam_id)] = {
+                    "il_type":         il_code,
+                    "games_missed_est": games_missed_est,
+                }
+            time.sleep(0.1)  # 30 calls × 0.1s = ~3s total
+        except Exception as exc:
+            print(f"    WARNING: IL fetch failed for team {team_id}: {exc}")
+
+    with open(cache_path, "w") as f:
+        json.dump(result, f)
+
+    print(f"    IL status: {len(result):,} players currently on IL.")
+    return result
 
 
 # ---------------------------------------------------------------------------

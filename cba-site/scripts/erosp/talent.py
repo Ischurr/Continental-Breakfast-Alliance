@@ -13,8 +13,11 @@ import pandas as pd
 
 from .config import (
     BLEND_WEIGHTS_3YR, BLEND_WEIGHTS_2YR, MEAN_REGRESSION,
-    AGE_PEAK, AGE_CURVE_RATE, AGE_MOD_MIN, AGE_MOD_MAX,
+    AGE_PEAK, AGE_GROWTH_RATE, AGE_DECLINE_EARLY, AGE_DECLINE_LATE,
+    AGE_DECLINE_FAST_THRESHOLD, AGE_PITCHER_DECLINE_MULT,
+    AGE_MOD_MIN, AGE_MOD_MAX,
     XWOBA_DAMP, XWOBA_LG_AVG,
+    PA_FULL_SEASON, IP_FULL_SEASON, MEAN_REGRESSION_HIGH, MEAN_REGRESSION_LOW,
     PARK_FACTORS, TEAM_NORMALIZE,
 )
 
@@ -49,6 +52,7 @@ LG_AVG = {
     "r_per_pa":    0.140,
     "rbi_per_pa":  0.130,
     "gidp_rate":   0.040,
+    "hbp_rate":    0.010,   # ~1% of PA; adds ~6 pts/season at 600 PA
 }
 
 # Approximate MLB league-average per-IP rates
@@ -70,12 +74,33 @@ LG_AVG_PITCH = {
 # Age adjustment
 # ---------------------------------------------------------------------------
 
-def age_modifier(age: float) -> float:
+def age_modifier(age: float, is_pitcher: bool = False) -> float:
     """
-    Returns a multiplicative modifier for talent relative to age.
-    Peak at AGE_PEAK (28), ±0.6% per year, capped at ±10%.
+    Asymmetric age modifier with research-based rates.
+
+    Hitters:
+      - Peak at 27
+      - Pre-peak: +0.9%/yr (growth phase)
+      - Post-peak 27–32: -1.0%/yr (gradual decline)
+      - Post-peak 32+: -2.5%/yr (accelerating attrition)
+      - Caps: 0.65 to 1.15
+
+    Pitchers inherit the same curve but post-peak decline is 40% steeper.
+    Young pitchers (< peak) are unchanged — no faster growth before peak.
     """
-    raw = 1.0 + (AGE_PEAK - age) * AGE_CURVE_RATE
+    if age <= AGE_PEAK:
+        raw = 1.0 + (AGE_PEAK - age) * AGE_GROWTH_RATE
+    elif age <= AGE_DECLINE_FAST_THRESHOLD:
+        raw = 1.0 - (age - AGE_PEAK) * AGE_DECLINE_EARLY
+    else:
+        early_loss = (AGE_DECLINE_FAST_THRESHOLD - AGE_PEAK) * AGE_DECLINE_EARLY
+        late_loss  = (age - AGE_DECLINE_FAST_THRESHOLD) * AGE_DECLINE_LATE
+        raw = 1.0 - early_loss - late_loss
+
+    # Pitchers decline faster post-peak (arm wear, less adaptation)
+    if is_pitcher and age > AGE_PEAK:
+        raw = 1.0 - (1.0 - raw) * AGE_PITCHER_DECLINE_MULT
+
     return float(np.clip(raw, AGE_MOD_MIN, AGE_MOD_MAX))
 
 
@@ -100,35 +125,60 @@ def compute_ages(player_info_df: pd.DataFrame, target_season: int) -> pd.Series:
 RATE_COLS = [
     "single_rate", "double_rate", "triple_rate", "hr_rate",
     "bb_rate", "k_rate", "sb_rate", "cs_rate",
-    "r_per_pa", "rbi_per_pa", "gidp_rate",
+    "r_per_pa", "rbi_per_pa", "gidp_rate", "hbp_rate",
 ]
 
 
-def _blend_hitter_rates(year_dfs: List[Optional[pd.DataFrame]]) -> pd.Series:
+def _blend_hitter_rates(
+    year_dfs: List[Optional[pd.DataFrame]],
+    year_pas: Optional[List[Optional[float]]] = None,
+) -> pd.Series:
     """
-    Blend per-PA rates across up to 3 years.
-    year_dfs: [current_year_df (or None), y2_df (or None), y3_df (or None)]
+    Blend per-PA rates across up to 3 years with PA-based sample-size weighting.
+
+    year_dfs: [y1_rates (or None), y2_rates (or None), y3_rates (or None)]
+    year_pas: actual PA for each year; used to scale base weights.
+              At PA_FULL_SEASON (600 PA) the year gets its full base weight.
+              At 300 PA it gets half the base weight; other years renormalize up.
+              Single-year samples also get more mean regression when PA is low.
     """
-    valid = [(df, w) for df, w in zip(year_dfs, BLEND_WEIGHTS_3YR) if df is not None]
-    if not valid:
+    if year_pas is None:
+        year_pas = [None] * len(year_dfs)
+
+    # Scale base weights by PA coverage (partial season = partial trust)
+    scaled = []
+    for df, base_w, pa in zip(year_dfs, BLEND_WEIGHTS_3YR, year_pas):
+        if df is None:
+            continue
+        pa_scale = min(float(pa) / PA_FULL_SEASON, 1.0) if (pa and pa > 0) else 1.0
+        scaled.append((df, base_w * pa_scale, pa))
+
+    if not scaled:
         return pd.Series({col: LG_AVG[col] for col in RATE_COLS})
 
-    if len(valid) == 1:
-        df, _ = valid[0]
-        # Regression to mean for single-year samples
+    if len(scaled) == 1:
+        df, _, pa = scaled[0]
+        # Regression scales with sample size: less PA → more regression to mean
+        if pa and pa > 0:
+            pa_clamped = float(np.clip(pa, 200.0, PA_FULL_SEASON))
+            regression = MEAN_REGRESSION_LOW - (
+                (MEAN_REGRESSION_LOW - MEAN_REGRESSION_HIGH)
+                * (pa_clamped - 200.0) / (PA_FULL_SEASON - 200.0)
+            )
+            regression = float(np.clip(regression, MEAN_REGRESSION_HIGH, MEAN_REGRESSION_LOW))
+        else:
+            regression = MEAN_REGRESSION
         result = {}
         for col in RATE_COLS:
             val = float(df.get(col, LG_AVG[col]))
-            result[col] = val * (1 - MEAN_REGRESSION) + LG_AVG[col] * MEAN_REGRESSION
+            result[col] = val * (1 - regression) + LG_AVG[col] * regression
         return pd.Series(result)
 
-    # Renormalize weights for available years
-    total_w = sum(w for _, w in valid)
+    total_w = sum(w for _, w, _ in scaled)
     result = {}
     for col in RATE_COLS:
-        blended = sum(float(df.get(col, LG_AVG[col])) * w for df, w in valid) / total_w
+        blended = sum(float(df.get(col, LG_AVG[col])) * w for df, w, _ in scaled) / total_w
         result[col] = blended
-
     return pd.Series(result)
 
 
@@ -200,13 +250,38 @@ def estimate_hitter_talent(
     median_age = base_df["age"].median()
     base_df["age"] = base_df["age"].fillna(median_age if not np.isnan(median_age) else 28.0)
 
-    # Merge xwOBA (most recent year)
-    xw_year = next((y for y in [y1, y2] if y and y in xwoba_by_year), None)
-    if xw_year:
-        xw_df = xwoba_by_year[xw_year].rename(columns={"xwOBA": "xwoba_latest"})
-        base_df = base_df.merge(xw_df[["mlbam_id", "xwoba_latest"]], on="mlbam_id", how="left")
+    # Merge xwOBA — blend 2 years (y1 gets 2x weight, y2 gets 1x) for stability
+    xw_y1 = xwoba_by_year.get(y1) if y1 else None
+    xw_y2 = xwoba_by_year.get(y2) if y2 else None
+    if xw_y1 is not None:
+        base_df = base_df.merge(
+            xw_y1[["mlbam_id", "xwOBA"]].rename(columns={"xwOBA": "xwoba_y1"}),
+            on="mlbam_id", how="left",
+        )
     else:
-        base_df["xwoba_latest"] = np.nan
+        base_df["xwoba_y1"] = np.nan
+    if xw_y2 is not None:
+        base_df = base_df.merge(
+            xw_y2[["mlbam_id", "xwOBA"]].rename(columns={"xwOBA": "xwoba_y2"}),
+            on="mlbam_id", how="left",
+        )
+    else:
+        base_df["xwoba_y2"] = np.nan
+
+    def _blend_xwoba(r):
+        v1 = r.get("xwoba_y1")
+        v2 = r.get("xwoba_y2")
+        h1 = v1 is not None and not (isinstance(v1, float) and np.isnan(v1))
+        h2 = v2 is not None and not (isinstance(v2, float) and np.isnan(v2))
+        if h1 and h2:
+            return (2 * float(v1) + float(v2)) / 3.0
+        elif h1:
+            return float(v1)
+        elif h2:
+            return float(v2)
+        return np.nan
+
+    base_df["xwoba_latest"] = base_df.apply(_blend_xwoba, axis=1)
 
     # Merge sprint speed
     if sprint_speed_df is not None:
@@ -223,24 +298,30 @@ def estimate_hitter_talent(
         if pd.isna(mlbam):
             continue
 
-        # Collect per-PA rates for each available year
-        yr_rates = []
+        # Collect per-PA rates and actual PA for each available year
+        yr_rates: list = []
+        yr_pas:   list = []
         for year in [y1, y2, y3]:
             if not year or year not in batting_by_year:
                 yr_rates.append(None)
+                yr_pas.append(None)
                 continue
             yr_df = batting_by_year[year]
             match = yr_df[yr_df["IDfg"] == fgid]
             if match.empty:
                 yr_rates.append(None)
+                yr_pas.append(None)
             else:
-                yr_rates.append(match.iloc[0][RATE_COLS].to_dict())
+                # Only include RATE_COLS that exist in this year's data
+                available = [c for c in RATE_COLS if c in match.columns]
+                yr_rates.append(match.iloc[0][available].to_dict())
+                yr_pas.append(float(match.iloc[0].get("PA", 0)))
 
-        # Blend rates
-        blended = _blend_hitter_rates([
-            pd.Series(r) if r is not None else None
-            for r in yr_rates
-        ])
+        # Blend rates with PA-based sample-size weighting
+        blended = _blend_hitter_rates(
+            [pd.Series(r) if r is not None else None for r in yr_rates],
+            year_pas=yr_pas,
+        )
 
         # Age modifier
         age     = float(row.get("age", 28.0))
@@ -258,9 +339,9 @@ def estimate_hitter_talent(
         speed_factor = 0.5 + (speed_pct / 100.0)  # 0.5 to 1.5
 
         adjusted = dict(blended)
-        # Apply age to all contact/power rates (hits, walks, strikeouts)
+        # Apply age to all contact/power rates (hits, walks, HBP, run production)
         for col in ["single_rate", "double_rate", "triple_rate", "hr_rate",
-                    "bb_rate", "r_per_pa", "rbi_per_pa"]:
+                    "bb_rate", "hbp_rate", "r_per_pa", "rbi_per_pa"]:
             adjusted[col] = blended[col] * age_mod * xwoba_adj
         # K rate inversely affected by age for young players
         adjusted["k_rate"] = blended["k_rate"] * (2.0 - age_mod)
@@ -276,6 +357,7 @@ def estimate_hitter_talent(
         adjusted["single_rate"] = np.clip(adjusted["single_rate"],  0.05, 0.25)
         adjusted["sb_rate"]     = np.clip(adjusted["sb_rate"],      0.00, 0.08)
         adjusted["gidp_rate"]   = np.clip(adjusted["gidp_rate"],    0.00, 0.10)
+        adjusted["hbp_rate"]    = np.clip(adjusted["hbp_rate"],     0.00, 0.04)
 
         # For multi-team players FanGraphs uses "- - -"; fall back to prior years for a real team
         park_abbrev = str(row.get("team_norm", ""))
@@ -324,24 +406,45 @@ PITCH_RATE_COLS = [
 ]
 
 
-def _blend_pitcher_rates(year_dfs: List[Optional[pd.Series]]) -> pd.Series:
-    """Blend per-IP pitcher rates across up to 3 years."""
-    valid = [(df, w) for df, w in zip(year_dfs, BLEND_WEIGHTS_3YR) if df is not None]
-    if not valid:
+def _blend_pitcher_rates(
+    year_dfs: List[Optional[pd.Series]],
+    year_ips: Optional[List[Optional[float]]] = None,
+) -> pd.Series:
+    """Blend per-IP pitcher rates across up to 3 years with IP-based sample-size weighting."""
+    if year_ips is None:
+        year_ips = [None] * len(year_dfs)
+
+    scaled = []
+    for df, base_w, ip in zip(year_dfs, BLEND_WEIGHTS_3YR, year_ips):
+        if df is None:
+            continue
+        ip_scale = min(float(ip) / IP_FULL_SEASON, 1.0) if (ip and ip > 0) else 1.0
+        scaled.append((df, base_w * ip_scale, ip))
+
+    if not scaled:
         return pd.Series({col: LG_AVG_PITCH[col] for col in PITCH_RATE_COLS})
 
-    if len(valid) == 1:
-        df, _ = valid[0]
+    if len(scaled) == 1:
+        df, _, ip = scaled[0]
+        if ip and ip > 0:
+            ip_clamped = float(np.clip(ip, 20.0, IP_FULL_SEASON))
+            regression = MEAN_REGRESSION_LOW - (
+                (MEAN_REGRESSION_LOW - MEAN_REGRESSION_HIGH)
+                * (ip_clamped - 20.0) / (IP_FULL_SEASON - 20.0)
+            )
+            regression = float(np.clip(regression, MEAN_REGRESSION_HIGH, MEAN_REGRESSION_LOW))
+        else:
+            regression = MEAN_REGRESSION
         result = {}
         for col in PITCH_RATE_COLS:
             val = float(df.get(col, LG_AVG_PITCH[col]))
-            result[col] = val * (1 - MEAN_REGRESSION) + LG_AVG_PITCH[col] * MEAN_REGRESSION
+            result[col] = val * (1 - regression) + LG_AVG_PITCH[col] * regression
         return pd.Series(result)
 
-    total_w = sum(w for _, w in valid)
+    total_w = sum(w for _, w, _ in scaled)
     result = {}
     for col in PITCH_RATE_COLS:
-        blended = sum(float(df.get(col, LG_AVG_PITCH[col])) * w for df, w in valid) / total_w
+        blended = sum(float(df.get(col, LG_AVG_PITCH[col])) * w for df, w, _ in scaled) / total_w
         result[col] = blended
     return pd.Series(result)
 
@@ -420,24 +523,30 @@ def estimate_pitcher_talent(
         if pd.isna(mlbam):
             continue
 
-        yr_rates = []
+        yr_rates: list = []
+        yr_ips:   list = []
         for year in [y1, y2, y3]:
             if not year or year not in pitching_by_year:
                 yr_rates.append(None)
+                yr_ips.append(None)
                 continue
             yr_df = pitching_by_year[year]
             match = yr_df[yr_df["IDfg"] == fgid]
             if match.empty:
                 yr_rates.append(None)
+                yr_ips.append(None)
             else:
-                yr_rates.append(match.iloc[0][PITCH_RATE_COLS].to_dict())
+                available = [c for c in PITCH_RATE_COLS if c in match.columns]
+                yr_rates.append(match.iloc[0][available].to_dict())
+                yr_ips.append(float(match.iloc[0].get("IP", 0)))
 
-        blended = _blend_pitcher_rates([
-            pd.Series(r) if r is not None else None for r in yr_rates
-        ])
+        blended = _blend_pitcher_rates(
+            [pd.Series(r) if r is not None else None for r in yr_rates],
+            year_ips=yr_ips,
+        )
 
         age = float(row.get("age", 28.0))
-        age_mod = age_modifier(age)
+        age_mod = age_modifier(age, is_pitcher=True)
 
         # Apply age to K and ER rates
         adjusted = dict(blended)
