@@ -7,8 +7,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import teamsJson from '../data/teams.json';
 
+const teamsArray = (teamsJson as { teams?: Array<{ id: number; logoUrl?: string }> }).teams ?? (teamsJson as Array<{ id: number; logoUrl?: string }>);
 const LOGO_OVERRIDES: Record<number, string> = Object.fromEntries(
-  (teamsJson as Array<{ id: number; logoUrl?: string }>)
+  teamsArray
     .filter(t => t.logoUrl)
     .map(t => [t.id, t.logoUrl!])
 );
