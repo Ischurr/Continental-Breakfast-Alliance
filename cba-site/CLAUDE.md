@@ -919,3 +919,48 @@ Added an "In Memoriam" page for the Dinwiddie Dinos (team ID 10, 2022–2024), t
 - Re-ran `npm run fetch-current` after manual schedule adjustments were made on ESPN
 - Result: 105 matchups across 21 weeks, all 10 teams
 - Verified no back-to-back same-team matchups across all 21 weeks (clean schedule)
+
+## Session Work (March 12, 2026 — EROSP Pipeline Improvements)
+
+### 6 improvements to the EROSP projection pipeline (`scripts/erosp/`)
+
+**1. Playing time — Steamer GS/IP override** (`playing_time.py`, `compute_erosp.py`)
+- `estimate_sp_playing_time()` accepts `steamer_gs_map` / `steamer_ip_map` (FanGraphs player IDs → projected GS/IP)
+- Runs AFTER rotation-tiering heuristic; overrides `p_start_per_day` and `ip_per_start` for any SP Steamer covers
+- `p_start = gs_proj / 162`, capped at `1/ROTATION_DAYS` (no pitcher starts every 4th game)
+- `compute_erosp.py` Step 9 fetches Steamer pitcher projections (`?type=steamer&stats=pit`) and passes to `build_playing_time()`
+
+**2. HBP incorporated** (`config.py`, `ingest.py`, `talent.py`, `projection.py`)
+- `SCORING["hbp"] = 1.0` added to config
+- `fetch_batting_stats()` computes `hbp_rate = HBP / PA`; fallback `PA * 0.010` when column missing
+- `"hbp_rate"` added to `LG_AVG` (0.010), `RATE_COLS`, and the talent blending pipeline
+- `fp_per_pa()` now includes `rates.get("hbp_rate", 0) * SCORING["hbp"]`; adds ~6 pts/season
+
+**3. Sample-size weighting** (`talent.py`, `config.py`)
+- Year-weights (50/30/20) scaled by `min(actual_pa / PA_FULL_SEASON, 1.0)` before renormalizing
+- Partial seasons (injuries, callups) get proportionally less trust
+- Dynamic regression: interpolates from `MEAN_REGRESSION_LOW=0.35` (at 200 PA) to `MEAN_REGRESSION_HIGH=0.15` (at 600 PA)
+- Same approach for pitchers: scaled by `min(actual_ip / IP_FULL_SEASON, 1.0)` where `IP_FULL_SEASON=150`
+
+**4. xwOBA fix** (`config.py`, `talent.py`)
+- Dampening factor raised `0.3 → 0.5` — xwOBA is meaningfully predictive; 0.3 was too flat
+- Now blends 2 years of Statcast (y1 gets 2/3 weight, y2 gets 1/3) via `_blend_xwoba()` helper for more stability
+
+**5. Asymmetric age curve** (`config.py`, `talent.py`)
+- Replaced flat ±0.6%/yr with: `+0.9%/yr` below peak (27), `-1.0%/yr` ages 27–32, `-2.5%/yr` after 32
+- Pitchers decline 40% faster post-peak (`AGE_PITCHER_DECLINE_MULT = 1.4`)
+- Floor `0.65`, ceiling `1.15`; `age_modifier(age, is_pitcher=True)` now correct for SP/RP
+
+**6. Daily injury map** (`ingest.py`, `projection.py`, `compute_erosp.py`)
+- `fetch_injured_players(season)` loops all 30 MLB teams via `/teams/{id}/roster?rosterType=40Man`
+- Returns `{mlbam_id: {"il_type": "D10", "games_missed_est": N}}` for each IL player
+- Uses `expectedActivationDate` when available; falls back to `_il_code_to_games()` (D7→7, D10→14, D15→21, D60→60)
+- Daily cache: `erosp_cache/injured_players_{season}_{date}.json` — ~3s fetch, idempotent reruns
+- `compute_all_erosp_raw()` accepts `injury_map` and deducts `games_missed_est` from `games_remaining` for all 3 player types
+
+### New constants in `config.py`
+- `PA_FULL_SEASON = 600`, `IP_FULL_SEASON = 150`
+- `MEAN_REGRESSION_HIGH = 0.15`, `MEAN_REGRESSION_LOW = 0.35`
+- `AGE_PEAK = 27.0`, `AGE_GROWTH_RATE = 0.009`, `AGE_DECLINE_EARLY = 0.010`, `AGE_DECLINE_LATE = 0.025`
+- `AGE_DECLINE_FAST_THRESHOLD = 32.0`, `AGE_PITCHER_DECLINE_MULT = 1.4`, `AGE_MOD_MIN = 0.65`, `AGE_MOD_MAX = 1.15`
+- `XWOBA_DAMP = 0.5` (was 0.3)
