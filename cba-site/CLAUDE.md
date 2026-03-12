@@ -982,3 +982,13 @@ Added an "In Memoriam" page for the Dinwiddie Dinos (team ID 10, 2022–2024), t
 - When no team filter: standard `WeekSection` layout (week header + 3-col grid) unchanged
 
 **Architecture:** `page.tsx` stays server component; all interactivity extracted to `components/MatchupsClient.tsx` (`'use client'`). Server computes `currentWeek` and `nextWeek` and passes them as props.
+
+## Session Work (March 12, 2026 — Matchups Page Season Cards)
+
+### Regular Season Winner added to season cards (`app/matchups/page.tsx`)
+- Each historical season card in "Browse by Season" now shows both Champion and Regular Season Winner
+- Regular Season Winner = team with best W-L record; PF used as tiebreaker
+- In-progress seasons (no `champion` set) show "TBD" for both fields
+- Dinwiddie Dinos (id=10) excluded from regular season winner consideration for 2024 (year they were kicked out)
+- If champion and regular season winner are the same team, both lines still shown
+- **Historical regular season winners**: 2022: Pepperoni Rolls (14-6), 2023: Chinook (14-7, PF tiebreak over Dinos), 2024: Space Cowboys (17-5, same as champion), 2025: Mega Rats (16-6)
