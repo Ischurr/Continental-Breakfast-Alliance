@@ -997,3 +997,44 @@ Added an "In Memoriam" page for the Dinwiddie Dinos (team ID 10, 2022–2024), t
 - Added `VACATED: Record<number, number> = { 2023: 4 }` inline — same logic as playoffs page
 - 2023 champion now displays as Manhattan Mega Rats (id=4), not Dinwiddie Dinos
 - `championId` used throughout (champion display, regular season winner comparison, TBD check)
+
+## Session Work (March 12, 2026 — EROSP Backtesting)
+
+### Backtest script (`scripts/backtest_erosp.py`)
+- New script that runs the full EROSP pipeline as a **pre-season projection** for a target year, then compares against actual fantasy points from `data/historical/{year}.json`
+- Usage: `cd scripts && python3 backtest_erosp.py --target-year 2025`
+- Overrides `games_remaining → 162` for all teams (season is over, API returns 0)
+- Skips injury map and ESPN roster assignment (pure pre-season simulation)
+- Matches projected players to actual by normalized name
+- Outputs: `data/erosp/backtest_{year}.json` (projection) + `data/erosp/backtest_{year}.csv` (comparison table)
+- Prints: overall Pearson r / Spearman ρ / RMSE / MAE / bias, by-position breakdown, top 25 by projection vs actual rank, biggest over/under projections
+
+### 2025 Backtest Results
+- **Overall**: Pearson r=0.425, Spearman ρ=0.394, RMSE=230 pts, bias=-180 pts (under-projected)
+- **By position**: 1B (r=0.423), SS (r=0.442) best; C (r=0.039), RP (r=0.065) essentially random
+- **By role bias**: SP +14 (fine), Hitters +15 (fine), RP -49 (structural miss)
+- **Top miss categories**: injury-related over-projections (Strider, Acuna, Alvarez), comeback pitcher under-projections (Boyd -438, Rogers -343, Rasmussen -339), new-closer under-projections (Luis Garcia -342, Pagan -271)
+
+### Known model weaknesses + planned fixes (implement in next session)
+
+**Fix 1 — 40-man roster floor for returning/prospect pitchers** (`talent.py` + `compute_erosp.py`):
+- Boyd (22→460), Rogers (13→356), Mize (20→322), Leiter (14→309), Warren (12→300) all had <30 IP in 3-year window
+- After Step 8, identify MLBAM IDs in `player_info_df` (40-man roster) with <30 total IP in `pitcher_talent_df`
+- Add floor rows at league-average pitcher rates with heavy regression (~100-150 EROSP floor)
+
+**Fix 2 — Extend pitcher lookback from 3 → 5 years** (`compute_erosp.py`, `talent.py`):
+- Add `PITCHER_EXTRA_YEARS = [TARGET_SEASON-4, TARGET_SEASON-5]` with weights [0.05, 0.05] (renormalized)
+- Only apply to pitchers absent from y1/y2 — avoids polluting healthy pitchers with stale data
+
+**Fix 3 — High-K middle reliever appearance rate bump** (`playing_time.py`):
+- Middle RPs with `k_per_ip > 1.1` and `sv_per_g < 0.10` → bump `p_appear_per_game` from 0.30 → 0.35
+- Addresses Luis Garcia, Pagan, Bubic type misses (high-stuff guys who became closers)
+
+**Fix 4 — Catcher-specific playing time** (`config.py`, `playing_time.py`):
+- Add `DEFAULT_P_PLAY_CATCHER = 0.74`, `DEFAULT_PA_PER_GAME_CATCHER = 3.6`
+- Override defaults for `mlb_position == 'C'` in `estimate_hitter_playing_time()`
+- Reduces +38 over-projection bias for catchers
+
+**Fix 5 — Increase `DEFAULT_IP_PER_START` from 5.5 → 5.8** (`config.py`):
+- One-line change; adds ~+29 pts for a 32-start SP
+- Validate: overall Spearman ρ should stay ≥ 0.394, RP bias should move toward 0
