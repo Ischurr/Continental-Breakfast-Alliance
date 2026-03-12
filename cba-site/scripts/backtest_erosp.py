@@ -51,7 +51,7 @@ from erosp.ingest import (
     build_name_to_mlbam_from_chadwick,
     build_fangraphs_to_mlbam,
 )
-from erosp.talent import estimate_hitter_talent, estimate_pitcher_talent
+from erosp.talent import estimate_hitter_talent, estimate_pitcher_talent, LG_AVG_PITCH, PITCH_RATE_COLS
 from erosp.playing_time import build_playing_time
 from erosp.projection import compute_all_erosp_raw
 from erosp.startability import compute_replacement_levels, compute_erosp_startable
@@ -65,10 +65,12 @@ parser.add_argument("--target-year", type=int, default=2025,
                     help="Season year to backtest (default: 2025)")
 args = parser.parse_args()
 
-TARGET_SEASON    = args.target_year
-HISTORICAL_YEARS = [TARGET_SEASON - 1, TARGET_SEASON - 2, TARGET_SEASON - 3]
-Y1, Y2, Y3       = HISTORICAL_YEARS
-SEASON_STARTED   = False  # pre-season projection
+TARGET_SEASON       = args.target_year
+HISTORICAL_YEARS    = [TARGET_SEASON - 1, TARGET_SEASON - 2, TARGET_SEASON - 3]
+Y1, Y2, Y3          = HISTORICAL_YEARS
+PITCHER_EXTRA_YEARS = [TARGET_SEASON - 4, TARGET_SEASON - 5]   # Fix 2: 5yr lookback
+Y4, Y5              = PITCHER_EXTRA_YEARS
+SEASON_STARTED      = False  # pre-season projection
 
 print(f"\n{'='*65}")
 print(f"  EROSP BACKTEST")
@@ -106,6 +108,11 @@ print()
 # ---------------------------------------------------------------------------
 print("─── Step 3: Pitching statistics ─────────────────────────────────")
 pitching_by_year = fetch_pitching_stats(HISTORICAL_YEARS, min_ip=20)
+# Fix 2: fetch extra years (y4, y5) for extended pitcher lookback
+pitcher_extra = fetch_pitching_stats(PITCHER_EXTRA_YEARS, min_ip=20)
+pitching_by_year.update(pitcher_extra)
+extra_rows = sum(len(v) for v in pitcher_extra.values())
+print(f"  Extra pitcher years ({Y4}, {Y5}): {extra_rows:,} entries fetched.")
 print()
 
 
@@ -194,7 +201,61 @@ pitcher_talent_df = estimate_pitcher_talent(
     target_season    = TARGET_SEASON,
     fg_to_mlbam      = fg_to_mlbam,
     name_to_mlbam    = name_to_mlbam,
+    extra_years      = PITCHER_EXTRA_YEARS,   # Fix 2: 5yr lookback for TJ returnees
 )
+print()
+
+
+# ---------------------------------------------------------------------------
+# STEP 8b: 40-man floor for returning/prospect pitchers (Fix 1)
+# ---------------------------------------------------------------------------
+print("─── Step 8b: Pitcher floor (TJ returnees / prospects) ───────────")
+if not pitcher_talent_df.empty:
+    _mlbam_to_total_ip: dict = {}
+    for _yr, _pit_df in pitching_by_year.items():
+        if _yr >= TARGET_SEASON:
+            continue
+        for _, _row in _pit_df.iterrows():
+            _fgid  = int(_row.get("IDfg", 0) or 0)
+            _mlbam = fg_to_mlbam.get(_fgid)
+            if _mlbam:
+                _mlbam_to_total_ip[_mlbam] = (
+                    _mlbam_to_total_ip.get(_mlbam, 0.0) + float(_row.get("IP", 0) or 0)
+                )
+
+    _pitcher_pos_set: set = set()
+    if not player_info_df.empty and "mlb_position" in player_info_df.columns:
+        for _, _prow in player_info_df.iterrows():
+            _mid = int(_prow.get("mlbam_id", 0) or 0)
+            if _mid and str(_prow.get("mlb_position", "")).upper() in {"P", "SP", "RP"}:
+                _pitcher_pos_set.add(_mid)
+
+    # Build set of MLBAM IDs with recent activity (y1 or y2) — skip these for the floor
+    _recent_activity_set: set = set()
+    for _yr in [Y1, Y2]:
+        if _yr and _yr in pitching_by_year:
+            for _, _row in pitching_by_year[_yr].iterrows():
+                _fgid = int(_row.get("IDfg", 0) or 0)
+                _m = fg_to_mlbam.get(_fgid)
+                if _m:
+                    _recent_activity_set.add(_m)
+
+    _floor_count = 0
+    for _mid in list(pitcher_talent_df.index):
+        if int(_mid) not in _pitcher_pos_set:
+            continue
+        if _mlbam_to_total_ip.get(int(_mid), 0.0) >= 30.0:
+            continue
+        if pitcher_talent_df.at[_mid, "role"] != "SP":
+            continue                                # relievers stay as-is
+        if int(_mid) in _recent_activity_set:
+            continue                                # had recent activity — not TJ returnee
+        for _col in PITCH_RATE_COLS:
+            if _col in pitcher_talent_df.columns:
+                pitcher_talent_df.at[_mid, _col] = round(LG_AVG_PITCH[_col], 6)
+        _floor_count += 1
+
+    print(f"  Floor applied to {_floor_count} pitcher(s) with < 30 total IP (SP, absent y1/y2).")
 print()
 
 

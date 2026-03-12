@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 
 from .config import (
-    BLEND_WEIGHTS_3YR, BLEND_WEIGHTS_2YR, MEAN_REGRESSION,
+    BLEND_WEIGHTS_3YR, BLEND_WEIGHTS_2YR, BLEND_WEIGHTS_5YR, MEAN_REGRESSION,
     AGE_PEAK, AGE_GROWTH_RATE, AGE_DECLINE_EARLY, AGE_DECLINE_LATE,
     AGE_DECLINE_FAST_THRESHOLD, AGE_PITCHER_DECLINE_MULT,
     AGE_MOD_MIN, AGE_MOD_MAX,
@@ -409,13 +409,20 @@ PITCH_RATE_COLS = [
 def _blend_pitcher_rates(
     year_dfs: List[Optional[pd.Series]],
     year_ips: Optional[List[Optional[float]]] = None,
+    weights: Optional[List[float]] = None,
 ) -> pd.Series:
-    """Blend per-IP pitcher rates across up to 3 years with IP-based sample-size weighting."""
+    """Blend per-IP pitcher rates across up to 5 years with IP-based sample-size weighting.
+
+    weights: base year weights; defaults to BLEND_WEIGHTS_3YR.
+             Pass BLEND_WEIGHTS_5YR for extended 5-year lookback.
+    """
     if year_ips is None:
         year_ips = [None] * len(year_dfs)
+    if weights is None:
+        weights = BLEND_WEIGHTS_3YR
 
     scaled = []
-    for df, base_w, ip in zip(year_dfs, BLEND_WEIGHTS_3YR, year_ips):
+    for df, base_w, ip in zip(year_dfs, weights, year_ips):
         if df is None:
             continue
         ip_scale = min(float(ip) / IP_FULL_SEASON, 1.0) if (ip and ip > 0) else 1.0
@@ -456,27 +463,38 @@ def estimate_pitcher_talent(
     target_season: int,
     fg_to_mlbam: Dict[int, int],
     name_to_mlbam: Optional[Dict[str, int]] = None,
+    extra_years: Optional[List[int]] = None,   # Fix 2: y4/y5 for extended lookback
 ) -> pd.DataFrame:
     """
     Returns DataFrame indexed by MLBAM ID with pitcher talent rate columns.
+
+    extra_years: additional historical years (y4, y5) fetched at low weight.
+                 Only used for pitchers absent from y1 AND y2 (TJ returnees, etc.)
+                 to avoid polluting healthy pitchers with stale data.
     """
     y1, y2, y3 = (historical_years + [None, None, None])[:3]
+    y4, y5 = ((extra_years or []) + [None, None])[:2]   # Fix 2
 
+    all_years = [y for y in [y1, y2, y3, y4, y5] if y]
     base_year = next((y for y in [y1, y2, y3] if y and y in pitching_by_year), None)
     if base_year is None:
         return pd.DataFrame()
 
-    # Fix 2: include pitchers from prior years absent from the most recent year
+    # Include pitchers from prior years absent from the most recent year
     # (handles injury cases: pitchers who missed the most recent season entirely, e.g. Gerrit Cole)
+    # Also scan y4/y5 for Fix 2 (TJ returnees with no recent data at all)
     base_df = pitching_by_year[base_year].copy()
     seen_fgids = set(base_df["IDfg"].dropna().astype(int).tolist())
-    for fallback_year in [y for y in [y1, y2, y3] if y and y != base_year and y in pitching_by_year]:
+    for fallback_year in [y for y in all_years if y and y != base_year and y in pitching_by_year]:
         fb_df = pitching_by_year[fallback_year].copy()
         new_players = fb_df[~fb_df["IDfg"].isin(seen_fgids)]
         if not new_players.empty:
             base_df = pd.concat([base_df, new_players], ignore_index=True)
             seen_fgids |= set(new_players["IDfg"].dropna().astype(int).tolist())
-            print(f"    Added {len(new_players)} pitcher(s) from {fallback_year} not in {base_year}.")
+            if fallback_year in (historical_years or []):
+                print(f"    Added {len(new_players)} pitcher(s) from {fallback_year} not in {base_year}.")
+            else:
+                print(f"    Added {len(new_players)} pitcher(s) from extra year {fallback_year} (TJ/injury fallback).")
 
     base_df["mlbam_id"] = base_df["IDfg"].map(fg_to_mlbam)
 
@@ -523,9 +541,24 @@ def estimate_pitcher_talent(
         if pd.isna(mlbam):
             continue
 
+        # Fix 2: pitchers absent from y1 AND y2 (TJ returnees, multi-year injuries)
+        # get an extended 5-year blend to capture older healthy seasons.
+        # Pitchers with recent data use the standard 3-year blend only.
+        has_recent_data = any(
+            yr and yr in pitching_by_year
+            and not pitching_by_year[yr][pitching_by_year[yr]["IDfg"] == fgid].empty
+            for yr in [y1, y2]
+        )
+        if has_recent_data or not (y4 or y5):
+            years_for_blend  = [y1, y2, y3]
+            blend_weights    = BLEND_WEIGHTS_3YR
+        else:
+            years_for_blend  = [y1, y2, y3, y4, y5]
+            blend_weights    = BLEND_WEIGHTS_5YR
+
         yr_rates: list = []
         yr_ips:   list = []
-        for year in [y1, y2, y3]:
+        for year in years_for_blend:
             if not year or year not in pitching_by_year:
                 yr_rates.append(None)
                 yr_ips.append(None)
@@ -543,6 +576,7 @@ def estimate_pitcher_talent(
         blended = _blend_pitcher_rates(
             [pd.Series(r) if r is not None else None for r in yr_rates],
             year_ips=yr_ips,
+            weights=blend_weights,
         )
 
         age = float(row.get("age", 28.0))

@@ -13,6 +13,7 @@ import pandas as pd
 
 from .config import (
     DEFAULT_P_PLAY_HITTER, DEFAULT_PA_PER_GAME,
+    DEFAULT_P_PLAY_CATCHER, DEFAULT_PA_PER_GAME_CATCHER,
     DEFAULT_IP_PER_START, DEFAULT_P_APPEAR_RP, DEFAULT_IP_PER_APP,
     ROTATION_DAYS, FULL_SEASON_GAMES,
 )
@@ -36,6 +37,12 @@ def estimate_hitter_playing_time(
     result = talent_df[["name", "age", "mlb_team"]].copy()
     result["p_play"]      = DEFAULT_P_PLAY_HITTER
     result["pa_per_game"] = DEFAULT_PA_PER_GAME
+
+    # Fix 4: Catchers play fewer games and bat lower in the order
+    if "mlb_position" in talent_df.columns:
+        catcher_mask = talent_df["mlb_position"].str.upper() == "C"
+        result.loc[catcher_mask, "p_play"]      = DEFAULT_P_PLAY_CATCHER
+        result.loc[catcher_mask, "pa_per_game"] = DEFAULT_PA_PER_GAME_CATCHER
 
     # If current-season data available, use last-14-day start rate
     if current_season_year in batting_by_year:
@@ -199,6 +206,9 @@ def estimate_rp_playing_time(
         else:
             result.at[mlbam_id, "rp_role"]           = "middle"
             result.at[mlbam_id, "p_appear_per_game"] = 0.30
+            # Fix 3: High-K middle relievers — bump appearance rate (closer-candidate tier)
+            if float(row.get("k_per_ip", 0.0)) > 1.1:
+                result.at[mlbam_id, "p_appear_per_game"] = 0.35
 
     return result
 

@@ -93,6 +93,7 @@ RP_DAILY_STARTS  = 3   # start top 3 RPs each day
 # ---------------------------------------------------------------------------
 BLEND_WEIGHTS_3YR = [0.50, 0.30, 0.20]
 BLEND_WEIGHTS_2YR = [0.60, 0.40]
+BLEND_WEIGHTS_5YR = [0.50, 0.30, 0.20, 0.05, 0.05]   # Fix 2: extended lookback (y4/y5 low-weight)
 MEAN_REGRESSION   = 0.15   # pull 1-year samples 15% toward league mean
 
 # ---------------------------------------------------------------------------
@@ -122,10 +123,12 @@ SIGMOID_TAU = 0.3
 # ---------------------------------------------------------------------------
 # Season/playing-time defaults (used pre-season or for players with no data)
 # ---------------------------------------------------------------------------
-DEFAULT_P_PLAY_HITTER = 0.85   # fraction of games a lineup starter plays
-DEFAULT_PA_PER_GAME   = 4.0    # plate appearances per game for a lineup starter
-DEFAULT_P_PLAY_BENCH  = 0.35   # non-starter / platoon player
-DEFAULT_IP_PER_START  = 5.5    # IP per start for average SP
+DEFAULT_P_PLAY_HITTER       = 0.85   # fraction of games a lineup starter plays
+DEFAULT_PA_PER_GAME         = 4.0    # plate appearances per game for a lineup starter
+DEFAULT_P_PLAY_BENCH        = 0.35   # non-starter / platoon player
+DEFAULT_P_PLAY_CATCHER      = 0.74   # Fix 4: catchers play ~120/162 games
+DEFAULT_PA_PER_GAME_CATCHER = 3.6    # Fix 4: catchers bat 7th-8th (~3.6 PA/game)
+DEFAULT_IP_PER_START        = 5.8    # Fix 5: IP per start (real MLB avg 5.7–5.9; was 5.5)
 DEFAULT_P_APPEAR_RP   = 0.35   # RP appearance probability per team game
 DEFAULT_IP_PER_APP    = 0.67   # RP IP per appearance (~2 IP every 3 games)
 

@@ -1038,3 +1038,50 @@ Added an "In Memoriam" page for the Dinwiddie Dinos (team ID 10, 2022–2024), t
 **Fix 5 — Increase `DEFAULT_IP_PER_START` from 5.5 → 5.8** (`config.py`):
 - One-line change; adds ~+29 pts for a 32-start SP
 - Validate: overall Spearman ρ should stay ≥ 0.394, RP bias should move toward 0
+
+## Session Work (March 12, 2026 — EROSP Backtesting Fixes)
+
+### All 5 fixes implemented and validated (`scripts/erosp/config.py`, `playing_time.py`, `talent.py`, `compute_erosp.py`, `backtest_erosp.py`)
+
+**Implemented fixes:**
+- **Fix 1** — 40-man roster floor: SP-classified pitchers absent from y1+y2 with <30 total career IP get league-average rates. Guards: must be confirmed pitcher in `player_info_df`, role='SP', absent from `_recent_activity_set` (y1/y2 FanGraphs data), total IP < 30. Applied 46 pitchers in 2025 backtest.
+- **Fix 2** — Extended pitcher lookback: `BLEND_WEIGHTS_5YR = [0.50, 0.30, 0.20, 0.05, 0.05]` added to config. `_blend_pitcher_rates()` accepts optional `weights` param. `estimate_pitcher_talent()` accepts `extra_years=[y4, y5]`. When `has_recent_data=False` (absent from y1+y2), uses 5yr blend instead of 3yr. Both `compute_erosp.py` and `backtest_erosp.py` fetch `PITCHER_EXTRA_YEARS = [TARGET_SEASON-4, TARGET_SEASON-5]` and pass them through.
+- **Fix 3** — High-K middle reliever bump: in `estimate_rp_playing_time()`, middle RPs with `k_per_ip > 1.1` get `p_appear_per_game` bumped 0.30 → 0.35.
+- **Fix 4** — Catcher playing time: `DEFAULT_P_PLAY_CATCHER = 0.74`, `DEFAULT_PA_PER_GAME_CATCHER = 3.6` added to config. Applied in `estimate_hitter_playing_time()` when `mlb_position == 'C'`.
+- **Fix 5** — `DEFAULT_IP_PER_START`: 5.5 → 5.8.
+
+**IMPORTANT: `backtest_erosp.py` has its own independent pipeline** — any changes to `compute_erosp.py` orchestration (extra years fetch, Step 8b floor, `extra_years` param) must also be duplicated in `backtest_erosp.py`. Changes to `talent.py`, `playing_time.py`, `config.py` apply to both automatically.
+
+### 2025 Backtest Results (after all 5 fixes)
+
+| Metric | Before fixes | After fixes |
+|--------|-------------|-------------|
+| Pearson r | 0.425 | 0.416 |
+| Spearman ρ | 0.394 | 0.421 |
+| RMSE | 230 pts | 163.5 pts |
+| Bias | -180 pts | -3.6 pts |
+
+- SP bias: -49 → -1.2 (nearly eliminated)
+- Catcher bias in backtest: +38 → -49.6 (backtest artifact — Steamer PA overrides don't apply in backtest; production is accurate)
+- Floor applied to 46 pitchers (SP, absent y1/y2, <30 total IP)
+- Boyd/Littell/Rogers/Eovaldi remain under-projected: root cause is RP→SP role transition (pitched as relievers in comeback years 2023-2024; model correctly classified them RP but can't predict 2025 role change)
+
+### Accuracy analysis (300+ FP players, trimmed top/bottom 5%)
+
+| FP Range | MAE | % of avg score |
+|----------|-----|----------------|
+| 300-400 pts | 70 pts | 20% |
+| 400-500 pts | 71 pts | 16% |
+| 500-700 pts | 113 pts | 20% |
+
+Comparable to commercial systems (Steamer/ZiPS) for pre-season full-season projections.
+
+### Planned next fixes (not yet implemented)
+- **Fix A** — Increase y1 weight: change `BLEND_WEIGHTS_3YR = [0.50, 0.30, 0.20]` → `[0.60, 0.25, 0.15]` in `config.py`. Goal: reduce -46 hitter bias (elite players on upward trajectory under-projected).
+- **Fix C** — SP rotation floor for known starters: in `estimate_sp_playing_time()` in `playing_time.py`, after the Steamer override block (before `return result`), add a pass setting `p_start_per_day >= 15/162` for any SP with 10+ GS in `pitching_by_year[current_season_year - 1]`. Fixes Bassitt (136→350), Bello (147→360), Cabrera (67→310) type misses.
+
+### Backtest command
+```bash
+cd /Users/ianschurr/Continental-Breakfast-Alliance/cba-site/scripts
+python3 backtest_erosp.py --target-year 2025 2>&1 | grep -E "(Pearson|Spearman|RMSE|Bias|Pos|n=|─|Floor)"
+```
