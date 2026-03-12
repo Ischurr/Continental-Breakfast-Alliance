@@ -1,5 +1,5 @@
 import Header from '@/components/Header';
-import MatchupCard from '@/components/MatchupCard';
+import MatchupsClient from '@/components/MatchupsClient';
 import { getAllSeasons, getCurrentSeason } from '@/lib/data-processor';
 
 export default function MatchupsPage() {
@@ -20,6 +20,20 @@ export default function MatchupsPage() {
     .map(Number)
     .sort((a, b) => b - a); // Most recent first
 
+  // Determine the "current" week: last week with any scoring activity, else week 1
+  const currentWeek = (() => {
+    const active = weeks.find(w =>
+      matchupsByWeek[w].some(
+        m => m.winner !== undefined || m.home.totalPoints > 0 || m.away.totalPoints > 0
+      )
+    );
+    return active ?? (weeks.length > 0 ? weeks[weeks.length - 1] : 1); // earliest week if nothing started
+  })();
+
+  // Next scheduled week (one after current)
+  const allWeeksSorted = [...weeks].sort((a, b) => a - b);
+  const nextWeek = allWeeksSorted.find(w => w > currentWeek) ?? null;
+
   return (
     <div className="min-h-screen bg-sky-50">
       <Header />
@@ -34,24 +48,13 @@ export default function MatchupsPage() {
             <p className="text-gray-400 text-sm mt-2">Run the data fetch script to populate matchup history.</p>
           </div>
         ) : (
-          weeks.map(week => (
-            <div key={week} className="mb-10">
-              <h2 className="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
-                <span className="bg-teal-600 text-white text-sm px-3 py-1 rounded-full">
-                  Week {week}
-                </span>
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {matchupsByWeek[week].map(matchup => (
-                  <MatchupCard
-                    key={matchup.id}
-                    matchup={matchup}
-                    teams={currentSeason.teams}
-                  />
-                ))}
-              </div>
-            </div>
-          ))
+          <MatchupsClient
+            matchupsByWeek={matchupsByWeek}
+            weeks={weeks}
+            teams={currentSeason.teams}
+            currentWeek={currentWeek}
+            nextWeek={nextWeek}
+          />
         )}
 
         {/* Historical seasons */}
@@ -68,16 +71,36 @@ export default function MatchupsPage() {
               );
               const totalWeeks = Object.keys(seasonMatchupsByWeek).length;
 
+              // Find regular season winner (best record, tiebreak by PF; exclude Dinos id=10 in 2024)
+              const eligibleStandings = season.standings.filter(
+                s => !(season.year === 2024 && s.teamId === 10)
+              );
+              const regularSeasonWinner = eligibleStandings.reduce((best, s) =>
+                s.wins > best.wins || (s.wins === best.wins && s.pointsFor > best.pointsFor) ? s : best
+              , eligibleStandings[0]);
+              const regularSeasonTeam = season.teams.find(t => t.id === regularSeasonWinner?.teamId);
+              const isSameAsChampion = regularSeasonWinner?.teamId === season.champion;
+
               return (
                 <div key={season.year} className="bg-white rounded-xl p-6 shadow-sm border">
                   <h3 className="text-lg font-bold mb-2">{season.year} Season</h3>
                   <p className="text-sm text-gray-500 mb-3">
                     {season.matchups.length} matchups &bull; {totalWeeks} weeks
                   </p>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-gray-600 mb-1">
                     Champion:{' '}
                     <span className="font-semibold">
                       {season.teams.find(t => t.id === season.champion)?.name ?? 'TBD'}
+                    </span>
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    Regular Season:{' '}
+                    <span className="font-semibold text-gray-600">
+                      {!season.champion
+                        ? 'TBD'
+                        : isSameAsChampion
+                        ? season.teams.find(t => t.id === season.champion)?.name ?? 'TBD'
+                        : regularSeasonTeam?.name ?? 'TBD'}
                     </span>
                   </div>
                 </div>
