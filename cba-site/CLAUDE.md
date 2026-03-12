@@ -992,3 +992,8 @@ Added an "In Memoriam" page for the Dinwiddie Dinos (team ID 10, 2022–2024), t
 - Dinwiddie Dinos (id=10) excluded from regular season winner consideration for 2024 (year they were kicked out)
 - If champion and regular season winner are the same team, both lines still shown
 - **Historical regular season winners**: 2022: Pepperoni Rolls (14-6), 2023: Chinook (14-7, PF tiebreak over Dinos), 2024: Space Cowboys (17-5, same as champion), 2025: Mega Rats (16-6)
+
+### Vacated championship fix on matchups season cards (`app/matchups/page.tsx`)
+- Added `VACATED: Record<number, number> = { 2023: 4 }` inline — same logic as playoffs page
+- 2023 champion now displays as Manhattan Mega Rats (id=4), not Dinwiddie Dinos
+- `championId` used throughout (champion display, regular season winner comparison, TBD check)
