@@ -908,3 +908,14 @@ Added an "In Memoriam" page for the Dinwiddie Dinos (team ID 10, 2022–2024), t
 - Missing ESPN IDs (1,398 players): expected pre-draft; ESPN only returns IDs for rostered players
 - Low start_probability for 6th/7th starters despite good fp_per_start: correct modeling — daily_ev below replacement threshold for limited-start players
 - All other outliers (Judge 734 EROSP, top closers 300+) verified as legitimate projections
+
+## Session Work (March 12, 2026 — Schedule Refresh + Script Bug Fix)
+
+### `scripts/fetch-current.ts` teams.json shape fix
+- **Bug**: script cast `teamsJson` as a plain array and called `.filter()` on it, but `data/teams.json` has shape `{ teams: [...] }` (not a plain array). This caused `TypeError: import_teams.default.filter is not a function` — meaning the daily GitHub Actions cron was failing silently every run.
+- **Fix**: added shape detection: `(teamsJson as { teams?: Array<...> }).teams ?? teamsJson as Array<...>`. Handles both shapes safely.
+
+### 2026 schedule refreshed from ESPN
+- Re-ran `npm run fetch-current` after manual schedule adjustments were made on ESPN
+- Result: 105 matchups across 21 weeks, all 10 teams
+- Verified no back-to-back same-team matchups across all 21 weeks (clean schedule)
