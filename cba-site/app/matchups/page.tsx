@@ -71,6 +71,10 @@ export default function MatchupsPage() {
               );
               const totalWeeks = Object.keys(seasonMatchupsByWeek).length;
 
+              // Apply vacated championship override (2023: Dinos → Mega Rats)
+              const VACATED: Record<number, number> = { 2023: 4 };
+              const championId = VACATED[season.year] ?? season.champion;
+
               // Find regular season winner (best record, tiebreak by PF; exclude Dinos id=10 in 2024)
               const eligibleStandings = season.standings.filter(
                 s => !(season.year === 2024 && s.teamId === 10)
@@ -79,7 +83,7 @@ export default function MatchupsPage() {
                 s.wins > best.wins || (s.wins === best.wins && s.pointsFor > best.pointsFor) ? s : best
               , eligibleStandings[0]);
               const regularSeasonTeam = season.teams.find(t => t.id === regularSeasonWinner?.teamId);
-              const isSameAsChampion = regularSeasonWinner?.teamId === season.champion;
+              const isSameAsChampion = regularSeasonWinner?.teamId === championId;
 
               return (
                 <div key={season.year} className="bg-white rounded-xl p-6 shadow-sm border">
@@ -90,16 +94,16 @@ export default function MatchupsPage() {
                   <div className="text-sm text-gray-600 mb-1">
                     Champion:{' '}
                     <span className="font-semibold">
-                      {season.teams.find(t => t.id === season.champion)?.name ?? 'TBD'}
+                      {season.teams.find(t => t.id === championId)?.name ?? 'TBD'}
                     </span>
                   </div>
                   <div className="text-sm text-gray-500">
                     Regular Season:{' '}
                     <span className="font-semibold text-gray-600">
-                      {!season.champion
+                      {!championId
                         ? 'TBD'
                         : isSameAsChampion
-                        ? season.teams.find(t => t.id === season.champion)?.name ?? 'TBD'
+                        ? season.teams.find(t => t.id === championId)?.name ?? 'TBD'
                         : regularSeasonTeam?.name ?? 'TBD'}
                     </span>
                   </div>
