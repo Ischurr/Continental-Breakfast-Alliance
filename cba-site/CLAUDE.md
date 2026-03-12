@@ -964,3 +964,21 @@ Added an "In Memoriam" page for the Dinwiddie Dinos (team ID 10, 2022–2024), t
 - `AGE_PEAK = 27.0`, `AGE_GROWTH_RATE = 0.009`, `AGE_DECLINE_EARLY = 0.010`, `AGE_DECLINE_LATE = 0.025`
 - `AGE_DECLINE_FAST_THRESHOLD = 32.0`, `AGE_PITCHER_DECLINE_MULT = 1.4`, `AGE_MOD_MIN = 0.65`, `AGE_MOD_MAX = 1.15`
 - `XWOBA_DAMP = 0.5` (was 0.3)
+
+## Session Work (March 12, 2026 — Matchups Page Redesign)
+
+### Matchups page overhaul (`app/matchups/page.tsx`, `components/MatchupsClient.tsx`)
+
+**New behavior:**
+- Default view shows only the **current week** (last week with any scoring activity; falls back to Week 1 pre-season)
+- **"Show previous weeks & upcoming"** collapsible (teal): next week shown first labeled "Upcoming", then all past weeks newest-first
+- **"Show full schedule"** collapsible (indigo, separate): all remaining weeks beyond next, in chronological order — only shown when 2+ future weeks exist
+- **Team filter**: pill selector row (All Teams + one pill per team using `abbrev`). Filters all three sections simultaneously. Selecting an active pill deselects it (toggle).
+
+**Team-filtered full schedule layout:**
+- When a team is selected and full schedule is open, cards render in a `flex flex-wrap justify-center gap-4` container
+- Each card uses `flex-1 min-w-[220px] max-w-[320px]` — full rows stretch edge-to-edge; partial last row is centered (not left-hugging)
+- No week-section headers in this mode — week number already shown in each `MatchupCard` header
+- When no team filter: standard `WeekSection` layout (week header + 3-col grid) unchanged
+
+**Architecture:** `page.tsx` stays server component; all interactivity extracted to `components/MatchupsClient.tsx` (`'use client'`). Server computes `currentWeek` and `nextWeek` and passes them as props.
