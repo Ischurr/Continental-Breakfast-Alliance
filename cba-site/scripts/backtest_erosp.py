@@ -260,18 +260,104 @@ print()
 
 
 # ---------------------------------------------------------------------------
-# STEP 9: Playing time (no Steamer for backtest — use heuristic)
+# STEP 9: Playing time (with Steamer pre-season projections for target year)
 # ---------------------------------------------------------------------------
-print("─── Step 9: Playing time (heuristic, no Steamer) ────────────────")
+print("─── Step 9: Playing time (Steamer pre-season projections) ───────")
+
+import requests as _requests
+
+# Steamer PA projections (batting) — uses season= param for historical archives.
+# Falls back to data/erosp/steamer_raw_bat_{year}.csv if API is rate-limited.
+steamer_pa_map: dict = {}
+_bat_cache = PROJECT_DIR / "data" / "erosp" / f"steamer_raw_bat_{TARGET_SEASON}.csv"
+
+def _load_steamer_bat_from_cache(path: Path) -> dict:
+    df = pd.read_csv(path)
+    df["playerid"] = pd.to_numeric(df["playerid"], errors="coerce")
+    df["PA"]       = pd.to_numeric(df["PA"],       errors="coerce")
+    return dict(zip(df["playerid"].dropna().astype(int), df["PA"].fillna(0)))
+
+try:
+    steamer_bat_url = (
+        f"https://www.fangraphs.com/api/projections"
+        f"?type=steamer&stats=bat&pos=all&team=0&players=0&lg=all&season={TARGET_SEASON}"
+    )
+    resp_bat = _requests.get(steamer_bat_url, timeout=20,
+                             headers={"User-Agent": "Mozilla/5.0"})
+    if resp_bat.status_code == 200:
+        bat_data = resp_bat.json()
+        if bat_data and isinstance(bat_data, list) and len(bat_data) > 50:
+            bat_df = pd.DataFrame(bat_data)
+            if "PA" in bat_df.columns and "playerid" in bat_df.columns:
+                bat_df["playerid"] = pd.to_numeric(bat_df["playerid"], errors="coerce")
+                bat_df["PA"]       = pd.to_numeric(bat_df["PA"],       errors="coerce")
+                steamer_pa_map = dict(
+                    zip(bat_df["playerid"].dropna().astype(int),
+                        bat_df["PA"].fillna(0))
+                )
+                print(f"  Steamer {TARGET_SEASON} PA projections: {len(steamer_pa_map):,} players (live).")
+    else:
+        raise ValueError(f"HTTP {resp_bat.status_code}")
+except Exception as exc:
+    if _bat_cache.exists():
+        steamer_pa_map = _load_steamer_bat_from_cache(_bat_cache)
+        print(f"  Steamer {TARGET_SEASON} PA projections: {len(steamer_pa_map):,} players (cache).")
+    else:
+        print(f"  Steamer batting unavailable ({exc}); using playing-time defaults.")
+
+# Steamer GS/IP projections (pitching) — overrides rotation-tiering heuristic.
+# Falls back to data/erosp/steamer_raw_pit_{year}.csv if API is rate-limited.
+steamer_gs_map: dict = {}
+steamer_ip_map: dict = {}
+_pit_cache = PROJECT_DIR / "data" / "erosp" / f"steamer_raw_pit_{TARGET_SEASON}.csv"
+
+def _load_steamer_pit_from_cache(path: Path) -> tuple:
+    df = pd.read_csv(path)
+    df["playerid"] = pd.to_numeric(df["playerid"], errors="coerce")
+    df["GS"]       = pd.to_numeric(df["GS"],       errors="coerce")
+    df["IP"]       = pd.to_numeric(df["IP"],       errors="coerce")
+    valid = df.dropna(subset=["playerid", "GS"])
+    gs_map = dict(zip(valid["playerid"].astype(int), valid["GS"].fillna(0)))
+    ip_map = dict(zip(valid["playerid"].astype(int), valid["IP"].fillna(0)))
+    return gs_map, ip_map
+
+try:
+    steamer_pit_url = (
+        f"https://www.fangraphs.com/api/projections"
+        f"?type=steamer&stats=pit&pos=all&team=0&players=0&lg=all&season={TARGET_SEASON}"
+    )
+    resp_pit = _requests.get(steamer_pit_url, timeout=20,
+                             headers={"User-Agent": "Mozilla/5.0"})
+    if resp_pit.status_code == 200:
+        pit_data = resp_pit.json()
+        if pit_data and isinstance(pit_data, list) and len(pit_data) > 50:
+            pit_df = pd.DataFrame(pit_data)
+            if "GS" in pit_df.columns and "IP" in pit_df.columns and "playerid" in pit_df.columns:
+                pit_df["playerid"] = pd.to_numeric(pit_df["playerid"], errors="coerce")
+                pit_df["GS"]       = pd.to_numeric(pit_df["GS"],       errors="coerce")
+                pit_df["IP"]       = pd.to_numeric(pit_df["IP"],       errors="coerce")
+                valid_pit = pit_df.dropna(subset=["playerid", "GS"])
+                steamer_gs_map = dict(zip(valid_pit["playerid"].astype(int), valid_pit["GS"].fillna(0)))
+                steamer_ip_map = dict(zip(valid_pit["playerid"].astype(int), valid_pit["IP"].fillna(0)))
+                print(f"  Steamer {TARGET_SEASON} GS/IP projections: {len(steamer_gs_map):,} pitchers (live).")
+    else:
+        raise ValueError(f"HTTP {resp_pit.status_code}")
+except Exception as exc:
+    if _pit_cache.exists():
+        steamer_gs_map, steamer_ip_map = _load_steamer_pit_from_cache(_pit_cache)
+        print(f"  Steamer {TARGET_SEASON} GS/IP projections: {len(steamer_gs_map):,} pitchers (cache).")
+    else:
+        print(f"  Steamer pitching unavailable ({exc}); using rotation heuristic.")
+
 playing_time_df = build_playing_time(
     hitter_talent_df  = hitter_talent_df,
     pitcher_talent_df = pitcher_talent_df,
     batting_by_year   = batting_by_year,
     pitching_by_year  = pitching_by_year,
     target_season     = TARGET_SEASON,
-    steamer_pa_map    = None,
-    steamer_gs_map    = None,
-    steamer_ip_map    = None,
+    steamer_pa_map    = steamer_pa_map if steamer_pa_map else None,
+    steamer_gs_map    = steamer_gs_map if steamer_gs_map else None,
+    steamer_ip_map    = steamer_ip_map if steamer_ip_map else None,
 )
 print()
 

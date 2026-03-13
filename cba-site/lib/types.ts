@@ -134,6 +134,12 @@ export interface TeamMetadata {
   primaryColor: string;
   secondaryColor: string;
   bio?: string;
+  bgPlayers?: {
+    left?: string;
+    right?: string;
+    /** Set true to mirror the right image so both players face inward */
+    mirrorRight?: boolean;
+  };
 }
 
 export interface TeamContentOverride {

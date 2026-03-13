@@ -230,6 +230,37 @@ def estimate_rp_playing_time(
             if float(row.get("k_per_ip", 0.0)) > 1.1:
                 result.at[mlbam_id, "p_appear_per_game"] = 0.35
 
+    # Fix F: Multi-year closer certainty — players with sv/g >= 0.30 in BOTH
+    # prior two years get forced to closer-tier regardless of blended sv_per_g.
+    # Targets confirmed closers whose blended rate dipped due to injury/team change.
+    y1_year = current_season_year - 1
+    y2_year = current_season_year - 2
+    y1_df = pitching_by_year.get(y1_year, pd.DataFrame())
+    y2_df = pitching_by_year.get(y2_year, pd.DataFrame())
+
+    if not y1_df.empty and not y2_df.empty:
+        confirmed_closer_count = 0
+        for mlbam_id, row in rp_df.iterrows():
+            fgid = int(row.get("fgid", 0))
+            if not fgid:
+                continue
+            y1_match = y1_df[y1_df["IDfg"] == fgid]
+            y2_match = y2_df[y2_df["IDfg"] == fgid]
+            if y1_match.empty or y2_match.empty:
+                continue
+            y1_r = y1_match.iloc[0]
+            y2_r = y2_match.iloc[0]
+            y1_g = max(float(y1_r.get("G", 1) or 1), 1)
+            y2_g = max(float(y2_r.get("G", 1) or 1), 1)
+            y1_svpg = float(y1_r.get("SV", 0) or 0) / y1_g
+            y2_svpg = float(y2_r.get("SV", 0) or 0) / y2_g
+            if y1_svpg >= 0.30 and y2_svpg >= 0.30:
+                result.at[mlbam_id, "rp_role"]           = "closer"
+                result.at[mlbam_id, "p_appear_per_game"] = 0.40
+                confirmed_closer_count += 1
+        if confirmed_closer_count:
+            print(f"    Fix F: {confirmed_closer_count} confirmed multi-year closers (sv/g≥0.30 in y1+y2).")
+
     return result
 
 
