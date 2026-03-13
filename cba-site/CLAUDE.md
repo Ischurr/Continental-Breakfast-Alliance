@@ -1085,3 +1085,30 @@ Comparable to commercial systems (Steamer/ZiPS) for pre-season full-season proje
 cd /Users/ianschurr/Continental-Breakfast-Alliance/cba-site/scripts
 python3 backtest_erosp.py --target-year 2025 2>&1 | grep -E "(Pearson|Spearman|RMSE|Bias|Pos|n=|─|Floor)"
 ```
+
+## Session Work (March 12, 2026 — Team Page Background Player Photos)
+
+### Background player photos on team pages (`data/teams.json`, `app/teams/[teamId]/page.tsx`)
+
+**Feature**: Each team page can show two full-screen background player photos (one left, one right) that stay fixed as the user scrolls. Content cards sit on top.
+
+**Data shape** (`data/teams.json`):
+```json
+"bgPlayers": {
+  "left": "https://...",
+  "right": "https://...",
+  "mirrorRight": false
+}
+```
+- `mirrorRight: true` flips the right image horizontally so players naturally face each other
+- Only teams with a `bgPlayers` entry show photos — all other team pages are unaffected
+- Currently set: Space Cowboys (id=1)
+
+**Implementation** (`app/teams/[teamId]/page.tsx`):
+- Two `fixed` divs (`w-1/2` each), one anchored `left-0` and one `right-0`, spanning `top-0 bottom-0`
+- Each contains a full-size `<img>` with `object-cover` + `opacity-35`
+- CSS `mask-image` fades the inner 25% of each panel (`black 75% → rgba(0,0,0,0.2) 100%`) — no hard seam
+- `z-0` keeps photos behind all content; Header wrapped in `z-20` so nav dropdowns render above both photos and main content (`z-10`)
+- Page background changed to `bg-sky-50` (unchanged); content cards darkened to `bg-slate-200` to contrast against the brighter photo background
+- To add photos for another team: add `bgPlayers` entry to `data/teams.json` — no code changes needed
+- **Text contrast**: all section `h2` headings explicitly set to `text-gray-900`; section subtitles darkened from `text-gray-500/400` → `text-gray-700/600` so they're readable over photo backgrounds

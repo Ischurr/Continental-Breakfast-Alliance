@@ -301,7 +301,7 @@ export default async function TeamPage({ params }: Props) {
         {/* Sky Chiefs Uniforms */}
         {id === 7 && (
           <div className="mb-10">
-            <h2 className="text-2xl font-bold mb-4">2026 Uniforms</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">2026 Uniforms</h2>
             <div className="flex gap-6 items-stretch w-fit">
               <div className="rounded-xl overflow-hidden shadow-sm border border-gray-200 flex-shrink-0 w-72">
                 <Image
@@ -325,8 +325,8 @@ export default async function TeamPage({ params }: Props) {
         {/* Emus Fun Franchise Facts */}
         {id === 6 && (
           <div className="mb-10">
-            <h2 className="text-2xl font-bold mb-1">Fun Franchise Facts</h2>
-            <p className="text-sm text-gray-500 mb-4">The Delmarva Peninsula's Almost Winningest Baseball Team, Established 2022</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-1">Fun Franchise Facts</h2>
+            <p className="text-sm text-gray-700 mb-4">The Delmarva Peninsula's Almost Winningest Baseball Team, Established 2022</p>
             <div className="rounded-xl overflow-hidden shadow-sm border border-gray-200">
               <div className="px-4 py-3" style={{ backgroundColor: '#6C5CE7' }}>
                 <p className="text-sm font-bold text-white leading-tight">Delmarva Emus (née Shureburds)</p>
@@ -341,8 +341,8 @@ export default async function TeamPage({ params }: Props) {
         {/* WVPR Game Day Traditions */}
         {id === 3 && (
           <div className="mb-10">
-            <h2 className="text-2xl font-bold mb-1">Game Day Traditions</h2>
-            <p className="text-sm text-gray-500 mb-4">Tim Elko Field at Montani Semper Liberi Park · Morgantown, WV</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-1">Game Day Traditions</h2>
+            <p className="text-sm text-gray-700 mb-4">Tim Elko Field at Montani Semper Liberi Park · Morgantown, WV</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               {WVPR_TRADITIONS.map(t => (
                 <div key={t.name} className="rounded-xl overflow-hidden shadow-sm border border-gray-200 flex flex-col">
@@ -364,7 +364,7 @@ export default async function TeamPage({ params }: Props) {
             {topPlayersAllTime.length > 0 && (
               <div>
                 <div className="mb-4">
-                  <h2 className="text-2xl font-bold mb-1">Top Players All-Time</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-1">Top Players All-Time</h2>
                   {/* invisible spacer to match height of keepers subtitle when present */}
                   {(suggestedKeepers.length > 0) && (
                     <p className="text-xs invisible">placeholder</p>
@@ -401,8 +401,8 @@ export default async function TeamPage({ params }: Props) {
               return (
               <div>
                 <div className="mb-4">
-                  <h2 className="text-2xl font-bold mb-1">{showSuggested2027 ? 'Suggested 2027 Keepers' : (keeperOverrides as Record<string, string[]>)[String(id)] ? '2026 Keepers' : 'Suggested 2026 Keepers'}</h2>
-                  <p className="text-xs text-gray-400 uppercase tracking-wide">{showSuggested2027 ? 'Ranked by 2026 season stats' : (keeperOverrides as Record<string, string[]>)[String(id)] ? 'Confirmed keepers' : 'Ranked by projected 2026 fantasy points'}</p>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-1">{showSuggested2027 ? 'Suggested 2027 Keepers' : (keeperOverrides as Record<string, string[]>)[String(id)] ? '2026 Keepers' : 'Suggested 2026 Keepers'}</h2>
+                  <p className="text-xs text-gray-600 uppercase tracking-wide">{showSuggested2027 ? 'Ranked by 2026 season stats' : (keeperOverrides as Record<string, string[]>)[String(id)] ? 'Confirmed keepers' : 'Ranked by projected 2026 fantasy points'}</p>
                 </div>
                 <div className="flex flex-col gap-2">
                   {suggestedKeepers.map((p, i) => (
@@ -444,7 +444,7 @@ export default async function TeamPage({ params }: Props) {
             {actualKeepers2026.length > 0 && (
               <div>
                 <div className="mb-4">
-                  <h2 className="text-2xl font-bold mb-1">2026 Keepers</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-1">2026 Keepers</h2>
                 </div>
                 <div className="flex flex-col gap-2">
                   {actualKeepers2026.map((p, i) => (
@@ -483,7 +483,7 @@ export default async function TeamPage({ params }: Props) {
         {/* Current roster field diagram — falls back to keepers pre-draft */}
         {(currentRoster.length > 0 || suggestedKeepers.length > 0) && (
           <div className="mb-10">
-            <h2 className="text-2xl font-bold mb-4">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
               {currentRoster.length > 0 ? `${currentSeason.year} Roster` : '2026 Keepers'}
             </h2>
             <TeamBaseballField
@@ -505,8 +505,8 @@ export default async function TeamPage({ params }: Props) {
         {/* EROSP Projections */}
         {erospMeta && (
           <div className="mb-10">
-            <h2 className="text-2xl font-bold mb-1">{erospMeta.season} EROSP Projections</h2>
-            <p className="text-sm text-gray-500 mb-4">
+            <h2 className="text-2xl font-bold text-gray-900 mb-1">{erospMeta.season} EROSP Projections</h2>
+            <p className="text-sm text-gray-700 mb-4">
               Expected Rest of Season Fantasy Points · {erospMeta.games_remaining} games remaining
             </p>
             {teamErospPlayers.length > 0 ? (
@@ -529,7 +529,7 @@ export default async function TeamPage({ params }: Props) {
         {/* WVPR Farm System */}
         {id === 3 && (
           <div className="mb-10">
-            <h2 className="text-2xl font-bold mb-4">Farm System</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Farm System</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {WVPR_AFFILIATES.map(a => (
                 <div key={a.name} className="bg-slate-200 rounded-xl border border-gray-200 shadow-sm overflow-hidden">
@@ -559,7 +559,7 @@ export default async function TeamPage({ params }: Props) {
         )}
 
         {/* Season-by-season history */}
-        <h2 className="text-2xl font-bold mb-5">Season History</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-5">Season History</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
           {[...seasonHistory].reverse().map(({ year, standing, finish, madePlayoffs, inLoserBracket, wasChampion }) => {
             const topPlayer = getTeamTopPlayerForYear(id, year);
@@ -671,7 +671,7 @@ export default async function TeamPage({ params }: Props) {
         />
 
         {/* Head-to-Head records */}
-        <h2 className="text-2xl font-bold mb-5">Head-to-Head Records</h2>
+        <h2 className="text-2xl font-bold text-gray-900 mb-5">Head-to-Head Records</h2>
         <div className="overflow-x-auto overflow-y-hidden">
           <table className="min-w-full bg-slate-200 shadow-md rounded-lg overflow-hidden">
             <thead className="bg-gray-800 text-white text-sm">
