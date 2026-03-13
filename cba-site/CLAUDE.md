@@ -1112,6 +1112,16 @@ python3 backtest_erosp.py --target-year 2025 2>&1 | grep -E "(Pearson|Spearman|R
 - Page background changed to `bg-sky-50` (unchanged); content cards darkened to `bg-slate-200` to contrast against the brighter photo background
 - To add photos for another team: add `bgPlayers` entry to `data/teams.json` — no code changes needed
 - **Text contrast**: all section `h2` headings explicitly set to `text-gray-900`; section subtitles darkened from `text-gray-500/400` → `text-gray-700/600` so they're readable over photo backgrounds
+- **Teams with bgPlayers set**: Space Cowboys (id=1), Portland Chinook (id=2)
+
+## Session Work (March 13, 2026 — Background Photo Updates)
+
+### Background player photo changes (`data/teams.json`)
+- **Space Cowboys (id=1)**: replaced right photo with `https://assets-cms.thescore.com/uploads/image/file/536871/w768xh576_GettyImages-1243900642.jpg?ts=1665534169`
+- **Portland Chinook (id=2)**: added `bgPlayers` for the first time
+  - left: `https://pbs.twimg.com/media/GaydkemXgAA17T0.jpg`
+  - right: `https://www.krqe.com/wp-content/uploads/sites/12/2025/09/68d4ece735ebe9.07259571.jpeg?strip=1`
+  - `mirrorRight: false`
 
 ## Session Work (March 12, 2026 — EROSP Steamer Benchmark + Fixes D/F)
 
