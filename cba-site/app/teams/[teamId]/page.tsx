@@ -183,11 +183,50 @@ export default async function TeamPage({ params }: Props) {
     teamErospPlayers.filter(p => p.role === 'RP').map(p => p.name)
   );
 
-  return (
-    <div className="min-h-screen bg-sky-50">
-      <Header />
+  const bgLeft  = meta?.bgPlayers?.left;
+  const bgRight = meta?.bgPlayers?.right;
+  const mirrorRight = meta?.bgPlayers?.mirrorRight ?? true;
 
-      <main className="container mx-auto px-4 py-12">
+  return (
+    <div className="min-h-screen bg-sky-50 relative overflow-x-hidden">
+      {/* Full-height background player photos */}
+      {bgLeft && (
+        <div
+          className="fixed left-0 top-0 bottom-0 w-1/2 pointer-events-none select-none z-0"
+          aria-hidden="true"
+          style={{
+            WebkitMaskImage: 'linear-gradient(to right, black 75%, rgba(0,0,0,0.2) 100%)',
+            maskImage:        'linear-gradient(to right, black 75%, rgba(0,0,0,0.2) 100%)',
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={bgLeft} alt="" className="w-full h-full object-cover object-left-top opacity-35" />
+        </div>
+      )}
+      {bgRight && (
+        <div
+          className="fixed right-0 top-0 bottom-0 w-1/2 pointer-events-none select-none z-0"
+          aria-hidden="true"
+          style={{
+            WebkitMaskImage: 'linear-gradient(to left, black 75%, rgba(0,0,0,0.2) 100%)',
+            maskImage:        'linear-gradient(to left, black 75%, rgba(0,0,0,0.2) 100%)',
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={bgRight}
+            alt=""
+            className="w-full h-full object-cover object-right-top opacity-35"
+            style={mirrorRight ? { transform: 'scaleX(-1)' } : undefined}
+          />
+        </div>
+      )}
+
+      <div className="relative z-20">
+        <Header />
+      </div>
+
+      <main className="container mx-auto px-4 py-12 relative z-10">
         {/* Team header */}
         <div
           className="rounded-xl p-8 mb-10 text-white shadow-lg"
@@ -244,7 +283,7 @@ export default async function TeamPage({ params }: Props) {
               { label: 'Saccko Finishes', value: allTimeStats.loserBracketAppearances },
               { label: 'Avg Finish', value: allTimeStats.averageFinish.toFixed(1) },
             ].map(({ label, value }) => (
-              <div key={label} className="bg-white rounded-xl p-5 shadow-sm border text-center">
+              <div key={label} className="bg-slate-200 rounded-xl p-5 shadow-sm border text-center">
                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{label}</p>
                 <p className="text-2xl font-bold text-gray-800">{value}</p>
               </div>
@@ -274,7 +313,7 @@ export default async function TeamPage({ params }: Props) {
                   unoptimized
                 />
               </div>
-              <div className="rounded-xl border border-gray-200 shadow-sm bg-white px-5 py-4 w-72">
+              <div className="rounded-xl border border-gray-200 shadow-sm bg-slate-200 px-5 py-4 w-72">
                 <p className="text-sm text-gray-700 leading-relaxed">
                   The Sky Chiefs unveiled their 2026 uniform set this offseason, headlined by a new city connect alternate. The design pays homage to Griffiss Air Force Base — once a key hub and air depot for the Strategic Air Command — drawing on the base&apos;s deep ties to the Syracuse area and its legacy in Cold War-era aviation history.
                 </p>
@@ -333,7 +372,7 @@ export default async function TeamPage({ params }: Props) {
                 </div>
                 <div className="flex flex-col gap-2">
                   {topPlayersAllTime.map((p, i) => (
-                    <div key={p.playerName} className="bg-white rounded-lg border px-4 py-3 flex items-center gap-4 hover:bg-sky-50 transition">
+                    <div key={p.playerName} className="bg-slate-200 rounded-lg border px-4 py-3 flex items-center gap-4 hover:bg-sky-50 transition">
                       <span className="text-sm font-bold text-gray-300 w-5 flex-shrink-0">{i + 1}</span>
                       {p.photoUrl && (
                         <Image
@@ -367,7 +406,7 @@ export default async function TeamPage({ params }: Props) {
                 </div>
                 <div className="flex flex-col gap-2">
                   {suggestedKeepers.map((p, i) => (
-                    <div key={p.playerId || p.playerName} className="bg-white rounded-lg border px-4 py-3 flex items-center gap-4 hover:bg-sky-50 transition">
+                    <div key={p.playerId || p.playerName} className="bg-slate-200 rounded-lg border px-4 py-3 flex items-center gap-4 hover:bg-sky-50 transition">
                       <span className="text-sm font-bold text-gray-300 w-5 flex-shrink-0">{i + 1}</span>
                       {p.photoUrl && (
                         <Image
@@ -409,7 +448,7 @@ export default async function TeamPage({ params }: Props) {
                 </div>
                 <div className="flex flex-col gap-2">
                   {actualKeepers2026.map((p, i) => (
-                    <div key={p.playerId} className="bg-white rounded-lg border px-4 py-3 flex items-center gap-4 hover:bg-sky-50 transition">
+                    <div key={p.playerId} className="bg-slate-200 rounded-lg border px-4 py-3 flex items-center gap-4 hover:bg-sky-50 transition">
                       <span className="text-sm font-bold text-gray-300 w-5 flex-shrink-0">{i + 1}</span>
                       {p.photoUrl && (
                         <Image
@@ -477,7 +516,7 @@ export default async function TeamPage({ params }: Props) {
                 showTeamColumn={false}
               />
             ) : (
-              <div className="bg-white rounded-xl border shadow-sm p-6 text-center text-gray-400 text-sm">
+              <div className="bg-slate-200 rounded-xl border shadow-sm p-6 text-center text-gray-400 text-sm">
                 No EROSP data for this team's roster yet.
                 {!erospMeta.season_started && (
                   <span> EROSP data becomes more accurate once the season starts.</span>
@@ -493,7 +532,7 @@ export default async function TeamPage({ params }: Props) {
             <h2 className="text-2xl font-bold mb-4">Farm System</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {WVPR_AFFILIATES.map(a => (
-                <div key={a.name} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                <div key={a.name} className="bg-slate-200 rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                   <div className="px-5 py-4" style={{ backgroundColor: a.primaryColor }}>
                     <span className="inline-block bg-white/20 text-white text-[11px] font-bold px-2 py-0.5 rounded-full mb-2 tracking-wide">
                       {a.level}
@@ -528,7 +567,7 @@ export default async function TeamPage({ params }: Props) {
             return (
             <div
               key={year}
-              className={`bg-white rounded-xl p-6 shadow-sm border ${
+              className={`bg-slate-200 rounded-xl p-6 shadow-sm border ${
                 wasChampion ? 'border-yellow-400' : madePlayoffs ? 'border-green-300' : inLoserBracket ? 'border-red-200' : ''
               }`}
             >
@@ -634,7 +673,7 @@ export default async function TeamPage({ params }: Props) {
         {/* Head-to-Head records */}
         <h2 className="text-2xl font-bold mb-5">Head-to-Head Records</h2>
         <div className="overflow-x-auto overflow-y-hidden">
-          <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+          <table className="min-w-full bg-slate-200 shadow-md rounded-lg overflow-hidden">
             <thead className="bg-gray-800 text-white text-sm">
               <tr>
                 <th className="px-4 py-3 text-left">Opponent</th>
@@ -698,7 +737,7 @@ export default async function TeamPage({ params }: Props) {
                 return (
                   <div
                     key={post.id}
-                    className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm"
+                    className="bg-slate-200 rounded-xl border border-gray-200 p-5 shadow-sm"
                     style={{ borderLeftColor: authorMeta?.primaryColor ?? '#e5e7eb', borderLeftWidth: 4, maxWidth: 520, flex: '1 1 300px' }}
                   >
                     <div className="flex items-start justify-between gap-3 mb-2">
