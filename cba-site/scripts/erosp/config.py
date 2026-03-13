@@ -91,7 +91,7 @@ RP_DAILY_STARTS  = 3   # start top 3 RPs each day
 # ---------------------------------------------------------------------------
 # Historical data weighting
 # ---------------------------------------------------------------------------
-BLEND_WEIGHTS_3YR = [0.50, 0.30, 0.20]
+BLEND_WEIGHTS_3YR = [0.60, 0.25, 0.15]
 BLEND_WEIGHTS_2YR = [0.60, 0.40]
 BLEND_WEIGHTS_5YR = [0.50, 0.30, 0.20, 0.05, 0.05]   # Fix 2: extended lookback (y4/y5 low-weight)
 MEAN_REGRESSION   = 0.15   # pull 1-year samples 15% toward league mean

@@ -166,6 +166,26 @@ def estimate_sp_playing_time(
                     float(np.clip(ip_per_start, 3.0, 9.0)), 2
                 )
 
+    # Fix C: Floor for known starters — any SP with 10+ GS in the prior year
+    # gets at least a 6th-starter slot (p_start_per_day >= 15/162 ≈ 0.0926).
+    # Prevents the rotation-quality sort from projecting legitimate starters
+    # at emergency/fringe levels (3/162) when their history supports more.
+    prior_year = current_season_year - 1
+    if prior_year in pitching_by_year:
+        prior_df = pitching_by_year[prior_year]
+        for mlbam_id, row in sp_df.iterrows():
+            fgid = int(row.get("fgid", 0))
+            if not fgid:
+                continue
+            prior_match = prior_df[prior_df["IDfg"] == fgid]
+            if prior_match.empty:
+                continue
+            prior_gs = float(prior_match.iloc[0].get("GS", 0))
+            if prior_gs >= 10:
+                floor = round(15.0 / FULL_SEASON_GAMES, 4)
+                if result.at[mlbam_id, "p_start_per_day"] < floor:
+                    result.at[mlbam_id, "p_start_per_day"] = floor
+
     return result
 
 
