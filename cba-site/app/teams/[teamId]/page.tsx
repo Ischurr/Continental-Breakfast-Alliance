@@ -186,6 +186,8 @@ export default async function TeamPage({ params }: Props) {
   const bgLeft  = meta?.bgPlayers?.left;
   const bgRight = meta?.bgPlayers?.right;
   const mirrorRight = meta?.bgPlayers?.mirrorRight ?? true;
+  const bgLeftPosition  = (meta?.bgPlayers as { objectPositionLeft?: string })?.objectPositionLeft  ?? 'left top';
+  const bgRightPosition = (meta?.bgPlayers as { objectPositionRight?: string })?.objectPositionRight ?? 'right top';
 
   return (
     <div className="min-h-screen bg-sky-50 relative overflow-x-hidden">
@@ -200,7 +202,7 @@ export default async function TeamPage({ params }: Props) {
           }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={bgLeft} alt="" className="w-full h-full object-cover object-left-top opacity-35" />
+          <img src={bgLeft} alt="" className="w-full h-full object-cover opacity-35" style={{ objectPosition: bgLeftPosition }} />
         </div>
       )}
       {bgRight && (
@@ -216,8 +218,8 @@ export default async function TeamPage({ params }: Props) {
           <img
             src={bgRight}
             alt=""
-            className="w-full h-full object-cover object-right-top opacity-35"
-            style={mirrorRight ? { transform: 'scaleX(-1)' } : undefined}
+            className="w-full h-full object-cover opacity-35"
+            style={{ objectPosition: bgRightPosition, ...(mirrorRight ? { transform: 'scaleX(-1)' } : {}) }}
           />
         </div>
       )}

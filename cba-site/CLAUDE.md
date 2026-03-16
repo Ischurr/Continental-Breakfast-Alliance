@@ -1172,3 +1172,20 @@ python3 backtest_erosp.py --target-year 2025 2>&1 | grep -E "(Pearson|Spearman|R
 
 ### Sticky header
 - Added `sticky top-0 z-50` to the `<header>` element — nav bar follows the user as they scroll
+
+## Session Work (March 15, 2026 — Background Player Photos Expanded)
+
+### `bgPlayers` added to all remaining teams (`data/teams.json`)
+- Every team now has a `bgPlayers` entry (all 10 active teams + the 3 already set from prior sessions)
+- **Manhattan Mega Rats (id=4)**: left = Soto CNN photo, right = Guerrero Insider photo; `mirrorRight: false`
+- **Delmarva Emus (id=6)**: left = Yahoo/SBNation photo, right = USA Today photo; `mirrorRight: false`
+- **Syracuse Sky Chiefs (id=7)**: left = Twitter/X photo, right = USA Today Judge photo; `mirrorRight: false`
+- **Ghent Whistlepigs (id=8)**: left = MLB static (mlbam 680757), right = MLB static (mlbam 701762); `mirrorRight: false`
+- **North Georgia Fuzzy Bottoms (id=9)**: left = LA Times/Brightspot photo, right = Yahoo/SBNation Bobby Witt Jr. photo; `objectPositionRight: "center top"` to center the crop on the player; `mirrorRight: false`
+- **Bristol Banshees (id=10)**: left = Twitter/X photo, right = MLB static Soto (mlbam 669373); `mirrorRight: false`
+- **Ft. Meade Folksy Ferrets (id=11)**: left = MLB static (mlbam 665489), right = USA Today 2026 photo; `mirrorRight: false`
+
+### `objectPositionRight` gotcha
+- Default right panel value is `"right top"` (equivalent to `"100% top"`) — already the rightmost crop point
+- Setting `"75%"`, `"85%"`, `"95%"` all move the crop LEFT (toward center), not further right
+- If a player is in the center of the source image, use `"center top"` to pan left and show them
