@@ -446,7 +446,9 @@ export interface TeamRecords {
   worstScoringSeasonPF: TeamSeasonRecord | null;
   // Total player-season appearances: same player on roster across 3 seasons = 3
   totalRosterEntries: number;
-  // Best waiver/FA pickup (acquisitionType === 'ADD')
+  // Best draft pick (acquisitionType === 'DRAFT'), cumulative career pts
+  bestDraftPick: TeamBestPickup | null;
+  // Best waiver/FA pickup (acquisitionType === 'ADD'), cumulative career pts
   bestPickup: TeamBestPickup | null;
   // Best player acquired via trade (acquisitionType === 'TRADE')
   bestTrade: TeamBestPickup | null;
@@ -461,9 +463,45 @@ export function getTeamRecords(teamId: number): TeamRecords {
   let highWeek: TeamWeekRecord | null = null;
   let lowWeek: TeamWeekRecord | null = null;
   let totalRosterEntries = 0;
-  let bestPickup: TeamBestPickup | null = null;
   let bestTrade: TeamBestPickup | null = null;
   const allSeasons = getAllSeasons();
+
+  // Helper: cumulative career pts for any player first acquired via one of the given types
+  interface AcqTotals { totalPoints: number; position: string; photoUrl?: string; firstYear: number }
+  function bestByAcquisition(types: string[]): TeamBestPickup | null {
+    const ever = new Set<string>();
+    for (const season of seasons) {
+      const roster = season.rosters?.find(r => r.teamId === teamId);
+      if (!roster) continue;
+      for (const player of roster.players) {
+        if (types.includes(player.acquisitionType ?? '')) ever.add(player.playerName);
+      }
+    }
+    const totals = new Map<string, AcqTotals>();
+    for (const season of seasons) {
+      const roster = season.rosters?.find(r => r.teamId === teamId);
+      if (!roster) continue;
+      for (const player of roster.players) {
+        if (!ever.has(player.playerName) || player.totalPoints <= 0) continue;
+        const ex = totals.get(player.playerName);
+        if (ex) {
+          ex.totalPoints += player.totalPoints;
+          if (season.year < ex.firstYear) ex.firstYear = season.year;
+        } else {
+          totals.set(player.playerName, { totalPoints: player.totalPoints, position: player.position, photoUrl: player.photoUrl, firstYear: season.year });
+        }
+      }
+    }
+    let best: TeamBestPickup | null = null;
+    for (const [playerName, data] of totals) {
+      if (!best || data.totalPoints > best.totalPoints)
+        best = { playerName, position: data.position, totalPoints: data.totalPoints, photoUrl: data.photoUrl, year: data.firstYear };
+    }
+    return best;
+  }
+
+  const bestDraftPick = bestByAcquisition(['DRAFT']);
+  let bestPickup: TeamBestPickup | null = bestByAcquisition(['ADD']);
 
   for (const season of seasons) {
     const roster = season.rosters?.find(r => r.teamId === teamId);
@@ -471,17 +509,6 @@ export function getTeamRecords(teamId: number): TeamRecords {
       totalRosterEntries += roster.players.length;
       for (const player of roster.players) {
         if (player.totalPoints <= 0) continue;
-        if (player.acquisitionType === 'ADD') {
-          if (!bestPickup || player.totalPoints > bestPickup.totalPoints) {
-            bestPickup = {
-              playerName: player.playerName,
-              position: player.position,
-              totalPoints: player.totalPoints,
-              photoUrl: player.photoUrl,
-              year: season.year,
-            };
-          }
-        }
         if (player.acquisitionType === 'TRADE') {
           if (!bestTrade || player.totalPoints > bestTrade.totalPoints) {
             // Try to find which team had this player the prior season
@@ -547,7 +574,7 @@ export function getTeamRecords(teamId: number): TeamRecords {
     if (!worstScoringSeasonPF || s.pf < worstScoringSeasonPF.pf) worstScoringSeasonPF = s;
   }
 
-  return { highWeek, lowWeek, bestSeason, worstSeason, bestScoringSeasonPF, worstScoringSeasonPF, totalRosterEntries, bestPickup, bestTrade };
+  return { highWeek, lowWeek, bestSeason, worstSeason, bestScoringSeasonPF, worstScoringSeasonPF, totalRosterEntries, bestDraftPick, bestPickup, bestTrade };
 }
 
 // Returns top N historically high-scoring players who are NOT on any current roster.

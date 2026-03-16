@@ -168,8 +168,8 @@ export default async function TeamPage({ params }: Props) {
     }
   } catch { /* FA data unavailable */ }
 
-  // Run Suggested Moves engine
-  const suggestedMovesResult = erospPlayers.length > 0
+  // Run Suggested Moves engine — only show post-draft
+  const suggestedMovesResult = erospPlayers.length > 0 && !showSuggestedKeepers
     ? getSuggestedMoves({
         targetTeamId:   id,
         erospPlayers,
@@ -188,6 +188,8 @@ export default async function TeamPage({ params }: Props) {
   const mirrorRight = meta?.bgPlayers?.mirrorRight ?? true;
   const bgLeftPosition  = (meta?.bgPlayers as { objectPositionLeft?: string })?.objectPositionLeft  ?? 'left top';
   const bgRightPosition = (meta?.bgPlayers as { objectPositionRight?: string })?.objectPositionRight ?? 'right top';
+  const bgTranslateYLeft  = (meta?.bgPlayers as { bgTranslateYLeft?: number })?.bgTranslateYLeft  ?? 0;
+  const bgTranslateYRight = (meta?.bgPlayers as { bgTranslateYRight?: number })?.bgTranslateYRight ?? 0;
 
   return (
     <div className="min-h-screen bg-sky-50 relative overflow-x-hidden">
@@ -202,7 +204,7 @@ export default async function TeamPage({ params }: Props) {
           }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={bgLeft} alt="" className="w-full h-full object-cover opacity-35" style={{ objectPosition: bgLeftPosition }} />
+          <img src={bgLeft} alt="" className="w-full h-full object-cover opacity-35" style={{ objectPosition: bgLeftPosition, ...(bgTranslateYLeft ? { transform: `translateY(${bgTranslateYLeft}px)` } : {}) }} />
         </div>
       )}
       {bgRight && (
@@ -219,7 +221,7 @@ export default async function TeamPage({ params }: Props) {
             src={bgRight}
             alt=""
             className="w-full h-full object-cover opacity-35"
-            style={{ objectPosition: bgRightPosition, ...(mirrorRight ? { transform: 'scaleX(-1)' } : {}) }}
+            style={{ objectPosition: bgRightPosition, transform: [mirrorRight ? 'scaleX(-1)' : '', bgTranslateYRight ? `translateY(${bgTranslateYRight}px)` : ''].filter(Boolean).join(' ') || undefined }}
           />
         </div>
       )}
@@ -670,6 +672,7 @@ export default async function TeamPage({ params }: Props) {
           totalSeasons={seasonHistory.length}
           teamId={id}
           teamColor={meta?.primaryColor ?? '#0f766e'}
+          championships={allTimeStats?.championships ?? 0}
         />
 
         {/* Head-to-Head records */}

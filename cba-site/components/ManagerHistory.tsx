@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import { TeamRecords, TeamBestPickup } from '@/lib/data-processor';
+
 import { TrashTalkPost } from '@/lib/types';
 import teamsMetadata from '@/data/teams.json';
 
@@ -10,6 +11,7 @@ interface Props {
   totalSeasons: number;
   teamId: number;
   teamColor: string;
+  championships: number;
 }
 
 function RecordCard({
@@ -41,6 +43,36 @@ function RecordCard({
   );
 }
 
+function BestDraftCard({ pick }: { pick: NonNullable<TeamRecords['bestDraftPick']> }) {
+  return (
+    <div className="bg-white rounded-xl border border-teal-200 shadow-sm px-5 py-4 col-span-2 flex items-center gap-4">
+      {pick.photoUrl ? (
+        <Image
+          src={pick.photoUrl}
+          alt={pick.playerName}
+          width={52}
+          height={52}
+          className="rounded-full object-cover bg-gray-100 flex-shrink-0 border-2 border-teal-200"
+          unoptimized
+        />
+      ) : (
+        <div className="w-[52px] h-[52px] rounded-full bg-teal-50 border-2 border-teal-200 flex-shrink-0 flex items-center justify-center">
+          <span className="text-teal-400 text-lg">⚡</span>
+        </div>
+      )}
+      <div className="flex-1 min-w-0">
+        <p className="text-[10px] font-semibold text-teal-600 uppercase tracking-widest mb-0.5">Best Draft Pick</p>
+        <p className="font-bold text-gray-800 text-base leading-tight truncate">{pick.playerName}</p>
+        <p className="text-xs text-gray-400">{pick.position} · Drafted {pick.year}</p>
+      </div>
+      <div className="text-right flex-shrink-0">
+        <p className="text-xl font-bold text-teal-600">{Math.round(pick.totalPoints).toLocaleString()}</p>
+        <p className="text-xs text-gray-400">career pts</p>
+      </div>
+    </div>
+  );
+}
+
 function BestMoveCard({ pickup }: { pickup: NonNullable<TeamRecords['bestPickup']> }) {
   return (
     <div className="bg-white rounded-xl border border-amber-200 shadow-sm px-5 py-4 col-span-2 flex items-center gap-4">
@@ -59,13 +91,13 @@ function BestMoveCard({ pickup }: { pickup: NonNullable<TeamRecords['bestPickup'
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <p className="text-[10px] font-semibold text-amber-500 uppercase tracking-widest mb-0.5">Best Pick</p>
+        <p className="text-[10px] font-semibold text-amber-500 uppercase tracking-widest mb-0.5">Best Pickup</p>
         <p className="font-bold text-gray-800 text-base leading-tight truncate">{pickup.playerName}</p>
-        <p className="text-xs text-gray-400">{pickup.position} · {pickup.year}</p>
+        <p className="text-xs text-gray-400">{pickup.position} · Added {pickup.year}</p>
       </div>
       <div className="text-right flex-shrink-0">
         <p className="text-xl font-bold text-amber-600">{Math.round(pickup.totalPoints).toLocaleString()}</p>
-        <p className="text-xs text-gray-400">pts</p>
+        <p className="text-xs text-gray-400">career pts</p>
       </div>
     </div>
   );
@@ -101,17 +133,35 @@ function BestTradeCard({ trade }: { trade: TeamBestPickup }) {
   );
 }
 
+function ChampionshipsCard({ championships }: { championships: number }) {
+  return (
+    <div className="bg-white rounded-xl border border-yellow-300 shadow-sm px-5 py-4 col-span-2 flex items-center gap-4">
+      <div className="w-[52px] h-[52px] rounded-full bg-yellow-50 border-2 border-yellow-300 flex-shrink-0 flex items-center justify-center">
+        <span className="text-yellow-500 text-2xl">🏆</span>
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[10px] font-semibold text-yellow-600 uppercase tracking-widest mb-0.5">Championships</p>
+        <p className="font-bold text-gray-800 text-base leading-tight">
+          {championships === 0 ? 'None yet' : championships === 1 ? '1 title' : `${championships} titles`}
+        </p>
+      </div>
+      <div className="text-right flex-shrink-0">
+        <p className="text-3xl font-bold text-yellow-500">{championships}</p>
+      </div>
+    </div>
+  );
+}
+
 function teamName(id: number): string {
   return teamsMetadata.teams.find(t => t.id === id)?.displayName ?? `Team ${id}`;
 }
 
-export default function ManagerHistory({ records, trades, totalPlayersEmployed, totalSeasons, teamId, teamColor }: Props) {
+export default function ManagerHistory({ records, trades, totalPlayersEmployed, totalSeasons, teamId, teamColor, championships }: Props) {
   const {
-    highWeek, lowWeek,
     bestSeason, worstSeason, bestScoringSeasonPF, worstScoringSeasonPF,
   } = records;
 
-  const hasRecords = highWeek || bestSeason || records.bestPickup;
+  const hasRecords = highWeek || bestSeason || records.bestDraftPick || records.bestPickup;
   const tradeLog = trades.filter(p => p.postType === 'trade');
 
   if (!hasRecords && tradeLog.length === 0) return null;
@@ -140,26 +190,10 @@ export default function ManagerHistory({ records, trades, totalPlayersEmployed, 
                 accent="indigo"
               />
             )}
+            {records.bestDraftPick && <BestDraftCard pick={records.bestDraftPick} />}
             {records.bestPickup && <BestMoveCard pickup={records.bestPickup} />}
             {records.bestTrade && <BestTradeCard trade={records.bestTrade} />}
-            {highWeek && (
-              <RecordCard
-                label="High Score"
-                value={`${highWeek.points.toFixed(1)} pts`}
-                sub1={`Wk ${highWeek.week}, ${highWeek.year}`}
-                sub2={`vs. ${highWeek.opponentName}`}
-                accent="teal"
-              />
-            )}
-            {lowWeek && (
-              <RecordCard
-                label="Low Score"
-                value={`${lowWeek.points.toFixed(1)} pts`}
-                sub1={`Wk ${lowWeek.week}, ${lowWeek.year}`}
-                sub2={`vs. ${lowWeek.opponentName}`}
-                accent="red"
-              />
-            )}
+            <ChampionshipsCard championships={championships} />
             {bestSeason && (
               <RecordCard
                 label="Best Season"
