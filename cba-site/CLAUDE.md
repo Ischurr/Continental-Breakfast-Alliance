@@ -1189,3 +1189,23 @@ python3 backtest_erosp.py --target-year 2025 2>&1 | grep -E "(Pearson|Spearman|R
 - Default right panel value is `"right top"` (equivalent to `"100% top"`) — already the rightmost crop point
 - Setting `"75%"`, `"85%"`, `"95%"` all move the crop LEFT (toward center), not further right
 - If a player is in the center of the source image, use `"center top"` to pan left and show them
+
+## Session Work (March 16, 2026 — Background Photo Tweaks + Manager History)
+
+### `bgTranslateYLeft` / `bgTranslateYRight` support (`app/teams/[teamId]/page.tsx`, `data/teams.json`)
+- New optional numeric fields on `bgPlayers` in `teams.json`; apply `transform: translateY(Npx)` to the background `<img>` to physically shift photo content down on screen
+- Use when the player's face is hidden behind the sticky header/ticker — `objectPosition` alone can't push content lower than `top`
+- **Bristol Banshees (id=10)**: `bgTranslateYLeft: 80` — left photo shifted 80px down so player appears below header
+- Right panel: `bgTranslateYRight` works the same way; combines with `scaleX(-1)` when `mirrorRight: true`
+
+### Suggested Moves post-draft guard (`app/teams/[teamId]/page.tsx`)
+- `suggestedMovesResult` now only computed when `!showSuggestedKeepers` (i.e. post-draft)
+- Pre-draft: section is hidden entirely — keeper gaps would generate noisy/irrelevant recommendations
+
+### Manager History improvements (`components/ManagerHistory.tsx`, `lib/data-processor.ts`)
+- **Best Draft Pick card** (teal, `col-span-2`): shows highest career-points player first acquired via `acquisitionType === 'DRAFT'`; accumulates pts across all seasons on that team
+- **Championships card** (yellow, `col-span-2`): shows 🏆 + count; "None yet" for 0
+- **`bestByAcquisition(types)`** helper in `getTeamRecords()`: generic function that accumulates career pts for players first acquired via any of the given acquisition types; used for both `bestDraftPick` and `bestPickup`
+- **`bestDraftPick`** added to `TeamRecords` interface; passed as `championships` prop to `ManagerHistory`
+- Rename: "Best Pick" → "Best Pickup"; subtitle changed to "Added {year}" / "career pts"
+- `ManagerHistory` now accepts `championships: number` prop (passed from team page)
