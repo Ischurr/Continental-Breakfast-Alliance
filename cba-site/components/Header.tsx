@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState, useRef, useEffect } from 'react';
 import season2025 from '@/data/historical/2025.json';
 
@@ -78,11 +79,21 @@ export default function Header() {
   ];
 
   return (
-    <header className="bg-gradient-to-r from-teal-700 to-teal-900 text-white shadow-lg">
+    <header className="bg-gradient-to-r from-teal-700 to-teal-900 text-white shadow-lg sticky top-0 z-50">
       <div className="container mx-auto px-4 py-5">
         <div className="flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold hover:text-teal-200 transition">
-            The Continental Press Box
+          <Link href="/" className="flex items-center gap-3 hover:text-teal-200 transition">
+            <div className="w-[48px] h-[48px] rounded-lg overflow-hidden flex-shrink-0">
+              <Image
+                src="/cba-logo.jpg"
+                alt="CBA Logo"
+                width={48}
+                height={48}
+                className="scale-[1.18] w-full h-full object-cover"
+                unoptimized
+              />
+            </div>
+            <span className="text-2xl font-bold">The Continental Press Box</span>
           </Link>
 
           {/* Desktop nav */}
