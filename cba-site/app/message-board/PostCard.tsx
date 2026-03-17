@@ -30,16 +30,32 @@ function VideoEmbed({ url }: { url: string }) {
   );
 }
 
-function TradeItems({ text }: { text: string }) {
+function capitalizePickText(text: string): string {
+  return text.replace(/\bround\b/gi, 'Round').replace(/\bpick\b/gi, 'Pick');
+}
+
+function isPickLine(text: string): boolean {
+  const lower = text.toLowerCase();
+  return (lower.includes('round') || lower.includes(' rd') || lower.includes('pick'))
+    && /\b\d+(st|nd|rd|th)\b/.test(lower);
+}
+
+function TradeItems({ text, tradeYear }: { text: string; tradeYear?: number }) {
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
   return (
     <ul className="space-y-1">
-      {lines.map((line, i) => (
-        <li key={i} className="text-sm text-gray-700 flex items-start gap-1.5">
-          <span className="text-gray-300 mt-0.5 flex-shrink-0">•</span>
-          <span>{line}</span>
-        </li>
-      ))}
+      {lines.map((line, i) => {
+        let displayLine = tradeYear && isPickLine(line) && !/\b20\d{2}\b/.test(line)
+          ? `${tradeYear} ${line}`
+          : line;
+        if (isPickLine(displayLine)) displayLine = capitalizePickText(displayLine);
+        return (
+          <li key={i} className="text-sm text-gray-700 flex items-start gap-1.5">
+            <span className="text-gray-300 mt-0.5 flex-shrink-0">•</span>
+            <span>{displayLine}</span>
+          </li>
+        );
+      })}
     </ul>
   );
 }
@@ -62,6 +78,9 @@ export default function PostCard({
   timeAgoStr,
 }: Props) {
   const isTrade = post.postType === 'trade';
+  const postDate = new Date(post.createdAt);
+  // Pre-draft (Jan–Mar): picks are for the current year's draft; post-draft (Apr+): next year's
+  const pickDraftYear = postDate.getMonth() < 3 ? postDate.getFullYear() : postDate.getFullYear() + 1;
 
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -226,7 +245,7 @@ export default function PostCard({
                   <p className="text-[10px] font-bold uppercase tracking-wide text-gray-500 mb-2">
                     {post.authorName} sends
                   </p>
-                  <TradeItems text={post.tradeGiving ?? ''} />
+                  <TradeItems text={post.tradeGiving ?? ''} tradeYear={pickDraftYear} />
                 </div>
                 {/* Partner sends */}
                 <div
@@ -239,7 +258,7 @@ export default function PostCard({
                   <p className="text-[10px] font-bold uppercase tracking-wide text-gray-500 mb-2">
                     {targetDisplayName ?? '—'} sends
                   </p>
-                  <TradeItems text={post.tradeReceiving ?? ''} />
+                  <TradeItems text={post.tradeReceiving ?? ''} tradeYear={pickDraftYear} />
                 </div>
               </div>
               {post.message && (

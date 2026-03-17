@@ -1241,3 +1241,20 @@ python3 backtest_erosp.py --target-year 2025 2>&1 | grep -E "(Pearson|Spearman|R
   - Player name span: `text-sm text-gray-700` → `text-base font-semibold text-gray-800` (all items, both pick and player branches)
   - Player photo circles: `w-7 h-7` (28px) → `w-11 h-11` (44px); `width`/`height` props updated to 44; fallback ⚾ placeholder also bumped to `w-11 h-11`
   - Round pick badge circles: `w-7 h-7` (28px) → `w-11 h-11` (44px); font size `text-[10px]` → `text-xs`
+
+## Session Work (March 16, 2026 — Trade Log Draft Pick Year + Capitalization)
+
+### Draft pick year annotation (`app/message-board/PostCard.tsx`, `components/ManagerHistory.tsx`)
+- Draft picks in trade posts now automatically display the year of the draft they apply to
+- **Year inference rule**:
+  - Jan–Mar trade (pre-draft): pick year = same year as trade (e.g. March 2026 trade → "2026 2nd Round Pick")
+  - Apr–Dec trade (post-draft, during season): pick year = next year (e.g. July 2025 trade → "2026 2nd Round Pick")
+  - If year already present in text (e.g. "2027 1st round pick"): shown as-is, no inference
+- **Pick detection**: `isPickLine()` / `parseTradeLine()` — matches ordinal (`2nd`, `3rd`) + pick/round/rd keywords
+- **Year detection**: `/\b20\d{2}\b/` — if already has a 4-digit year, skips inference
+- **Capitalization**: "round" → "Round", "pick" → "Pick" in all pick text (both with and without inferred year)
+- Applied in both display paths:
+  - `TradeItems` (PostCard — message board view): plain bullet list, pick lines get year + capitalization
+  - `TradeItemChip` (ManagerHistory — team page trade log): R{N} badge + capitalized text with year
+- `pickDraftYear` variable computed once per `PostCard` render from `post.createdAt`; `tradeYear` computed per trade in `ManagerHistory` render loop
+- Picks already entered with a year (e.g. "2026 2nd round pick") get capitalized but not double-year-stamped

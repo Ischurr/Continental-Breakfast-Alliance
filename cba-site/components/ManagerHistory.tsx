@@ -48,15 +48,16 @@ function splitTradeItems(raw: string): string[] {
     .filter(Boolean);
 }
 
-// Parse a trade line: returns { type: 'pick', round: number } or { type: 'player', name: string }
-function parseTradeLine(line: string): { type: 'pick'; round: number } | { type: 'player'; name: string } {
+// Parse a trade line: returns { type: 'pick', round: number, hasYear: boolean } or { type: 'player', name: string }
+function parseTradeLine(line: string): { type: 'pick'; round: number; hasYear: boolean } | { type: 'player'; name: string } {
   const lower = line.toLowerCase();
+  const hasYear = /\b20\d{2}\b/.test(line);
   // Match patterns like "2nd round", "round 2", "2nd rd", "2.05", "round 2 pick"
   const ordinalMatch = lower.match(/\b(\d+)(st|nd|rd|th)\b/);
   const digitMatch = lower.match(/\bround\s+(\d+)/i) || lower.match(/\b(\d+)\s*(?:rd|round)\b/i) || lower.match(/^(\d)\./);
   if ((lower.includes('round') || lower.includes(' rd') || lower.includes('pick')) && (ordinalMatch || digitMatch)) {
     const roundNum = ordinalMatch ? parseInt(ordinalMatch[1]) : digitMatch ? parseInt(digitMatch[1]) : 0;
-    if (roundNum > 0) return { type: 'pick', round: roundNum };
+    if (roundNum > 0) return { type: 'pick', round: roundNum, hasYear };
   }
   return { type: 'player', name: line };
 }
@@ -221,10 +222,12 @@ const ROUND_COLORS: Record<number, { bg: string; text: string }> = {
   5: { bg: '#8b5cf6', text: '#fff' }, // purple
 };
 
-function TradeItemChip({ line, photoMap }: { line: string; photoMap: Record<string, string> }) {
+function TradeItemChip({ line, photoMap, tradeYear }: { line: string; photoMap: Record<string, string>; tradeYear?: number }) {
   const parsed = parseTradeLine(line);
   if (parsed.type === 'pick') {
     const colors = ROUND_COLORS[parsed.round] ?? { bg: '#6b7280', text: '#fff' };
+    const rawText = (!parsed.hasYear && tradeYear) ? `${tradeYear} ${line}` : line;
+    const displayText = rawText.replace(/\bround\b/gi, 'Round').replace(/\bpick\b/gi, 'Pick');
     return (
       <div className="flex items-center gap-2 py-1">
         <div
@@ -233,7 +236,7 @@ function TradeItemChip({ line, photoMap }: { line: string; photoMap: Record<stri
         >
           R{parsed.round}
         </div>
-        <span className="text-base font-semibold text-gray-800 leading-snug">{line}</span>
+        <span className="text-base font-semibold text-gray-800 leading-snug">{displayText}</span>
       </div>
     );
   }
@@ -340,6 +343,10 @@ export default function ManagerHistory({ records, trades, totalPlayersEmployed, 
                 : null;
               const isAuthor = trade.authorTeamId === teamId;
               const dateStr = new Date(trade.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+              const tradeDate = new Date(trade.createdAt);
+              // Pre-draft (Jan–Mar): picks are for the current year's draft
+              // Post-draft (Apr+): picks are for next year's draft
+              const tradeYear = tradeDate.getMonth() < 3 ? tradeDate.getFullYear() : tradeDate.getFullYear() + 1;
 
               // From this team's perspective: what did they give/receive
               const giving    = isAuthor ? trade.tradeGiving    : trade.tradeReceiving;
@@ -387,7 +394,7 @@ export default function ManagerHistory({ records, trades, totalPlayersEmployed, 
                         </p>
                         {giving ? (
                           giving.split('\n').filter(Boolean).flatMap(item => splitTradeItems(item)).map((item, i) => (
-                            <TradeItemChip key={i} line={item} photoMap={playerPhotoMap} />
+                            <TradeItemChip key={i} line={item} photoMap={playerPhotoMap} tradeYear={tradeYear} />
                           ))
                         ) : (
                           <p className="text-xs text-gray-300 italic py-1">—</p>
@@ -419,7 +426,7 @@ export default function ManagerHistory({ records, trades, totalPlayersEmployed, 
                         </p>
                         {receiving ? (
                           receiving.split('\n').filter(Boolean).flatMap(item => splitTradeItems(item)).map((item, i) => (
-                            <TradeItemChip key={i} line={item} photoMap={playerPhotoMap} />
+                            <TradeItemChip key={i} line={item} photoMap={playerPhotoMap} tradeYear={tradeYear} />
                           ))
                         ) : (
                           <p className="text-xs text-gray-300 italic py-1">—</p>
