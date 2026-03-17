@@ -1258,3 +1258,27 @@ python3 backtest_erosp.py --target-year 2025 2>&1 | grep -E "(Pearson|Spearman|R
   - `TradeItemChip` (ManagerHistory — team page trade log): R{N} badge + capitalized text with year
 - `pickDraftYear` variable computed once per `PostCard` render from `post.createdAt`; `tradeYear` computed per trade in `ManagerHistory` render loop
 - Picks already entered with a year (e.g. "2026 2nd round pick") get capitalized but not double-year-stamped
+
+## Session Work (March 17, 2026 — Trade Log UI Polish)
+
+### Trade Log chip centering (`components/ManagerHistory.tsx`)
+- When a trade side has only 1 player/pick, the chip is now vertically centered in the remaining space below the "XYZ gave" label
+- Implementation: inner content div uses `flex flex-col`; chip wrapper gets `flex-1 flex items-center` when `items.length === 1`, plain `div` otherwise
+- Grid columns (`grid grid-cols-2`) keep both sides equal height so centering is meaningful when one side has more items
+- Pre-computed `givingItems` / `receivingItems` arrays (built once, used for both count check and render)
+
+### Trade card header text contrast (`components/ManagerHistory.tsx`)
+- "TRADE" label and date text changed from semi-transparent white (`text-white/90` / `text-white/60`) to fully opaque dark text (`text-gray-900` / `text-gray-700`)
+- Fixes readability against bright/neon team `primaryColor` backgrounds (e.g. neon green)
+
+## Session Work (March 17, 2026 — Text Contrast for Background Player Photos)
+
+### Unboxed text darkened across team pages
+- All text that renders directly against the page background (not inside a card/box) now uses `text-gray-900` or `text-gray-700` instead of lighter grays
+- **Rule**: text inside `bg-white`, `bg-slate-200`, `bg-gray-50`, `bg-red-50`, etc. is unaffected; only text between sections matters
+- **Files changed**:
+  - `components/ManagerHistory.tsx`: "Manager History" h2 → `text-gray-900`; "Franchise Records" and "Trade Log" h3 labels → `text-gray-700` (were `text-gray-400`)
+  - `components/SuggestedMoves.tsx`: "Suggested Moves" h2 → `text-gray-900`; subtitle → `text-gray-700` (was `text-gray-500`)
+  - `components/EROSPTable.tsx`: "Updated … · Updates daily" metadata → `text-gray-700`; pre-season note → `text-gray-700` (both were `text-gray-400`)
+  - `components/TeamBaseballField.tsx`: stadium name caption → `text-gray-700` (was `text-gray-400`)
+  - `app/teams/[teamId]/page.tsx`: "💬 Message Board" h2 → `text-gray-900` (was `text-gray-700`)
