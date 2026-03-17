@@ -317,15 +317,23 @@ export default async function TeamPage({ params }: Props) {
         {id === 9 && (
           <div className="mb-10">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">2026 Keepers</h2>
-            <div className="rounded-xl overflow-hidden shadow-sm border border-gray-200">
-              <Image
-                src="/Dugan-Keepers.png"
-                alt="North Georgia Fuzzy Bottoms 2026 Keepers"
-                width={1200}
-                height={800}
-                className="w-full h-auto"
-                unoptimized
-              />
+            <div className="flex gap-6 items-stretch w-fit">
+              <div className="rounded-xl overflow-hidden shadow-sm border border-gray-200 flex-shrink-0">
+                <Image
+                  src="/Dugan-Keepers.png"
+                  alt="North Georgia Fuzzy Bottoms 2026 Keepers"
+                  width={400}
+                  height={267}
+                  className="h-auto"
+                  unoptimized
+                />
+              </div>
+              <div className="rounded-xl border border-gray-200 shadow-sm bg-slate-200 px-5 py-4 w-72">
+                <p className="text-sm font-semibold text-gray-700 mb-2">Strategic Overview</p>
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  The Fuzzy Bottoms enter 2026 banking on their elite offensive core. Bobby Witt Jr. and Mookie Betts anchor the lineup as two of the most complete fantasy contributors in the league — both capable of 40+ points in any given week. The keeper strategy leans into high-ceiling bats while managing pitching depth, a calculated bet that the offense can outscore any rotation weakness.
+                </p>
+              </div>
             </div>
           </div>
         )}

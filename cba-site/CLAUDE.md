@@ -1217,3 +1217,12 @@ python3 backtest_erosp.py --target-year 2025 2>&1 | grep -E "(Pearson|Spearman|R
 - `bestTrade` loop also updated to `firstAcq.get(playerName)?.type === 'TRADE'`
 - Removed `exclude` parameter and `draftExcludes` workaround — logic is now self-consistent
 - Keepers reacquired via DRAFT after being traded in will correctly show under Best Trade, not Best Draft Pick
+
+## Session Work (March 16, 2026 — Fuzzy Bottoms Keepers Photo Section)
+
+### Keepers photo section added to Fuzzy Bottoms page (`app/teams/[teamId]/page.tsx`, `public/Dugan-Keepers.png`)
+- **`public/Dugan-Keepers.png`**: copied from `~/Desktop/Fantasy Website/Dugan-Keepers.png`
+- New `{id === 9}` section inserted after `TeamStrengthsEditor`, before Sky Chiefs Uniforms
+- Layout: 400px photo card (left) + `w-72` text card (right), `flex gap-6 items-stretch` — same pattern as Sky Chiefs uniforms section
+- Text box has "Strategic Overview" label + paragraph describing the 2026 keeper strategy (Witt Jr. + Betts offensive core, pitching depth tradeoff)
+- `bgFull` support added to page.tsx for future use: reads `meta?.bgPlayers?.bgFull` and renders a full-width `absolute` background image when set; `bgLeft`/`bgRight` suppressed when `bgFull` is present
