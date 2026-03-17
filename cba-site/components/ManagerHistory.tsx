@@ -161,7 +161,7 @@ export default function ManagerHistory({ records, trades, totalPlayersEmployed, 
     bestSeason, worstSeason, bestScoringSeasonPF, worstScoringSeasonPF,
   } = records;
 
-  const hasRecords = highWeek || bestSeason || records.bestDraftPick || records.bestPickup;
+  const hasRecords = bestSeason || records.bestDraftPick || records.bestPickup;
   const tradeLog = trades.filter(p => p.postType === 'trade');
 
   if (!hasRecords && tradeLog.length === 0) return null;

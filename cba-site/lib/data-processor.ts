@@ -466,23 +466,29 @@ export function getTeamRecords(teamId: number): TeamRecords {
   let bestTrade: TeamBestPickup | null = null;
   const allSeasons = getAllSeasons();
 
-  // Helper: cumulative career pts for any player first acquired via one of the given types
+  // Build a map of player → {firstAcqType, firstYear} based on their EARLIEST season on this team
   interface AcqTotals { totalPoints: number; position: string; photoUrl?: string; firstYear: number }
-  function bestByAcquisition(types: string[]): TeamBestPickup | null {
-    const ever = new Set<string>();
-    for (const season of seasons) {
-      const roster = season.rosters?.find(r => r.teamId === teamId);
-      if (!roster) continue;
-      for (const player of roster.players) {
-        if (types.includes(player.acquisitionType ?? '')) ever.add(player.playerName);
+  const firstAcq = new Map<string, { type: string; year: number }>();
+  for (const season of seasons) {
+    const roster = season.rosters?.find(r => r.teamId === teamId);
+    if (!roster) continue;
+    for (const player of roster.players) {
+      const existing = firstAcq.get(player.playerName);
+      if (!existing || season.year < existing.year) {
+        firstAcq.set(player.playerName, { type: player.acquisitionType ?? '', year: season.year });
       }
     }
+  }
+
+  // Helper: cumulative career pts for players whose FIRST acquisition matches one of the given types
+  function bestByAcquisition(types: string[]): TeamBestPickup | null {
     const totals = new Map<string, AcqTotals>();
     for (const season of seasons) {
       const roster = season.rosters?.find(r => r.teamId === teamId);
       if (!roster) continue;
       for (const player of roster.players) {
-        if (!ever.has(player.playerName) || player.totalPoints <= 0) continue;
+        if (!types.includes(firstAcq.get(player.playerName)?.type ?? '')) continue;
+        if (player.totalPoints <= 0) continue;
         const ex = totals.get(player.playerName);
         if (ex) {
           ex.totalPoints += player.totalPoints;
@@ -509,7 +515,7 @@ export function getTeamRecords(teamId: number): TeamRecords {
       totalRosterEntries += roster.players.length;
       for (const player of roster.players) {
         if (player.totalPoints <= 0) continue;
-        if (player.acquisitionType === 'TRADE') {
+        if (firstAcq.get(player.playerName)?.type === 'TRADE') {
           if (!bestTrade || player.totalPoints > bestTrade.totalPoints) {
             // Try to find which team had this player the prior season
             const prevRosters = allSeasons.find(s => s.year === season.year - 1)?.rosters ?? [];

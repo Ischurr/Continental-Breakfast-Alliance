@@ -183,8 +183,9 @@ export default async function TeamPage({ params }: Props) {
     teamErospPlayers.filter(p => p.role === 'RP').map(p => p.name)
   );
 
-  const bgLeft  = meta?.bgPlayers?.left;
-  const bgRight = meta?.bgPlayers?.right;
+  const bgFull  = (meta?.bgPlayers as { bgFull?: string })?.bgFull;
+  const bgLeft  = bgFull ? undefined : meta?.bgPlayers?.left;
+  const bgRight = bgFull ? undefined : meta?.bgPlayers?.right;
   const mirrorRight = meta?.bgPlayers?.mirrorRight ?? true;
   const bgLeftPosition  = (meta?.bgPlayers as { objectPositionLeft?: string })?.objectPositionLeft  ?? 'left top';
   const bgRightPosition = (meta?.bgPlayers as { objectPositionRight?: string })?.objectPositionRight ?? 'right top';
@@ -193,6 +194,16 @@ export default async function TeamPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-sky-50 relative overflow-x-hidden">
+      {/* Full-width background photo (single image mode) */}
+      {bgFull && (
+        <div
+          className="absolute top-0 left-0 right-0 pointer-events-none select-none z-0"
+          aria-hidden="true"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={bgFull} alt="" className="w-full opacity-35" />
+        </div>
+      )}
       {/* Full-height background player photos */}
       {bgLeft && (
         <div
@@ -301,6 +312,23 @@ export default async function TeamPage({ params }: Props) {
           strengths={effectiveStrengths}
           weaknesses={effectiveWeaknesses}
         />
+
+        {/* Fuzzy Bottoms Keepers Photo */}
+        {id === 9 && (
+          <div className="mb-10">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">2026 Keepers</h2>
+            <div className="rounded-xl overflow-hidden shadow-sm border border-gray-200">
+              <Image
+                src="/Dugan-Keepers.png"
+                alt="North Georgia Fuzzy Bottoms 2026 Keepers"
+                width={1200}
+                height={800}
+                className="w-full h-auto"
+                unoptimized
+              />
+            </div>
+          </div>
+        )}
 
         {/* Sky Chiefs Uniforms */}
         {id === 7 && (
