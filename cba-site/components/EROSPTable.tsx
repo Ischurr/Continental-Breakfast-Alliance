@@ -186,7 +186,7 @@ export default function EROSPTable({
 
         {/* Metadata */}
         {generatedAt && (
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-700">
             Updated {generatedAt} · Updates daily
           </p>
         )}
@@ -311,7 +311,7 @@ export default function EROSPTable({
 
       {/* Pre-season note */}
       {!meta.season_started && (
-        <p className="mt-2 text-xs text-gray-400 italic">
+        <p className="mt-2 text-xs text-gray-700 italic">
           Pre-season: projections based on 3-year historical rates. Will update with in-season data after Opening Day.
         </p>
       )}

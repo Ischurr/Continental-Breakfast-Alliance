@@ -199,8 +199,8 @@ export default function SuggestedMoves({ result }: Props) {
     <div>
       <div className="flex items-end justify-between mb-4 gap-4">
         <div>
-          <h2 className="text-2xl font-bold mb-0.5">Suggested Moves</h2>
-          <p className="text-sm text-gray-500">
+          <h2 className="text-2xl font-bold text-gray-900 mb-0.5">Suggested Moves</h2>
+          <p className="text-sm text-gray-700">
             {isPreDraft
               ? 'Based on keepers · Free agent upgrades ranked by EROSP improvement'
               : 'Free agent upgrades ranked by EROSP improvement'}

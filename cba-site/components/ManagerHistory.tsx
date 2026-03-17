@@ -276,11 +276,11 @@ export default function ManagerHistory({ records, trades, totalPlayersEmployed, 
 
   return (
     <div className="mb-12">
-      <h2 className="text-2xl font-bold mb-5">Manager History</h2>
+      <h2 className="text-2xl font-bold text-gray-900 mb-5">Manager History</h2>
 
       {hasRecords && (
         <>
-          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Franchise Records</h3>
+          <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-widest mb-3">Franchise Records</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
             {totalPlayersEmployed > 0 && (
               <RecordCard
@@ -334,7 +334,7 @@ export default function ManagerHistory({ records, trades, totalPlayersEmployed, 
 
       {tradeLog.length > 0 && (
         <>
-          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Trade Log</h3>
+          <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-widest mb-3">Trade Log</h3>
           <div className="flex flex-col gap-3">
             {tradeLog.map(trade => {
               const authorMeta = teamsMetadata.teams.find(t => t.id === trade.authorTeamId);
@@ -353,6 +353,8 @@ export default function ManagerHistory({ records, trades, totalPlayersEmployed, 
               const receiving = isAuthor ? trade.tradeReceiving  : trade.tradeGiving;
               const thisMeta  = isAuthor ? authorMeta : targetMeta;
               const otherMeta = isAuthor ? targetMeta : authorMeta;
+              const givingItems   = giving   ? giving.split('\n').filter(Boolean).flatMap(item => splitTradeItems(item))   : [];
+              const receivingItems = receiving ? receiving.split('\n').filter(Boolean).flatMap(item => splitTradeItems(item)) : [];
 
               return (
                 <div
@@ -364,12 +366,12 @@ export default function ManagerHistory({ records, trades, totalPlayersEmployed, 
                     className="px-4 py-2 flex items-center justify-between"
                     style={{ backgroundColor: teamColor }}
                   >
-                    <span className="text-xs font-bold text-white/90 tracking-wide">TRADE</span>
-                    <span className="text-xs text-white/60">{dateStr}</span>
+                    <span className="text-xs font-bold text-gray-900 tracking-wide">TRADE</span>
+                    <span className="text-xs text-gray-700">{dateStr}</span>
                   </div>
 
                   <div className="grid grid-cols-2 divide-x divide-gray-100">
-                    {/* Gave */}
+                    {/* This team receives */}
                     <div className="p-3 flex gap-3">
                       {TEAM_LOGOS[thisMeta?.id ?? -1] ? (
                         <Image
@@ -388,20 +390,22 @@ export default function ManagerHistory({ records, trades, totalPlayersEmployed, 
                           {thisMeta?.displayName[0] ?? '?'}
                         </div>
                       )}
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex flex-col">
                         <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1 leading-tight">
-                          {thisMeta?.displayName ?? 'Unknown'} gave
+                          {thisMeta?.displayName ?? 'Unknown'} received
                         </p>
-                        {giving ? (
-                          giving.split('\n').filter(Boolean).flatMap(item => splitTradeItems(item)).map((item, i) => (
-                            <TradeItemChip key={i} line={item} photoMap={playerPhotoMap} tradeYear={tradeYear} />
-                          ))
-                        ) : (
-                          <p className="text-xs text-gray-300 italic py-1">—</p>
-                        )}
+                        <div className={receivingItems.length === 1 ? 'flex-1 flex items-center' : ''}>
+                          {receivingItems.length > 0 ? (
+                            receivingItems.map((item, i) => (
+                              <TradeItemChip key={i} line={item} photoMap={playerPhotoMap} tradeYear={tradeYear} />
+                            ))
+                          ) : (
+                            <p className="text-xs text-gray-300 italic py-1">—</p>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    {/* Received */}
+                    {/* Other team receives */}
                     <div className="p-3 flex gap-3">
                       {TEAM_LOGOS[otherMeta?.id ?? -1] ? (
                         <Image
@@ -420,17 +424,19 @@ export default function ManagerHistory({ records, trades, totalPlayersEmployed, 
                           {otherMeta?.displayName[0] ?? '?'}
                         </div>
                       )}
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex flex-col">
                         <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1 leading-tight">
-                          {otherMeta?.displayName ?? 'Unknown'} gave
+                          {otherMeta?.displayName ?? 'Unknown'} received
                         </p>
-                        {receiving ? (
-                          receiving.split('\n').filter(Boolean).flatMap(item => splitTradeItems(item)).map((item, i) => (
-                            <TradeItemChip key={i} line={item} photoMap={playerPhotoMap} tradeYear={tradeYear} />
-                          ))
-                        ) : (
-                          <p className="text-xs text-gray-300 italic py-1">—</p>
-                        )}
+                        <div className={givingItems.length === 1 ? 'flex-1 flex items-center' : ''}>
+                          {givingItems.length > 0 ? (
+                            givingItems.map((item, i) => (
+                              <TradeItemChip key={i} line={item} photoMap={playerPhotoMap} tradeYear={tradeYear} />
+                            ))
+                          ) : (
+                            <p className="text-xs text-gray-300 italic py-1">—</p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>

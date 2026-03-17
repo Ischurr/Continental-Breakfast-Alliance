@@ -486,7 +486,7 @@ export default function TeamBaseballField({ players, rpNames, fieldDimensions, s
           ))}
         </div>
         {stadiumName && (
-          <p className="text-center text-[11px] text-gray-400 font-medium tracking-wide mt-2">{stadiumName}</p>
+          <p className="text-center text-[11px] text-gray-700 font-medium tracking-wide mt-2">{stadiumName}</p>
         )}
       </div>
 

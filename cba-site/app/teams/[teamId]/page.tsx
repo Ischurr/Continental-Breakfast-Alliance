@@ -760,7 +760,7 @@ export default async function TeamPage({ params }: Props) {
         {teamPosts.length > 0 && (
           <div className="mt-12">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-700">💬 Message Board</h2>
+              <h2 className="text-xl font-bold text-gray-900">💬 Message Board</h2>
               <Link href="/message-board" className="text-sm text-teal-600 hover:underline font-medium">
                 View all posts →
               </Link>
