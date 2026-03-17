@@ -1209,3 +1209,11 @@ python3 backtest_erosp.py --target-year 2025 2>&1 | grep -E "(Pearson|Spearman|R
 - **`bestDraftPick`** added to `TeamRecords` interface; passed as `championships` prop to `ManagerHistory`
 - Rename: "Best Pick" → "Best Pickup"; subtitle changed to "Added {year}" / "career pts"
 - `ManagerHistory` now accepts `championships: number` prop (passed from team page)
+
+### First-acquisition-type fix for Franchise Records (`lib/data-processor.ts`)
+- **Root cause**: `bestByAcquisition` used "ever acquired via these types" semantics — Freddie Freeman had `TRADE` in 2022 and `DRAFT` in 2023–2025 (as a keeper), so he appeared as both Best Trade AND Best Draft Pick
+- **Fix**: replaced `ever` Set with `firstAcq` Map built once per team — records each player's `acquisitionType` from their **earliest** season on that team. Players are categorized by first acquisition only.
+- `bestByAcquisition` now checks `firstAcq.get(playerName)?.type` instead of any-season match
+- `bestTrade` loop also updated to `firstAcq.get(playerName)?.type === 'TRADE'`
+- Removed `exclude` parameter and `draftExcludes` workaround — logic is now self-consistent
+- Keepers reacquired via DRAFT after being traded in will correctly show under Best Trade, not Best Draft Pick
