@@ -1226,3 +1226,18 @@ python3 backtest_erosp.py --target-year 2025 2>&1 | grep -E "(Pearson|Spearman|R
 - Layout: 400px photo card (left) + `w-72` text card (right), `flex gap-6 items-stretch` — same pattern as Sky Chiefs uniforms section
 - Text box has "Strategic Overview" label + paragraph describing the 2026 keeper strategy (Witt Jr. + Betts offensive core, pitching depth tradeoff)
 - `bgFull` support added to page.tsx for future use: reads `meta?.bgPlayers?.bgFull` and renders a full-width `absolute` background image when set; `bgLeft`/`bgRight` suppressed when `bgFull` is present
+
+## Session Work (March 16, 2026 — Manager History Trade Log Polish)
+
+### Trade Log item sizing (`components/ManagerHistory.tsx`)
+- **Removed "Fewest Points, Season" RecordCard** from Franchise Records grid
+- **Team logos** added to each trade box (56px circle, left side, `self-center`)
+- **Player headshot circles**: ESPN CDN photos pulled from `buildPlayerPhotoMap()` iterating `getAllSeasons() → season.rosters`; displayed as circles next to each traded item
+- **Round pick badges**: colored `R{N}` circles next to draft pick items; colors defined in `ROUND_COLORS` map
+- **`stripTradePrefix()`**: regex strips "NGFB Receive:", "SC Gave:" style prefixes from trade line text
+- **`splitTradeItems()`**: splits "Jose Soriano and a 7th round pick" into two separate chips
+- **`TradeItemChip` component**: pick → R{N} badge + name; player → headshot circle + name
+- **Sizing progression this session**:
+  - Player name span: `text-sm text-gray-700` → `text-base font-semibold text-gray-800` (all items, both pick and player branches)
+  - Player photo circles: `w-7 h-7` (28px) → `w-11 h-11` (44px); `width`/`height` props updated to 44; fallback ⚾ placeholder also bumped to `w-11 h-11`
+  - Round pick badge circles: `w-7 h-7` (28px) → `w-11 h-11` (44px); font size `text-[10px]` → `text-xs`

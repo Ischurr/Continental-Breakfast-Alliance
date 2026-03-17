@@ -1,8 +1,65 @@
 import Image from 'next/image';
-import { TeamRecords, TeamBestPickup } from '@/lib/data-processor';
+import { TeamRecords, TeamBestPickup, getAllSeasons } from '@/lib/data-processor';
 
 import { TrashTalkPost } from '@/lib/types';
 import teamsMetadata from '@/data/teams.json';
+
+// Team logo URLs (sourced from USMapHero.tsx)
+const TEAM_LOGOS: Record<number, string> = {
+  1:  'https://i.imgur.com/nguVo08.png',
+  2:  'https://i.imgur.com/8iNLFJK.png',
+  3:  'https://i.pinimg.com/originals/83/99/28/839928316e524f7df9f543702aa96e1e.png',
+  4:  'https://i.imgur.com/H2nbUd4.jpg',
+  6:  'https://content.sportslogos.net/news/2017/08/jwzbfi703gbaujbpvfm5iqjg9.gif',
+  7:  'https://1000logos.net/wp-content/uploads/2018/08/Syracuse-Chiefs-Logo-1997.png',
+  8:  'https://i.pinimg.com/564x/4e/2e/88/4e2e880d6aa675473a8d3eb73b2064f1.jpg',
+  9:  'https://i.postimg.cc/sgycxWDX/North-Georgia-3.png',
+  10: 'https://mystique-api.fantasy.espn.com/apis/v1/domains/lm/images/bc893190-2775-11f0-bf52-473646e3de99',
+  11: 'https://i.imgur.com/cNtQjIA.png',
+};
+
+function buildPlayerPhotoMap(): Record<string, string> {
+  const map: Record<string, string> = {};
+  for (const season of getAllSeasons()) {
+    for (const roster of (season.rosters ?? [])) {
+      for (const p of roster.players) {
+        if (p.photoUrl && p.playerName) {
+          map[p.playerName.toLowerCase()] = p.photoUrl;
+        }
+      }
+    }
+  }
+  return map;
+}
+
+// Strip prefixes like "NGFB Receive:", "SC Gave:", "TeamName Gets " from a trade line
+function stripTradePrefix(line: string): string {
+  return line
+    .replace(/^[\w.]+\s+(gave?s?|give[sd]?|received?|receives?|gets?|sending|getting):?\s*/i, '')
+    .trim();
+}
+
+// Split a line like "Jose Soriano and a 7th round pick" into ["Jose Soriano", "7th round pick"]
+function splitTradeItems(raw: string): string[] {
+  const stripped = stripTradePrefix(raw);
+  return stripped
+    .split(/\s+and\s+/i)
+    .map(part => part.replace(/^an?\s+/i, '').trim())
+    .filter(Boolean);
+}
+
+// Parse a trade line: returns { type: 'pick', round: number } or { type: 'player', name: string }
+function parseTradeLine(line: string): { type: 'pick'; round: number } | { type: 'player'; name: string } {
+  const lower = line.toLowerCase();
+  // Match patterns like "2nd round", "round 2", "2nd rd", "2.05", "round 2 pick"
+  const ordinalMatch = lower.match(/\b(\d+)(st|nd|rd|th)\b/);
+  const digitMatch = lower.match(/\bround\s+(\d+)/i) || lower.match(/\b(\d+)\s*(?:rd|round)\b/i) || lower.match(/^(\d)\./);
+  if ((lower.includes('round') || lower.includes(' rd') || lower.includes('pick')) && (ordinalMatch || digitMatch)) {
+    const roundNum = ordinalMatch ? parseInt(ordinalMatch[1]) : digitMatch ? parseInt(digitMatch[1]) : 0;
+    if (roundNum > 0) return { type: 'pick', round: roundNum };
+  }
+  return { type: 'player', name: line };
+}
 
 interface Props {
   records: TeamRecords;
@@ -156,6 +213,53 @@ function teamName(id: number): string {
   return teamsMetadata.teams.find(t => t.id === id)?.displayName ?? `Team ${id}`;
 }
 
+const ROUND_COLORS: Record<number, { bg: string; text: string }> = {
+  1: { bg: '#f59e0b', text: '#fff' }, // amber
+  2: { bg: '#6366f1', text: '#fff' }, // indigo
+  3: { bg: '#10b981', text: '#fff' }, // teal
+  4: { bg: '#ef4444', text: '#fff' }, // red
+  5: { bg: '#8b5cf6', text: '#fff' }, // purple
+};
+
+function TradeItemChip({ line, photoMap }: { line: string; photoMap: Record<string, string> }) {
+  const parsed = parseTradeLine(line);
+  if (parsed.type === 'pick') {
+    const colors = ROUND_COLORS[parsed.round] ?? { bg: '#6b7280', text: '#fff' };
+    return (
+      <div className="flex items-center gap-2 py-1">
+        <div
+          className="w-11 h-11 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold leading-none"
+          style={{ backgroundColor: colors.bg, color: colors.text }}
+        >
+          R{parsed.round}
+        </div>
+        <span className="text-base font-semibold text-gray-800 leading-snug">{line}</span>
+      </div>
+    );
+  }
+  const photo = photoMap[line.toLowerCase()];
+  return (
+    <div className="flex items-center gap-2 py-1">
+      {photo ? (
+        <Image
+          src={photo}
+          alt={line}
+          width={44}
+          height={44}
+          className="w-11 h-11 rounded-full object-cover bg-gray-100 flex-shrink-0"
+          unoptimized
+        />
+      ) : (
+        <div className="w-11 h-11 rounded-full bg-gray-100 flex-shrink-0 flex items-center justify-center">
+          <span className="text-gray-400 text-sm">⚾</span>
+        </div>
+      )}
+      <span className="text-base font-semibold text-gray-800 leading-snug">{line}</span>
+    </div>
+  );
+}
+
+
 export default function ManagerHistory({ records, trades, totalPlayersEmployed, totalSeasons, teamId, teamColor, championships }: Props) {
   const {
     bestSeason, worstSeason, bestScoringSeasonPF, worstScoringSeasonPF,
@@ -163,6 +267,7 @@ export default function ManagerHistory({ records, trades, totalPlayersEmployed, 
 
   const hasRecords = bestSeason || records.bestDraftPick || records.bestPickup;
   const tradeLog = trades.filter(p => p.postType === 'trade');
+  const playerPhotoMap = tradeLog.length > 0 ? buildPlayerPhotoMap() : {};
 
   if (!hasRecords && tradeLog.length === 0) return null;
 
@@ -220,14 +325,6 @@ export default function ManagerHistory({ records, trades, totalPlayersEmployed, 
                 accent="indigo"
               />
             )}
-            {worstScoringSeasonPF && worstScoringSeasonPF.year !== worstSeason?.year && (
-              <RecordCard
-                label="Fewest Points, Season"
-                value={`${worstScoringSeasonPF.pf.toFixed(0)} pts`}
-                sub1={`${worstScoringSeasonPF.year} · ${worstScoringSeasonPF.wins}–${worstScoringSeasonPF.losses}`}
-                accent="amber"
-              />
-            )}
           </div>
         </>
       )}
@@ -247,7 +344,8 @@ export default function ManagerHistory({ records, trades, totalPlayersEmployed, 
               // From this team's perspective: what did they give/receive
               const giving    = isAuthor ? trade.tradeGiving    : trade.tradeReceiving;
               const receiving = isAuthor ? trade.tradeReceiving  : trade.tradeGiving;
-              const otherTeam = isAuthor ? targetMeta : authorMeta;
+              const thisMeta  = isAuthor ? authorMeta : targetMeta;
+              const otherMeta = isAuthor ? targetMeta : authorMeta;
 
               return (
                 <div
@@ -257,38 +355,76 @@ export default function ManagerHistory({ records, trades, totalPlayersEmployed, 
                   {/* Header */}
                   <div
                     className="px-4 py-2 flex items-center justify-between"
-                    style={{ backgroundColor: teamColor, opacity: undefined }}
+                    style={{ backgroundColor: teamColor }}
                   >
                     <span className="text-xs font-bold text-white/90 tracking-wide">TRADE</span>
-                    <span className="text-xs text-white/70">{dateStr}</span>
+                    <span className="text-xs text-white/60">{dateStr}</span>
                   </div>
 
                   <div className="grid grid-cols-2 divide-x divide-gray-100">
                     {/* Gave */}
-                    <div className="px-4 py-3">
-                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1.5">
-                        Gave to {otherTeam?.displayName ?? 'Unknown'}
-                      </p>
-                      {giving ? (
-                        giving.split('\n').filter(Boolean).map((item, i) => (
-                          <p key={i} className="text-sm text-gray-700 leading-snug">{item}</p>
-                        ))
+                    <div className="p-3 flex gap-3">
+                      {TEAM_LOGOS[thisMeta?.id ?? -1] ? (
+                        <Image
+                          src={TEAM_LOGOS[thisMeta!.id]}
+                          alt={thisMeta!.displayName}
+                          width={56}
+                          height={56}
+                          className="w-14 h-14 min-w-[56px] rounded-full object-cover bg-white border-2 border-gray-200 shadow-sm flex-shrink-0 self-center"
+                          unoptimized
+                        />
                       ) : (
-                        <p className="text-xs text-gray-300 italic">—</p>
+                        <div
+                          className="w-14 h-14 min-w-[56px] rounded-full flex-shrink-0 self-center flex items-center justify-center text-white font-bold text-lg border-2 border-gray-200 shadow-sm"
+                          style={{ backgroundColor: (thisMeta as { primaryColor?: string } | undefined)?.primaryColor ?? '#6b7280' }}
+                        >
+                          {thisMeta?.displayName[0] ?? '?'}
+                        </div>
                       )}
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1 leading-tight">
+                          {thisMeta?.displayName ?? 'Unknown'} gave
+                        </p>
+                        {giving ? (
+                          giving.split('\n').filter(Boolean).flatMap(item => splitTradeItems(item)).map((item, i) => (
+                            <TradeItemChip key={i} line={item} photoMap={playerPhotoMap} />
+                          ))
+                        ) : (
+                          <p className="text-xs text-gray-300 italic py-1">—</p>
+                        )}
+                      </div>
                     </div>
                     {/* Received */}
-                    <div className="px-4 py-3">
-                      <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1.5">
-                        Received from {otherTeam?.displayName ?? 'Unknown'}
-                      </p>
-                      {receiving ? (
-                        receiving.split('\n').filter(Boolean).map((item, i) => (
-                          <p key={i} className="text-sm text-gray-700 leading-snug">{item}</p>
-                        ))
+                    <div className="p-3 flex gap-3">
+                      {TEAM_LOGOS[otherMeta?.id ?? -1] ? (
+                        <Image
+                          src={TEAM_LOGOS[otherMeta!.id]}
+                          alt={otherMeta!.displayName}
+                          width={56}
+                          height={56}
+                          className="w-14 h-14 min-w-[56px] rounded-full object-cover bg-white border-2 border-gray-200 shadow-sm flex-shrink-0 self-center"
+                          unoptimized
+                        />
                       ) : (
-                        <p className="text-xs text-gray-300 italic">—</p>
+                        <div
+                          className="w-14 h-14 min-w-[56px] rounded-full flex-shrink-0 self-center flex items-center justify-center text-white font-bold text-lg border-2 border-gray-200 shadow-sm"
+                          style={{ backgroundColor: (otherMeta as { primaryColor?: string } | undefined)?.primaryColor ?? '#6b7280' }}
+                        >
+                          {otherMeta?.displayName[0] ?? '?'}
+                        </div>
                       )}
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1 leading-tight">
+                          {otherMeta?.displayName ?? 'Unknown'} gave
+                        </p>
+                        {receiving ? (
+                          receiving.split('\n').filter(Boolean).flatMap(item => splitTradeItems(item)).map((item, i) => (
+                            <TradeItemChip key={i} line={item} photoMap={playerPhotoMap} />
+                          ))
+                        ) : (
+                          <p className="text-xs text-gray-300 italic py-1">—</p>
+                        )}
+                      </div>
                     </div>
                   </div>
 
