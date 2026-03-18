@@ -91,7 +91,7 @@ npm run build            # Production build
 - **Replaces** the local `scripts/run_projections.sh` crontab approach (which was never set up)
 
 ## Recent Work (Feb 2026 — late)
-- **Playoff bracket** (`app/playoffs/page.tsx`): uses last 2 weeks of season as playoff rounds; lowest seed goes LEFT bracket; background photos use `minHeight: 500px` to normalize height across years
+- **Playoff bracket** (`app/playoffs/page.tsx`): uses last 2 weeks of season as playoff rounds; lowest seed goes LEFT bracket; background photos use `minHeight: 500px` to normalize height across years. **Two-mode background**: current season with no champion → `isFullPageBg=true`, World Series trophy (`PRE_SEASON_BG`) rendered as `fixed inset-0 -z-10` with `bg-black/70` overlay (content scrolls over it, all text white); past seasons with a champion → `isFullPageBg=false`, boxed `relative rounded-2xl overflow-hidden` card with `absolute inset-0` background + `bg-black/60` overlay, page bg `bg-sky-50`, "In the Hunt"/"In the Hurt" text gray
 - **BaseballFieldLeaders** (`components/BaseballFieldLeaders.tsx`): baseball field SVG with player pins, Ohtani special card, toggle for rostered vs FA view. ESPN has no 'RP' roster slot — all pitchers are 'SP'. Bullpen in rostered view uses `top('SP', 9).slice(4)` (ranks 5-9); FA view uses `top('RP', 5)`. **Mobile layout**: `flex-col md:flex-row` — field is full width, Ohtani/DH cards go horizontal above, side boxes use 2-col grid below.
 - **USMapHero** (`components/USMapHero.tsx`): SVG US map using `react-simple-maps` v3 with `geoAlbersUsa` projection. Stars mark team cities; leader lines connect to circular logo images; logos link to team pages. Navy (`bg-blue-950`) background.
 - **Message Board** (`app/message-board/`): renamed from Trash Talk. Includes polls (open + closed) above the post feed. Posts support `videoUrl` (YouTube embed or direct video). `/trash-talk` and `/polls` both redirect here permanently (see `next.config.ts`). "Polls" removed from Header nav.
@@ -1271,6 +1271,17 @@ python3 backtest_erosp.py --target-year 2025 2>&1 | grep -E "(Pearson|Spearman|R
 - "TRADE" label and date text changed from semi-transparent white (`text-white/90` / `text-white/60`) to fully opaque dark text (`text-gray-900` / `text-gray-700`)
 - Fixes readability against bright/neon team `primaryColor` backgrounds (e.g. neon green)
 
+## Session Work (March 17, 2026 — Trade Log "Received" View + Date Bold)
+
+### Trade Log display flipped to receiving perspective (`components/ManagerHistory.tsx`)
+- Both columns now show what each team **received** rather than what they gave
+- Left column: `[This team] received` + `receivingItems`; right column: `[Other team] received` + `givingItems`
+- Labels changed from "gave" → "received" on both sides
+- Single-item centering logic updated to match the new item arrays (`receivingItems.length === 1` on left, `givingItems.length === 1` on right)
+
+### Trade card date bolded (`components/ManagerHistory.tsx`)
+- Date string in the trade card header changed from `text-xs text-gray-700` → `text-xs font-bold text-gray-700`
+
 ## Session Work (March 17, 2026 — Text Contrast for Background Player Photos)
 
 ### Unboxed text darkened across team pages
@@ -1282,3 +1293,13 @@ python3 backtest_erosp.py --target-year 2025 2>&1 | grep -E "(Pearson|Spearman|R
   - `components/EROSPTable.tsx`: "Updated … · Updates daily" metadata → `text-gray-700`; pre-season note → `text-gray-700` (both were `text-gray-400`)
   - `components/TeamBaseballField.tsx`: stadium name caption → `text-gray-700` (was `text-gray-400`)
   - `app/teams/[teamId]/page.tsx`: "💬 Message Board" h2 → `text-gray-900` (was `text-gray-700`)
+
+## Session Work (March 17, 2026 — Pre-Season Projected Standings Sort)
+
+### Standings page sorts by projected keeper FP pre-season (`app/standings/page.tsx`)
+- **Trigger**: `seasonStarted = standings.some(s => s.wins > 0 || s.losses > 0)`. While all teams are 0-0 (pre-season through end of Week 1), projected sort is active. Automatically flips to normal wins/PF sort once ESPN pushes the first W/L.
+- **Data source**: `data/projections/2026.json` — same file as the team page "Total Projected · X,XXX pts" keeper total. Uses the same `normalize()` function (`name.toLowerCase().replace(/[^a-z ]/g, '').trim()`) for consistent name matching.
+- **Projected score per team**: sum of `projectedFP` for all 6 confirmed keepers from `data/keeper-overrides.json`. All 6 keepers start pre-draft (no bench), so the full sum is used.
+- **Display**: projected FP total shown in the PF column; indigo banner at top explains the mode ("Pre-season projected order · Ranked by keeper EROSP..."); small note in legend says "Proj. pts shown in PF column".
+- **Fallback**: if `data/projections/2026.json` doesn't exist, silently falls back to normal sort.
+- **Bug fix**: initial implementation used `data/erosp/latest.json` `erosp_startable` (EROSP scale, ~1,700 pts/team) instead of `projectedFP` from projections (FanGraphs scale, ~3,500 pts/team) — causing a 2× discrepancy vs. the team page totals. Fixed to use projections file for consistency.
