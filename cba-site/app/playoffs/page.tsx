@@ -336,87 +336,106 @@ export default function PlayoffsPage() {
   const isSeasonOver = season.champion !== undefined || incompleteMatchups.length === 0;
   const champ = season.champion !== undefined ? getTeam(season.champion) : undefined;
 
-  // Background photo logic — champion city photo, or season-level photo for preseason years
+  // Background photo logic — champion city photo, or season-level photo, or trophy fallback
+  const PRE_SEASON_BG = 'https://a57.foxnews.com/static.foxbusiness.com/foxbusiness.com/content/uploads/2024/10/0/0/world-series-trophy.jpg?ve=1&tl=1';
   const champMeta = champ ? teamsMeta.find(t => t.id === champ.id) : undefined;
-  const bgPhotoUrl = champMeta?.cityPhotoUrl ?? season.backgroundPhotoUrl ?? '';
+  const bgPhotoUrl = champMeta?.cityPhotoUrl ?? season.backgroundPhotoUrl ?? PRE_SEASON_BG;
   const bgColor = champMeta?.primaryColor ?? '#14b8a6';
-  const hasBg = !!champ || !!season.backgroundPhotoUrl;
+  // Full-page fixed background only for the current season with no champion yet
+  const isFullPageBg = !champ && !season.backgroundPhotoUrl;
+  const hasBg = true; // bracket connectors/labels always use light-on-dark colors
 
   // Year tabs: show every season that exists in data (including preseason 2026)
   const yearOptions = allSeasons.map(s => s.year).sort((a, b) => b - a);
 
+  // Shared content: title, year selector, bracket
+  const headerContent = (
+    <>
+      <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-2">
+        <h1 className="text-4xl font-bold text-white">
+          {season.year} Playoff Picture
+        </h1>
+        {champ && (
+          <span className="mt-2 md:mt-0 text-sm bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full font-semibold">
+            ★ {champ.name} — {season.year} Champion{isVacated ? ' (title awarded)' : ''}
+          </span>
+        )}
+      </div>
+      <p className="mb-6 text-white/65">
+        {isSeasonOver
+          ? `Final standings after the ${season.year} regular season`
+          : `Standings as of Week ${currentWeek} — if the season ended today`}
+      </p>
+
+      {/* ── Year selector ──────────────────────────────────────── */}
+      <div className="flex flex-wrap gap-2 mb-8">
+        {yearOptions.map(year => (
+          <button
+            key={year}
+            onClick={() => setSelectedYear(year)}
+            className={`px-4 py-2 rounded-full text-sm font-semibold border transition ${
+              selectedYear === year
+                ? 'bg-teal-600 text-white border-teal-600'
+                : 'bg-white/10 text-white border-white/25 hover:bg-white/20 hover:border-white/40'
+            }`}
+          >
+            {year}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Bracket ────────────────────────────────────────────── */}
+      <h2 className="text-xl font-bold mb-6 text-white">
+        Playoff Bracket
+      </h2>
+      <PlayoffBracket season={season} hasBg={hasBg} isVacated={isVacated} />
+    </>
+  );
+
   return (
-    <div className="min-h-screen bg-sky-50">
+    <div className={`min-h-screen ${isFullPageBg ? '' : 'bg-sky-50'}`}>
+      {/* Full-screen fixed background — only for current season (no champion yet) */}
+      {isFullPageBg && (
+        <>
+          <div
+            className="fixed inset-0 -z-10"
+            style={{ backgroundImage: `url(${bgPhotoUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+          />
+          <div className="fixed inset-0 -z-10 bg-black/70" />
+        </>
+      )}
+
       <Header />
 
-      <main className="container mx-auto px-4 py-12">
+      <main className="container mx-auto px-4 py-12 pb-24">
 
-        {/* ── Photo background wraps title + year selector + bracket ─── */}
-        <div className="relative rounded-2xl overflow-hidden mb-2" style={{ minHeight: '500px' }}>
-          {hasBg && (
-            <>
-              {/* City photo (or primary-color gradient fallback) */}
+        {/* ── Title + year selector + bracket ─── */}
+        <div className="mb-2">
+          {isFullPageBg ? (
+            // Current season: no card, content floats over fixed background
+            <div className="px-8 pt-8 pb-10">
+              {headerContent}
+            </div>
+          ) : (
+            // Past seasons: boxed card with champion/season photo background
+            <div className="relative rounded-2xl overflow-hidden mb-2" style={{ minHeight: 500 }}>
               <div
                 className="absolute inset-0"
-                style={bgPhotoUrl
-                  ? { backgroundImage: `url(${bgPhotoUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-                  : { background: `linear-gradient(135deg, ${bgColor}cc, #0f1a2e)` }
-                }
+                style={{ backgroundImage: `url(${bgPhotoUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
               />
-              {/* Dark overlay so text and cards remain readable */}
-              <div className="absolute inset-0 bg-black/62" />
-            </>
+              <div className="absolute inset-0 bg-black/60" />
+              <div className="relative z-10 px-8 pt-8 pb-10">
+                {headerContent}
+              </div>
+            </div>
           )}
-
-          <div className={`relative z-10 ${hasBg ? 'px-8 pt-8 pb-10' : ''}`}>
-            <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-2">
-              <h1 className={`text-4xl font-bold ${hasBg ? 'text-white' : ''}`}>
-                {season.year} Playoff Picture
-              </h1>
-              {champ && (
-                <span className="mt-2 md:mt-0 text-sm bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full font-semibold">
-                  ★ {champ.name} — {season.year} Champion{isVacated ? ' (title awarded)' : ''}
-                </span>
-              )}
-            </div>
-            <p className={`mb-6 ${hasBg ? 'text-white/65' : 'text-gray-500'}`}>
-              {isSeasonOver
-                ? `Final standings after the ${season.year} regular season`
-                : `Standings as of Week ${currentWeek} — if the season ended today`}
-            </p>
-
-            {/* ── Year selector ──────────────────────────────────────── */}
-            <div className="flex flex-wrap gap-2 mb-8">
-              {yearOptions.map(year => (
-                <button
-                  key={year}
-                  onClick={() => setSelectedYear(year)}
-                  className={`px-4 py-2 rounded-full text-sm font-semibold border transition ${
-                    selectedYear === year
-                      ? 'bg-teal-600 text-white border-teal-600'
-                      : hasBg
-                        ? 'bg-white/10 text-white border-white/25 hover:bg-white/20 hover:border-white/40'
-                        : 'bg-white text-gray-600 border-gray-200 hover:border-teal-400 hover:text-teal-600'
-                  }`}
-                >
-                  {year}
-                </button>
-              ))}
-            </div>
-
-            {/* ── Bracket ────────────────────────────────────────────── */}
-            <h2 className={`text-xl font-bold mb-6 ${hasBg ? 'text-white' : 'text-gray-700'}`}>
-              Playoff Bracket
-            </h2>
-            <PlayoffBracket season={season} hasBg={hasBg} isVacated={isVacated} />
-          </div>
         </div>
 
         {/* ── In the Hunt / In the Hurt ────────────────────────────── */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-10">
           <div className="md:col-span-2">
-            <h2 className="text-xl font-bold text-gray-700 mb-1">🔎 In the Hunt</h2>
-            <p className="text-sm text-gray-400 mb-4">
+            <h2 className={`text-xl font-bold mb-1 ${isFullPageBg ? 'text-white' : 'text-gray-700'}`}>🔎 In the Hunt</h2>
+            <p className={`text-sm mb-4 ${isFullPageBg ? 'text-white/70' : 'text-gray-400'}`}>
               {huntTeams.length === 0
                 ? isSeasonOver
                   ? 'The regular season is over — playoff spots are locked.'
@@ -453,8 +472,8 @@ export default function PlayoffsPage() {
           </div>
 
           <div>
-            <h2 className="text-xl font-bold text-gray-700 mb-1">💀 In the Hurt</h2>
-            <p className="text-sm text-gray-400 mb-4">Current Saccko bracket</p>
+            <h2 className={`text-xl font-bold mb-1 ${isFullPageBg ? 'text-white' : 'text-gray-700'}`}>💀 In the Hurt</h2>
+            <p className={`text-sm mb-4 ${isFullPageBg ? 'text-white/70' : 'text-gray-400'}`}>Current Saccko bracket</p>
             <div className="space-y-3">
               {hurtSeeds.map((s, i) => (
                 <div key={s.teamId} className="bg-red-50 rounded-xl border border-red-200 px-4 py-3 flex items-center justify-between shadow-sm">

@@ -466,7 +466,7 @@ export function getTeamRecords(teamId: number): TeamRecords {
   let bestTrade: TeamBestPickup | null = null;
   const allSeasons = getAllSeasons();
 
-  // Build a map of player → {firstAcqType, firstYear} based on their EARLIEST season on this team
+  // Build per-player first acquisition type on this team (earliest season wins).
   interface AcqTotals { totalPoints: number; position: string; photoUrl?: string; firstYear: number }
   const firstAcq = new Map<string, { type: string; year: number }>();
   for (const season of seasons) {
@@ -480,7 +480,7 @@ export function getTeamRecords(teamId: number): TeamRecords {
     }
   }
 
-  // Helper: cumulative career pts for players whose FIRST acquisition matches one of the given types
+  // Helper: cumulative career pts for players whose FIRST acquisition matches one of the given types.
   function bestByAcquisition(types: string[]): TeamBestPickup | null {
     const totals = new Map<string, AcqTotals>();
     for (const season of seasons) {

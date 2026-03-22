@@ -76,6 +76,7 @@ export default function Header() {
   const statsItems = [
     { href: '/stats/players', label: 'Player Stats' },
     { href: '/stats/teams', label: 'Team Stats' },
+    { href: '/draft', label: 'Draft Analysis' },
   ];
 
   return (
@@ -195,6 +196,7 @@ export default function Header() {
               <div className="flex flex-col space-y-2 pl-3 border-l border-teal-600">
                 <Link href="/stats/players" className="hover:text-teal-200 transition" onClick={() => setMenuOpen(false)}>Player Stats</Link>
                 <Link href="/stats/teams" className="hover:text-teal-200 transition" onClick={() => setMenuOpen(false)}>Team Stats</Link>
+                <Link href="/draft" className="hover:text-teal-200 transition" onClick={() => setMenuOpen(false)}>Draft Analysis</Link>
               </div>
             )}
 

@@ -3,6 +3,13 @@ import { TeamRecords, TeamBestPickup, getAllSeasons } from '@/lib/data-processor
 
 import { TrashTalkPost } from '@/lib/types';
 import teamsMetadata from '@/data/teams.json';
+import draftRounds from '@/data/draft-rounds.json';
+
+// Build a map from effectiveRound → avgPoints for quick lookup
+const ROUND_AVG: Record<number, number> = {};
+for (const r of draftRounds.rounds) {
+  ROUND_AVG[r.effectiveRound] = r.avgPoints;
+}
 
 // Team logo URLs (sourced from USMapHero.tsx)
 const TEAM_LOGOS: Record<number, string> = {
@@ -228,13 +235,19 @@ function TradeItemChip({ line, photoMap, tradeYear }: { line: string; photoMap: 
     const colors = ROUND_COLORS[parsed.round] ?? { bg: '#6b7280', text: '#fff' };
     const rawText = (!parsed.hasYear && tradeYear) ? `${tradeYear} ${line}` : line;
     const displayText = rawText.replace(/\bround\b/gi, 'Round').replace(/\bpick\b/gi, 'Pick');
+    const avgPts = ROUND_AVG[parsed.round];
     return (
       <div className="flex items-center gap-2 py-1">
-        <div
-          className="w-11 h-11 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold leading-none"
-          style={{ backgroundColor: colors.bg, color: colors.text }}
-        >
-          R{parsed.round}
+        <div className="flex flex-col items-center flex-shrink-0">
+          <div
+            className="w-11 h-11 rounded-full flex items-center justify-center text-xs font-bold leading-none"
+            style={{ backgroundColor: colors.bg, color: colors.text }}
+          >
+            R{parsed.round}
+          </div>
+          {avgPts && (
+            <span className="text-[9px] text-gray-400 mt-0.5 leading-none">~{avgPts} avg</span>
+          )}
         </div>
         <span className="text-base font-semibold text-gray-800 leading-snug">{displayText}</span>
       </div>
@@ -320,14 +333,6 @@ export default function ManagerHistory({ records, trades, totalPlayersEmployed, 
                 accent="red"
               />
             )}
-            {bestScoringSeasonPF && bestScoringSeasonPF.year !== bestSeason?.year && (
-              <RecordCard
-                label="Most Points, Season"
-                value={`${bestScoringSeasonPF.pf.toFixed(0)} pts`}
-                sub1={`${bestScoringSeasonPF.year} · ${bestScoringSeasonPF.wins}–${bestScoringSeasonPF.losses}`}
-                accent="indigo"
-              />
-            )}
           </div>
         </>
       )}
@@ -335,6 +340,28 @@ export default function ManagerHistory({ records, trades, totalPlayersEmployed, 
       {tradeLog.length > 0 && (
         <>
           <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-widest mb-3">Trade Log</h3>
+
+          {/* Draft Pick Value Reference */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-4 py-3 mb-3">
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-2">Pick Value Reference (CBA avg pts, 2023–2025)</p>
+            <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+              {draftRounds.rounds.map(r => {
+                const colors = ROUND_COLORS[r.effectiveRound] ?? { bg: '#6b7280', text: '#fff' };
+                return (
+                  <div key={r.effectiveRound} className="flex items-center gap-1.5">
+                    <div
+                      className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[9px] font-bold"
+                      style={{ backgroundColor: colors.bg, color: colors.text }}
+                    >
+                      R{r.effectiveRound}
+                    </div>
+                    <span className="text-xs text-gray-600 font-medium">~{r.avgPoints}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           <div className="flex flex-col gap-3">
             {tradeLog.map(trade => {
               const authorMeta = teamsMetadata.teams.find(t => t.id === trade.authorTeamId);
@@ -367,7 +394,7 @@ export default function ManagerHistory({ records, trades, totalPlayersEmployed, 
                     style={{ backgroundColor: teamColor }}
                   >
                     <span className="text-xs font-bold text-gray-900 tracking-wide">TRADE</span>
-                    <span className="text-xs text-gray-700">{dateStr}</span>
+                    <span className="text-xs font-bold text-gray-700">{dateStr}</span>
                   </div>
 
                   <div className="grid grid-cols-2 divide-x divide-gray-100">

@@ -1303,3 +1303,98 @@ python3 backtest_erosp.py --target-year 2025 2>&1 | grep -E "(Pearson|Spearman|R
 - **Display**: projected FP total shown in the PF column; indigo banner at top explains the mode ("Pre-season projected order · Ranked by keeper EROSP..."); small note in legend says "Proj. pts shown in PF column".
 - **Fallback**: if `data/projections/2026.json` doesn't exist, silently falls back to normal sort.
 - **Bug fix**: initial implementation used `data/erosp/latest.json` `erosp_startable` (EROSP scale, ~1,700 pts/team) instead of `projectedFP` from projections (FanGraphs scale, ~3,500 pts/team) — causing a 2× discrepancy vs. the team page totals. Fixed to use projections file for consistency.
+
+## Session Work (March 17, 2026 — Draft Round Value Analysis)
+
+### `scripts/fetch-draft-rounds.ts` (new script)
+- Fetches `mDraftDetail` from ESPN API for 2023–2025, joins to `data/historical/{year}.json` point totals
+- Outputs `data/draft-rounds.json` with per-round averages, top 3 players, and per-year breakdowns
+- Run: `npx tsx scripts/fetch-draft-rounds.ts`
+
+### Key design decisions
+- **2022 excluded**: inaugural season had no keepers — a true open draft, not comparable to a keeper league
+- **Effective round remapping**: strips keeper rounds to normalize round numbers across years
+  - 2023–2025: 5 keepers → ESPN Rd 6 = Effective Rd 1, Rd 7 = Rd 2, etc.
+  - 2026+: 6 keepers → ESPN Rd 7 = Effective Rd 1 (handled via `KEEPER_ROUNDS` map in script)
+- **Keeper-flagged picks skipped**: `pick.keeper === true` picks excluded even outside keeper rounds (edge cases)
+- ESPN `mDraftDetail` returns `{ roundId, roundPickNumber, overallPickNumber, playerId, teamId, keeper }` per pick
+
+### `data/draft-rounds.json` shape
+```json
+{
+  "generatedAt": "...",
+  "years": [2023, 2024, 2025],
+  "note": "...",
+  "rounds": [
+    {
+      "effectiveRound": 1,
+      "totalPicks": 30,
+      "years": [2023, 2024, 2025],
+      "avgPoints": 447,
+      "top3": [{ "name": "Marcus Semien", "year": 2023, "espnRound": 6, "points": 740 }, ...]
+    }, ...
+  ],
+  "byYear": { "2023": [...], "2024": [...], "2025": [...] }
+}
+```
+
+### 2023–2025 effective round averages
+| Eff Rd | Avg pts | Notes |
+|--------|---------|-------|
+| Rd 1 | 447 | ESPN Rd 6 |
+| Rd 2 | 439 | |
+| Rd 3 | 359 | Drop-off |
+| Rd 4 | 388 | |
+| Rd 5–6 | ~361 | |
+| Rd 7 | 314 | |
+| Rd 8–9 | ~385 | Late steals inflate (Carroll 696, Ozuna 631) |
+| Rd 10–11 | ~362 | |
+| Rd 12+ | <310 | Tail off |
+| Rd 22 | 264 | Cody Bellinger 2023 (617 pts) carrying the round |
+- 30 picks per round (3 years × 10 teams); last 2 rounds have 28/25 (not all teams drafted that deep)
+
+## Session Work (March 17, 2026 — Manager History Cleanup)
+
+### "Most Points, Season" card removed (`components/ManagerHistory.tsx`)
+- Removed the `bestScoringSeasonPF` `RecordCard` from the Franchise Records grid — it was redundant with `bestSeason` (which already surfaces the best record/finish)
+
+### Best Pickup acquisition logic reverted to simple `firstAcq` (`lib/data-processor.ts`)
+- **Context**: `getTeamRecords()` builds `firstAcq` map (player→earliest acquisition type on this team) and uses it to classify players into Best Pickup (ADD), Best Draft Pick (DRAFT), Best Trade (TRADE)
+- **Previous overly-complex approach**: added `firstDraftYear` / `firstAddYear` maps + `isPickupSearch` exclusion to handle the case where a player was drafted then re-added by the same team. Found 7 real cases (Logan Gilbert, Ty France, etc.) — these are legitimate re-adds and should count as pickups, so the approach was wrong.
+- **Reverted to**: simple `firstAcq`-only — if earliest recorded acquisition is `ADD`, the player qualifies for Best Pickup; if `DRAFT`, they qualify for Best Draft Pick. Players waiver-added then kept as DRAFT in subsequent years correctly show as pickups (earliest record is `ADD`).
+- **Why this is safe**: the multi-period historical fetch (`fetch-historical.ts`) is comprehensive enough that data-gap misclassifications (drafted in year N but first captured record shows ADD from year N+1) are rare and acceptable.
+
+## Session Work (March 17, 2026 — Draft Round Value Integration)
+
+### Overview
+Integrated `data/draft-rounds.json` (avg pts per effective round, 2023–2025) into four parts of the site.
+
+### A: Trade pick chips now show avg pts (`components/ManagerHistory.tsx`)
+- Imported `draft-rounds.json` and built `ROUND_AVG: Record<number, number>` (effectiveRound → avgPoints) at module level
+- In `TradeItemChip`, when `parsed.type === 'pick'`, added a `~{avgPts} avg` label in `text-[9px] text-gray-400` below the R{N} badge
+- Badge and label wrapped in a `flex flex-col items-center` div so the avg sits directly under the circle
+
+### B: Draft Analysis page (`app/draft/page.tsx`)
+- New page at `/draft`; linked under **Stats → Draft Analysis** in header (desktop dropdown + mobile expandable)
+- Four sections:
+  1. **Avg Points by Effective Round** — horizontal CSS bar chart (22 rounds, colored bars, pick count)
+  2. **Best Pick per Round** — 2-col card grid; each card shows top pick, year, round number, pts, and `+N vs avg` premium in teal
+  3. **Year-over-Year Breakdown** — table with 2023/2024/2025 columns + 3yr avg; color-coded round badge in first column
+  4. **Top 3 Picks per Round** — expandable detail view; each top3 card shows name, year, round, pts in round color
+- Round numbers shown as bare `Rd N` (no "ESPN" prefix — redundant since everyone knows the source)
+
+### C: Pick Value Reference panel in trade log (`components/ManagerHistory.tsx`)
+- A compact card (`bg-white rounded-xl border`) appears above the trade card list whenever `tradeLog.length > 0`
+- Shows all 22 effective rounds as colored R{N} badges + `~{avgPoints}` in a `flex flex-wrap` row
+- Label: "Pick Value Reference (CBA avg pts, 2023–2025)"
+
+### D: Draft steal callouts in season history cards (`app/teams/[teamId]/page.tsx`)
+- Imported `draft-rounds.json` at module level; built `DRAFT_TOP3_MAP`: `"{year}_{normalizedName}" → { effectiveRound, avgPoints, rank }`
+- Added `getAllSeasons` to the existing import from `data-processor`
+- Pre-computed `draftSteals: Record<number, { name, effectiveRound, avgPoints, rank, points }[]>` in the page function — iterates all seasons (2023–2025 only, where round data exists), checks each roster player against `DRAFT_TOP3_MAP` by `${year}_${normalizedName}` key
+- In each season history card, after the Keepers section: renders an indigo "Draft Steal(s)" subsection when the team had a top-3 pick in any round that year
+- Shows: player name, "#N in Rd X (avg Y pts)", actual pts in indigo bold, `+N vs avg` delta in indigo
+
+### Header nav
+- `statsItems` in `components/Header.tsx` now includes `{ href: '/draft', label: 'Draft Analysis' }` as third entry
+- Mobile menu Stats expandable section also has the link

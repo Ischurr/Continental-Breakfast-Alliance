@@ -1,5 +1,5 @@
 import Header from '@/components/Header';
-import { getCurrentSeason, calculateAllTimeStandings, getTeamHeadToHead, getTeamSeasonHistory, getTeamTopPlayersAllTime, getTeamTopPlayerForYear, getTeamKeepersForYear, getSuggestedKeepers, getTotalUniquePlayersEmployed, getTeamRecords } from '@/lib/data-processor';
+import { getCurrentSeason, getAllSeasons, calculateAllTimeStandings, getTeamHeadToHead, getTeamSeasonHistory, getTeamTopPlayersAllTime, getTeamTopPlayerForYear, getTeamKeepersForYear, getSuggestedKeepers, getTotalUniquePlayersEmployed, getTeamRecords } from '@/lib/data-processor';
 import ManagerHistory from '@/components/ManagerHistory';
 import teamsMetadata from '@/data/teams.json';
 import keeperOverrides from '@/data/keeper-overrides.json';
@@ -15,6 +15,18 @@ import SuggestedMoves from '@/components/SuggestedMoves';
 import { getSuggestedMoves } from '@/lib/suggested-moves';
 import fs from 'fs';
 import path from 'path';
+import draftRounds from '@/data/draft-rounds.json';
+
+// Build a lookup: { year_name → { round, avgPoints } } for all top3 entries
+// Used to check if a team had a "draft steal" (one of their players was best in their round that year)
+const DRAFT_TOP3_MAP: Record<string, { effectiveRound: number; avgPoints: number; rank: number }> = {};
+for (const r of draftRounds.rounds) {
+  for (let i = 0; i < r.top3.length; i++) {
+    const p = r.top3[i];
+    const key = `${p.year}_${p.name.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+    DRAFT_TOP3_MAP[key] = { effectiveRound: r.effectiveRound, avgPoints: r.avgPoints, rank: i + 1 };
+  }
+}
 
 const EMUS_FUN_FACTS = "Last year's name change from Shureburds to Emus was due to an emu sighting on the Delmarva Peninsula. This temporary name change ignited a six-game win streak, and so the Shore Boyz hoped they could ride this to different fortunes come playoff time. Unfortunately, a Shureburd can't change its feathers. 3rd place again!";
 
@@ -84,6 +96,25 @@ export default async function TeamPage({ params }: Props) {
   const teamRecords = getTeamRecords(id);
   const seasonHistory = getTeamSeasonHistory(id);
   const topPlayersAllTime = getTeamTopPlayersAllTime(id, 6);
+
+  // Compute draft steals: for each historical year, find players on this team who appear
+  // in the top3 for their effective round in draft-rounds.json
+  // Returns: year → array of { name, effectiveRound, avgPoints, rank, points }
+  const draftSteals: Record<number, { name: string; effectiveRound: number; avgPoints: number; rank: number; points: number }[]> = {};
+  for (const season of getAllSeasons()) {
+    const { year } = season;
+    if (year < 2023 || year > 2025) continue;
+    const teamRoster = season.rosters?.find(r => r.teamId === id)?.players ?? [];
+    const steals: typeof draftSteals[number] = [];
+    for (const player of teamRoster) {
+      const key = `${year}_${player.playerName.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+      const entry = DRAFT_TOP3_MAP[key];
+      if (entry) {
+        steals.push({ name: player.playerName, ...entry, points: player.totalPoints });
+      }
+    }
+    if (steals.length > 0) draftSteals[year] = steals;
+  }
   // Keeper display logic:
   // - Before Mar 24 draft: show suggested/confirmed 2026 keepers (from overrides or algorithm)
   // - Mar 24 – Oct 1: show actual 2026 keepers from ESPN roster data
@@ -691,6 +722,24 @@ export default async function TeamPage({ params }: Props) {
                     </div>
                     );
                   })()}
+                {/* Draft Steals */}
+                {draftSteals[year] && draftSteals[year].length > 0 && (
+                  <div className="pt-2 mt-2 border-t border-gray-100">
+                    <span className="text-xs font-semibold text-indigo-500 uppercase tracking-wide">Draft Steal{draftSteals[year].length > 1 ? 's' : ''}</span>
+                    {draftSteals[year].map(steal => (
+                      <div key={steal.name} className="mt-1 flex items-center justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold text-gray-800 truncate">{steal.name}</p>
+                          <p className="text-[10px] text-gray-400">#{steal.rank} in Rd {steal.effectiveRound} (avg {steal.avgPoints} pts)</p>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <p className="text-xs font-bold text-indigo-600">{Math.round(steal.points)} pts</p>
+                          <p className="text-[10px] text-indigo-400">+{Math.round(steal.points - steal.avgPoints)} vs avg</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 </div>
               ) : (
                 <p className="text-sm text-gray-400">No data available</p>
