@@ -1447,3 +1447,69 @@ Integrated `data/draft-rounds.json` (avg pts per effective round, 2023–2025) i
 - **Rankings form** in `MessageBoardForm.tsx`: added `rankEmailLeague` state (default `true`) + "Email the league" checkbox above the submit button
   - Checkbox uses `accent-purple-700` styling
   - Value passed to `postRanking(rankTitle, rankContent, rankPass, rankEmailLeague)`
+
+## Session Work (March 23, 2026 — Commissioner Announcement System)
+
+### Overview
+Added a full Commissioner Bulletin system to the message board — admin-only posts with a distinct visual style, pinned to top of feed, site-wide ticker integration, homepage feature card, and automatic email blast to all 10 league members.
+
+### New server action: `postAnnouncement` (`app/message-board/actions.ts`)
+- PIN-gated (`NEXT_PUBLIC_ADMIN_PIN`); throws `'Unauthorized'` on mismatch
+- Creates post with `postType: 'announcement'`, `authorName: 'The Commissioner'`, `authorTeamId: 0`, and `subject` field
+- `postId` generated before `unshift` so the email link matches the stored id
+- After saving + revalidating, sends HTML email via Resend to all 10 owners (guarded by `RESEND_API_KEY` + `NEWSLETTER_FROM_EMAIL` env vars being present)
+- Email template: dark navy header (`#0f172a`), yellow `📣 League Bulletin` badge, subject as `<h1>`, newline-split body as `<p>` tags, "Read on the site →" button linking to `/message-board#${postId}`
+
+### `lib/types.ts` — `TrashTalkPost` extended
+- `postType?: 'message' | 'trade' | 'announcement'`
+- `subject?: string` — headline for commissioner announcements
+
+### `app/message-board/PostCard.tsx` — announcement card style
+- Dark navy `bg-blue-950` card with yellow `📣 League Bulletin` badge
+- Subject rendered as white bold heading; body in `text-blue-100 whitespace-pre-wrap`
+- "— The Commissioner" footer in muted blue
+- `id={post.id}` added to all three card variants (announcement, trade, message) for anchor deep-linking
+
+### `app/message-board/page.tsx` — pinned to top
+- Posts sorted: announcements first, then everything else (preserving recency within each group)
+
+### `app/message-board/MessageBoardForm.tsx` — commissioner tab
+- `📣 Commissioner` tab added; only appears when `isAdmin` is true
+- Form: Subject/Headline input, message textarea, PIN field, "Post Bulletin" button
+- Note text: "Posts as 'The Commissioner' · pinned to top · runs in banner for 5 days"
+
+### `app/page.tsx` — homepage announcement card
+- `commissionerAnnouncements`: filters posts with `postType === 'announcement'` within 5 days
+- Featured dark navy card above "Latest Messages": yellow badge, subject as `h3`, 3-line preview, "Read full bulletin →" link to `/message-board#${post.id}`
+- Regular posts section filters out announcements before 72h window logic
+
+### `components/EventTickerBanner.tsx` — clickable ticker items
+- Added `href?: string` to `TickerItem` interface
+- Items with `href` render as `<a>` tags with `hover:text-yellow-200 transition-colors`; items without render as `<span>` (unchanged)
+
+### `app/layout.tsx` — announcements in site-wide ticker
+- `getTrashTalk()` fetched alongside polls in `Promise.all`
+- Announcement ticker items: `emoji: '📣'`, `title: p.subject`, `dateLabel: 'Commissioner'`, `countdown: 'Read →'`, `href: /message-board#${p.id}`
+- Filtered to 5-day window; prepended before calendar event items
+
+### Test script
+- `scripts/test-bulletin-email.ts` — sends a single test bulletin email to `schurrian99@gmail.com`; uses same navy/yellow template as the real announcement emails
+- Run: `npx tsx scripts/test-bulletin-email.ts`
+
+---
+
+## Session Work (March 23, 2026 — Email Deliverability + Vercel Fixes)
+
+### Email went to junk (expected for new domain)
+- First email from `newsletter@continentalpressbox.com` landed in Gmail junk — normal for a new domain with no reputation yet
+- Best fix for a private league: **have all members add `newsletter@continentalpressbox.com` to contacts** or mark first email "Not spam" — trains Gmail immediately
+
+### Commissioner Bulletin "Unauthorized" error in production
+- **Root cause**: `NEXT_PUBLIC_ADMIN_PIN` was not being picked up correctly in the Vercel production build
+- **Fix**: triggered a full redeploy from Vercel dashboard (Deployments → latest → three-dot menu → Redeploy) — rebuilds with current env var values
+- **Note**: `NEXT_PUBLIC_` vars are baked in at build time; simply setting them in Vercel env vars is not enough — a redeploy is required
+
+### "Server Action was not found" error after redeploy
+- **Root cause**: browser was running the old JS bundle (with old server action IDs) while the server had new IDs after the redeploy
+- **Fix**: hard refresh — **Cmd+Shift+R** (Mac) / **Ctrl+Shift+R** (Windows) — forces browser to load the new bundle
+- This will happen any time the site is redeployed while a browser tab is open
