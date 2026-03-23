@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import EventTickerBanner, { type TickerItem } from '@/components/EventTickerBanner';
 import { getAllEventsWithin, formatCountdown, formatEventDate } from '@/lib/calendar';
-import { getAndProcessPolls } from '@/lib/store';
+import { getAndProcessPolls, getTrashTalk } from '@/lib/store';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,7 +30,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const upcomingEvents = getAllEventsWithin(7);
-  const pollsData = await getAndProcessPolls();
+  const [pollsData, trashData] = await Promise.all([getAndProcessPolls(), getTrashTalk()]);
 
   const oneDayMs = 24 * 60 * 60 * 1000;
   const recentlyClosedPolls = pollsData.polls.filter(poll => {
@@ -62,7 +62,18 @@ export default async function RootLayout({
     };
   });
 
-  const tickerItems: TickerItem[] = [...eventTickerItems, ...pollTickerItems];
+  const fiveDayMs = 5 * 24 * 60 * 60 * 1000;
+  const announcementTickerItems: TickerItem[] = trashData.posts
+    .filter(p => p.postType === 'announcement' && Date.now() - new Date(p.createdAt).getTime() < fiveDayMs)
+    .map(p => ({
+      emoji: '📣',
+      title: p.subject ?? 'League Bulletin',
+      dateLabel: 'Commissioner',
+      countdown: 'Read →',
+      href: `/message-board#${p.id}`,
+    }));
+
+  const tickerItems: TickerItem[] = [...announcementTickerItems, ...eventTickerItems, ...pollTickerItems];
 
   return (
     <html lang="en">

@@ -78,6 +78,7 @@ export default function PostCard({
   timeAgoStr,
 }: Props) {
   const isTrade = post.postType === 'trade';
+  const isAnnouncement = post.postType === 'announcement';
   const postDate = new Date(post.createdAt);
   // Pre-draft (Jan–Mar): picks are for the current year's draft; post-draft (Apr+): next year's
   const pickDraftYear = postDate.getMonth() < 3 ? postDate.getFullYear() : postDate.getFullYear() + 1;
@@ -118,10 +119,101 @@ export default function PostCard({
     ? editTradeGiving.trim().length > 0 && editTradeReceiving.trim().length > 0
     : editMessage.trim().length > 0;
 
+  // ── Commissioner announcement card ────────────────────────────────────────
+  if (isAnnouncement) {
+    return (
+      <div id={post.id} className="bg-blue-950 rounded-xl border border-blue-800 shadow-md overflow-hidden">
+        {/* Header */}
+        <div className="px-5 py-3 flex items-center justify-between gap-3 border-b border-blue-800/60">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="bg-yellow-400 text-blue-950 text-[10px] font-bold px-2 py-0.5 rounded-full tracking-wide uppercase">
+              📣 League Bulletin
+            </span>
+            {post.subject && (
+              <span className="text-white font-bold text-sm">{post.subject}</span>
+            )}
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
+            <span className="text-xs text-blue-400">{timeAgoStr}</span>
+            {!editing && !confirmDelete && (
+              <>
+                <button onClick={() => setEditing(true)} className="text-xs text-blue-400 hover:text-blue-200 transition">Edit</button>
+                <button onClick={() => setConfirmDelete(true)} className="text-xs text-blue-400 hover:text-red-400 transition">Delete</button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Body */}
+        <div className="px-5 py-4">
+          {editing ? (
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-blue-300 uppercase tracking-wide mb-1">Subject</label>
+                <input
+                  value={editMessage.startsWith('SUBJECT:') ? '' : editMessage}
+                  onChange={() => {}}
+                  disabled
+                  className="w-full border border-blue-700 bg-blue-900 text-blue-300 rounded-lg px-3 py-2 text-sm opacity-50 cursor-not-allowed"
+                  placeholder="Edit subject via delete + repost"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-blue-300 uppercase tracking-wide mb-1">Message</label>
+                <textarea
+                  value={editMessage}
+                  onChange={e => setEditMessage(e.target.value)}
+                  rows={8}
+                  className="w-full border border-blue-700 bg-blue-900 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 resize-none"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleSave}
+                  disabled={saving || !canSave}
+                  className="px-4 py-1.5 bg-yellow-500 text-white text-xs font-semibold rounded-lg hover:bg-yellow-600 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {saving ? 'Saving…' : 'Save'}
+                </button>
+                <button
+                  onClick={() => { setEditing(false); setEditMessage(post.message); }}
+                  className="px-4 py-1.5 text-xs text-blue-300 hover:text-blue-100 transition"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          ) : confirmDelete ? (
+            <div className="flex items-center gap-3 py-1 flex-wrap">
+              <span className="text-sm text-blue-300">Delete this bulletin?</span>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="px-3 py-1 bg-red-500 text-white text-xs font-semibold rounded-lg hover:bg-red-600 transition disabled:opacity-40"
+              >
+                {deleting ? 'Deleting…' : 'Yes, delete'}
+              </button>
+              <button onClick={() => setConfirmDelete(false)} className="text-xs text-blue-300 hover:text-blue-100 transition">
+                Cancel
+              </button>
+              {deleteError && <span className="text-xs text-red-400 w-full">{deleteError}</span>}
+            </div>
+          ) : (
+            <p className="text-sm text-blue-100 leading-relaxed whitespace-pre-wrap">{post.message}</p>
+          )}
+        </div>
+
+        <div className="px-5 py-2 border-t border-blue-800/40">
+          <span className="text-xs text-blue-500">— The Commissioner</span>
+        </div>
+      </div>
+    );
+  }
+
   // ── Trade card ────────────────────────────────────────────────────────────
   if (isTrade) {
     return (
-      <div className="bg-white rounded-xl border-2 border-blue-200 shadow-sm overflow-hidden">
+      <div id={post.id} className="bg-white rounded-xl border-2 border-blue-200 shadow-sm overflow-hidden">
         {/* Trade header bar */}
         <div className="bg-blue-50 px-5 py-3 flex items-center justify-between gap-3 border-b border-blue-100">
           <div className="flex items-center gap-2 flex-wrap">
@@ -276,6 +368,7 @@ export default function PostCard({
   // ── Regular message card ──────────────────────────────────────────────────
   return (
     <div
+      id={post.id}
       className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm"
       style={{ borderLeftColor: authorColor, borderLeftWidth: 4 }}
     >

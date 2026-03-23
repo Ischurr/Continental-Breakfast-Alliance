@@ -58,10 +58,16 @@ export default async function Home() {
   });
 
   const allPosts: TrashTalkData['posts'] = (await getTrashTalk()).posts;
-  // Show posts from the last 72 hours; if none, fall back to the single latest post
+  // Commissioner announcements within 5 days get a dedicated banner
+  const fiveDayMs = 5 * 24 * 60 * 60 * 1000;
+  const commissionerAnnouncements = allPosts.filter(
+    p => p.postType === 'announcement' && Date.now() - new Date(p.createdAt).getTime() < fiveDayMs
+  );
+  // Show non-announcement posts from the last 72 hours; if none, fall back to the single latest post
   const windowMs = 72 * 60 * 60 * 1000;
-  const withinWindow = allPosts.filter(p => Date.now() - new Date(p.createdAt).getTime() < windowMs);
-  const recentPosts: TrashTalkData['posts'] = withinWindow.length > 0 ? withinWindow : allPosts.slice(0, 1);
+  const regularPosts = allPosts.filter(p => p.postType !== 'announcement');
+  const withinWindow = regularPosts.filter(p => Date.now() - new Date(p.createdAt).getTime() < windowMs);
+  const recentPosts: TrashTalkData['posts'] = withinWindow.length > 0 ? withinWindow : regularPosts.slice(0, 1);
   const teamsMeta: { id: number; displayName: string; primaryColor: string; owner: string }[] = teamsJson.teams;
 
   return (
@@ -326,6 +332,29 @@ export default async function Home() {
                 );
               })}
             </div>
+          </div>
+        )}
+
+        {/* Commissioner Announcements */}
+        {commissionerAnnouncements.length > 0 && (
+          <div className="mb-12">
+            {commissionerAnnouncements.map(post => (
+              <Link key={post.id} href={`/message-board#${post.id}`} className="block group">
+                <div className="bg-blue-950 border border-blue-800 rounded-xl px-6 py-5 shadow-md hover:border-yellow-400/60 transition mb-4">
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="bg-yellow-400 text-blue-950 text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
+                      📣 League Bulletin
+                    </span>
+                    <span className="text-xs text-blue-400">{timeAgo(post.createdAt)}</span>
+                  </div>
+                  {post.subject && (
+                    <h3 className="font-bold text-white text-lg mb-2 group-hover:text-yellow-300 transition">{post.subject}</h3>
+                  )}
+                  <p className="text-sm text-blue-200 line-clamp-3 leading-relaxed">{post.message}</p>
+                  <p className="text-xs text-yellow-400 font-medium mt-3">Read full bulletin →</p>
+                </div>
+              </Link>
+            ))}
           </div>
         )}
 

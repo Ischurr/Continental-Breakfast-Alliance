@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { postMessage, postTrade, postRanking } from './actions';
+import { postMessage, postTrade, postRanking, postAnnouncement } from './actions';
 import { useAdminMode } from '@/hooks/useAdminMode';
 import { Poll } from '@/lib/types';
 import PollAdminForm from '../polls/PollAdminForm';
@@ -18,7 +18,7 @@ interface Props {
   polls: Poll[];
 }
 
-type PostMode = 'message' | 'trade' | 'rankings' | 'polls';
+type PostMode = 'message' | 'trade' | 'rankings' | 'polls' | 'commissioner';
 
 export default function MessageBoardForm({ teams, polls }: Props) {
   const [mode, setMode] = useState<PostMode>('message');
@@ -46,6 +46,12 @@ export default function MessageBoardForm({ teams, polls }: Props) {
   const [rankTitle, setRankTitle] = useState('');
   const [rankContent, setRankContent] = useState('');
   const [rankPass, setRankPass] = useState('');
+  const [rankEmailLeague, setRankEmailLeague] = useState(true);
+
+  // Commissioner announcement-specific
+  const [annSubject, setAnnSubject] = useState('');
+  const [annMessage, setAnnMessage] = useState('');
+  const [annPass, setAnnPass] = useState('');
 
   function handleModeSwitch(newMode: PostMode) {
     setMode(newMode);
@@ -92,12 +98,30 @@ export default function MessageBoardForm({ teams, polls }: Props) {
     setTimeout(() => setSubmitted(false), 3000);
   }
 
+  async function handleSubmitAnnouncement(e: React.FormEvent) {
+    e.preventDefault();
+    if (!isAdmin || !annSubject.trim() || !annMessage.trim() || !annPass) return;
+    setSubmitting(true);
+    try {
+      await postAnnouncement(annSubject, annMessage, annPass);
+      setAnnSubject('');
+      setAnnMessage('');
+      setAnnPass('');
+      setSubmitted(true);
+      setTimeout(() => setSubmitted(false), 3000);
+    } catch (err: any) {
+      alert('Failed: ' + err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   async function handleSubmitRanking(e: React.FormEvent) {
     e.preventDefault();
     if (!isAdmin || !rankTitle.trim() || !rankContent.trim() || !rankPass) return;
     setSubmitting(true);
     try {
-      await postRanking(rankTitle, rankContent, rankPass);
+      await postRanking(rankTitle, rankContent, rankPass, rankEmailLeague);
       setRankTitle('');
       setRankContent('');
       setRankPass('');
@@ -164,13 +188,26 @@ export default function MessageBoardForm({ teams, polls }: Props) {
           <button
             type="button"
             onClick={() => handleModeSwitch('rankings')}
-            className={`flex-1 py-3 text-sm font-semibold rounded-tr-xl transition ${
+            className={`flex-1 py-3 text-sm font-semibold transition ${
               mode === 'rankings'
                 ? 'bg-white text-purple-700 border-b-2 border-purple-600'
                 : 'bg-gray-50 text-gray-400 hover:text-gray-600'
             }`}
           >
             📰 Rankings
+          </button>
+        )}
+        {isAdmin && (
+          <button
+            type="button"
+            onClick={() => handleModeSwitch('commissioner')}
+            className={`flex-1 py-3 text-sm font-semibold rounded-tr-xl transition ${
+              mode === 'commissioner'
+                ? 'bg-white text-yellow-700 border-b-2 border-yellow-500'
+                : 'bg-gray-50 text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            📣 Commissioner
           </button>
         )}
       </div>
@@ -409,6 +446,18 @@ export default function MessageBoardForm({ teams, polls }: Props) {
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
             />
           </div>
+          <div className="mb-4 flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="rankEmailLeague"
+              checked={rankEmailLeague}
+              onChange={e => setRankEmailLeague(e.target.checked)}
+              className="accent-purple-700"
+            />
+            <label htmlFor="rankEmailLeague" className="text-sm text-gray-600 select-none cursor-pointer">
+              Email the league
+            </label>
+          </div>
           <div className="flex items-center gap-3">
             <button
               type="submit"
@@ -419,6 +468,69 @@ export default function MessageBoardForm({ teams, polls }: Props) {
             </button>
             {submitted && (
               <span className="text-sm text-purple-600 font-medium">Posted!</span>
+            )}
+          </div>
+        </form>
+      )}
+
+      {/* ── Commissioner announcement form (admin only) ──────────────────── */}
+      {mode === 'commissioner' && isAdmin && (
+        <form onSubmit={handleSubmitAnnouncement} className="p-5">
+          <div className="mb-1 flex items-center gap-2">
+            <span className="inline-block bg-yellow-100 text-yellow-800 text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
+              📣 League Bulletin
+            </span>
+            <span className="text-xs text-gray-400">Posts as "The Commissioner" · pinned to top · runs in banner for 5 days</span>
+          </div>
+          <div className="mb-4 mt-3">
+            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+              Subject / Headline
+            </label>
+            <input
+              value={annSubject}
+              onChange={e => setAnnSubject(e.target.value)}
+              required
+              maxLength={120}
+              placeholder="e.g. The Whistlepigs Are Going to Ohio"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+              Message
+            </label>
+            <textarea
+              value={annMessage}
+              onChange={e => setAnnMessage(e.target.value)}
+              required
+              rows={8}
+              placeholder="Full announcement text…"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 resize-none"
+            />
+            <p className="text-xs text-gray-300 text-right mt-1">{annMessage.length} chars</p>
+          </div>
+          <div className="mb-4">
+            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+              Admin PIN
+            </label>
+            <input
+              type="password"
+              value={annPass}
+              onChange={e => setAnnPass(e.target.value)}
+              required
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              type="submit"
+              disabled={submitting || !annSubject.trim() || !annMessage.trim() || !annPass}
+              className="px-5 py-2 bg-yellow-500 text-white text-sm font-semibold rounded-lg hover:bg-yellow-600 transition disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {submitting ? 'Posting…' : 'Post Bulletin'}
+            </button>
+            {submitted && (
+              <span className="text-sm text-yellow-600 font-medium">Bulletin posted!</span>
             )}
           </div>
         </form>

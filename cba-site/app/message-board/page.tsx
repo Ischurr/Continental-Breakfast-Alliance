@@ -13,7 +13,11 @@ function getTeamById(id: number) {
 
 export default async function MessageBoardPage() {
   const data: TrashTalkData = await getTrashTalk();
-  const posts = data.posts;
+  // Announcements always pinned to top, then rest newest-first
+  const posts = [
+    ...data.posts.filter(p => p.postType === 'announcement'),
+    ...data.posts.filter(p => p.postType !== 'announcement'),
+  ];
 
   const allPolls: Poll[] = (await getAndProcessPolls()).polls;
   const activePolls = allPolls.filter(p => p.active);

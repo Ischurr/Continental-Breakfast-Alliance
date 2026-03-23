@@ -118,7 +118,8 @@ export interface TrashTalkPost {
   message: string;
   videoUrl?: string;
   createdAt: string;
-  postType?: 'message' | 'trade';
+  postType?: 'message' | 'trade' | 'announcement';
+  subject?: string;        // headline for commissioner announcements
   tradeGiving?: string;    // what authorTeam is giving up (newline-separated)
   tradeReceiving?: string; // what authorTeam is receiving (newline-separated)
 }

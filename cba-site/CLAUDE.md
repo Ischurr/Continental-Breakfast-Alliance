@@ -1428,3 +1428,22 @@ Integrated `data/draft-rounds.json` (avg pts per effective round, 2023–2025) i
 3. `npm run fetch-free-agents` — updated FA pool
 4. `cd scripts && python3 compute_erosp.py` — re-run EROSP with new team assignments (~6 min with cache)
 5. `git add -p && git commit && git push` — triggers Vercel redeploy
+
+## Session Work (March 22, 2026 — Email Setup + Rankings Email)
+
+### Custom domain email via Resend (`data/owner-emails.json`, `.env.local`)
+- **Domain verified**: `continentalpressbox.com` on Resend. Added 4 DNS records in Vercel DNS panel: DKIM TXT, MX (SPF), SPF TXT, DMARC TXT.
+- **`NEWSLETTER_FROM_EMAIL`** updated to `CBA League <newsletter@continentalpressbox.com>` — emails now come from the league's own domain
+- **`NEWSLETTER_SITE_URL`** updated to `https://continentalpressbox.com`
+- **`data/owner-emails.json`** populated with real email addresses for all 10 active team owners (teamIds 1,2,3,4,6,7,8,9,10,11)
+- Commissioner Bulletin (`postAnnouncement` in `actions.ts`) was already wired to send emails unconditionally when `RESEND_API_KEY` and `NEWSLETTER_FROM_EMAIL` are set
+
+### Rankings email opt-in (`app/message-board/actions.ts`, `app/message-board/MessageBoardForm.tsx`)
+- **`postRanking()`** updated to accept `emailLeague = false` parameter; when true, sends a purple-themed HTML email to all league owners linking to `/rankings`
+  - Subject: `[CBA Rankings] {title}`
+  - Purple header (`#581c87`) with `📰 Power Rankings` badge
+  - Body paragraphs from newline-split content
+  - "Read on the site →" button links to `/rankings`
+- **Rankings form** in `MessageBoardForm.tsx`: added `rankEmailLeague` state (default `true`) + "Email the league" checkbox above the submit button
+  - Checkbox uses `accent-purple-700` styling
+  - Value passed to `postRanking(rankTitle, rankContent, rankPass, rankEmailLeague)`
