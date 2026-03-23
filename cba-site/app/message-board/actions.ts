@@ -145,12 +145,17 @@ export async function postAnnouncement(
     `;
 
     const recipients = ownerEmails.map((o: { owner: string; email: string }) => o.email);
-    await resend.emails.send({
+    const result = await resend.emails.send({
       from: fromEmail,
       to: recipients,
       subject: `[CBA] ${subject.trim()}`,
       html,
     });
+    if (result.error) {
+      console.error('[postAnnouncement] Resend error:', JSON.stringify(result.error));
+      throw new Error(`Email failed: ${result.error.message}`);
+    }
+    console.log('[postAnnouncement] Email sent:', result.data?.id);
   }
 }
 
@@ -197,10 +202,15 @@ export async function postRanking(title: string, content: string, password: stri
   `;
 
   const recipients = ownerEmails.map((o: { owner: string; email: string }) => o.email);
-  await resend.emails.send({
+  const result = await resend.emails.send({
     from: fromEmail,
     to: recipients,
     subject: `[CBA Rankings] ${title.trim()}`,
     html,
   });
+  if (result.error) {
+    console.error('[postRanking] Resend error:', JSON.stringify(result.error));
+    throw new Error(`Email failed: ${result.error.message}`);
+  }
+  console.log('[postRanking] Email sent:', result.data?.id);
 }
