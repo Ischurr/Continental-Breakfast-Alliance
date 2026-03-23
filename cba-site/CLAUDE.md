@@ -1398,3 +1398,33 @@ Integrated `data/draft-rounds.json` (avg pts per effective round, 2023–2025) i
 ### Header nav
 - `statsItems` in `components/Header.tsx` now includes `{ href: '/draft', label: 'Draft Analysis' }` as third entry
 - Mobile menu Stats expandable section also has the link
+
+## Session Work (March 22, 2026 — Post-Draft Roster Update)
+
+### Draft completed March 22, 2026
+
+#### Data fetched
+- **`scripts/fetch-rosters-2026.ts`** updated to capture `acquisitionType` from `entry.acquisitionType` (was missing). Re-run post-draft → 26 players per team, all `acquisitionType='DRAFT'` (ESPN returns DRAFT for everyone including keepers — confirmed limitation, same as historical seasons)
+- **`data/current/free-agents.json`** updated via `npm run fetch-free-agents` — reflects post-draft FA pool
+- **`data/erosp/latest.json`** regenerated via `python3 compute_erosp.py` — 1,750 players, 245 assigned to teams with real `fantasy_team_id` (was all 0 pre-draft)
+
+#### Keeper display switched to post-draft mode
+- **`keeperDeadline`** in `app/teams/[teamId]/page.tsx` changed from `new Date('2026-03-24')` → `new Date('2026-03-22')`. Team pages now show **"2026 Keepers"** (actual, from confirmed overrides) instead of "Suggested", and **Suggested Moves** section is active
+- **`data/historical-keeper-overrides.json`**: added `"2026"` entries copied from `data/keeper-overrides.json`. This is the tier-1 source for `getTeamKeepersForYear(id, 2026)` — necessary because `acquisitionType === 'KEEPER'` is not available from ESPN post-draft
+
+#### `scripts/fetch-current.ts` roster preservation fix
+- Daily `npm run fetch-current` was overwriting `data/current/2026.json` and wiping the `rosters` key entirely
+- **Fix**: reads existing file before write; if `existing.rosters` is present, copies it into the new data before saving
+- This means the daily GitHub Actions cron no longer clobbers rosters — run `fetch-rosters-2026.ts` once after draft, then `fetch-current.ts` can run daily safely
+
+#### Whistlepigs relocation to Warren, Ohio
+- **`components/USMapHero.tsx`**: coordinates changed from Norfolk VA `[-76.29, 36.85]` → Warren OH `[-80.82, 41.24]`; logo offset `dx:70, dy:45` → `dx:55, dy:-35`
+- **`data/teams.json`**: `cityPhotoUrl` seed updated to `warren-ohio-mahoning-valley`
+- **`data/commissioner-notes.json`**: `weekLabel` updated to "Pre-Season 2026"; new commissioner note about the relocation + historical parallel to 1899 Cleveland Spiders
+
+#### Post-draft workflow (for future reference)
+1. `npm run fetch-current` — standings/matchups/schedule (preserves rosters)
+2. `npx tsx scripts/fetch-rosters-2026.ts` — actual post-draft rosters (run once after draft)
+3. `npm run fetch-free-agents` — updated FA pool
+4. `cd scripts && python3 compute_erosp.py` — re-run EROSP with new team assignments (~6 min with cache)
+5. `git add -p && git commit && git push` — triggers Vercel redeploy
