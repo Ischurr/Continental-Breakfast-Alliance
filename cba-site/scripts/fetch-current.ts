@@ -91,13 +91,19 @@ async function fetchCurrentSeason() {
     )?.id as number | undefined,
   };
 
-  // Save to data/current/
+  // Save to data/current/ — preserve existing rosters if present
   const dataDir = path.join(__dirname, '../data/current');
   if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
   }
 
   const filePath = path.join(dataDir, `${seasonId}.json`);
+  if (fs.existsSync(filePath)) {
+    const existing = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    if (existing.rosters) {
+      (seasonData as typeof seasonData & { rosters: unknown }).rosters = existing.rosters;
+    }
+  }
   fs.writeFileSync(filePath, JSON.stringify(seasonData, null, 2));
 
   console.log(`Saved ${seasonId} data to ${filePath}`);

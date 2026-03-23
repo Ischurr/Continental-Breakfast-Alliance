@@ -116,10 +116,10 @@ export default async function TeamPage({ params }: Props) {
     if (steals.length > 0) draftSteals[year] = steals;
   }
   // Keeper display logic:
-  // - Before Mar 24 draft: show suggested/confirmed 2026 keepers (from overrides or algorithm)
-  // - Mar 24 – Oct 1: show actual 2026 keepers from ESPN roster data
+  // - Before Mar 23 draft: show suggested/confirmed 2026 keepers (from overrides or algorithm)
+  // - Mar 23 – Oct 1: show actual 2026 keepers from ESPN roster data
   // - After Oct 1 (offseason): show suggested 2027 keepers based on 2026 season stats
-  const keeperDeadline = new Date('2026-03-24');
+  const keeperDeadline = new Date('2026-03-22');
   const seasonEnd2026 = new Date('2026-10-01');
   const now = new Date();
   const showSuggestedKeepers = now < keeperDeadline;
