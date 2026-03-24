@@ -1563,3 +1563,34 @@ Added a full Commissioner Bulletin system to the message board — admin-only po
 - **`components/USMapHero.tsx`**: Puddle Jumpers entry added to `AFFILIATES` array — Lake Placid NY `[-73.99, 44.28]`, logo `/puddle-jumpers-logo.png`, `teamId=7` (links to Sky Chiefs page)
 - **`app/teams/[teamId]/page.tsx`**: new `{id === 7}` "Minor League Affiliate" section inserted after the Uniforms section — navy gradient header (`#0c1a3a → #1a3060`), "Low-A Affiliate" badge in sky blue (`#7ec8e3`), logo centered on white background, `max-w-xl` card width
 - Affiliate card style mirrors the Gold Diggers section (id=9) — same component pattern, different color scheme
+
+## Session Work (March 24, 2026 — EROSP Display Fix + Pipeline Fixes)
+
+### EROSPTable: default to Raw, fix column layout (`components/EROSPTable.tsx`)
+- **Default changed**: `showRaw` init `false → true`, default sort `erosp_startable → erosp_raw`
+- **Column restructure**: removed duplicate Raw column that appeared when toggling to Raw mode. Now: always-visible primary column shows `erosp_raw` (labeled "EROSP") or `erosp_startable` (labeled "Startable") based on toggle; md+ secondary column always shows Startable
+- **Footer text**: updated to "EROSP = projected season pts · Startable = value above replacement · 7-SP-start cap"
+- **Why**: Startable is value-above-replacement — for rostered/keeper players who will start regardless, Raw is the meaningful number. Seeing "EROSP=3" for Rodon was misleading; his raw of 330 is the actual projection.
+
+### EROSP config: position eligibility + replacement pool (`scripts/erosp/config.py`)
+- Added `"IF"`, `"MIF"`, `"CIF"` to `POSITION_ELIGIBILITY` — FanGraphs generic infield position labels
+- Added `REPLACEMENT_POOL_MULTIPLIER = 1.4` — replacement level now uses the (N×1.4)-th best player instead of the N-th best, accounting for the fact that top players in a keeper league are all drafted
+- Effect: replacement thresholds dropped, startable values more meaningful for below-average rostered players
+
+### EROSP startability: replacement pool multiplier applied (`scripts/erosp/startability.py`)
+- `compute_replacement_levels()` now uses `int(n_slots * REPLACEMENT_POOL_MULTIPLIER) - 1` as the pool index for both hitters and pitchers
+- SS pool: was 20th-best → now 28th-best; SP pool: 60th → 84th; etc.
+
+### Fix G: Healthy returnee playing time floor (`scripts/erosp/playing_time.py`)
+**Root cause of Rodon/Boyd low projections**: two compounding bugs:
+1. Fix C was checking `current_season_year - 1` (2024, the TJ injury year) for the GS floor, not `current_season_year` (2025, the healthy comeback year). Fixed to use y0 = `current_season_year`.
+2. Even when Steamer's GS projection clears the 15-start Fix C floor, it may still be dramatically conservative for pitchers who proved healthy in the most recent season.
+
+**Fix G (SPs)**: After all other playing time logic, if a pitcher made **≥28 GS** in the most recently completed season (y0), their projected `p_start_per_day` is floored at **80% of that GS count / 162**. Fired for 26 SPs in 2026 projection run.
+
+**Fix G (hitters)**: Same logic — if a hitter had **≥480 PA** in y0, `p_play` is floored at 80% of that. Fired for 18 hitters.
+
+**Results**: Rodon 188 → 330, Boyd 165 → 272. Hitters like Story/Crawford unchanged (Steamer already projected ≥80% of 2025 PA — their lower raw values reflect genuine per-PA rate, not PT shortfall).
+
+### Key insight documented
+Startable ≠ "points this player will score." It's value-above-replacement. A rostered player below replacement level will still score their Raw EROSP — you just could theoretically do better by dropping them. For keeper league team projection purposes, always use Raw.

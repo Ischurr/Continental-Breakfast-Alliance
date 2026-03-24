@@ -76,6 +76,33 @@ def estimate_hitter_playing_time(
                     result.at[mlbam_id, "p_play"]      = round(float(p_play), 4)
                     result.at[mlbam_id, "pa_per_game"] = round(float(min(pa_per_g, 5.0)), 2)
 
+    # Fix G (hitters): Healthy returnee PA floor.
+    # If a hitter had 480+ PA in the most recently completed season, they were a
+    # full-time starter and Steamer should not project them below 80% of that PA.
+    # Addresses players like Story/Crawford who proved healthy in y0 but Steamer
+    # still discounts due to earlier injury history.
+    y0_year = current_season_year
+    if y0_year in batting_by_year:
+        y0_bat = batting_by_year[y0_year]
+        healthy_hitter_count = 0
+        for mlbam_id, row in talent_df.iterrows():
+            fgid = int(row.get("fgid", 0))
+            if not fgid:
+                continue
+            y0_match = y0_bat[y0_bat["IDfg"] == fgid]
+            if y0_match.empty:
+                continue
+            y0_pa = float(y0_match.iloc[0].get("PA", 0))
+            if y0_pa >= 480:
+                pa_floor    = 0.80 * y0_pa
+                p_play_floor = min(pa_floor / FULL_SEASON_GAMES / DEFAULT_PA_PER_GAME, 1.0)
+                if result.at[mlbam_id, "p_play"] < p_play_floor:
+                    result.at[mlbam_id, "p_play"] = round(float(p_play_floor), 4)
+                    healthy_hitter_count += 1
+        if healthy_hitter_count:
+            print(f"    Fix G: {healthy_hitter_count} hitter(s) got healthy-returnee PA floor "
+                  f"(≥480 PA in {y0_year}, floored at 80%).")
+
     return result
 
 
@@ -166,25 +193,52 @@ def estimate_sp_playing_time(
                     float(np.clip(ip_per_start, 3.0, 9.0)), 2
                 )
 
-    # Fix C: Floor for known starters — any SP with 10+ GS in the prior year
-    # gets at least a 6th-starter slot (p_start_per_day >= 15/162 ≈ 0.0926).
-    # Prevents the rotation-quality sort from projecting legitimate starters
-    # at emergency/fringe levels (3/162) when their history supports more.
-    prior_year = current_season_year - 1
-    if prior_year in pitching_by_year:
-        prior_df = pitching_by_year[prior_year]
+    # Fix C: Floor for known starters — any SP with 10+ GS in the most recently
+    # completed season (y0 = current_season_year) gets at least a 6th-starter slot
+    # (p_start_per_day >= 15/162 ≈ 0.0926).
+    # NOTE: uses current_season_year (e.g. 2025) not current_season_year-1 (2024),
+    # because we want to check the last completed season, not the one before it.
+    y0_year = current_season_year  # most recently completed season
+    if y0_year in pitching_by_year:
+        y0_df = pitching_by_year[y0_year]
         for mlbam_id, row in sp_df.iterrows():
             fgid = int(row.get("fgid", 0))
             if not fgid:
                 continue
-            prior_match = prior_df[prior_df["IDfg"] == fgid]
-            if prior_match.empty:
+            y0_match = y0_df[y0_df["IDfg"] == fgid]
+            if y0_match.empty:
                 continue
-            prior_gs = float(prior_match.iloc[0].get("GS", 0))
-            if prior_gs >= 10:
+            y0_gs = float(y0_match.iloc[0].get("GS", 0))
+            if y0_gs >= 10:
                 floor = round(15.0 / FULL_SEASON_GAMES, 4)
                 if result.at[mlbam_id, "p_start_per_day"] < floor:
                     result.at[mlbam_id, "p_start_per_day"] = floor
+
+    # Fix G: Healthy returnee GS floor.
+    # If a pitcher made 28+ GS in the most recently completed season, they
+    # demonstrated full health — Steamer should not be able to project fewer
+    # than 80% of that regardless of injury history in prior years.
+    # Addresses pitchers like Rodon (TJ 2024, healthy 30+ GS 2025) whose
+    # Steamer projections are still discounted by the full injury history.
+    if y0_year in pitching_by_year:
+        y0_df = pitching_by_year[y0_year]
+        healthy_returnee_count = 0
+        for mlbam_id, row in sp_df.iterrows():
+            fgid = int(row.get("fgid", 0))
+            if not fgid:
+                continue
+            y0_match = y0_df[y0_df["IDfg"] == fgid]
+            if y0_match.empty:
+                continue
+            y0_gs = float(y0_match.iloc[0].get("GS", 0))
+            if y0_gs >= 28:
+                gs_floor = round(0.80 * y0_gs / FULL_SEASON_GAMES, 4)
+                if result.at[mlbam_id, "p_start_per_day"] < gs_floor:
+                    result.at[mlbam_id, "p_start_per_day"] = gs_floor
+                    healthy_returnee_count += 1
+        if healthy_returnee_count:
+            print(f"    Fix G: {healthy_returnee_count} SP(s) got healthy-returnee GS floor "
+                  f"(≥28 GS in {y0_year}, floored at 80%).")
 
     return result
 
