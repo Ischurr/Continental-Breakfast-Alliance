@@ -3,7 +3,18 @@
 import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps';
 
 const GEO_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json";
-const R = 20; // logo circle radius in SVG units
+const R = 20;    // CBA team logo circle radius
+const R_AFF = 9; // minor league affiliate logo radius (star-sized)
+
+// Minor league affiliates — small logo sits right at the city pin, no leader line
+const AFFILIATES = [
+  {
+    teamId: 9, // links to Fuzzy Bottoms page
+    name: 'Dahlonega Gold Diggers',
+    logo: '/gold-diggers-primary.png',
+    coordinates: [-83.99, 34.53] as [number, number], // Dahlonega, GA
+  },
+];
 
 const TEAMS = [
   {
@@ -34,7 +45,7 @@ const TEAMS = [
     id: 6, name: 'Emus',
     logo: 'https://content.sportslogos.net/news/2017/08/jwzbfi703gbaujbpvfm5iqjg9.gif',
     coordinates: [-75.60, 38.36] as [number, number],
-    dx: 55, dy: 5,
+    dx: 55, dy: 62,
   },
   {
     id: 7, name: 'Sky Chiefs',
@@ -46,17 +57,17 @@ const TEAMS = [
     id: 8, name: 'Whistlepigs',
     logo: 'https://i.pinimg.com/564x/4e/2e/88/4e2e880d6aa675473a8d3eb73b2064f1.jpg',
     coordinates: [-80.82, 41.24] as [number, number],
-    dx: 55, dy: -35,
+    dx: -65, dy: -15,
   },
   {
     id: 9, name: 'Fuzzy Bottoms',
     logo: 'https://i.postimg.cc/sgycxWDX/North-Georgia-3.png',
-    coordinates: [-83.82, 34.30] as [number, number],
+    coordinates: [-83.82, 34.05] as [number, number],
     dx: -55, dy: 30,
   },
   {
     id: 10, name: 'Banshees',
-    logo: 'https://mystique-api.fantasy.espn.com/apis/v1/domains/lm/images/bc893190-2775-11f0-bf52-473646e3de99',
+    logo: '/banshees-logo.png',
     coordinates: [-72.95, 41.67] as [number, number],
     dx: 45, dy: -65,
   },
@@ -64,7 +75,7 @@ const TEAMS = [
     id: 11, name: 'Folksy Ferrets',
     logo: 'https://i.imgur.com/cNtQjIA.png',
     coordinates: [-76.75, 39.11] as [number, number],
-    dx: -65, dy: -45,
+    dx: 90, dy: 5,
   },
 ];
 
@@ -140,6 +151,39 @@ export default function USMapHero() {
                   r={R}
                   fill="none"
                   stroke="rgba(255,255,255,0.85)"
+                  strokeWidth={1.5}
+                />
+              </a>
+            </Marker>
+          );
+        })}
+
+        {/* Minor league affiliates — logo sits right at city pin, star-sized */}
+        {AFFILIATES.map(({ teamId, name, logo, coordinates }) => {
+          const clipId = `clip-affiliate-${teamId}`;
+          return (
+            <Marker key={`affiliate-${teamId}`} coordinates={coordinates}>
+              <defs>
+                <clipPath id={clipId}>
+                  <circle cx={0} cy={0} r={R_AFF} />
+                </clipPath>
+              </defs>
+              <a href={`/teams/${teamId}`} style={{ cursor: 'pointer' }}>
+                <title>{name}</title>
+                <image
+                  href={logo}
+                  x={-R_AFF}
+                  y={-R_AFF}
+                  width={R_AFF * 2}
+                  height={R_AFF * 2}
+                  clipPath={`url(#${clipId})`}
+                  preserveAspectRatio="xMidYMid slice"
+                />
+                <circle
+                  cx={0} cy={0}
+                  r={R_AFF}
+                  fill="none"
+                  stroke="#C9A84C"
                   strokeWidth={1.5}
                 />
               </a>

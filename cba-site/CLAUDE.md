@@ -1513,3 +1513,44 @@ Added a full Commissioner Bulletin system to the message board — admin-only po
 - **Root cause**: browser was running the old JS bundle (with old server action IDs) while the server had new IDs after the redeploy
 - **Fix**: hard refresh — **Cmd+Shift+R** (Mac) / **Ctrl+Shift+R** (Windows) — forces browser to load the new bundle
 - This will happen any time the site is redeployed while a browser tab is open
+
+### Resend error logging added (`app/message-board/actions.ts`)
+- Both `postAnnouncement` and `postRanking` now check `result.error` after `resend.emails.send()`
+- On error: `console.error('[postAnnouncement] Resend error: ...')` + throws so the user sees "Email failed: ..." instead of silent failure
+- On success: `console.log('[postAnnouncement] Email sent: {id}')` for confirmation in Vercel logs
+- **Next step**: post a bulletin, check Vercel logs for either the success ID or the error message to diagnose why email isn't arriving
+
+## Session Work (March 23, 2026 — USMapHero Logo Adjustments + Banshees Fix)
+
+### Logo position adjustments (`components/USMapHero.tsx`)
+- **Emus** (id=6): `dy: 5 → 62` — moved further south in the Atlantic
+- **Folksy Ferrets** (id=11): `dx: -65 → 90, dy: -45 → 5` — moved way east into the Atlantic, sitting between the Mega Rats logo (upper) and Emus logo (lower)
+- **Whistlepigs** (id=8): `dx: 55 → -65, dy: -35 → -15` — logo now extends west from Warren OH star instead of east
+
+### Banshees logo fixed (`public/banshees-logo.png`, `components/USMapHero.tsx`)
+- Copied `Tentative logo.png` from `~/Desktop/Fantasy Website/` → `public/banshees-logo.png`
+- Updated Banshees entry logo from broken `mystique-api.fantasy.espn.com` URL → `/banshees-logo.png`
+- Banshees logo now renders on the map (was silently broken before — ESPN URL requires auth)
+
+### Minor league affiliates system added to map (`components/USMapHero.tsx`)
+- New `AFFILIATES` array + `R_AFF = 9` constant — separate from `TEAMS` (which uses `R = 20`)
+- Each affiliate: `{ teamId, name, logo, coordinates }` — no `dx`/`dy`; logo sits right at the city pin
+- Logo is star-sized (R=9, diameter 18px), gold ring border (`#C9A84C`), no leader line — visually distinct from CBA team logos
+- Clicking links to the parent CBA team page (`/teams/${teamId}`)
+- First affiliate: **Dahlonega Gold Diggers** (teamId=9), Dahlonega GA `[-83.99, 34.53]`, logo `/gold-diggers-primary.png`
+- To add more affiliates: append to `AFFILIATES` array — no other code changes needed
+
+### Gold Diggers logo files (`public/`)
+- `public/gold-diggers.jpeg` — full brand sheet (primary + secondary logos, gold header)
+- `public/gold-diggers-primary.png` — cropped to just the miner mascot (740×315); used on the map
+
+### Fuzzy Bottoms team page — Minor League Affiliate section (`app/teams/[teamId]/page.tsx`)
+- New `{id === 9}` section inserted before the 2026 Keepers photo, after `TeamStrengthsEditor`
+- Dark gold gradient header (`#1a1a1a → #2d2200`) with "Low-A Affiliate" badge, "Dahlonega Gold Diggers" name, `#StrikeGold` tagline, black+gold color swatches
+- Full brand sheet image (`/gold-diggers.jpeg`) displayed below the header — shows both primary and secondary logos
+- Cream footer (`#f9f5e8`) with announcement quote in italics
+- Card is `max-w-xl` width
+
+### Fuzzy Bottoms star position adjusted (`components/USMapHero.tsx`)
+- NGFB coordinates: `[-83.82, 34.30]` → `[-83.82, 34.05]` (moved ~15 miles south)
+- Prevents the NGFB city star from being covered by the Gold Diggers affiliate logo at `[-83.99, 34.53]`

@@ -344,6 +344,44 @@ export default async function TeamPage({ params }: Props) {
           weaknesses={effectiveWeaknesses}
         />
 
+        {/* Fuzzy Bottoms Minor League Affiliate */}
+        {id === 9 && (
+          <div className="mb-10">
+            <h2 className="text-2xl font-bold text-gray-900 mb-1">Minor League Affiliate</h2>
+            <p className="text-sm text-gray-700 mb-4">Dahlonega, Georgia · Established 2025</p>
+            <div className="rounded-xl overflow-hidden shadow-sm border border-gray-200 max-w-xl">
+              <div className="px-5 py-4 flex items-center justify-between" style={{ background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2200 100%)' }}>
+                <div>
+                  <span className="inline-block text-[11px] font-bold px-2 py-0.5 rounded-full mb-2 tracking-widest uppercase" style={{ backgroundColor: '#C9A84C', color: '#1a1a1a' }}>
+                    Low-A Affiliate
+                  </span>
+                  <p className="text-white font-bold text-base leading-tight">Dahlonega Gold Diggers</p>
+                  <p className="text-xs mt-0.5" style={{ color: '#C9A84C' }}>#StrikeGold</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 rounded-full border-2 border-white/30 shadow-sm flex-shrink-0" style={{ backgroundColor: '#1a1a1a' }} />
+                  <div className="w-5 h-5 rounded-full border-2 border-white/30 shadow-sm flex-shrink-0" style={{ backgroundColor: '#C9A84C' }} />
+                </div>
+              </div>
+              <div className="bg-white">
+                <Image
+                  src="/gold-diggers.jpeg"
+                  alt="Dahlonega Gold Diggers — Primary and Secondary Logos"
+                  width={800}
+                  height={520}
+                  className="w-full h-auto"
+                  unoptimized
+                />
+              </div>
+              <div className="px-5 py-3" style={{ backgroundColor: '#f9f5e8' }}>
+                <p className="text-xs text-gray-600 leading-relaxed italic">
+                  &ldquo;The North Georgia Fuzzy Bottoms Organization is proud to announce the Establishment of their first Minor League Organization, the Dahlonega Gold Diggers!&rdquo;
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Fuzzy Bottoms Keepers Photo */}
         {id === 9 && (
           <div className="mb-10">
