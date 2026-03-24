@@ -17,7 +17,7 @@ import pandas as pd
 from .config import (
     HITTER_SLOTS, PITCHER_SLOTS, POSITION_ELIGIBILITY,
     LEAGUE_TEAMS, SP_WEEKLY_CAP, RP_DAILY_STARTS,
-    SIGMOID_TAU, FULL_SEASON_GAMES,
+    SIGMOID_TAU, FULL_SEASON_GAMES, REPLACEMENT_POOL_MULTIPLIER,
 )
 
 
@@ -75,10 +75,11 @@ def compute_replacement_levels(
                 .sort_values(ascending=False)
                 .values
             )
-            if len(eligible_evs) >= n_slots:
-                replacement[slot] = float(eligible_evs[n_slots - 1])
-            else:
-                replacement[slot] = float(eligible_evs[-1]) if len(eligible_evs) > 0 else 0.0
+            # Use a larger pool index to represent the best *available* FA in a
+            # keeper league (where top players are already drafted).
+            pool_idx = min(int(n_slots * REPLACEMENT_POOL_MULTIPLIER) - 1,
+                           len(eligible_evs) - 1)
+            replacement[slot] = float(eligible_evs[pool_idx]) if len(eligible_evs) > 0 else 0.0
 
     # ── Pitcher replacement levels ─────────────────────────────────────────
     if not pitcher_projection_df.empty:
@@ -90,13 +91,13 @@ def compute_replacement_levels(
 
         if not sp_proj.empty:
             sp_evs = sp_proj["daily_ev_raw"].sort_values(ascending=False).values
-            replacement["SP"] = float(sp_evs[n_sp - 1]) if len(sp_evs) >= n_sp else (
-                float(sp_evs[-1]) if len(sp_evs) > 0 else 0.0)
+            sp_idx = min(int(n_sp * REPLACEMENT_POOL_MULTIPLIER) - 1, len(sp_evs) - 1)
+            replacement["SP"] = float(sp_evs[sp_idx]) if len(sp_evs) > 0 else 0.0
 
         if not rp_proj.empty:
             rp_evs = rp_proj["daily_ev_raw"].sort_values(ascending=False).values
-            replacement["RP"] = float(rp_evs[n_rp - 1]) if len(rp_evs) >= n_rp else (
-                float(rp_evs[-1]) if len(rp_evs) > 0 else 0.0)
+            rp_idx = min(int(n_rp * REPLACEMENT_POOL_MULTIPLIER) - 1, len(rp_evs) - 1)
+            replacement["RP"] = float(rp_evs[rp_idx]) if len(rp_evs) > 0 else 0.0
 
     print(f"    Replacement levels:")
     for pos in ["C", "1B", "2B", "SS", "OF", "SP", "RP"]:

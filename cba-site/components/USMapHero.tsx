@@ -14,6 +14,12 @@ const AFFILIATES = [
     logo: '/gold-diggers-primary.png',
     coordinates: [-83.99, 34.53] as [number, number], // Dahlonega, GA
   },
+  {
+    teamId: 7, // links to Sky Chiefs page
+    name: 'Lake Placid Puddle Jumpers',
+    logo: '/puddle-jumpers-logo.png',
+    coordinates: [-73.99, 44.28] as [number, number], // Lake Placid, NY
+  },
 ];
 
 const TEAMS = [

@@ -79,6 +79,9 @@ POSITION_ELIGIBILITY: Dict[str, List[str]] = {
     "RP":  ["RP"],
     "P":   ["SP", "RP"],    # generic pitcher — treat as SP/RP based on role
     "TWP": ["SP", "OF", "UTIL"],  # two-way player (Ohtani)
+    "IF":  ["1B", "2B", "3B", "SS", "MI", "CI", "UTIL"],  # FanGraphs generic infield
+    "MIF": ["2B", "SS", "MI", "UTIL"],   # middle infield
+    "CIF": ["1B", "3B", "CI", "UTIL"],   # corner infield
 }
 
 # ---------------------------------------------------------------------------
@@ -87,6 +90,13 @@ POSITION_ELIGIBILITY: Dict[str, List[str]] = {
 LEAGUE_TEAMS     = 10
 SP_WEEKLY_CAP    = 7
 RP_DAILY_STARTS  = 3   # start top 3 RPs each day
+
+# Replacement level pool multiplier.
+# We use the (N * MULTIPLIER)-th best player rather than the N-th best.
+# In a keeper league ~260 of ~900 MLB players are drafted, so the true
+# waiver-wire replacement player sits deeper in the pool than slot count alone
+# implies.  1.4 ≈ using the 28th-best SS (10+10 slots × 1.4) instead of 20th.
+REPLACEMENT_POOL_MULTIPLIER = 1.4
 
 # ---------------------------------------------------------------------------
 # Historical data weighting

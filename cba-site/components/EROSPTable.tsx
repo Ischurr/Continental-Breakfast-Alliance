@@ -63,9 +63,9 @@ export default function EROSPTable({
 }: Props) {
   const [faFilter, setFaFilter]     = useState<'all' | 'fa' | 'rostered'>('all');
   const [posFilter, setPosFilter]   = useState('All');
-  const [sortCol, setSortCol]       = useState<SortCol>('erosp_startable');
+  const [sortCol, setSortCol]       = useState<SortCol>('erosp_raw');
   const [sortDir, setSortDir]       = useState<SortDir>('desc');
-  const [showRaw, setShowRaw]       = useState(false);
+  const [showRaw, setShowRaw]       = useState(true);
 
   function handleSort(col: SortCol) {
     if (sortCol === col) {
@@ -110,9 +110,9 @@ export default function EROSPTable({
       let va: number | string, vb: number | string;
       switch (sortCol) {
         case 'name':             va = a.name;             vb = b.name;             break;
-        case 'erosp_raw':        va = a.erosp_raw;        vb = b.erosp_raw;        break;
+        case 'erosp_startable':  va = a.erosp_startable;  vb = b.erosp_startable;  break;
         case 'erosp_per_game':   va = a.erosp_per_game;   vb = b.erosp_per_game;   break;
-        default:                 va = a.erosp_startable;  vb = b.erosp_startable;  break;
+        default:                 va = a.erosp_raw;        vb = b.erosp_raw;        break;
       }
       if (typeof va === 'string') {
         return sortDir === 'asc'
@@ -233,11 +233,11 @@ export default function EROSPTable({
                   <th className={`hidden md:table-cell ${thClass('erosp_per_game')}`} onClick={() => handleSort('erosp_per_game')}>
                     /Game <SortIcon col="erosp_per_game" />
                   </th>
-                  <th className={`hidden md:table-cell ${thClass('erosp_raw')}`} onClick={() => handleSort('erosp_raw')}>
-                    Raw <SortIcon col="erosp_raw" />
+                  <th className={`hidden md:table-cell ${thClass('erosp_startable')}`} onClick={() => handleSort('erosp_startable')}>
+                    Startable <SortIcon col="erosp_startable" />
                   </th>
-                  <th className={thClass('erosp_startable')} onClick={() => handleSort('erosp_startable')}>
-                    {showRaw ? 'Raw' : 'Startable'} <SortIcon col="erosp_startable" />
+                  <th className={thClass('erosp_raw')} onClick={() => handleSort('erosp_raw')}>
+                    {showRaw ? 'EROSP' : 'Startable'} <SortIcon col="erosp_raw" />
                   </th>
                 </tr>
               </thead>
@@ -285,10 +285,10 @@ export default function EROSPTable({
                           {p.erosp_per_game.toFixed(2)}
                         </td>
                         <td className="hidden md:table-cell px-4 py-2.5 text-right text-gray-400 text-xs">
-                          {Math.round(p.erosp_raw).toLocaleString()}
+                          {Math.round(p.erosp_startable).toLocaleString()}
                         </td>
                         <td className="px-4 py-2.5 text-right font-bold text-teal-600">
-                          {Math.round(primaryValue).toLocaleString()}
+                          {Math.round(showRaw ? p.erosp_raw : p.erosp_startable).toLocaleString()}
                         </td>
                       </tr>
                     );
@@ -302,7 +302,7 @@ export default function EROSPTable({
           <div className="px-4 py-2 bg-gray-50 border-t flex items-center justify-between text-xs text-gray-400">
             <span>{filtered.length.toLocaleString()} player{filtered.length !== 1 ? 's' : ''}</span>
             <span className="hidden md:inline">
-              <strong>Startable</strong> = replaces replacement-level player · 7-SP-start weekly cap applied
+              <strong>EROSP</strong> = projected season pts · <strong>Startable</strong> = value above replacement · 7-SP-start cap
             </span>
             <span className="md:hidden">7-start SP cap applied</span>
           </div>

@@ -431,6 +431,39 @@ export default async function TeamPage({ params }: Props) {
           </div>
         )}
 
+        {/* Sky Chiefs Minor League Affiliate */}
+        {id === 7 && (
+          <div className="mb-10">
+            <h2 className="text-2xl font-bold text-gray-900 mb-1">Minor League Affiliate</h2>
+            <p className="text-sm text-gray-700 mb-4">Lake Placid, New York · Established 2026</p>
+            <div className="rounded-xl overflow-hidden shadow-sm border border-gray-200 max-w-xl">
+              <div className="px-5 py-4 flex items-center justify-between" style={{ background: 'linear-gradient(135deg, #0c1a3a 0%, #1a3060 100%)' }}>
+                <div>
+                  <span className="inline-block text-[11px] font-bold px-2 py-0.5 rounded-full mb-2 tracking-widest uppercase" style={{ backgroundColor: '#7ec8e3', color: '#0c1a3a' }}>
+                    Low-A Affiliate
+                  </span>
+                  <p className="text-white font-bold text-base leading-tight">Lake Placid Puddle Jumpers</p>
+                  <p className="text-xs mt-0.5" style={{ color: '#7ec8e3' }}>Lake Placid, NY</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 rounded-full border-2 border-white/30 shadow-sm flex-shrink-0" style={{ backgroundColor: '#0c1a3a' }} />
+                  <div className="w-5 h-5 rounded-full border-2 border-white/30 shadow-sm flex-shrink-0" style={{ backgroundColor: '#7ec8e3' }} />
+                </div>
+              </div>
+              <div className="bg-white flex items-center justify-center p-6">
+                <Image
+                  src="/puddle-jumpers-logo.png"
+                  alt="Lake Placid Puddle Jumpers Logo"
+                  width={400}
+                  height={300}
+                  className="w-full max-w-sm h-auto"
+                  unoptimized
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Emus Fun Franchise Facts */}
         {id === 6 && (
           <div className="mb-10">
