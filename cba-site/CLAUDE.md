@@ -1554,3 +1554,12 @@ Added a full Commissioner Bulletin system to the message board — admin-only po
 ### Fuzzy Bottoms star position adjusted (`components/USMapHero.tsx`)
 - NGFB coordinates: `[-83.82, 34.30]` → `[-83.82, 34.05]` (moved ~15 miles south)
 - Prevents the NGFB city star from being covered by the Gold Diggers affiliate logo at `[-83.99, 34.53]`
+
+## Session Work (March 24, 2026 — Lake Placid Puddle Jumpers Affiliate)
+
+### Sky Chiefs minor league affiliate added to map + team page
+
+- **`public/puddle-jumpers-logo.png`**: copied from `~/Desktop/Fantasy Website/Puddle Jumpers.png`
+- **`components/USMapHero.tsx`**: Puddle Jumpers entry added to `AFFILIATES` array — Lake Placid NY `[-73.99, 44.28]`, logo `/puddle-jumpers-logo.png`, `teamId=7` (links to Sky Chiefs page)
+- **`app/teams/[teamId]/page.tsx`**: new `{id === 7}` "Minor League Affiliate" section inserted after the Uniforms section — navy gradient header (`#0c1a3a → #1a3060`), "Low-A Affiliate" badge in sky blue (`#7ec8e3`), logo centered on white background, `max-w-xl` card width
+- Affiliate card style mirrors the Gold Diggers section (id=9) — same component pattern, different color scheme
