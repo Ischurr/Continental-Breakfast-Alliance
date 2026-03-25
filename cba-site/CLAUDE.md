@@ -1555,6 +1555,14 @@ Added a full Commissioner Bulletin system to the message board — admin-only po
 - NGFB coordinates: `[-83.82, 34.30]` → `[-83.82, 34.05]` (moved ~15 miles south)
 - Prevents the NGFB city star from being covered by the Gold Diggers affiliate logo at `[-83.99, 34.53]`
 
+## Session Work (March 25, 2026 — Rocket City Mustangs Affiliate)
+
+### Space Cowboys minor league affiliate added to map + team page
+
+- **`public/mustangs-logo.png`**: copied from `~/Desktop/Fantasy Website/Mustangs.png`
+- **`components/USMapHero.tsx`**: Mustangs entry added to `AFFILIATES` array — Pasadena CA `[-118.14, 34.15]`, logo `/mustangs-logo.png`, `teamId=1` (links to Space Cowboys page)
+- **`app/teams/[teamId]/page.tsx`**: new `{id === 1}` "Minor League Affiliate" section inserted before the Fuzzy Bottoms affiliate — dark navy gradient header (`#1a1a2e → #16213e`), "Low-A Affiliate" badge in gold (`#e8c84a`), subtitle "Pasadena, California · Voyager Field at JPL Stadium", logo centered on white background, `max-w-xl` card
+
 ## Session Work (March 24, 2026 — Lake Placid Puddle Jumpers Affiliate)
 
 ### Sky Chiefs minor league affiliate added to map + team page
