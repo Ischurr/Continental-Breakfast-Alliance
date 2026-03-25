@@ -1609,3 +1609,24 @@ Added a full Commissioner Bulletin system to the message board — admin-only po
 
 ### Key insight documented
 Startable ≠ "points this player will score." It's value-above-replacement. A rostered player below replacement level will still score their Raw EROSP — you just could theoretically do better by dropping them. For keeper league team projection purposes, always use Raw.
+
+## Session Work (March 25, 2026 — Rankings Page Inline Editor)
+
+### Rankings page inline editing (`app/rankings/RankingsClient.tsx`, `app/rankings/page.tsx`)
+- **`page.tsx`**: converted from rendering articles inline to delegating to `<RankingsClient articles={articles} />` (server passes data, client handles interactivity)
+- **`RankingsClient.tsx`**: new `'use client'` component with:
+  - 🔒 button → `useAdminMode()` hook (same PIN/localStorage pattern as team pages)
+  - Per-article **✏️ Edit** and **🗑️ Delete** buttons (visible when admin unlocked)
+  - Edit mode: title input + textarea with formatting toolbar + PIN field for server-side auth
+  - Delete mode: inline confirm with PIN field
+
+### Formatting toolbar (edit mode)
+- **B (Bold)**: wraps selection in `**...**`; toggling on already-bolded text removes markers
+- **⊕ Center**: wraps selection in `[center]...[/center]`; toggling removes wrappers
+- **─ Divider**: inserts `----` on its own paragraph (auto-adds surrounding blank lines)
+
+### Content rendering syntax
+- `**bold text**` → `<strong>`
+- `[center]text[/center]` → `<p className="text-center">`
+- `----` (3+ dashes, own paragraph) → `<hr className="border-t border-gray-300" />`
+- Paragraphs still separated by blank lines as before; existing articles render unchanged
