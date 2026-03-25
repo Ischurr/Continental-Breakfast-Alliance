@@ -27,7 +27,7 @@ export default async function MessageBoardPage() {
     <div className="min-h-screen bg-sky-50">
       <Header />
 
-      <main className="container mx-auto px-4 py-12 max-w-4xl">
+      <main className="w-[70%] mx-auto py-12">
         <h1 className="text-4xl font-bold mb-1">Message Board</h1>
         <p className="text-gray-500 mb-10">The league bulletin board — polls, messages, and trash talk.</p>
 
@@ -38,7 +38,7 @@ export default async function MessageBoardPage() {
         <div className="border-t border-gray-200 mb-10" />
 
         {/* ── Post form + feed (narrow column) ───────────────────── */}
-        <div className="max-w-2xl">
+        <div>
           <h2 className="text-xl font-bold text-gray-700 mb-6">💬 Posts</h2>
 
           <MessageBoardForm teams={teamsRaw.teams} polls={allPolls} />

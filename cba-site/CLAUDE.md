@@ -1610,6 +1610,20 @@ Added a full Commissioner Bulletin system to the message board — admin-only po
 ### Key insight documented
 Startable ≠ "points this player will score." It's value-above-replacement. A rostered player below replacement level will still score their Raw EROSP — you just could theoretically do better by dropping them. For keeper league team projection purposes, always use Raw.
 
+## Session Work (March 25, 2026 — Message Board Layout + Suggested Moves Improvements)
+
+### Message board page layout (`app/message-board/page.tsx`)
+- Content width changed to `w-[70%] mx-auto` — 70% of viewport, centered with equal 15% blank space on each side at all screen sizes
+- Removed inner `max-w-2xl` cap on the posts section so polls, posts, and all other content share the same full 70% width
+
+### Suggested Moves engine improvements (`lib/suggested-moves.ts`, `components/SuggestedMoves.tsx`)
+- **Switched from `erosp_startable` → `erosp_raw`** throughout the scoring pipeline — raw pts better reflects actual contribution for post-draft roster analysis; startable was filtering out legitimate keepers below replacement level
+- **`erospFloor` raised**: 25 → 75 — prevents absurd upgrade% inflation when target slot has very low raw EROSP
+- **`minUpgradeAbsolute` raised** across all positions (e.g. SP: 20→30, OF: 15→25, RP: 8→15) — higher bar for a recommendation to appear
+- **`leagueRosters` input** added to `getSuggestedMovesInput` — ESPN roster data passed in to catch EROSP name-match failures post-draft
+- **Empty slot display**: `replacePlayerName` changed from `'Empty slot'` to `'No projection'`; `isEmptySlot` detection in `SuggestedMoves.tsx` changed to use that string instead of `currentErosp === 0` (more precise); label changed from "Drop / Replace" → "Current Slot" for empty positions
+- **Pre-draft copy removed**: subtitle and `NoMovesState` no longer show different text for pre-draft vs post-draft — always shows the post-draft message
+
 ## Session Work (March 25, 2026 — Rankings Page Inline Editor)
 
 ### Rankings page inline editing (`app/rankings/RankingsClient.tsx`, `app/rankings/page.tsx`)

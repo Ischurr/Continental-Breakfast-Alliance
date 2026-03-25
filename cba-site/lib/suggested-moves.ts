@@ -52,14 +52,14 @@ const DEFAULT_CONFIG: LeagueConfig = {
   },
   slotWeights: [1.0, 0.90, 0.80, 0.70, 0.60, 0.50, 0.40, 0.30],
   minUpgradeAbsolute: {
-    C:    12,
-    '1B': 15,
-    '2B': 15,
-    '3B': 15,
-    SS:   15,
-    OF:   15,
-    SP:   20,
-    RP:    8,
+    C:    20,
+    '1B': 25,
+    '2B': 25,
+    '3B': 25,
+    SS:   25,
+    OF:   25,
+    SP:   30,
+    RP:   15,
   },
   minUpgradePct: {
     C:    0.08,
@@ -75,7 +75,7 @@ const DEFAULT_CONFIG: LeagueConfig = {
   suggestedPct: 0.10,
   watchlistPct: 0.05,
   weaknessZThreshold: -0.50,
-  erospFloor: 25,
+  erospFloor: 75,
   maxRecommendations: 5,
   maxFACandidatesPerPosition: 20,
 };
@@ -158,7 +158,7 @@ function getPositionGroup(player: EROSPPlayer): string | null {
   if (['OF', 'LF', 'CF', 'RF'].includes(pos)) return 'OF';
   // DH counts toward OF/UTIL group for FA comparison but skip in v1
   // TWP (Ohtani) — count toward OF if we have non-trivial EROSP
-  if (pos === 'TWP') return player.erosp_startable > 50 ? 'OF' : null;
+  if (pos === 'TWP') return player.erosp_raw > 50 ? 'OF' : null;
 
   return null;
 }
@@ -198,10 +198,13 @@ function posOrdinal(pos: string, slotIdx: number): string {
  * Returns a map of mlbam_id → fantasy teamId.
  * Uses EROSP fantasy_team_id when available (post-draft),
  * falls back to keeper overrides (pre-draft).
+ * If leagueRosters is provided, any EROSP player that still has
+ * fantasy_team_id=0 post-draft is resolved via ESPN roster name matching.
  */
 function buildPlayerTeamMap(
   erospPlayers: EROSPPlayer[],
   keeperOverrides: Record<string, string[]>,
+  leagueRosters?: Array<{ teamId: number; players: Array<{ playerName: string }> }>,
 ): { teamMap: Map<number, number>; isPreDraft: boolean } {
   const hasTeamAssignments = erospPlayers.some(p => p.fantasy_team_id !== 0);
 
@@ -213,6 +216,26 @@ function buildPlayerTeamMap(
         teamMap.set(p.mlbam_id, p.fantasy_team_id);
       }
     }
+
+    // Fallback: assign unmatched EROSP players via ESPN roster name matching.
+    // This catches players whose names didn't match during the EROSP pipeline run
+    // (e.g. accent differences, suffix mismatches) so they're not mistaken for FAs.
+    if (leagueRosters) {
+      const rosterNameToTeam = new Map<string, number>();
+      for (const teamRoster of leagueRosters) {
+        for (const player of teamRoster.players) {
+          rosterNameToTeam.set(normalizeName(player.playerName), teamRoster.teamId);
+        }
+      }
+      for (const p of erospPlayers) {
+        if (teamMap.has(p.mlbam_id)) continue; // already assigned via fantasy_team_id
+        const teamId = rosterNameToTeam.get(normalizeName(p.name));
+        if (teamId) {
+          teamMap.set(p.mlbam_id, teamId);
+        }
+      }
+    }
+
     return { teamMap, isPreDraft: false };
   }
 
@@ -256,14 +279,14 @@ function buildTeamPositionalStrength(
   for (const pos of groups) {
     const eligible = teamPlayers
       .filter(p => getPositionGroup(p) === pos)
-      .sort((a, b) => b.erosp_startable - a.erosp_startable);
+      .sort((a, b) => b.erosp_raw - a.erosp_raw);
 
     const starterCount = config.starterSlots[pos];
     let weightedStrength = 0;
 
     for (let i = 0; i < eligible.length && i < starterCount; i++) {
       const w = config.slotWeights[i] ?? 0.30;
-      weightedStrength += eligible[i].erosp_startable * w;
+      weightedStrength += eligible[i].erosp_raw * w;
     }
 
     result[pos] = { weightedStrength, players: eligible.slice(0, starterCount + 2) };
@@ -390,13 +413,13 @@ function scoreFACandidates(
 ): FACandidate[] {
   const eligible = faPlayers
     .filter(p => getPositionGroup(p) === pos)
-    .sort((a, b) => b.erosp_startable - a.erosp_startable)
+    .sort((a, b) => b.erosp_raw - a.erosp_raw)
     .slice(0, config.maxFACandidatesPerPosition);
 
   if (eligible.length === 0) return [];
 
   // FA pool stats for this position
-  const faErosps = eligible.map(p => p.erosp_startable);
+  const faErosps = eligible.map(p => p.erosp_raw);
   const faPoolMean = mean(faErosps);
   const faPoolStd  = std(faErosps, faPoolMean);
 
@@ -405,13 +428,13 @@ function scoreFACandidates(
   const candidates: FACandidate[] = [];
 
   for (const fa of eligible) {
-    const upgradeAbsolute = fa.erosp_startable - targetErosp;
+    const upgradeAbsolute = fa.erosp_raw - targetErosp;
     const upgradePct = upgradeAbsolute / Math.max(targetErosp, config.erospFloor);
 
     // Must clear minimum thresholds to be a watchlist candidate
     if (upgradeAbsolute < minAbsolute * 0.5 || upgradePct < config.watchlistPct) continue;
 
-    const faPoolZ = zScore(fa.erosp_startable, faPoolMean, faPoolStd);
+    const faPoolZ = zScore(fa.erosp_raw, faPoolMean, faPoolStd);
 
     // Weakness component (0–1): how bad is the team at this position?
     const weaknessComponent = Math.min(1, Math.max(0,
@@ -498,9 +521,8 @@ function generateExplanation(
                 'slightly below average';
 
   if (isEmptySlot) {
-    return `You have no ${pos === 'OF' ? 'outfielder' : pos} keeper, leaving ${targetLabel} unfilled. ` +
-      `${fa.name} (${fa.erosp_startable.toFixed(0)} EROSP) is one of the strongest available ${pos} free agents — ` +
-      `ranks ${rankStr} in league context.`;
+    return `${posLabel} has no projected starter in your EROSP data at ${targetLabel}, leaving you ranked ${rankStr} in the league. ` +
+      `${fa.name} (${fa.erosp_raw.toFixed(0)} EROSP) would be one of the stronger ${pos} options available on the waiver wire.`;
   }
 
   if (urgency === 'urgent_pickup') {
@@ -529,15 +551,17 @@ export interface SuggestedMovesInput {
   keeperOverrides: Record<string, string[]>;
   /** top FA players from free-agents.json, with photoUrl */
   faList: Array<{ playerName: string; photoUrl?: string; position: string }>;
+  /** ESPN roster data — used to catch EROSP pipeline name-match failures post-draft */
+  leagueRosters?: Array<{ teamId: number; players: Array<{ playerName: string }> }>;
   config?: Partial<LeagueConfig>;
 }
 
 export function getSuggestedMoves(input: SuggestedMovesInput): SuggestedMovesResult {
-  const { targetTeamId, erospPlayers, keeperOverrides, faList } = input;
+  const { targetTeamId, erospPlayers, keeperOverrides, faList, leagueRosters } = input;
   const config: LeagueConfig = { ...DEFAULT_CONFIG, ...input.config };
 
   // ── Step 1: Assign players to teams ──────────────────────────────
-  const { teamMap, isPreDraft } = buildPlayerTeamMap(erospPlayers, keeperOverrides);
+  const { teamMap, isPreDraft } = buildPlayerTeamMap(erospPlayers, keeperOverrides, leagueRosters);
 
   // All team IDs in the league
   const leagueTeamIds = Array.from(
@@ -621,7 +645,7 @@ export function getSuggestedMoves(input: SuggestedMovesInput): SuggestedMovesRes
   for (const weakPos of weakPositions) {
     const { pos, leagueZ, leagueRank, internalRank, targetPlayer, targetSlotLabel } = weakPos;
 
-    const targetErosp = targetPlayer?.erosp_startable ?? 0;
+    const targetErosp = targetPlayer?.erosp_raw ?? 0;
 
     // For empty slots, limit mid-rank spam (bottom-3 positions always shown)
     if (!targetPlayer) {
@@ -650,7 +674,7 @@ export function getSuggestedMoves(input: SuggestedMovesInput): SuggestedMovesRes
 
     const faErosps = leagueFAs
       .filter(p => getPositionGroup(p) === pos)
-      .map(p => p.erosp_startable);
+      .map(p => p.erosp_raw);
     const faPoolMean = mean(faErosps);
     const faPoolStd  = std(faErosps, faPoolMean);
 
@@ -674,9 +698,9 @@ export function getSuggestedMoves(input: SuggestedMovesInput): SuggestedMovesRes
       addPlayerName:        best.player.name,
       addPlayerMlbamId:     best.player.mlbam_id,
       addPlayerPhotoUrl:    best.photoUrl,
-      replacePlayerName:    targetPlayer ? targetPlayer.name : 'Empty slot',
+      replacePlayerName:    targetPlayer ? targetPlayer.name : 'No projection',
       replacePlayerMlbamId: targetPlayer?.mlbam_id ?? 0,
-      faErosp:              Math.round(best.player.erosp_startable * 10) / 10,
+      faErosp:              Math.round(best.player.erosp_raw * 10) / 10,
       currentErosp:         Math.round(targetErosp * 10) / 10,
       upgradeAbsolute:      Math.round(best.upgradeAbsolute * 10) / 10,
       upgradePct:           Math.round(best.upgradePct * 10000) / 10000,

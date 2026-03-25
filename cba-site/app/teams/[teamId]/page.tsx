@@ -206,6 +206,7 @@ export default async function TeamPage({ params }: Props) {
         erospPlayers,
         keeperOverrides: keeperOverrides as Record<string, string[]>,
         faList,
+        leagueRosters: currentSeason.rosters,
       })
     : null;
 

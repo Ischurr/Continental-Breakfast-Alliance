@@ -10,6 +10,9 @@ const POSITION_MAP: Record<number, string> = {
   5: 'OF', 6: 'OF', 7: 'OF', 12: 'DH', 13: 'SP', 14: 'SP', 15: 'RP', 16: 'RP',
 };
 
+// Slot IDs that correspond to real lineup positions (excludes bench/IL/UTIL generic slots)
+const LINEUP_SLOTS = new Set([0, 1, 2, 3, 4, 5, 6, 7, 12, 13, 14, 15, 16]);
+
 function extractRostersFromTeams(teams: Record<string, unknown>[]) {
   return teams.map((team) => {
     const roster = team.roster as Record<string, unknown> | undefined;
@@ -22,6 +25,12 @@ function extractRostersFromTeams(teams: Record<string, unknown>[]) {
       const appliedStatTotal = (seasonStat?.appliedTotal as number) ?? 0;
       const eligibleSlots = (player?.eligibleSlots as number[]) ?? [];
       const position = POSITION_MAP[eligibleSlots[0]] ?? 'UTIL';
+      const eligiblePositions = [...new Set(
+        eligibleSlots
+          .filter(s => LINEUP_SLOTS.has(s))
+          .map(s => POSITION_MAP[s])
+          .filter(Boolean)
+      )] as string[];
       const playerId = String(player?.id ?? entry.playerId);
       const keeperValue = (playerPoolEntry?.keeperValue as number) ?? 0;
       const acquisitionType = (entry.acquisitionType as string) ?? undefined;
@@ -29,12 +38,13 @@ function extractRostersFromTeams(teams: Record<string, unknown>[]) {
         playerId,
         playerName: (player?.fullName as string) ?? 'Unknown',
         position,
+        eligiblePositions: eligiblePositions.length > 0 ? eligiblePositions : undefined,
         totalPoints: appliedStatTotal,
         photoUrl: `https://a.espncdn.com/i/headshots/mlb/players/full/${playerId}.png`,
         keeperValue: keeperValue > 0 ? keeperValue : undefined,
         acquisitionType,
       };
-    }).filter(p => p.totalPoints > 0 || (p.keeperValue ?? 0) > 0);
+    }).filter(p => p.totalPoints > 0 || (p.keeperValue ?? 0) > 0 || p.acquisitionType === 'DRAFT' || p.acquisitionType === 'ADD');
 
     const keeperCount = players.filter(p => p.acquisitionType === 'KEEPER').length;
     const draftCount = players.filter(p => p.acquisitionType === 'DRAFT').length;

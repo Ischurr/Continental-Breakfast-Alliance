@@ -90,7 +90,7 @@ function PlayerChip({
 
 function MoveCard({ move }: { move: SuggestedMove }) {
   const cfg = URGENCY_CONFIG[move.urgency];
-  const isEmptySlot = move.currentErosp === 0;
+  const isEmptySlot = move.replacePlayerName === 'No projection';
   // Cap displayed upgrade% at 200% to avoid absurd numbers for empty slots
   const displayPct = Math.min(move.upgradePct, 2.0);
   const pctDisplay = isEmptySlot ? 'Fills empty slot' : `+${(move.upgradePct * 100).toFixed(1)}%`;
@@ -118,7 +118,9 @@ function MoveCard({ move }: { move: SuggestedMove }) {
       {/* Player comparison */}
       <div className="flex items-center gap-3">
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Drop / Replace</p>
+          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1.5">
+            {isEmptySlot ? 'Current Slot' : 'Drop / Replace'}
+          </p>
           <PlayerChip
             name={move.replacePlayerName}
             erosp={move.currentErosp}
@@ -184,9 +186,7 @@ function NoMovesState({ isPreDraft }: { isPreDraft: boolean }) {
       </div>
       <p className="text-sm font-semibold text-gray-700 mb-1">No major upgrades found</p>
       <p className="text-xs text-gray-400 max-w-xs mx-auto">
-        {isPreDraft
-          ? "Based on keepers, no free agents currently clear the threshold for a meaningful EROSP improvement."
-          : "Your weakest positions don't have meaningfully better free agents available right now."}
+        {"Your weakest positions don't have meaningfully better free agents available right now."}
       </p>
     </div>
   );
@@ -201,9 +201,7 @@ export default function SuggestedMoves({ result }: Props) {
         <div>
           <h2 className="text-2xl font-bold text-gray-900 mb-0.5">Suggested Moves</h2>
           <p className="text-sm text-gray-700">
-            {isPreDraft
-              ? 'Based on keepers · Free agent upgrades ranked by EROSP improvement'
-              : 'Free agent upgrades ranked by EROSP improvement'}
+            {'Free agent upgrades ranked by EROSP improvement'}
           </p>
         </div>
         {suggestedMoves.length > 0 && (
