@@ -344,6 +344,39 @@ export default async function TeamPage({ params }: Props) {
           weaknesses={effectiveWeaknesses}
         />
 
+        {/* Space Cowboys Minor League Affiliate */}
+        {id === 1 && (
+          <div className="mb-10">
+            <h2 className="text-2xl font-bold text-gray-900 mb-1">Minor League Affiliate</h2>
+            <p className="text-sm text-gray-700 mb-4">Pasadena, California · Voyager Field at JPL Stadium</p>
+            <div className="rounded-xl overflow-hidden shadow-sm border border-gray-200 max-w-xl">
+              <div className="px-5 py-4 flex items-center justify-between" style={{ background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)' }}>
+                <div>
+                  <span className="inline-block text-[11px] font-bold px-2 py-0.5 rounded-full mb-2 tracking-widest uppercase" style={{ backgroundColor: '#e8c84a', color: '#1a1a2e' }}>
+                    Low-A Affiliate
+                  </span>
+                  <p className="text-white font-bold text-base leading-tight">Rocket City Mustangs</p>
+                  <p className="text-xs mt-0.5" style={{ color: '#e8c84a' }}>Pasadena, CA</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 rounded-full border-2 border-white/30 shadow-sm flex-shrink-0" style={{ backgroundColor: '#1a1a2e' }} />
+                  <div className="w-5 h-5 rounded-full border-2 border-white/30 shadow-sm flex-shrink-0" style={{ backgroundColor: '#e8c84a' }} />
+                </div>
+              </div>
+              <div className="bg-white flex items-center justify-center p-6">
+                <Image
+                  src="/mustangs-logo.png"
+                  alt="Rocket City Mustangs Logo"
+                  width={400}
+                  height={300}
+                  className="w-full max-w-sm h-auto"
+                  unoptimized
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Fuzzy Bottoms Minor League Affiliate */}
         {id === 9 && (
           <div className="mb-10">

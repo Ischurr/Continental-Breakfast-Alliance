@@ -20,6 +20,12 @@ const AFFILIATES = [
     logo: '/puddle-jumpers-logo.png',
     coordinates: [-73.99, 44.28] as [number, number], // Lake Placid, NY
   },
+  {
+    teamId: 1, // links to Space Cowboys page
+    name: 'Rocket City Mustangs',
+    logo: '/mustangs-logo.png',
+    coordinates: [-118.14, 34.15] as [number, number], // Pasadena, CA
+  },
 ];
 
 const TEAMS = [
