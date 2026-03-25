@@ -1555,13 +1555,20 @@ Added a full Commissioner Bulletin system to the message board — admin-only po
 - NGFB coordinates: `[-83.82, 34.30]` → `[-83.82, 34.05]` (moved ~15 miles south)
 - Prevents the NGFB city star from being covered by the Gold Diggers affiliate logo at `[-83.99, 34.53]`
 
-## Session Work (March 25, 2026 — Rocket City Mustangs Affiliate)
+## Session Work (March 25, 2026 — Rocket City Mustangs Affiliate + Map Zoom)
 
 ### Space Cowboys minor league affiliate added to map + team page
 
 - **`public/mustangs-logo.png`**: copied from `~/Desktop/Fantasy Website/Mustangs.png`
 - **`components/USMapHero.tsx`**: Mustangs entry added to `AFFILIATES` array — Pasadena CA `[-118.14, 34.15]`, logo `/mustangs-logo.png`, `teamId=1` (links to Space Cowboys page)
 - **`app/teams/[teamId]/page.tsx`**: new `{id === 1}` "Minor League Affiliate" section inserted before the Fuzzy Bottoms affiliate — dark navy gradient header (`#1a1a2e → #16213e`), "Low-A Affiliate" badge in gold (`#e8c84a`), subtitle "Pasadena, California · Voyager Field at JPL Stadium", logo centered on white background, `max-w-xl` card
+
+### Affiliate logo zoom system (`components/USMapHero.tsx`)
+- Added `zoom`, `imgOffsetX`, `imgOffsetY` optional fields to each `AFFILIATES` entry
+- Render logic: image rendered at `R_AFF * 2 * zoom` size, centered at `(-w/2 + imgOffsetX, -h/2 + imgOffsetY)`, still clipped to `R_AFF` circle — effective crop-in without changing circle size
+- **Puddle Jumpers + Mustangs**: `zoom: 1.4` (logos had whitespace padding making mark appear tiny)
+- **Gold Diggers**: `zoom: 1.0` (unchanged — already fills circle well)
+- To tune: adjust `zoom` up (more crop) or down (more whitespace); use `imgOffsetX`/`Y` to re-center if mark is off-center in source image
 
 ## Session Work (March 24, 2026 — Lake Placid Puddle Jumpers Affiliate)
 
