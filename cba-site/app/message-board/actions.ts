@@ -144,18 +144,18 @@ export async function postAnnouncement(
       </div>
     `;
 
-    const recipients = ownerEmails.map((o: { owner: string; email: string }) => o.email);
-    const result = await resend.emails.send({
+    const batch = ownerEmails.map((o: { owner: string; email: string }) => ({
       from: fromEmail,
-      to: recipients,
+      to: [o.email],
       subject: `[CBA] ${subject.trim()}`,
       html,
-    });
+    }));
+    const result = await resend.batch.send(batch);
     if (result.error) {
       console.error('[postAnnouncement] Resend error:', JSON.stringify(result.error));
       throw new Error(`Email failed: ${result.error.message}`);
     }
-    console.log('[postAnnouncement] Email sent:', result.data?.id);
+    console.log('[postAnnouncement] Batch sent:', result.data?.data?.length, 'emails');
   }
 }
 
@@ -201,16 +201,16 @@ export async function postRanking(title: string, content: string, password: stri
     </div>
   `;
 
-  const recipients = ownerEmails.map((o: { owner: string; email: string }) => o.email);
-  const result = await resend.emails.send({
+  const batch = ownerEmails.map((o: { owner: string; email: string }) => ({
     from: fromEmail,
-    to: recipients,
+    to: [o.email],
     subject: `[CBA Rankings] ${title.trim()}`,
     html,
-  });
+  }));
+  const result = await resend.batch.send(batch);
   if (result.error) {
     console.error('[postRanking] Resend error:', JSON.stringify(result.error));
     throw new Error(`Email failed: ${result.error.message}`);
   }
-  console.log('[postRanking] Email sent:', result.data?.id);
+  console.log('[postRanking] Batch sent:', result.data?.data?.length, 'emails');
 }
