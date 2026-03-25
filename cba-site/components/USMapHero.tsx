@@ -22,14 +22,14 @@ const AFFILIATES = [
     name: 'Lake Placid Puddle Jumpers',
     logo: '/puddle-jumpers-logo.png',
     coordinates: [-73.99, 44.28] as [number, number],
-    zoom: 1.8, imgOffsetX: 0, imgOffsetY: 0,
+    zoom: 1.4, imgOffsetX: 0, imgOffsetY: 0,
   },
   {
     teamId: 1,
     name: 'Rocket City Mustangs',
     logo: '/mustangs-logo.png',
     coordinates: [-118.14, 34.15] as [number, number],
-    zoom: 1.8, imgOffsetX: 0, imgOffsetY: 0,
+    zoom: 1.4, imgOffsetX: 0, imgOffsetY: 0,
   },
 ];
 
