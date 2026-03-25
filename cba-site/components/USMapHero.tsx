@@ -7,24 +7,29 @@ const R = 20;    // CBA team logo circle radius
 const R_AFF = 9; // minor league affiliate logo radius (star-sized)
 
 // Minor league affiliates — small logo sits right at the city pin, no leader line
+// zoom: how much to scale the image inside the clip (>1 crops in, useful when logo has whitespace padding)
+// imgOffsetX/Y: nudge the zoomed image left/right/up/down within the circle (in SVG units)
 const AFFILIATES = [
   {
-    teamId: 9, // links to Fuzzy Bottoms page
+    teamId: 9,
     name: 'Dahlonega Gold Diggers',
     logo: '/gold-diggers-primary.png',
-    coordinates: [-83.99, 34.53] as [number, number], // Dahlonega, GA
+    coordinates: [-83.99, 34.53] as [number, number],
+    zoom: 1.0, imgOffsetX: 0, imgOffsetY: 0,
   },
   {
-    teamId: 7, // links to Sky Chiefs page
+    teamId: 7,
     name: 'Lake Placid Puddle Jumpers',
     logo: '/puddle-jumpers-logo.png',
-    coordinates: [-73.99, 44.28] as [number, number], // Lake Placid, NY
+    coordinates: [-73.99, 44.28] as [number, number],
+    zoom: 1.8, imgOffsetX: 0, imgOffsetY: 0,
   },
   {
-    teamId: 1, // links to Space Cowboys page
+    teamId: 1,
     name: 'Rocket City Mustangs',
     logo: '/mustangs-logo.png',
-    coordinates: [-118.14, 34.15] as [number, number], // Pasadena, CA
+    coordinates: [-118.14, 34.15] as [number, number],
+    zoom: 1.8, imgOffsetX: 0, imgOffsetY: 0,
   },
 ];
 
@@ -171,8 +176,11 @@ export default function USMapHero() {
         })}
 
         {/* Minor league affiliates — logo sits right at city pin, star-sized */}
-        {AFFILIATES.map(({ teamId, name, logo, coordinates }) => {
+        {AFFILIATES.map(({ teamId, name, logo, coordinates, zoom, imgOffsetX, imgOffsetY }) => {
           const clipId = `clip-affiliate-${teamId}`;
+          const z = zoom ?? 1;
+          const w = R_AFF * 2 * z;
+          const h = R_AFF * 2 * z;
           return (
             <Marker key={`affiliate-${teamId}`} coordinates={coordinates}>
               <defs>
@@ -184,10 +192,10 @@ export default function USMapHero() {
                 <title>{name}</title>
                 <image
                   href={logo}
-                  x={-R_AFF}
-                  y={-R_AFF}
-                  width={R_AFF * 2}
-                  height={R_AFF * 2}
+                  x={-w / 2 + (imgOffsetX ?? 0)}
+                  y={-h / 2 + (imgOffsetY ?? 0)}
+                  width={w}
+                  height={h}
                   clipPath={`url(#${clipId})`}
                   preserveAspectRatio="xMidYMid slice"
                 />
