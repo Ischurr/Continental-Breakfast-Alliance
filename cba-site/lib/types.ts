@@ -33,6 +33,8 @@ export interface PlayerSeason {
   playerId: string;
   playerName: string;
   position: string;
+  /** All ESPN lineup positions this player qualifies for (C, 1B, 2B, 3B, SS, OF, DH, SP, RP) */
+  eligiblePositions?: string[];
   totalPoints: number;
   photoUrl?: string;
   keeperValue?: number;

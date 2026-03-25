@@ -106,6 +106,14 @@ export interface SuggestedMove {
   faPoolZ: number;
   recommendationScore: number;
   explanation: string;
+  /** Set when this recommendation involves repositioning a rostered player to free up a slot */
+  internalMove?: {
+    playerName: string;
+    fromPosition: string;
+    toPosition: string;
+    mlbamId: number;
+    photoUrl?: string;
+  };
   debug: {
     teamWeightedStrength: number;
     leagueMeanStrength: number;
@@ -410,9 +418,15 @@ function scoreFACandidates(
   faPhotoLookup: Map<string, string>,
   config: LeagueConfig,
   totalTeams: number,
+  faEligibilityMap?: Map<string, string[]>,
 ): FACandidate[] {
   const eligible = faPlayers
-    .filter(p => getPositionGroup(p) === pos)
+    .filter(p => {
+      if (getPositionGroup(p) === pos) return true;
+      // Also include FAs who have ESPN multi-position eligibility at this position
+      const espnEligible = faEligibilityMap?.get(normalizeName(p.name));
+      return espnEligible?.includes(pos) ?? false;
+    })
     .sort((a, b) => b.erosp_raw - a.erosp_raw)
     .slice(0, config.maxFACandidatesPerPosition);
 
@@ -542,6 +556,155 @@ function generateExplanation(
 }
 
 // ─────────────────────────────────────────────────────────────────
+// Stage 7 — Slot-swap detection (multi-position eligibility)
+// ─────────────────────────────────────────────────────────────────
+
+/** Map ESPN position label to EROSP config position group key (null = skip) */
+function espnToErospGroup(espnPos: string, config: LeagueConfig): string | null {
+  // DH isn't a separate group in the EROSP config — players eligible at DH are already OF
+  if (espnPos === 'DH') return null;
+  // Only return positions that exist in the league config
+  if (config.starterSlots[espnPos] !== undefined) return espnPos;
+  return null;
+}
+
+function findSlotSwaps(
+  targetTeamPlayers: EROSPPlayer[],
+  rosterEligibilityMap: Map<string, string[]>,
+  rosterPhotoLookup: Map<string, string>,
+  leagueFAs: EROSPPlayer[],
+  teamStrengths: Record<string, TeamPositionStrength>,
+  leagueStats: Record<string, PositionLeagueStats>,
+  faPhotoLookup: Map<string, string>,
+  faEligibilityMap: Map<string, string[]>,
+  config: LeagueConfig,
+): SuggestedMove[] {
+  const HITTER_POSITIONS = new Set(['C', '1B', '2B', '3B', 'SS', 'OF']);
+  const swaps: SuggestedMove[] = [];
+  const seenSwapKeys = new Set<string>();
+
+  for (const player of targetTeamPlayers) {
+    const posA = getPositionGroup(player);
+    if (!posA || !HITTER_POSITIONS.has(posA)) continue;
+    if (player.erosp_raw < config.erospFloor) continue;
+
+    const espnEligible = rosterEligibilityMap.get(normalizeName(player.name));
+    if (!espnEligible || espnEligible.length < 2) continue;
+
+    for (const espnAltPos of espnEligible) {
+      const posB = espnToErospGroup(espnAltPos, config);
+      if (!posB || posB === posA || !HITTER_POSITIONS.has(posB)) continue;
+
+      // Would this player help at posB? They must be better than the weakest B starter slot.
+      const starterSlotsB = config.starterSlots[posB];
+      const targetSlotBIndex = starterSlotsB - 1;
+      const weakestBPlayer = teamStrengths[posB]?.players[targetSlotBIndex] ?? null;
+      const weakestBErosp = weakestBPlayer?.erosp_raw ?? 0;
+      if (player.erosp_raw < weakestBErosp) continue;
+
+      // Find the best FA eligible at posA
+      const faCandidatesAtA = leagueFAs
+        .filter(fa => {
+          if (getPositionGroup(fa) === posA) return true;
+          return faEligibilityMap.get(normalizeName(fa.name))?.includes(posA) ?? false;
+        })
+        .sort((a, b) => b.erosp_raw - a.erosp_raw);
+
+      if (faCandidatesAtA.length === 0) continue;
+      const bestFA = faCandidatesAtA[0];
+
+      // FA must be meaningfully better than the player at posA
+      const upgradeAbsolute = bestFA.erosp_raw - player.erosp_raw;
+      const minAbsolute = config.minUpgradeAbsolute[posA] ?? 25;
+      if (upgradeAbsolute < minAbsolute) continue;
+
+      const upgradePct = upgradeAbsolute / Math.max(player.erosp_raw, config.erospFloor);
+      if (upgradePct < config.watchlistPct) continue;
+
+      const swapKey = `${player.mlbam_id}-${posA}-${posB}-${bestFA.mlbam_id}`;
+      if (seenSwapKeys.has(swapKey)) continue;
+      seenSwapKeys.add(swapKey);
+
+      // Urgency based on upgrade magnitude at posA
+      let urgency: UrgencyLevel = 'watchlist';
+      if (upgradePct >= config.urgentPct && upgradeAbsolute >= minAbsolute) {
+        urgency = 'urgent_pickup';
+      } else if (upgradePct >= config.suggestedPct && upgradeAbsolute >= minAbsolute) {
+        urgency = 'suggested_add';
+      }
+
+      // League context for posA
+      const strengthA = teamStrengths[posA]?.weightedStrength ?? 0;
+      const statsA = leagueStats[posA];
+      const leagueZA = zScore(strengthA, statsA.mean, statsA.std);
+      const leagueRankA = rankDesc(statsA.allValues, strengthA - 0.001);
+
+      const faErospsAtA = faCandidatesAtA.map(p => p.erosp_raw);
+      const faPoolMeanA = mean(faErospsAtA);
+      const faPoolStdA  = std(faErospsAtA, faPoolMeanA);
+      const faPoolZ = zScore(bestFA.erosp_raw, faPoolMeanA, faPoolStdA);
+
+      // Slightly higher base score for swaps since they address two positions
+      const upgComp  = Math.min(1, upgradePct / 0.40);
+      const weakComp = Math.min(1, Math.max(0, (-leagueZA + 1.5) / 3.0));
+      const rawScore = 0.30 * weakComp + 0.45 * upgComp + 0.25;
+      const recommendationScore = Math.round(rawScore * 100);
+
+      const posALabel = posA === 'OF' ? 'outfield' : posA;
+      const posBLabel = posB === 'OF' ? 'outfield' : posB;
+      const explanation =
+        `${player.name} qualifies at both ${posALabel} and ${posBLabel} per ESPN eligibility. ` +
+        `Moving them to ${posBLabel} frees up the ${posALabel} slot for ${bestFA.name}, ` +
+        `who projects ${upgradeAbsolute.toFixed(0)} EROSP points higher ` +
+        `(${(upgradePct * 100).toFixed(1)}% improvement). ` +
+        `This two-for-one move strengthens both positions at once.`;
+
+      const playerPhotoUrl = rosterPhotoLookup.get(normalizeName(player.name));
+
+      swaps.push({
+        urgency,
+        position:             posA,
+        targetSlot:           posOrdinal(posA, (config.starterSlots[posA] ?? 1) - 1),
+        addPlayerName:        bestFA.name,
+        addPlayerMlbamId:     bestFA.mlbam_id,
+        addPlayerPhotoUrl:    faPhotoLookup.get(normalizeName(bestFA.name)),
+        replacePlayerName:    player.name,
+        replacePlayerMlbamId: player.mlbam_id,
+        replacePlayerPhotoUrl: playerPhotoUrl,
+        faErosp:              Math.round(bestFA.erosp_raw * 10) / 10,
+        currentErosp:         Math.round(player.erosp_raw * 10) / 10,
+        upgradeAbsolute:      Math.round(upgradeAbsolute * 10) / 10,
+        upgradePct:           Math.round(upgradePct * 10000) / 10000,
+        teamPositionRank:     leagueRankA,
+        teamPositionRankTotal: config.teamCount,
+        teamPositionZ:        Math.round(leagueZA * 100) / 100,
+        faPoolZ:              Math.round(faPoolZ * 100) / 100,
+        recommendationScore,
+        explanation,
+        internalMove: {
+          playerName:   player.name,
+          fromPosition: posA,
+          toPosition:   posB,
+          mlbamId:      player.mlbam_id,
+          photoUrl:     playerPhotoUrl,
+        },
+        debug: {
+          teamWeightedStrength: Math.round(strengthA),
+          leagueMeanStrength:   Math.round(statsA.mean),
+          leagueStdStrength:    Math.round(statsA.std),
+          faPoolMean:           Math.round(faPoolMeanA),
+          faPoolStd:            Math.round(faPoolStdA),
+          targetSlotRank:       config.starterSlots[posA] ?? 1,
+          internalPositionRank: 0,
+        },
+      });
+    }
+  }
+
+  return swaps;
+}
+
+// ─────────────────────────────────────────────────────────────────
 // Main entry point
 // ─────────────────────────────────────────────────────────────────
 
@@ -549,10 +712,10 @@ export interface SuggestedMovesInput {
   targetTeamId: number;
   erospPlayers: EROSPPlayer[];
   keeperOverrides: Record<string, string[]>;
-  /** top FA players from free-agents.json, with photoUrl */
-  faList: Array<{ playerName: string; photoUrl?: string; position: string }>;
+  /** top FA players from free-agents.json, with photoUrl and ESPN eligible positions */
+  faList: Array<{ playerName: string; photoUrl?: string; position: string; eligiblePositions?: string[] }>;
   /** ESPN roster data — used to catch EROSP pipeline name-match failures post-draft */
-  leagueRosters?: Array<{ teamId: number; players: Array<{ playerName: string }> }>;
+  leagueRosters?: Array<{ teamId: number; players: Array<{ playerName: string; photoUrl?: string; eligiblePositions?: string[] }> }>;
   config?: Partial<LeagueConfig>;
 }
 
@@ -633,6 +796,26 @@ export function getSuggestedMoves(input: SuggestedMovesInput): SuggestedMovesRes
     if (fa.photoUrl) faPhotoLookup.set(normalizeName(fa.playerName), fa.photoUrl);
   }
 
+  // FA multi-position eligibility map (from ESPN eligible slot data)
+  const faEligibilityMap = new Map<string, string[]>();
+  for (const fa of faList) {
+    if (fa.eligiblePositions?.length) {
+      faEligibilityMap.set(normalizeName(fa.playerName), fa.eligiblePositions);
+    }
+  }
+
+  // Roster eligibility + photo maps for the target team
+  const rosterEligibilityMap = new Map<string, string[]>();
+  const rosterPhotoLookup = new Map<string, string>();
+  const targetTeamRosterData = leagueRosters?.find(r => r.teamId === targetTeamId);
+  if (targetTeamRosterData) {
+    for (const player of targetTeamRosterData.players) {
+      const key = normalizeName(player.playerName);
+      if (player.eligiblePositions?.length) rosterEligibilityMap.set(key, player.eligiblePositions);
+      if (player.photoUrl) rosterPhotoLookup.set(key, player.photoUrl);
+    }
+  }
+
   // ── Step 7: Find recommendations for each weak position ───────────
   const allRecommendations: SuggestedMove[] = [];
 
@@ -662,6 +845,7 @@ export function getSuggestedMoves(input: SuggestedMovesInput): SuggestedMovesRes
       faPhotoLookup,
       config,
       config.teamCount,
+      faEligibilityMap,
     );
 
     if (candidates.length === 0) continue;
@@ -724,7 +908,29 @@ export function getSuggestedMoves(input: SuggestedMovesInput): SuggestedMovesRes
     if (allRecommendations.length >= config.maxRecommendations * 2) break;
   }
 
-  // ── Step 8: Sort by urgency then score, take top N ────────────────
+  // ── Step 8: Slot-swap recommendations ────────────────────────────
+  // Find players on target team eligible at multiple ESPN positions and check
+  // if repositioning them + adding a FA at their vacated slot helps two positions at once.
+  if (rosterEligibilityMap.size > 0) {
+    const targetTeamPlayers = erospPlayers.filter(p => teamMap.get(p.mlbam_id) === targetTeamId);
+    const swapMoves = findSlotSwaps(
+      targetTeamPlayers,
+      rosterEligibilityMap,
+      rosterPhotoLookup,
+      leagueFAs,
+      teamStrengths,
+      leagueStats,
+      faPhotoLookup,
+      faEligibilityMap,
+      config,
+    );
+    for (const swap of swapMoves) {
+      if (allRecommendations.length >= config.maxRecommendations * 2) break;
+      allRecommendations.push(swap);
+    }
+  }
+
+  // ── Step 9: Sort by urgency then score, take top N ────────────────
   const urgencyOrder: Record<UrgencyLevel, number> = {
     urgent_pickup: 3,
     suggested_add: 2,

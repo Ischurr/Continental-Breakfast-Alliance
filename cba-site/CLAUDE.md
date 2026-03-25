@@ -1644,3 +1644,32 @@ Startable ≠ "points this player will score." It's value-above-replacement. A r
 - `[center]text[/center]` → `<p className="text-center">`
 - `----` (3+ dashes, own paragraph) → `<hr className="border-t border-gray-300" />`
 - Paragraphs still separated by blank lines as before; existing articles render unchanged
+
+### Rankings editor evolution (same session)
+- **Colors added**: 10-color swatch palette in toolbar; syntax `[color=#hex]text[/color]`; stored inline
+- **Live preview added** (then replaced): side-by-side textarea + preview panel (desktop) / collapsible toggle (mobile)
+- **WYSIWYG editor (final)**: replaced textarea+preview with single `contenteditable` div — you edit the rendered text directly
+  - Toolbar uses `document.execCommand` (bold, foreColor, justifyCenter/Left, insertHorizontalRule) with `onMouseDown` + `preventDefault` so selection is never lost when clicking toolbar buttons
+  - Content stored as HTML going forward; legacy markup posts (`**bold**`, `[color=]`, `[center]`) auto-converted to HTML on first edit via `markupToHtml()`
+  - Renderer detects HTML vs. legacy markup via `looksLikeHtml()` — both formats render correctly
+  - Cmd+B keyboard shortcut for bold
+  - ✕ button strips all formatting from selection via `execCommand('removeFormat')`
+
+## Session Work (March 25, 2026 — Suggested Moves Slot-Swap Detection)
+
+### Multi-position eligibility + slot-swap recommendations (`lib/suggested-moves.ts`, `lib/types.ts`, `scripts/fetch-free-agents.ts`)
+
+**New Stage 7 — `findSlotSwaps()`** in `suggested-moves.ts`:
+- Detects players on the target team who qualify at multiple ESPN positions (from `eligiblePositions` data)
+- For each such player: checks if moving them to an alternate position frees their primary slot for a FA upgrade
+- Scores as a "two-for-one" move — strengthens both positions simultaneously
+- `internalMove` field on `SuggestedMove` holds the repositioning detail (`playerName`, `fromPosition`, `toPosition`, `mlbamId`, `photoUrl`)
+- Only fires when `rosterEligibilityMap` has data (requires ESPN eligibility data in roster input)
+
+**`fetch-free-agents.ts`**: captures `player.eligibleSlots` array from ESPN API; maps slot IDs → position labels via `SLOT_POSITION_MAP`; stores as `eligiblePositions?: string[]` on each FA entry. Lineup slots only (IDs 0–7, 12–16); bench/IL slots excluded.
+
+**`lib/types.ts`**: added `eligiblePositions?: string[]` to `PlayerSeason` interface.
+
+**`getSuggestedMovesInput`**: `faList` and `leagueRosters.players` types updated to include `eligiblePositions?: string[]`. Both `faEligibilityMap` and `rosterEligibilityMap` built from this data at the start of `getSuggestedMoves()`.
+
+**`scoreFACandidates()`**: accepts optional `faEligibilityMap` — FAs who have ESPN eligibility at the target position are included even if their primary EROSP position differs (e.g. a 1B/OF eligible player surfaced for an OF recommendation).

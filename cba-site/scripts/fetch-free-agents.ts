@@ -20,6 +20,13 @@ const POSITION_MAP: Record<number, string> = {
   11: 'RP', // Relief Pitcher
 };
 
+// Maps ESPN slot IDs (from eligibleSlots array) to position labels
+const SLOT_POSITION_MAP: Record<number, string> = {
+  0: 'C', 1: '1B', 2: '2B', 3: '3B', 4: 'SS',
+  5: 'OF', 6: 'OF', 7: 'OF', 12: 'DH', 13: 'SP', 14: 'SP', 15: 'RP', 16: 'RP',
+};
+const LINEUP_SLOTS = new Set([0, 1, 2, 3, 4, 5, 6, 7, 12, 13, 14, 15, 16]);
+
 async function fetchFreeAgents() {
   if (!process.env.ESPN_SWID || process.env.ESPN_SWID === 'your_swid_here') {
     console.error('\nError: ESPN credentials not configured.\n');
@@ -46,6 +53,13 @@ async function fetchFreeAgents() {
     const defaultPositionId = (player?.defaultPositionId as number) ?? -1;
     const position = POSITION_MAP[defaultPositionId] ?? 'UTIL';
     const playerId = String(player?.id ?? entry.id);
+    const eligibleSlots = (player?.eligibleSlots as number[]) ?? [];
+    const eligiblePositions = [...new Set(
+      eligibleSlots
+        .filter(s => LINEUP_SLOTS.has(s))
+        .map(s => SLOT_POSITION_MAP[s])
+        .filter(Boolean)
+    )] as string[];
     const ownership = player?.ownership as Record<string, unknown> | undefined;
     const percentOwned = (ownership?.percentOwned as number) ?? 0;
 
@@ -59,6 +73,7 @@ async function fetchFreeAgents() {
       playerId,
       playerName: (player?.fullName as string) ?? 'Unknown',
       position,
+      eligiblePositions: eligiblePositions.length > 0 ? eligiblePositions : undefined,
       totalPoints,
       statSeasonId,
       photoUrl: `https://a.espncdn.com/i/headshots/mlb/players/full/${playerId}.png`,
