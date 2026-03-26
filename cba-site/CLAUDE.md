@@ -90,6 +90,16 @@ npm run build            # Production build
 - Can be triggered manually: Actions tab → Update Projections → Run workflow
 - **Replaces** the local `scripts/run_projections.sh` crontab approach (which was never set up)
 
+### GitHub Actions (`.github/workflows/update-erosp.yml`)
+- Runs daily at **6 AM EST** (11:00 UTC)
+- Sets up Python 3.11, installs `pybaseball pandas numpy requests python-mlb-statsapi`
+- Runs `scripts/compute_erosp.py` → commits `data/erosp/latest.json` if changed → triggers Vercel redeploy
+- No secrets needed — uses FanGraphs + MLB Stats API (both public)
+- Caches `~/.pybaseball/` and `scripts/erosp_cache/` between runs (~1 min with warm cache)
+- **In-season mode** (after March 25): `SEASON_STARTED=True` → fetches current-year batting/pitching stats (min 10 PA / 5 IP) + daily IL/injury map from MLB Stats API
+- Can be triggered manually: Actions tab → Update EROSP → Run workflow
+- All three workflows confirmed working March 25, 2026; `[skip ci]` tag on commits prevents double-deploy loops
+
 ## Recent Work (Feb 2026 — late)
 - **Playoff bracket** (`app/playoffs/page.tsx`): uses last 2 weeks of season as playoff rounds; lowest seed goes LEFT bracket; background photos use `minHeight: 500px` to normalize height across years. **Two-mode background**: current season with no champion → `isFullPageBg=true`, World Series trophy (`PRE_SEASON_BG`) rendered as `fixed inset-0 -z-10` with `bg-black/70` overlay (content scrolls over it, all text white); past seasons with a champion → `isFullPageBg=false`, boxed `relative rounded-2xl overflow-hidden` card with `absolute inset-0` background + `bg-black/60` overlay, page bg `bg-sky-50`, "In the Hunt"/"In the Hurt" text gray
 - **BaseballFieldLeaders** (`components/BaseballFieldLeaders.tsx`): baseball field SVG with player pins, Ohtani special card, toggle for rostered vs FA view. ESPN has no 'RP' roster slot — all pitchers are 'SP'. Bullpen in rostered view uses `top('SP', 9).slice(4)` (ranks 5-9); FA view uses `top('RP', 5)`. **Mobile layout**: `flex-col md:flex-row` — field is full width, Ohtani/DH cards go horizontal above, side boxes use 2-col grid below.
@@ -1716,3 +1726,23 @@ Startable ≠ "points this player will score." It's value-above-replacement. A r
 - `year=2023, ip=19, prev_year=2022` → if Rodon had 178 IP in 2022 → `fully_missed=False` → skip
 - `year=2023, ip=71, prev_year=2022` → if Boyd had 0 IP in 2022 (TJ) → `fully_missed=True` → `yr_ips[i] *= 0.5`
 - Requires `prev_year in pitching_by_year` — PITCHER_EXTRA_YEARS [2022, 2021] already fetched by `compute_erosp.py`
+
+## Session Work (March 25, 2026 — GitHub Actions Automation)
+
+### Three GitHub Actions workflows created (`.github/workflows/`)
+All three workflows created, pushed, and confirmed working via manual dispatch.
+
+| Workflow | Schedule | Runtime | Purpose |
+|---|---|---|---|
+| `update-stats.yml` | Daily 5:30 AM EST | ~20 sec | ESPN standings/rosters/free agents |
+| `update-erosp.yml` | Daily 6:00 AM EST | ~1 min (warm cache) | EROSP projections + IL/injury map |
+| `update-projections.yml` | Mondays 3:00 AM EST | ~3 min (warm cache) | FanGraphs projections regeneration |
+
+- GitHub Secrets `ESPN_SWID` + `ESPN_S2` already set from last month — no action needed
+- EROSP cache (`scripts/erosp_cache/`) and pybaseball cache (`~/.pybaseball/`) persisted between runs via `actions/cache@v4`
+- `[skip ci]` on commit messages prevents GitHub Actions from re-triggering on its own commits
+
+### `SEASON_STARTED` date corrected (`scripts/compute_erosp.py`)
+- Changed `datetime.date(TARGET_SEASON, 3, 27)` → `datetime.date(TARGET_SEASON, 3, 25)` — season opened March 25
+- In-season mode now active: pipeline fetches 2026 YTD batting/pitching stats from FanGraphs + daily IL report from MLB Stats API
+- Triggered a fresh EROSP run post-fix; confirmed `completed success`
