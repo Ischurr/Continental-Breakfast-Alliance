@@ -74,12 +74,14 @@ npm run build            # Production build
 
 ### GitHub Actions (`.github/workflows/update-stats.yml`)
 - Runs daily at **5:30 AM EST** (10:30 UTC)
-- Fetches `data/current/2026.json` and `data/current/free-agents.json` from ESPN API
+- Steps (in order): `fetch-current` → `fetch-free-agents` → `fetch-rosters`
+- Fetches standings/matchups, free agents, and per-player 2026 season points in one run
 - Commits changed files and pushes → triggers Vercel redeploy automatically
 - Required GitHub Secrets: `ESPN_SWID`, `ESPN_S2` (no quotes, raw values)
 - `ESPN_LEAGUE_ID` (1562795298) and `ESPN_SEASON_ID` (2026) are hardcoded in the workflow
 - Job has `permissions: contents: write` to allow the push back to main
 - Can be triggered manually: Actions tab → Update Stats → Run workflow
+- **Baseball field**: nightly roster refresh updates each player's cumulative `totalPoints` (full-season total, `statSourceId=0, statSplitTypeId=0, seasonId=2026`). The field always shows the season's top scorer at each position — if someone overtakes another player in season points, they swap slots the next morning.
 
 ### GitHub Actions (`.github/workflows/update-projections.yml`)
 - Runs every **Monday at 3 AM EST** (8:00 UTC)
