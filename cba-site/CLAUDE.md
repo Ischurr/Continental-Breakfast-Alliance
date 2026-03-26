@@ -1825,3 +1825,15 @@ Three compounding bugs caused hitters to appear in SP/RP slots and pitchers in f
 - ESPN's `player.stats` array contains entries for multiple seasons. Previous filter matched `statSourceId=0, statSplitTypeId=0` without checking `seasonId`, so it picked up the 2025 full-season total (e.g. Ramirez 736 pts) instead of the accumulating 2026 YTD total.
 - Fixed: added `seasonId === 2026` to the stat lookup. Early in the season this returns 0/small values; accumulates correctly as ESPN processes scores.
 - Baseball field now ranks players by actual 2026 points, not prior-year stats.
+
+## Session Work (March 26, 2026 — Team Page Matchup Tracker)
+
+### Live matchup tracker on every team page (`components/TeamMatchupTracker.tsx`, `app/teams/[teamId]/page.tsx`)
+- **New component**: `components/TeamMatchupTracker.tsx` — `'use client'` component that renders above the team header card on every team page
+- Shows current week's matchup for this team: both team logos, names, and live scores (e.g. `123.4 vs 98.7`)
+- **Status badge**: Upcoming (amber) / In Progress (sky blue) / Win (green) / Loss (gray)
+- **Auto-refresh**: `useEffect` calls `router.refresh()` every hour so scores stay current without a manual page reload
+- **Scores**: shown as `toFixed(1)` when any points exist; `–` before scoring starts
+- **Links** to `/matchups` — clicking the whole card navigates to the full matchup page
+- **Data**: computed inline in `page.tsx` using the same active-week logic as `getTopMatchupOfWeek()` (max week with `totalPoints > 0` or `winner` set; falls back to week 1)
+- Position: above the colored team header gradient card, at the top of `<main>`

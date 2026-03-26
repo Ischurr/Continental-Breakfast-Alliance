@@ -12,6 +12,7 @@ import { TeamBioEditor, TeamStrengthsEditor } from './TeamContentEditor';
 import TeamBaseballField from '@/components/TeamBaseballField';
 import EROSPTable, { type EROSPPlayer, type EROSPMeta } from '@/components/EROSPTable';
 import SuggestedMoves from '@/components/SuggestedMoves';
+import TeamMatchupTracker from '@/components/TeamMatchupTracker';
 import { getSuggestedMoves } from '@/lib/suggested-moves';
 import fs from 'fs';
 import path from 'path';
@@ -132,6 +133,23 @@ export default async function TeamPage({ params }: Props) {
 
   // All teams except this one for H2H
   const otherTeams = currentSeason.teams.filter(t => t.id !== id);
+
+  // Current week matchup for this team
+  const activeWeeks = currentSeason.matchups
+    .filter(m => m.winner !== undefined || m.home.totalPoints > 0 || m.away.totalPoints > 0)
+    .map(m => m.week);
+  const currentWeekNum = activeWeeks.length > 0 ? Math.max(...activeWeeks) : 1;
+  const currentWeekMatchup = currentSeason.matchups.find(
+    m => m.week === currentWeekNum && (m.home.teamId === id || m.away.teamId === id)
+  ) ?? null;
+  const cwIsHome = currentWeekMatchup?.home.teamId === id;
+  const cwMyScore  = cwIsHome ? currentWeekMatchup?.home.totalPoints : currentWeekMatchup?.away.totalPoints;
+  const cwOppScore = cwIsHome ? currentWeekMatchup?.away.totalPoints : currentWeekMatchup?.home.totalPoints;
+  const cwOppId    = cwIsHome ? currentWeekMatchup?.away.teamId : currentWeekMatchup?.home.teamId;
+  const cwOppTeam  = currentWeekMatchup ? currentSeason.teams.find(t => t.id === cwOppId) : null;
+  const cwIsFinal  = currentWeekMatchup?.winner !== undefined;
+  const cwInProgress = !cwIsFinal && ((cwMyScore ?? 0) > 0 || (cwOppScore ?? 0) > 0);
+  const cwMyWon    = cwIsFinal && currentWeekMatchup?.winner === id;
 
   // KV content overrides for team text fields (bio, strengths, weaknesses)
   const contentOverrides = await getTeamContent();
@@ -275,6 +293,22 @@ export default async function TeamPage({ params }: Props) {
       </div>
 
       <main className="container mx-auto px-4 py-12 relative z-10">
+        {/* Current week matchup tracker — above team header, auto-refreshes every hour */}
+        {currentWeekMatchup && (
+          <TeamMatchupTracker
+            weekNum={currentWeekNum}
+            myName={team.name}
+            myLogo={team.logoUrl}
+            myScore={cwMyScore ?? 0}
+            myWon={cwIsFinal ? (cwMyWon ?? false) : null}
+            oppName={cwOppTeam?.name ?? `Team ${cwOppId}`}
+            oppLogo={cwOppTeam?.logoUrl}
+            oppScore={cwOppScore ?? 0}
+            isFinal={cwIsFinal}
+            inProgress={cwInProgress}
+          />
+        )}
+
         {/* Team header */}
         <div
           className="rounded-xl p-8 mb-10 text-white shadow-lg"
