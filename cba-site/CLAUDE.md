@@ -1694,3 +1694,25 @@ Startable ≠ "points this player will score." It's value-above-replacement. A r
 
 
 **`scoreFACandidates()`**: accepts optional `faEligibilityMap` — FAs who have ESPN eligibility at the target position are included even if their primary EROSP position differs (e.g. a 1B/OF eligible player surfaced for an OF recommendation).
+
+## Session Work (March 25, 2026 — EROSP Comeback Year De-emphasis)
+
+### Comeback year de-emphasis (`scripts/erosp/talent.py`)
+
+**Problem**: Boyd's 2023 post-TJ rust year (71 IP, 5.45 ERA, 1.39 HR/9) was contaminating the 3-year blend at ~10% weight, pulling his fp_per_start down to 10.88 (projected raw 272) despite a strong 2025 comeback (460 actual pts).
+
+**Fix — inline in `estimate_pitcher_talent()`, after yr_ips collection loop**:
+- For each blend year with IP < 100 (`COMEBACK_IP_THRESHOLD = 100`):
+  - Checks `prev_year = year - 1` in `pitching_by_year`
+  - If `prev_match.empty OR prev_ip == 0` (fully missed season confirmed), halves effective IP weight: `yr_ips[i] *= 0.5` (`COMEBACK_WEIGHT_FACTOR = 0.5`)
+- Full-season comebacks (≥100 IP) are **not affected** — Rodon's 180 IP 2025 is untouched
+- Only fires when prior-year data EXISTS and confirms a full miss — can't fire on unknown history
+
+**Result**: Boyd raw 272 → 366 (fp/start 10.88 → 11.21). The 2023 rust year gets half weight, so the cleaner 2022 and 2025 data dominate.
+
+**Rodon note**: Rodon's projection dropped 330 → 287 this run — that's from the **injury map** (currently on D15 IL → games_remaining 162→141), NOT from this fix. Rodon's 2023 had only ~19 IP but preceded by 178 IP in 2022 (healthy) → `fully_missed = False` → no de-emphasis triggered. Fix G still floors him at 80% of 2025 GS pace over the remaining games.
+
+**Detection logic summary**:
+- `year=2023, ip=19, prev_year=2022` → if Rodon had 178 IP in 2022 → `fully_missed=False` → skip
+- `year=2023, ip=71, prev_year=2022` → if Boyd had 0 IP in 2022 (TJ) → `fully_missed=True` → `yr_ips[i] *= 0.5`
+- Requires `prev_year in pitching_by_year` — PITCHER_EXTRA_YEARS [2022, 2021] already fetched by `compute_erosp.py`
