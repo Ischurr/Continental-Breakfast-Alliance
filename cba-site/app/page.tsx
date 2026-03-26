@@ -185,6 +185,7 @@ export default async function Home() {
               const homeStanding = standings.find(s => s.teamId === matchup.home.teamId);
               const awayStanding = standings.find(s => s.teamId === matchup.away.teamId);
               const isComplete = matchup.winner !== undefined;
+              const hasActivity = matchup.home.totalPoints > 0 || matchup.away.totalPoints > 0;
 
               const getRecord = (standing: typeof homeStanding) =>
                 standing ? `${standing.wins}-${standing.losses}` : '—';
@@ -192,7 +193,7 @@ export default async function Home() {
               return (
                 <Link href="/matchups" className="flex flex-col flex-1 group">
                   <p className="text-xs text-gray-400 mb-3">
-                    Week {week} &bull; {useHistorical ? 'Top all-time records' : 'Best combined record'}
+                    Week {week} &bull; {isComplete ? 'Final' : hasActivity ? 'In progress' : useHistorical ? 'Top all-time records' : 'Best combined record'}
                   </p>
                   <div className="space-y-2 flex-1">
                     {[
@@ -209,8 +210,8 @@ export default async function Home() {
                           </p>
                           <p className="text-xs text-gray-400">{getRecord(standing)} this season</p>
                         </div>
-                        {isComplete && (
-                          <span className={`text-lg font-bold ${won ? 'text-green-700' : 'text-gray-400'}`}>
+                        {(isComplete || hasActivity) && (
+                          <span className={`text-lg font-bold ${won ? 'text-green-700' : isComplete ? 'text-gray-400' : 'text-sky-600'}`}>
                             {score.toFixed(1)}
                           </span>
                         )}
