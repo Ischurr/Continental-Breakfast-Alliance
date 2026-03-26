@@ -84,9 +84,9 @@ Y1, Y2, Y3 = HISTORICAL_YEARS
 PITCHER_EXTRA_YEARS = [TARGET_SEASON - 4, TARGET_SEASON - 5]
 Y4, Y5 = PITCHER_EXTRA_YEARS
 
-# Is the season in progress? (After March 27 and before Oct 5)
+# Is the season in progress? (After March 25 and before Oct 5)
 SEASON_STARTED = (
-    datetime.date(TARGET_SEASON, 3, 27) <= today < datetime.date(TARGET_SEASON, 10, 5)
+    datetime.date(TARGET_SEASON, 3, 25) <= today < datetime.date(TARGET_SEASON, 10, 5)
 )
 
 print(f"\n{'='*65}")
