@@ -1580,6 +1580,15 @@ Added a full Commissioner Bulletin system to the message board — admin-only po
 - **Gold Diggers**: `zoom: 1.0` (unchanged — already fills circle well)
 - To tune: adjust `zoom` up (more crop) or down (more whitespace); use `imgOffsetX`/`Y` to re-center if mark is off-center in source image
 
+## Session Work (March 26, 2026 — Edoras Wild Ponies Affiliate)
+
+### Emus minor league affiliate added to map + team page
+
+- **`public/edoras-ponies-logo.jpeg`**: copied from `~/Desktop/Fantasy Website/Edoras Ponies.jpeg` — Rohan-inspired green flag with white/gold horse
+- **`components/USMapHero.tsx`**: Added `NZ_AFFILIATES` array (separate from `AFFILIATES`) for affiliates outside the US. Wild Ponies entry: Mount Sunday, Hakatere Conservation Park NZ `[170.83, -43.62]`, `teamId=6`. Renders as a `Marker` inside the existing NZ inset `ComposableMap` (bottom-left), not the main `geoAlbersUsa` map (which can't project NZ coordinates). The `<a>` tag inside the Marker uses `pointerEvents: 'auto'` to override the parent `pointer-events-none` div. Gold ring border matches other affiliates.
+- **`app/teams/[teamId]/page.tsx`**: new `{id === 6}` "Minor League Affiliate" section inserted after Fun Franchise Facts — dark forest green gradient header (`#0a1f0a → #1e4d1e`), "Low-A Affiliate" badge in gold (`#d4a547`), subtitle "Mount Sunday, Hakatere Conservation Park, Canterbury, New Zealand · Established 2026", tagline `#RideForRohan`, Leo De Vries called out as star player, announcement quote in `#f0f7ee` footer panel
+- **To add more NZ/international affiliates**: append to `NZ_AFFILIATES` array in `USMapHero.tsx`
+
 ## Session Work (March 24, 2026 — Lake Placid Puddle Jumpers Affiliate)
 
 ### Sky Chiefs minor league affiliate added to map + team page

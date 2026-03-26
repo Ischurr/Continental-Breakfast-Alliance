@@ -515,6 +515,45 @@ export default async function TeamPage({ params }: Props) {
           </div>
         )}
 
+        {/* Emus Minor League Affiliate */}
+        {id === 6 && (
+          <div className="mb-10">
+            <h2 className="text-2xl font-bold text-gray-900 mb-1">Minor League Affiliate</h2>
+            <p className="text-sm text-gray-700 mb-4">Mount Sunday, Hakatere Conservation Park, Canterbury, New Zealand · Established 2026</p>
+            <div className="rounded-xl overflow-hidden shadow-sm border border-gray-200 max-w-xl">
+              <div className="px-5 py-4 flex items-center justify-between" style={{ background: 'linear-gradient(135deg, #0a1f0a 0%, #1e4d1e 100%)' }}>
+                <div>
+                  <span className="inline-block text-[11px] font-bold px-2 py-0.5 rounded-full mb-2 tracking-widest uppercase" style={{ backgroundColor: '#d4a547', color: '#0a1f0a' }}>
+                    Low-A Affiliate
+                  </span>
+                  <p className="text-white font-bold text-base leading-tight">Edoras Wild Ponies</p>
+                  <p className="text-xs mt-0.5" style={{ color: '#d4a547' }}>Mount Sunday, NZ · #RideForRohan</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 rounded-full border-2 border-white/30 shadow-sm flex-shrink-0" style={{ backgroundColor: '#1e4d1e' }} />
+                  <div className="w-5 h-5 rounded-full border-2 border-white/30 shadow-sm flex-shrink-0" style={{ backgroundColor: '#d4a547' }} />
+                </div>
+              </div>
+              <div className="bg-white flex items-center justify-center p-6">
+                <Image
+                  src="/edoras-ponies-logo.jpeg"
+                  alt="Edoras Wild Ponies Logo"
+                  width={400}
+                  height={267}
+                  className="w-full max-w-sm h-auto"
+                  unoptimized
+                />
+              </div>
+              <div className="px-5 py-4" style={{ backgroundColor: '#f0f7ee' }}>
+                <p className="text-sm font-semibold text-gray-800 mb-1">⭐ Star Player: Leo De Vries</p>
+                <p className="text-xs text-gray-600 leading-relaxed italic">
+                  &ldquo;The Delmarva Emus are proud to announce the founding of the Edoras Wild Ponies — our Low-A affiliate nestled in the shadow of Mount Sunday deep in the Hakatere Conservation Park. The Wild Ponies play fast, play free, and play for the Plains of Rohan. To ride for Edoras is to ride for glory.&rdquo;
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* WVPR Game Day Traditions */}
         {id === 3 && (
           <div className="mb-10">

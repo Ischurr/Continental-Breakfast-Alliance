@@ -34,6 +34,18 @@ const AFFILIATES = [
   },
 ];
 
+// Affiliates located outside the US (rendered on the NZ inset map)
+const NZ_AFFILIATES = [
+  {
+    teamId: 6,
+    name: 'Edoras Wild Ponies',
+    logo: '/edoras-ponies-logo.jpeg',
+    // Mount Sunday, Hakatere Conservation Park, Canterbury, NZ
+    coordinates: [170.83, -43.62] as [number, number],
+    zoom: 1.0, imgOffsetX: 0, imgOffsetY: 0,
+  },
+];
+
 const TEAMS = [
   {
     id: 1, name: 'Space Cowboys',
@@ -244,6 +256,40 @@ export default function USMapHero() {
                   ))
               }
             </Geographies>
+            {NZ_AFFILIATES.map(({ teamId, name, logo, coordinates, zoom, imgOffsetX, imgOffsetY }) => {
+              const clipId = `clip-nz-affiliate-${teamId}`;
+              const z = zoom ?? 1;
+              const w = R_AFF * 2 * z;
+              const h = R_AFF * 2 * z;
+              return (
+                <Marker key={`nz-affiliate-${teamId}`} coordinates={coordinates}>
+                  <defs>
+                    <clipPath id={clipId}>
+                      <circle cx={0} cy={0} r={R_AFF} />
+                    </clipPath>
+                  </defs>
+                  <a href={`/teams/${teamId}`} style={{ cursor: 'pointer', pointerEvents: 'auto' }}>
+                    <title>{name}</title>
+                    <image
+                      href={logo}
+                      x={-w / 2 + (imgOffsetX ?? 0)}
+                      y={-h / 2 + (imgOffsetY ?? 0)}
+                      width={w}
+                      height={h}
+                      clipPath={`url(#${clipId})`}
+                      preserveAspectRatio="xMidYMid slice"
+                    />
+                    <circle
+                      cx={0} cy={0}
+                      r={R_AFF}
+                      fill="none"
+                      stroke="#C9A84C"
+                      strokeWidth={1.5}
+                    />
+                  </a>
+                </Marker>
+              );
+            })}
           </ComposableMap>
         </div>
       </div>
