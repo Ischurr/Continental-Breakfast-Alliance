@@ -98,7 +98,13 @@ npm run build            # Production build
 - Caches `~/.pybaseball/` and `scripts/erosp_cache/` between runs (~1 min with warm cache)
 - **In-season mode** (after March 25): `SEASON_STARTED=True` → fetches current-year batting/pitching stats (min 10 PA / 5 IP) + daily IL/injury map from MLB Stats API
 - Can be triggered manually: Actions tab → Update EROSP → Run workflow
-- All three workflows confirmed working March 25, 2026; `[skip ci]` tag on commits prevents double-deploy loops
+- All four workflows confirmed working; `[skip ci]` tag on commits prevents double-deploy loops
+
+### GitHub Actions (`.github/workflows/update-rosters.yml`)
+- Runs every **3 days** (`0 11 */3 * *`, 11:00 UTC)
+- Runs `npm run fetch-rosters` (`tsx scripts/fetch-rosters-2026.ts`) → commits `data/current/2026.json` rosters if changed
+- Refreshes per-player ESPN position eligibility as players earn new positions during the season
+- Needs `ESPN_SWID` + `ESPN_S2` secrets (same as update-stats)
 
 ## Recent Work (Feb 2026 — late)
 - **Playoff bracket** (`app/playoffs/page.tsx`): uses last 2 weeks of season as playoff rounds; lowest seed goes LEFT bracket; background photos use `minHeight: 500px` to normalize height across years. **Two-mode background**: current season with no champion → `isFullPageBg=true`, World Series trophy (`PRE_SEASON_BG`) rendered as `fixed inset-0 -z-10` with `bg-black/70` overlay (content scrolls over it, all text white); past seasons with a champion → `isFullPageBg=false`, boxed `relative rounded-2xl overflow-hidden` card with `absolute inset-0` background + `bg-black/60` overlay, page bg `bg-sky-50`, "In the Hunt"/"In the Hurt" text gray
@@ -146,6 +152,10 @@ npm run build            # Production build
 - For players truly not in Chadwick (e.g. Yariel Rodriguez, Felix Bautista), used MLB Stats API people search (`/api/v1/people/search?names=`) as a one-time manual fix.
 
 ## Key Gotchas
+- **ESPN `defaultPositionId`**: `1=SP, 2=C, 3=1B, 4=2B, 5=3B, 6=SS, 7=LF(OF), 8=CF(OF), 9=RF(OF), 10=DH, 11=RP` — use this for player's primary position, NOT eligibleSlots
+- **ESPN `eligibleSlots`** (lineup slot IDs for multi-position eligibility): `0=C, 1=1B, 2=2B, 3=3B, 4=SS, 8/9/10=OF, 12=DH, 13/14=SP, 15=RP`. Slots 5(UTIL-OF), 6(MI), 7(CI), 11(IL), 16(bench), 17(bench), 19(UTIL-INF) are flex/bench — exclude from eligiblePositions to avoid false tags
+- **Slot 16 in every player's eligibleSlots**: ESPN includes bench slot 16 for ALL players — do NOT map it to 'RP' or include it in LINEUP_SLOTS
+- **ESPN stats array has multiple seasons**: always filter by `seasonId === 2026` when fetching current-year stats, otherwise you'll get 2025 full-season totals (the 2025 entry comes first in the array)
 - ESPN roster data: all pitchers use 'SP' slot (no 'RP'), UTIL = OF + DH
 - MLB Stats API `fields` param: must list nested fields explicitly (e.g., `primaryPosition,abbreviation` not just `primaryPosition`)
 - `getCurrentSeason()` returns 2025 until March 9 (cutover date in `lib/data-processor.ts`) — use separate year computation for projection headings
@@ -1776,3 +1786,40 @@ All three workflows created, pushed, and confirmed working via manual dispatch.
 - **Baseball field**: Renders whenever `currentRoster.length > 0`; rosters preserved through daily `fetch-current` cron. Player pins appear pre-points; points badge (`totalPoints > 0`) fills in as ESPN scoring accumulates during the week.
 - **Standings sort**: Flips from projected keeper EROSP → actual wins/PF once any team records a W/L (`seasonStarted = standings.some(s => s.wins > 0 || s.losses > 0)`). Stays projected until end of Week 1.
 - **EROSP in-season mode**: Active since March 25 (`SEASON_STARTED = True`); pipeline now fetches YTD FanGraphs stats (min 10 PA / 5 IP) + daily IL map instead of pure pre-season estimates.
+
+## Session Work (March 26, 2026 — Baseball Field Position Bug Fixes)
+
+### Root cause: wrong ESPN slot ID mappings (`scripts/fetch-rosters-2026.ts`)
+Three compounding bugs caused hitters to appear in SP/RP slots and pitchers in field positions:
+
+**Bug 1 — slot 16 in every player's `eligibleSlots`**: ESPN includes slot 16 (bench/IL) in ALL players' `eligibleSlots`. It was mapped to `'RP'` in `POSITION_MAP` and included in `LINEUP_SLOTS`, so every hitter got `'RP'` in `eligiblePositions`. `isPitcher()` returned true for all hitters.
+
+**Bug 2 — wrong OF slot IDs**: Slots 5/6/7 were mapped to `'OF'` but they are actually UTIL-flex (5), MI/middle-infield (6), CI/corner-infield (7). The real OF lineup slots are **8, 9, 10** — which were missing from the map entirely. Every 3B/SS player had 'OF' in their `eligiblePositions` via their CI/MI flex slot.
+
+**Bug 3 — `position` derived from slot not from ESPN's position field**: `position` was set from `eligibleSlots[0]`, which could be any slot the manager placed them into. Fixed to use `player.defaultPositionId` instead.
+
+### Confirmed ESPN API field mappings
+**`defaultPositionId`** (player's actual MLB position):
+`1=SP, 2=C, 3=1B, 4=2B, 5=3B, 6=SS, 7=LF(OF), 8=CF(OF), 9=RF(OF), 10=DH, 11=RP`
+
+**`eligibleSlots`** (lineup slot IDs for multi-position eligibility):
+- `0=C, 1=1B, 2=2B, 3=3B, 4=SS` — primary position slots
+- `8=OF, 9=OF, 10=OF` — the three actual OF lineup slots
+- `12=DH, 13=SP, 14=SP, 15=RP` — pitcher/DH slots
+- `5=UTIL(OF-flex), 6=MI, 7=CI, 11=IL, 16=bench, 17=bench, 19=UTIL(INF)` — excluded from `LINEUP_SLOTS`
+
+### Fixes applied
+- `POSITION_MAP` / `SLOT_POSITION_MAP`: removed 5/6/7, added 8/9/10 → `'OF'`, kept 15 → `'RP'`
+- `LINEUP_SLOTS`: now `{0,1,2,3,4,8,9,10,12,13,14,15}` — no flex/bench/IL slots
+- `position` field: now uses `DEFAULT_POSITION_MAP[player.defaultPositionId]` directly
+- `isPitcher()` in `TeamBaseballField.tsx`: if any field position (`C/1B/2B/3B/SS/OF/DH`) is in `eligiblePositions` → definitely a hitter, regardless of `position` field
+
+### `update-rosters.yml` GitHub Action
+- New workflow runs every 3 days (`0 11 */3 * *`) to refresh per-player ESPN eligibility
+- Player eligibility changes during the season as players log games at new positions (e.g. a 1B who starts playing OF earns OF eligibility)
+- Added `fetch-rosters` to `package.json` scripts (`tsx scripts/fetch-rosters-2026.ts`)
+
+### 2026 in-season points fix
+- ESPN's `player.stats` array contains entries for multiple seasons. Previous filter matched `statSourceId=0, statSplitTypeId=0` without checking `seasonId`, so it picked up the 2025 full-season total (e.g. Ramirez 736 pts) instead of the accumulating 2026 YTD total.
+- Fixed: added `seasonId === 2026` to the stat lookup. Early in the season this returns 0/small values; accumulates correctly as ESPN processes scores.
+- Baseball field now ranks players by actual 2026 points, not prior-year stats.
