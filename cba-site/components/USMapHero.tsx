@@ -3,6 +3,7 @@
 import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps';
 
 const GEO_URL = "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json";
+const WORLD_GEO_URL = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json";
 const R = 20;    // CBA team logo circle radius
 const R_AFF = 9; // minor league affiliate logo radius (star-sized)
 
@@ -100,6 +101,7 @@ export default function USMapHero() {
   return (
     <div className="bg-blue-950 text-white overflow-hidden">
       <div className="pt-20">
+      <div className="relative">
       <ComposableMap
         projection="geoAlbersUsa"
         projectionConfig={{ scale: 880 }}
@@ -109,7 +111,9 @@ export default function USMapHero() {
       >
         <Geographies geography={GEO_URL}>
           {({ geographies }: { geographies: any[] }) =>
-            geographies.map((geo) => (
+            geographies
+              .filter(geo => Number(geo.id) !== 2) // filter out Alaska (FIPS 02)
+              .map((geo) => (
               <Geography
                 key={geo.rsmKey}
                 geography={geo}
@@ -211,6 +215,40 @@ export default function USMapHero() {
           );
         })}
       </ComposableMap>
+
+      {/* New Zealand outline — replaces Alaska inset (bottom-left) */}
+      <div
+        className="absolute left-0 pointer-events-none"
+        style={{ width: '20%', paddingBottom: '16%', bottom: '4%', left: '-2%' }}
+      >
+        <div className="absolute inset-0">
+          <ComposableMap
+            projection="geoMercator"
+            projectionConfig={{ center: [172, -41], scale: 480 }}
+            width={200}
+            height={170}
+            style={{ width: '100%', height: '100%', display: 'block' }}
+          >
+            <Geographies geography={WORLD_GEO_URL}>
+              {({ geographies }: { geographies: any[] }) =>
+                geographies
+                  .filter(geo => Number(geo.id) === 554) // New Zealand ISO 554
+                  .map((geo) => (
+                    <Geography
+                      key={geo.rsmKey}
+                      geography={geo}
+                      fill="#1e3a8a"
+                      stroke="#3b82f6"
+                      strokeWidth={1.5}
+                    />
+                  ))
+              }
+            </Geographies>
+          </ComposableMap>
+        </div>
+      </div>
+
+      </div>
       </div>
     </div>
   );
