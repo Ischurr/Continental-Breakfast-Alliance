@@ -186,15 +186,16 @@ export default async function TeamPage({ params }: Props) {
   }
 
   // Load free agents for Suggested Moves
-  let faList: Array<{ playerName: string; photoUrl?: string; position: string }> = [];
+  let faList: Array<{ playerName: string; photoUrl?: string; position: string; eligiblePositions?: string[] }> = [];
   try {
     const faPath = path.join(process.cwd(), 'data', 'current', 'free-agents.json');
     if (fs.existsSync(faPath)) {
       const faRaw = JSON.parse(fs.readFileSync(faPath, 'utf-8'));
-      faList = (faRaw.players ?? []).map((p: { playerName: string; photoUrl?: string; position: string }) => ({
-        playerName: p.playerName,
-        photoUrl:   p.photoUrl,
-        position:   p.position,
+      faList = (faRaw.players ?? []).map((p: { playerName: string; photoUrl?: string; position: string; eligiblePositions?: string[] }) => ({
+        playerName:        p.playerName,
+        photoUrl:          p.photoUrl,
+        position:          p.position,
+        eligiblePositions: p.eligiblePositions,
       }));
     }
   } catch { /* FA data unavailable */ }

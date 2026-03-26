@@ -91,10 +91,21 @@ function PlayerChip({
 function MoveCard({ move }: { move: SuggestedMove }) {
   const cfg = URGENCY_CONFIG[move.urgency];
   const isEmptySlot = move.replacePlayerName === 'No projection';
+  const isSwap = !!move.internalMove;
   // Cap displayed upgrade% at 200% to avoid absurd numbers for empty slots
   const displayPct = Math.min(move.upgradePct, 2.0);
   const pctDisplay = isEmptySlot ? 'Fills empty slot' : `+${(move.upgradePct * 100).toFixed(1)}%`;
   const absDisplay = `+${move.upgradeAbsolute.toFixed(1)} EROSP`;
+
+  // Label and sublabel for the "current" slot column
+  const replaceLabel = isSwap
+    ? `Move to ${move.internalMove!.toPosition}`
+    : isEmptySlot
+    ? 'Current Slot'
+    : 'Drop / Replace';
+  const replaceSubLabel = isSwap
+    ? `${move.internalMove!.fromPosition} → ${move.internalMove!.toPosition}`
+    : move.targetSlot;
 
   return (
     <div className={`rounded-xl border ${cfg.border} ${cfg.bg} p-5 flex flex-col gap-4`}>
@@ -108,6 +119,11 @@ function MoveCard({ move }: { move: SuggestedMove }) {
           <span className="text-xs font-mono text-gray-400 bg-white border border-gray-200 px-2 py-0.5 rounded-full">
             {move.position} · {move.targetSlot}
           </span>
+          {isSwap && (
+            <span className="text-xs font-semibold bg-indigo-100 text-indigo-600 border border-indigo-200 px-2 py-0.5 rounded-full">
+              2-position move
+            </span>
+          )}
         </div>
         <div className="text-right flex-shrink-0">
           <p className={`text-sm font-bold text-gray-800 ${isEmptySlot ? 'text-xs' : 'text-base'}`}>{pctDisplay}</p>
@@ -119,14 +135,14 @@ function MoveCard({ move }: { move: SuggestedMove }) {
       <div className="flex items-center gap-3">
         <div className="flex-1 min-w-0">
           <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1.5">
-            {isEmptySlot ? 'Current Slot' : 'Drop / Replace'}
+            {replaceLabel}
           </p>
           <PlayerChip
             name={move.replacePlayerName}
             erosp={move.currentErosp}
             photoUrl={move.replacePlayerPhotoUrl}
-            label={move.targetSlot}
-            dimmed
+            label={replaceSubLabel}
+            dimmed={!isSwap}
           />
         </div>
 

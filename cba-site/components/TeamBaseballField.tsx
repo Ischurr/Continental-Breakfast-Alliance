@@ -7,6 +7,7 @@ type Player = {
   totalPoints: number;
   photoUrl?: string;
   position: string;
+  eligiblePositions?: string[];
 };
 
 interface Props {
@@ -259,27 +260,16 @@ export default function TeamBaseballField({ players, rpNames, fieldDimensions, s
   const ohtani = players.find(p => p.playerName === 'Shohei Ohtani') ?? null;
   const activePool = players.filter(p => p.playerName !== 'Shohei Ohtani');
 
-  // Sort by totalPoints descending (players with 0 pts go last but still appear)
-  const top = (pos: string, n: number): Player[] =>
-    activePool
-      .filter(p => p.position === pos)
-      .sort((a, b) => b.totalPoints - a.totalPoints)
-      .slice(0, n);
+  // ── Pitcher / hitter split ──────────────────────────────────────────────────
+  const isPitcher = (p: Player) => p.position === 'SP' || p.position === 'RP'
+    || (p.eligiblePositions ?? []).some(e => e === 'SP' || e === 'RP');
 
-  // UTIL = outfielders + DH in ESPN roster data
-  const utilSorted = activePool
-    .filter(p => p.position === 'UTIL')
-    .sort((a, b) => b.totalPoints - a.totalPoints);
+  const hitterPool = activePool.filter(p => !isPitcher(p));
 
-  const ofs = utilSorted.slice(0, 3);
-  const dh = utilSorted[3] ?? null;
-
-  // Split pitchers into starters vs relievers.
-  // When EROSP role data is available (rpNames), players in the set are true RPs;
-  // everyone else with position='SP' is treated as a starter.
-  // Falls back to rank-based split when EROSP data isn't loaded yet.
+  // Split pitchers into starters vs relievers via EROSP role data (rpNames).
+  // Falls back to rank-based split when EROSP data isn't available.
   const allSPs = activePool
-    .filter(p => p.position === 'SP')
+    .filter(p => isPitcher(p))
     .sort((a, b) => b.totalPoints - a.totalPoints);
 
   const trueSPs = rpNames
@@ -290,19 +280,56 @@ export default function TeamBaseballField({ players, rpNames, fieldDimensions, s
     : allSPs.slice(6, 11);
 
   const sp1      = trueSPs[0] ?? null;
-  const rotation = trueSPs.slice(1, 6);   // up to 5 in the rotation side box
-  const bullpen  = trueRPs.slice(0, 5);   // up to 5 in the bullpen
+  const rotation = trueSPs.slice(1, 6);
+  const bullpen  = trueRPs.slice(0, 5);
+
+  // ── Hitter assignment (greedy, most-constrained position first) ─────────────
+  // Uses eligiblePositions when available so multi-position players (e.g. C/1B)
+  // appear at the slot where they are most needed, never duplicated on the field.
+  const assigned = new Set<string>();
+
+  function eligibleAt(p: Player, fieldPos: string): boolean {
+    const eligible = p.eligiblePositions;
+    if (eligible && eligible.length > 0) {
+      if (fieldPos === 'OF') return eligible.includes('OF');
+      return eligible.includes(fieldPos);
+    }
+    // fallback: use current lineup slot position
+    if (fieldPos === 'OF') return p.position === 'OF' || p.position === 'UTIL';
+    return p.position === fieldPos;
+  }
+
+  function pickBest(fieldPos: string): Player | null {
+    const pick = hitterPool
+      .filter(p => !assigned.has(p.playerName) && eligibleAt(p, fieldPos))
+      .sort((a, b) => b.totalPoints - a.totalPoints)[0] ?? null;
+    if (pick) assigned.add(pick.playerName);
+    return pick;
+  }
+
+  // Assign in order of scarcity (C and SS are most restrictive, DH most flexible)
+  const cPlayer   = pickBest('C');
+  const ssPlayer  = pickBest('SS');
+  const twoBPlayer  = pickBest('2B');
+  const threeBPlayer = pickBest('3B');
+  const oneBPlayer  = pickBest('1B');
+  const of1 = pickBest('OF');
+  const of2 = pickBest('OF');
+  const of3 = pickBest('OF');
+  // DH = best remaining hitter not already on the field
+  const dh = hitterPool.filter(p => !assigned.has(p.playerName))
+    .sort((a, b) => b.totalPoints - a.totalPoints)[0] ?? null;
 
   const fieldPlayers: Record<string, Player | null> = {
-    C:    top('C',  1)[0] ?? null,
+    C:    cPlayer,
     SP:   sp1,
-    '3B': top('3B', 1)[0] ?? null,
-    SS:   top('SS', 1)[0] ?? null,
-    '2B': top('2B', 1)[0] ?? null,
-    '1B': top('1B', 1)[0] ?? null,
-    OF1:  ofs[0] ?? null,
-    OF2:  ofs[1] ?? null,
-    OF3:  ofs[2] ?? null,
+    '3B': threeBPlayer,
+    SS:   ssPlayer,
+    '2B': twoBPlayer,
+    '1B': oneBPlayer,
+    OF1:  of1,
+    OF2:  of2,
+    OF3:  of3,
     BP1:  bullpen[0] ?? null,
     BP2:  bullpen[1] ?? null,
   };

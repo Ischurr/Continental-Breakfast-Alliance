@@ -573,6 +573,26 @@ def estimate_pitcher_talent(
                 yr_rates.append(match.iloc[0][available].to_dict())
                 yr_ips.append(float(match.iloc[0].get("IP", 0)))
 
+        # Comeback year de-emphasis:
+        # If a blend year immediately follows a fully missed season (0 IP / absent from data)
+        # AND that comeback year had < 100 IP (still partial/rusty), halve its effective weight.
+        # Full-season comebacks (e.g. Rodon 2025: 180 IP) are NOT affected.
+        COMEBACK_IP_THRESHOLD = 100
+        COMEBACK_WEIGHT_FACTOR = 0.5
+        for i, (year, ip) in enumerate(zip(years_for_blend, yr_ips)):
+            if year is None or ip is None or ip == 0:
+                continue
+            if ip >= COMEBACK_IP_THRESHOLD:
+                continue  # Full comeback season — no adjustment needed
+            prev_year = year - 1
+            if prev_year not in pitching_by_year:
+                continue  # Can't confirm a miss without prior-year data
+            prev_df = pitching_by_year[prev_year]
+            prev_match = prev_df[prev_df["IDfg"] == fgid]
+            fully_missed = prev_match.empty or float(prev_match.iloc[0].get("IP", 0)) == 0
+            if fully_missed:
+                yr_ips[i] = ip * COMEBACK_WEIGHT_FACTOR
+
         blended = _blend_pitcher_rates(
             [pd.Series(r) if r is not None else None for r in yr_rates],
             year_ips=yr_ips,

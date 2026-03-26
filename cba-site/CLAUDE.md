@@ -1672,4 +1672,25 @@ Startable ≠ "points this player will score." It's value-above-replacement. A r
 
 **`getSuggestedMovesInput`**: `faList` and `leagueRosters.players` types updated to include `eligiblePositions?: string[]`. Both `faEligibilityMap` and `rosterEligibilityMap` built from this data at the start of `getSuggestedMoves()`.
 
+## Session Work (March 25, 2026 — Multi-Position Eligibility Display + Wiring)
+
+### `components/SuggestedMoves.tsx` — swap card display
+- `isSwap = !!move.internalMove` added to `MoveCard`
+- "Drop / Replace" label → `"Move to [toPosition]"` when swap; sublabel shows `"[fromPos] → [toPos]"`
+- Player being repositioned shown un-dimmed (they're moving, not being dropped)
+- Indigo **"2-position move"** badge in the header row when `isSwap`
+
+### `app/teams/[teamId]/page.tsx` — faList eligiblePositions pass-through
+- `faList` type updated to include `eligiblePositions?: string[]`
+- FA mapping now includes `eligiblePositions: p.eligiblePositions` so the engine can match FAs to positions they're ESPN-eligible at beyond their EROSP primary position
+
+### `scripts/fetch-rosters-2026.ts` — position from `lineupSlotId`
+- Position resolution order: `lineupSlotId` → `eligibleSlots[0]` → `'UTIL'`
+- `lineupSlotId` (the slot they were actually slotted into at roster fetch time) is more accurate than first eligible slot
+
+### `components/TeamBaseballField.tsx` — pitcher detection via `eligiblePositions`
+- `isPitcher()` helper now checks `eligiblePositions` array in addition to `position === 'SP'`
+- Prevents misclassifying SP/RP-eligible players as field players when primary position label is generic
+
+
 **`scoreFACandidates()`**: accepts optional `faEligibilityMap` — FAs who have ESPN eligibility at the target position are included even if their primary EROSP position differs (e.g. a 1B/OF eligible player surfaced for an OF recommendation).

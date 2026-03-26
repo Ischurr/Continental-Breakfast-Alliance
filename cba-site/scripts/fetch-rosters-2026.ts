@@ -24,7 +24,10 @@ function extractRostersFromTeams(teams: Record<string, unknown>[]) {
         ?.find(s => (s as Record<string, unknown>).statSourceId === 0 && (s as Record<string, unknown>).statSplitTypeId === 0);
       const appliedStatTotal = (seasonStat?.appliedTotal as number) ?? 0;
       const eligibleSlots = (player?.eligibleSlots as number[]) ?? [];
-      const position = POSITION_MAP[eligibleSlots[0]] ?? 'UTIL';
+      const lineupSlotId = entry.lineupSlotId as number | undefined;
+      const position = (lineupSlotId !== undefined ? POSITION_MAP[lineupSlotId] : undefined)
+        ?? POSITION_MAP[eligibleSlots[0]]
+        ?? 'UTIL';
       const eligiblePositions = [...new Set(
         eligibleSlots
           .filter(s => LINEUP_SLOTS.has(s))
