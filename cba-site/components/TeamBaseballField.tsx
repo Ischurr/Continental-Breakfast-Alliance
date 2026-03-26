@@ -261,8 +261,19 @@ export default function TeamBaseballField({ players, rpNames, fieldDimensions, s
   const activePool = players.filter(p => p.playerName !== 'Shohei Ohtani');
 
   // ── Pitcher / hitter split ──────────────────────────────────────────────────
-  const isPitcher = (p: Player) => p.position === 'SP' || p.position === 'RP'
-    || (p.eligiblePositions ?? []).some(e => e === 'SP' || e === 'RP');
+  // When eligiblePositions is available, use field-position presence to decide:
+  // any player eligible at a real field position (C/1B/2B/3B/SS/OF/DH) is a hitter.
+  // This guards against ESPN bench/IL slot IDs being mapped to 'RP' and erroneously
+  // appearing in every player's eligiblePositions.
+  const FIELD_POS = new Set(['C', '1B', '2B', '3B', 'SS', 'OF', 'DH']);
+  const isPitcher = (p: Player) => {
+    const eligible = p.eligiblePositions;
+    if (eligible && eligible.length > 0) {
+      if (eligible.some(e => FIELD_POS.has(e))) return false;
+      return eligible.some(e => e === 'SP' || e === 'RP');
+    }
+    return p.position === 'SP' || p.position === 'RP';
+  };
 
   const hitterPool = activePool.filter(p => !isPitcher(p));
 

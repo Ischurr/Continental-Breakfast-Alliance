@@ -11,6 +11,7 @@
     "fetch-current": "tsx scripts/fetch-current.ts",
     "send-newsletter": "tsx scripts/send-newsletter.ts",
     "fetch-free-agents": "tsx scripts/fetch-free-agents.ts",
+    "fetch-rosters": "tsx scripts/fetch-rosters-2026.ts",
     "seed-kv": "tsx scripts/seed-kv.ts"
   },
   "dependencies": {

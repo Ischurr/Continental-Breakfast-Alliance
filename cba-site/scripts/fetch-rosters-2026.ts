@@ -5,13 +5,21 @@ import { createESPNClient } from '../lib/espn-api';
 import * as fs from 'fs';
 import * as path from 'path';
 
+// Confirmed slot IDs from ESPN API inspection:
+//   0=C  1=1B  2=2B  3=3B  4=SS
+//   5=flex/UTIL(OF-eligible)  6=MI(middle infield)  7=CI(corner infield)
+//   8=OF  9=OF  10=OF   ← the 3 actual OF lineup slots
+//   11=IL  12=DH  13=SP  14=SP  15=RP  16=bench  17=bench  19=UTIL(INF)
+// Slots 5/6/7/19 are flex slots — excluded to avoid false eligibility tags.
+// (MI/CI players already have their primary slot 1-4; OF players have 8/9/10.)
 const POSITION_MAP: Record<number, string> = {
   0: 'C', 1: '1B', 2: '2B', 3: '3B', 4: 'SS',
-  5: 'OF', 6: 'OF', 7: 'OF', 12: 'DH', 13: 'SP', 14: 'SP', 15: 'RP', 16: 'RP',
+  8: 'OF', 9: 'OF', 10: 'OF',
+  12: 'DH', 13: 'SP', 14: 'SP', 15: 'RP',
 };
 
-// Slot IDs that correspond to real lineup positions (excludes bench/IL/UTIL generic slots)
-const LINEUP_SLOTS = new Set([0, 1, 2, 3, 4, 5, 6, 7, 12, 13, 14, 15, 16]);
+// Only include real lineup position slots — excludes bench(16,17), IL(11), UTIL flex(5,6,7,19).
+const LINEUP_SLOTS = new Set([0, 1, 2, 3, 4, 8, 9, 10, 12, 13, 14, 15]);
 
 function extractRostersFromTeams(teams: Record<string, unknown>[]) {
   return teams.map((team) => {
@@ -24,10 +32,9 @@ function extractRostersFromTeams(teams: Record<string, unknown>[]) {
         ?.find(s => (s as Record<string, unknown>).statSourceId === 0 && (s as Record<string, unknown>).statSplitTypeId === 0);
       const appliedStatTotal = (seasonStat?.appliedTotal as number) ?? 0;
       const eligibleSlots = (player?.eligibleSlots as number[]) ?? [];
-      const lineupSlotId = entry.lineupSlotId as number | undefined;
-      const position = (lineupSlotId !== undefined ? POSITION_MAP[lineupSlotId] : undefined)
-        ?? POSITION_MAP[eligibleSlots[0]]
-        ?? 'UTIL';
+      // Use eligibleSlots[0] (player's primary eligible position) not lineupSlotId
+      // (which is where the manager placed them — can be wrong, e.g. a 3B slotted into an SP slot).
+      const position = POSITION_MAP[eligibleSlots[0]] ?? 'UTIL';
       const eligiblePositions = [...new Set(
         eligibleSlots
           .filter(s => LINEUP_SLOTS.has(s))
