@@ -32,7 +32,9 @@ function extractRostersFromTeams(teams: Record<string, unknown>[]) {
       const playerPoolEntry = entry.playerPoolEntry as Record<string, unknown> | undefined;
       const player = playerPoolEntry?.player as Record<string, unknown> | undefined;
       const seasonStat = (player?.stats as Record<string, unknown>[] | undefined)
-        ?.find(s => (s as Record<string, unknown>).statSourceId === 0 && (s as Record<string, unknown>).statSplitTypeId === 0);
+        ?.find(s => (s as Record<string, unknown>).statSourceId === 0
+          && (s as Record<string, unknown>).statSplitTypeId === 0
+          && (s as Record<string, unknown>).seasonId === 2026);
       const appliedStatTotal = (seasonStat?.appliedTotal as number) ?? 0;
       const eligibleSlots = (player?.eligibleSlots as number[]) ?? [];
       const defaultPositionId = player?.defaultPositionId as number | undefined;
