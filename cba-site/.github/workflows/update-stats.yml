@@ -41,6 +41,14 @@ jobs:
           ESPN_S2: ${{ secrets.ESPN_S2 }}
         run: npm run fetch-free-agents
 
+      - name: Fetch rosters and player points
+        env:
+          ESPN_LEAGUE_ID: 1562795298
+          ESPN_SEASON_ID: 2026
+          ESPN_SWID: ${{ secrets.ESPN_SWID }}
+          ESPN_S2: ${{ secrets.ESPN_S2 }}
+        run: npm run fetch-rosters
+
       - name: Commit updated data
         run: |
           git config user.name "github-actions[bot]"
