@@ -153,6 +153,8 @@ npm run build            # Production build
 - Server Actions must call `revalidatePath` for every route that displays that data
 - Vercel env vars: no quotes around values, must be set for Production, require redeploy after adding
 - `espn-api.ts` `getHeaders()` sanitizes SWID/S2 with regex `[^\x20-\x7E]` to strip invalid HTTP header chars
+- **`getTopMatchupOfWeek()` active-week logic**: uses `Math.max` over weeks with `totalPoints > 0` or `winner` set — NOT `Math.max` over all weeks (that returns week 21, the last scheduled week, all season long)
+- **Homepage matchup card**: shows in-progress scores (sky blue) when `totalPoints > 0`, not just final scores; label shows "In progress" vs "Final" vs team records pre-game
 
 ## Environment Variables (`.env.local`)
 ```
@@ -1755,3 +1757,22 @@ All three workflows created, pushed, and confirmed working via manual dispatch.
 - Changed `datetime.date(TARGET_SEASON, 3, 27)` → `datetime.date(TARGET_SEASON, 3, 25)` — season opened March 25
 - In-season mode now active: pipeline fetches 2026 YTD batting/pitching stats from FanGraphs + daily IL report from MLB Stats API
 - Triggered a fresh EROSP run post-fix; confirmed `completed success`
+
+## Session Work (March 26, 2026 — Season Start Fixes)
+
+### `getTopMatchupOfWeek` current-week bug fixed (`lib/data-processor.ts`)
+- **Bug**: `Math.max(...matchups.map(m => m.week))` returns 21 (the last week of the schedule), not the current week. This caused the homepage matchup hero to show a future empty week 21 matchup (0/0, no teams have records yet) instead of the in-progress week 1.
+- **Fix**: find the max week that has any scoring activity (`totalPoints > 0` or `winner !== undefined`); fall back to week 1 if no games have started yet
+- This logic mirrors the `MatchupsClient.tsx` approach but uses `Math.max` over active weeks instead of `weeks.find()` (which gives the first, not the latest, active week)
+
+### Homepage matchup card shows in-progress scores (`app/page.tsx`)
+- Previously scores only showed when `isComplete` (`matchup.winner !== undefined`) — i.e. after the week ended
+- Now shows scores whenever `hasActivity` (`totalPoints > 0` on either side), displayed in sky blue with "In progress" label
+- Final scores remain green/gray; pre-game matchups still show team records only
+- Week label now dynamically shows "Final", "In progress", or the historical/record context
+
+### Season-start behavior summary (documented for reference)
+- **Scores**: `MatchupCard` (matchups page) always showed `totalPoints.toFixed(1)` — scores were always visible there. Homepage card needed the `hasActivity` fix above.
+- **Baseball field**: Renders whenever `currentRoster.length > 0`; rosters preserved through daily `fetch-current` cron. Player pins appear pre-points; points badge (`totalPoints > 0`) fills in as ESPN scoring accumulates during the week.
+- **Standings sort**: Flips from projected keeper EROSP → actual wins/PF once any team records a W/L (`seasonStarted = standings.some(s => s.wins > 0 || s.losses > 0)`). Stays projected until end of Week 1.
+- **EROSP in-season mode**: Active since March 25 (`SEASON_STARTED = True`); pipeline now fetches YTD FanGraphs stats (min 10 PA / 5 IP) + daily IL map instead of pure pre-season estimates.
