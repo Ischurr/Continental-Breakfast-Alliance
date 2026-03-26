@@ -5,21 +5,24 @@ import { createESPNClient } from '../lib/espn-api';
 import * as fs from 'fs';
 import * as path from 'path';
 
-// Confirmed slot IDs from ESPN API inspection:
-//   0=C  1=1B  2=2B  3=3B  4=SS
-//   5=flex/UTIL(OF-eligible)  6=MI(middle infield)  7=CI(corner infield)
-//   8=OF  9=OF  10=OF   ← the 3 actual OF lineup slots
-//   11=IL  12=DH  13=SP  14=SP  15=RP  16=bench  17=bench  19=UTIL(INF)
-// Slots 5/6/7/19 are flex slots — excluded to avoid false eligibility tags.
-// (MI/CI players already have their primary slot 1-4; OF players have 8/9/10.)
-const POSITION_MAP: Record<number, string> = {
+// ESPN defaultPositionId — the player's actual MLB position, confirmed from API:
+//   1=SP  2=C  3=1B  4=2B  5=3B  6=SS  7=LF  8=CF  9=RF  10=DH  11=RP
+// LF/CF/RF all map to 'OF' for fantasy purposes.
+const DEFAULT_POSITION_MAP: Record<number, string> = {
+  1: 'SP', 2: 'C', 3: '1B', 4: '2B', 5: '3B', 6: 'SS',
+  7: 'OF', 8: 'OF', 9: 'OF',
+  10: 'DH', 11: 'RP',
+};
+
+// eligibleSlots lineup slot IDs — used only for multi-position eligibility array.
+// Confirmed from API: 0=C 1=1B 2=2B 3=3B 4=SS  8/9/10=OF  12=DH  13/14=SP  15=RP
+// Excluded: 5(UTIL/OF-flex) 6(MI) 7(CI) 11(IL) 16(bench) 17(bench) 19(UTIL-INF)
+const SLOT_POSITION_MAP: Record<number, string> = {
   0: 'C', 1: '1B', 2: '2B', 3: '3B', 4: 'SS',
   8: 'OF', 9: 'OF', 10: 'OF',
   12: 'DH', 13: 'SP', 14: 'SP', 15: 'RP',
 };
-
-// Only include real lineup position slots — excludes bench(16,17), IL(11), UTIL flex(5,6,7,19).
-const LINEUP_SLOTS = new Set([0, 1, 2, 3, 4, 8, 9, 10, 12, 13, 14, 15]);
+const LINEUP_SLOTS = new Set(Object.keys(SLOT_POSITION_MAP).map(Number));
 
 function extractRostersFromTeams(teams: Record<string, unknown>[]) {
   return teams.map((team) => {
@@ -32,13 +35,14 @@ function extractRostersFromTeams(teams: Record<string, unknown>[]) {
         ?.find(s => (s as Record<string, unknown>).statSourceId === 0 && (s as Record<string, unknown>).statSplitTypeId === 0);
       const appliedStatTotal = (seasonStat?.appliedTotal as number) ?? 0;
       const eligibleSlots = (player?.eligibleSlots as number[]) ?? [];
-      // Use eligibleSlots[0] (player's primary eligible position) not lineupSlotId
-      // (which is where the manager placed them — can be wrong, e.g. a 3B slotted into an SP slot).
-      const position = POSITION_MAP[eligibleSlots[0]] ?? 'UTIL';
+      const defaultPositionId = player?.defaultPositionId as number | undefined;
+      // Primary position from ESPN's defaultPositionId — the player's actual position.
+      const position = (defaultPositionId !== undefined ? DEFAULT_POSITION_MAP[defaultPositionId] : undefined) ?? 'UTIL';
+      // Multi-position eligibility from lineup slots the player has earned.
       const eligiblePositions = [...new Set(
         eligibleSlots
           .filter(s => LINEUP_SLOTS.has(s))
-          .map(s => POSITION_MAP[s])
+          .map(s => SLOT_POSITION_MAP[s])
           .filter(Boolean)
       )] as string[];
       const playerId = String(player?.id ?? entry.playerId);
