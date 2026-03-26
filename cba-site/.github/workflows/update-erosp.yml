@@ -1,0 +1,58 @@
+name: Update EROSP
+
+on:
+  schedule:
+    # 11 AM UTC = 6 AM EST / 7 AM EDT
+    - cron: '0 11 * * *'
+  workflow_dispatch:
+
+jobs:
+  update-erosp:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache pybaseball data
+        uses: actions/cache@v4
+        with:
+          path: ~/.pybaseball
+          key: pybaseball-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            pybaseball-${{ runner.os }}-
+
+      - name: Cache EROSP computation cache
+        uses: actions/cache@v4
+        with:
+          path: scripts/erosp_cache
+          key: erosp-cache-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            erosp-cache-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: pip install pybaseball pandas numpy requests python-mlb-statsapi
+
+      - name: Run EROSP computation
+        run: |
+          cd scripts
+          python3 compute_erosp.py
+
+      - name: Commit updated EROSP data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/erosp/latest.json
+          if git diff --staged --quiet; then
+            echo "No changes to EROSP data"
+          else
+            git commit -m "chore: update EROSP projections [skip ci]"
+            git push
+          fi

@@ -1,0 +1,50 @@
+name: Update Projections
+
+on:
+  schedule:
+    # 8 AM UTC = 3 AM EST / 4 AM EDT, every Monday
+    - cron: '0 8 * * 1'
+  workflow_dispatch:
+
+jobs:
+  update-projections:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache pybaseball data
+        uses: actions/cache@v4
+        with:
+          path: ~/.pybaseball
+          key: pybaseball-proj-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            pybaseball-proj-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: pip install pybaseball pandas numpy requests matplotlib
+
+      - name: Run projections
+        run: |
+          cd scripts
+          python3 generate_projections.py
+
+      - name: Commit updated projections
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add scripts/fantasy_projections_2026.csv data/projections/2026.json
+          if git diff --staged --quiet; then
+            echo "No changes to projections"
+          else
+            git commit -m "chore: update fantasy projections [skip ci]"
+            git push
+          fi
