@@ -88,80 +88,80 @@
       "wins": 0,
       "losses": 0,
       "ties": 0,
-      "pointsFor": 33,
-      "pointsAgainst": 6
+      "pointsFor": 69,
+      "pointsAgainst": 23.25
     },
     {
       "teamId": 2,
       "wins": 0,
       "losses": 0,
       "ties": 0,
-      "pointsFor": 0,
-      "pointsAgainst": 0
+      "pointsFor": 63.25,
+      "pointsAgainst": 91
     },
     {
       "teamId": 3,
       "wins": 0,
       "losses": 0,
       "ties": 0,
-      "pointsFor": -2.75,
-      "pointsAgainst": 1
+      "pointsFor": 35.25,
+      "pointsAgainst": 56.75
     },
     {
       "teamId": 4,
       "wins": 0,
       "losses": 0,
       "ties": 0,
-      "pointsFor": 0,
-      "pointsAgainst": 1
+      "pointsFor": 64.5,
+      "pointsAgainst": 66
     },
     {
       "teamId": 6,
       "wins": 0,
       "losses": 0,
       "ties": 0,
-      "pointsFor": 8,
-      "pointsAgainst": 3
+      "pointsFor": 103,
+      "pointsAgainst": 44
     },
     {
       "teamId": 7,
       "wins": 0,
       "losses": 0,
       "ties": 0,
-      "pointsFor": 1,
-      "pointsAgainst": 0
+      "pointsFor": 66,
+      "pointsAgainst": 64.5
     },
     {
       "teamId": 8,
       "wins": 0,
       "losses": 0,
       "ties": 0,
-      "pointsFor": 1,
-      "pointsAgainst": -2.75
+      "pointsFor": 56.75,
+      "pointsAgainst": 35.25
     },
     {
       "teamId": 9,
       "wins": 0,
       "losses": 0,
       "ties": 0,
-      "pointsFor": 6,
-      "pointsAgainst": 33
+      "pointsFor": 23.25,
+      "pointsAgainst": 69
     },
     {
       "teamId": 10,
       "wins": 0,
       "losses": 0,
       "ties": 0,
-      "pointsFor": 0,
-      "pointsAgainst": 0
+      "pointsFor": 91,
+      "pointsAgainst": 63.25
     },
     {
       "teamId": 11,
       "wins": 0,
       "losses": 0,
       "ties": 0,
-      "pointsFor": 3,
-      "pointsAgainst": 8
+      "pointsFor": 44,
+      "pointsAgainst": 103
     }
   ],
   "matchups": [
@@ -170,11 +170,11 @@
       "week": 1,
       "home": {
         "teamId": 2,
-        "totalPoints": 0
+        "totalPoints": 63.25
       },
       "away": {
         "teamId": 10,
-        "totalPoints": 0
+        "totalPoints": 91
       }
     },
     {
@@ -182,11 +182,11 @@
       "week": 1,
       "home": {
         "teamId": 6,
-        "totalPoints": 8
+        "totalPoints": 103
       },
       "away": {
         "teamId": 11,
-        "totalPoints": 3
+        "totalPoints": 44
       }
     },
     {
@@ -194,11 +194,11 @@
       "week": 1,
       "home": {
         "teamId": 3,
-        "totalPoints": -2.75
+        "totalPoints": 35.25
       },
       "away": {
         "teamId": 8,
-        "totalPoints": 1
+        "totalPoints": 56.75
       }
     },
     {
@@ -206,11 +206,11 @@
       "week": 1,
       "home": {
         "teamId": 7,
-        "totalPoints": 1
+        "totalPoints": 66
       },
       "away": {
         "teamId": 4,
-        "totalPoints": 0
+        "totalPoints": 64.5
       }
     },
     {
@@ -218,11 +218,11 @@
       "week": 1,
       "home": {
         "teamId": 1,
-        "totalPoints": 33
+        "totalPoints": 69
       },
       "away": {
         "teamId": 9,
-        "totalPoints": 6
+        "totalPoints": 23.25
       }
     },
     {
@@ -1430,8 +1430,8 @@
   "playoffTeams": [
     1,
     6,
-    9,
-    11
+    7,
+    10
   ],
   "loserBracket": [],
   "rosters": [
