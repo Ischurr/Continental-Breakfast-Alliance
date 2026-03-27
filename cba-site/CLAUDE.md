@@ -1832,8 +1832,25 @@ Three compounding bugs caused hitters to appear in SP/RP slots and pitchers in f
 - **New component**: `components/TeamMatchupTracker.tsx` — `'use client'` component that renders above the team header card on every team page
 - Shows current week's matchup for this team: both team logos, names, and live scores (e.g. `123.4 vs 98.7`)
 - **Status badge**: Upcoming (amber) / In Progress (sky blue) / Win (green) / Loss (gray)
-- **Auto-refresh**: `useEffect` calls `router.refresh()` every hour so scores stay current without a manual page reload
+- **Auto-refresh**: polls `/api/live-scores` on mount + every hour; updates scores via local state (no full page reload)
 - **Scores**: shown as `toFixed(1)` when any points exist; `–` before scoring starts
 - **Links** to `/matchups` — clicking the whole card navigates to the full matchup page
 - **Data**: computed inline in `page.tsx` using the same active-week logic as `getTopMatchupOfWeek()` (max week with `totalPoints > 0` or `winner` set; falls back to week 1)
 - Position: above the colored team header gradient card, at the top of `<main>`
+
+## Session Work (March 27, 2026 — Win Probability API + Display)
+
+### Win probability API routes (`app/api/win-probability/`, `lib/store.ts`)
+- **`GET /api/win-probability`** — returns cached `WinProbabilityStore` from KV; 404 if no data yet
+- **`POST /api/win-probability/refresh`** — runs `runNightlyWinProbabilityJob()`, saves result; requires `Authorization: Bearer {WIN_PROBABILITY_SECRET}` header when env var is set
+- **`lib/store.ts`**: added `getWinProbability()` / `setWinProbability()` using KV key `win-probability-2026` (same `@upstash/redis` SDK pattern as all other store functions)
+- Prior route implementations used raw `fetch` against Upstash REST API with wrong body format — replaced with store functions
+- **Confirmed working**: 5 matchups processed, results stored in KV and served from GET endpoint
+- `WIN_PROBABILITY_SECRET` must be set in both **GitHub Secrets** and **Vercel env vars** (Production)
+
+### Win probability bar in matchup tracker (`components/TeamMatchupTracker.tsx`, `app/teams/[teamId]/page.tsx`)
+- Team page loads win probability from KV, finds this team's matchup by `homeTeamId`/`awayTeamId`, passes `myWinPct` prop
+- Bar renders below the scores section, separated by a border — **green** for this team's %, **red** for opponent's %
+- Label row: `{myPct}%` left-aligned (emerald), "win probability" centered (gray), `{oppPct}%` right-aligned (red) — all via `flex-1`
+- Hidden when `isFinal` (bar disappears after week ends); shown for upcoming + in-progress matchups
+- **99.8% Space Cowboys explained**: current score gap (33 vs 6) + projected remaining gap (165 vs 116) = no range overlap → genuine extreme probability, not a bug
