@@ -1,0 +1,28 @@
+name: Update Win Probability
+
+on:
+  schedule:
+    # 10:00 PM EST = 03:00 UTC (next day) — runs every day during MLB season
+    - cron: '0 3 * * *'
+  workflow_dispatch: # Allow manual trigger from Actions tab
+
+jobs:
+  update-win-probability:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Trigger win-probability refresh
+        run: |
+          echo "Triggering nightly win-probability update at $(date)"
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer ${{ secrets.WIN_PROBABILITY_SECRET }}" \
+            "${{ vars.SITE_URL || 'https://continental-breakfast-alliance.vercel.app' }}/api/win-probability/refresh")
+          echo "Response status: $RESPONSE"
+          if [ "$RESPONSE" != "200" ]; then
+            echo "ERROR: Expected 200, got $RESPONSE"
+            exit 1
+          fi
+          echo "✓ Win probability updated successfully"
