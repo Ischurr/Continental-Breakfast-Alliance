@@ -1860,3 +1860,36 @@ Three compounding bugs caused hitters to appear in SP/RP slots and pitchers in f
 - `MatchupsClient` accepts `winProbByTeamId?` and passes `homeWinPct`/`awayWinPct` to `MatchupCard` only for the current week
 - `MatchupCard` renders `(65%)` in `text-xs text-gray-400` after each team name; hidden when matchup is complete
 - Graceful no-op when KV has no data yet
+
+## Session Work (March 27, 2026 — Win Probability Architecture Fixes)
+
+### Why win probability must be client-side (`components/TeamMatchupTracker.tsx`)
+- **Root cause of "border not showing"**: team pages use `generateStaticParams` → server renders at build time. A `getWinProbability()` call in the server component returns data but it gets baked as `undefined` into the static HTML (the page was built before win prob data existed). Server component props can't update post-hydration.
+- **Fix**: removed `myWinPct` from `TrackerProps` entirely; added `const [myWinPct, setMyWinPct] = useState<number | undefined>(undefined)`. Win prob is now always fetched client-side in the `useEffect`.
+
+### Sequential fetchAll pattern (fixes race condition)
+- **Root cause of "border appears then disappears"**: original code ran `fetchLiveScores` and `fetchWinProbability` in parallel. Win prob resolved first (border appeared), then live scores resolved and set `isFinal = true` → `showWinProb = !isFinal && myWinPct !== undefined = false` → border disappeared.
+- **Fix**: single sequential `fetchAll()` function — live scores first, capture `currentlyFinal`, only call win-prob endpoint if `!currentlyFinal`:
+  ```ts
+  async function fetchAll() {
+    let currentlyFinal = initialIsFinal;
+    // 1. Fetch live scores, update all state, set currentlyFinal
+    // 2. if (currentlyFinal) return; — skip win prob for finished matchups
+    // 3. Fetch win probability, check matchupPeriodId, set myWinPct
+  }
+  ```
+- `matchupPeriodId` stale guard: if stored `json.matchupPeriodId !== weekNum`, skip (KV has data from prior week's job run)
+
+### Conic gradient border (`components/TeamMatchupTracker.tsx`)
+- Outer div: `background: conic-gradient(from 225deg, #10b981 ${myWinPct}%, #f87171 ${myWinPct}%)`, `padding: '4px'`, `borderRadius: '0.875rem'`
+- Inner card div: `style={{ borderRadius: '8px' }}` (smaller radius to avoid rounding gap)
+- Without win prob: standard `border: '1px solid'` with `borderRadius: '0.75rem'` (no wrapper padding)
+
+### Live scores route: force-dynamic + no-store cache (`app/api/live-scores/route.ts`)
+- **Root cause of stale scores**: `export const revalidate = 300` + `Cache-Control: s-maxage=300` caused Vercel CDN to serve 5-minute-old responses. `cache: 'no-store'` in the client fetch does NOT bypass Vercel's CDN `s-maxage`.
+- **Fix**: `export const dynamic = 'force-dynamic'` (bypasses CDN entirely, always hits ESPN), response header `Cache-Control: 'no-store'`
+
+### Fully-final week advance logic (`app/api/live-scores/route.ts`, `app/teams/[teamId]/page.tsx`)
+- **Problem**: "highest week with scoring activity" correctly returns the last played week, but when that week is fully over (all matchups have `winner`), the tracker would show the wrong week until Monday's cron ran.
+- **Fix in both files**: after finding `lastActiveWeek`, check if every matchup in that week has `winner !== undefined` → if so, `currentWeek = lastActiveWeek + 1`. Falls back gracefully when next week has no matchups yet (shows "Upcoming").
+- Between Sunday night (week ends) and Monday morning (nightly job runs for new week), tracker correctly shows next week as "Upcoming" with no win-probability border (KV has no data for the new week yet). Expected behavior.
