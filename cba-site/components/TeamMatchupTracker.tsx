@@ -1,7 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+
+// Border geometry constants
+const R_OUTER = 12;            // outer wrapper border-radius in px (= 0.75rem)
+const SVG_STROKE = 4;          // border stroke width
+const SVG_S = SVG_STROKE / 2;  // stroke half-width = inset from outer edge
+const SVG_R = R_OUTER - SVG_S; // corner radius of the stroke centerline
 
 interface TrackerProps {
   teamId: number;
@@ -52,6 +58,19 @@ export default function TeamMatchupTracker({
   const [myWon, setMyWon] = useState(initialMyWon);
   const [inProgress, setInProgress] = useState(initialInProgress);
   const [myWinPct, setMyWinPct] = useState<number | undefined>(undefined);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [dims, setDims] = useState<{ w: number; h: number } | null>(null);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const update = () => setDims({ w: el.offsetWidth, h: el.offsetHeight });
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   useEffect(() => {
     async function fetchAll() {
@@ -111,18 +130,6 @@ export default function TeamMatchupTracker({
     return () => clearInterval(interval);
   }, [teamId, initialIsFinal]);
 
-  const statusLabel = isFinal
-    ? myWon ? 'Win' : 'Loss'
-    : inProgress ? 'In Progress' : 'Upcoming';
-
-  const statusColor = isFinal
-    ? myWon
-      ? 'bg-emerald-100 text-emerald-700'
-      : 'bg-gray-200 text-gray-500'
-    : inProgress
-    ? 'bg-sky-200 text-sky-700'
-    : 'bg-amber-100 text-amber-700';
-
   const cardBg = isFinal
     ? 'bg-slate-200'
     : inProgress
@@ -132,14 +139,55 @@ export default function TeamMatchupTracker({
   const oppWinPct = myWinPct !== undefined ? Math.round((100 - myWinPct) * 10) / 10 : undefined;
   const showWinProb = !isFinal && myWinPct !== undefined;
 
-  // Conic gradient border: starts at bottom-left corner (225deg), green for myWinPct%
-  // of the perimeter going clockwise, red for the rest.
-  const borderStyle: React.CSSProperties = showWinProb
-    ? {
-        background: `conic-gradient(from 225deg, #10b981 ${myWinPct}%, #f87171 ${myWinPct}%)`,
-        padding: '4px',
-        borderRadius: '0.875rem',
-      }
+  // SVG border: two symmetric half-paths (top + bottom), each starting at the
+  // left-side midpoint. pathLength={100} makes strokeDasharray a true % of each
+  // half's perimeter, so 23% green = exactly 23% of the visual border length.
+  const renderWinProbBorder = () => {
+    if (!showWinProb || !dims || dims.w === 0) return null;
+    const { w, h } = dims;
+    const s = SVG_S;   // 2
+    const r = SVG_R;   // 10
+
+    // Bottom half: left-mid → down → BL corner → bottom → BR corner → right-mid
+    const bottomPath = [
+      `M ${s},${h / 2}`,
+      `L ${s},${h - r - s}`,
+      `Q ${s},${h - s} ${r + s},${h - s}`,
+      `L ${w - r - s},${h - s}`,
+      `Q ${w - s},${h - s} ${w - s},${h - r - s}`,
+      `L ${w - s},${h / 2}`,
+    ].join(' ');
+
+    // Top half: left-mid → up → TL corner → top → TR corner → right-mid
+    const topPath = [
+      `M ${s},${h / 2}`,
+      `L ${s},${r + s}`,
+      `Q ${s},${s} ${r + s},${s}`,
+      `L ${w - r - s},${s}`,
+      `Q ${w - s},${s} ${w - s},${r + s}`,
+      `L ${w - s},${h / 2}`,
+    ].join(' ');
+
+    const pct = myWinPct!;
+    return (
+      <svg
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
+        aria-hidden
+      >
+        {/* Red background for each half */}
+        <path d={bottomPath} fill="none" stroke="#f87171" strokeWidth={SVG_STROKE} />
+        <path d={topPath}    fill="none" stroke="#f87171" strokeWidth={SVG_STROKE} />
+        {/* Green overlay: pathLength={100} makes dasharray units = % of path */}
+        <path d={bottomPath} fill="none" stroke="#10b981" strokeWidth={SVG_STROKE}
+          pathLength={100} strokeDasharray={`${pct} 100`} />
+        <path d={topPath}    fill="none" stroke="#10b981" strokeWidth={SVG_STROKE}
+          pathLength={100} strokeDasharray={`${pct} 100`} />
+      </svg>
+    );
+  };
+
+  const wrapperStyle: React.CSSProperties = showWinProb
+    ? { padding: `${SVG_S}px`, borderRadius: `${R_OUTER}px`, position: 'relative' }
     : {
         border: '1px solid',
         borderColor: isFinal ? '#d1d5db' : inProgress ? '#93c5fd' : '#e5e7eb',
@@ -149,18 +197,11 @@ export default function TeamMatchupTracker({
   return (
     <div className="mb-6">
       <Link href="/matchups" className="block group">
-        <div style={borderStyle} className="shadow-sm transition-opacity group-hover:opacity-90">
-          <div style={{ borderRadius: '8px' }} className={`px-6 py-4 ${cardBg}`}>
-            {/* Main row: status + teams + scores */}
+        <div ref={containerRef} style={wrapperStyle} className="shadow-sm transition-opacity group-hover:opacity-90">
+          {renderWinProbBorder()}
+          <div style={{ borderRadius: `${R_OUTER - SVG_STROKE}px` }} className={`px-6 py-4 ${cardBg}`}>
+            {/* Scores row */}
             <div className="flex items-center gap-4">
-              {/* Status badge */}
-              <div className="flex-shrink-0 text-center min-w-[80px]">
-                <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${statusColor}`}>
-                  {statusLabel}
-                </span>
-                <p className="text-xs text-gray-500 mt-1">Week {weekNum}</p>
-              </div>
-
               {/* This team */}
               <div className="flex items-center gap-3 flex-1">
                 {myLogo && (
@@ -175,8 +216,11 @@ export default function TeamMatchupTracker({
                 </div>
               </div>
 
-              {/* VS */}
-              <div className="text-gray-400 font-semibold text-sm flex-shrink-0 w-8 text-center">vs</div>
+              {/* Center: week label + vs — same column as "win probability" row below */}
+              <div className="flex-shrink-0 w-20 text-center">
+                <p className="text-xs text-gray-500 font-medium">Week {weekNum}</p>
+                <p className="text-gray-400 font-semibold text-sm">vs</p>
+              </div>
 
               {/* Opponent */}
               <div className="flex items-center gap-3 flex-1 justify-end">
@@ -193,11 +237,11 @@ export default function TeamMatchupTracker({
               </div>
             </div>
 
-            {/* Win probability labels */}
+            {/* Win probability row — w-20 center column aligns with "vs" above */}
             {showWinProb && (
-              <div className="flex items-center mt-2 pt-2 border-t border-gray-200/60 text-[11px] font-semibold">
+              <div className="flex items-center gap-4 mt-2 pt-2 border-t border-gray-200/60 text-[11px] font-semibold">
                 <span className="text-emerald-700 flex-1">{myWinPct!.toFixed(1)}%</span>
-                <span className="text-gray-400 font-normal text-center flex-1">win probability</span>
+                <span className="text-gray-400 font-normal flex-shrink-0 w-20 text-center">win probability</span>
                 <span className="text-red-500 flex-1 text-right">{oppWinPct!.toFixed(1)}%</span>
               </div>
             )}

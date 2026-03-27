@@ -1,8 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import MatchupCard from '@/components/MatchupCard';
 import { Matchup, Team } from '@/lib/types';
+
+interface LiveScore {
+  homeTeamId: number;
+  awayTeamId: number;
+  homeScore: number;
+  awayScore: number;
+  winner?: string;
+}
 
 interface Props {
   matchupsByWeek: Record<number, Matchup[]>;
@@ -18,6 +26,29 @@ export default function MatchupsClient({ matchupsByWeek, weeks, teams, currentWe
   const [historyOpen, setHistoryOpen] = useState(false);
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
+  // keyed by "homeTeamId_awayTeamId"
+  const [liveScores, setLiveScores] = useState<Record<string, LiveScore>>({});
+
+  useEffect(() => {
+    async function fetchLive() {
+      try {
+        const res = await fetch('/api/live-scores', { cache: 'no-store' });
+        if (!res.ok) return;
+        const json = await res.json();
+        if (json.week !== currentWeek) return;
+        const map: Record<string, LiveScore> = {};
+        for (const m of json.matchups as LiveScore[]) {
+          map[`${m.homeTeamId}_${m.awayTeamId}`] = m;
+        }
+        setLiveScores(map);
+      } catch {
+        // silent — fall back to static data
+      }
+    }
+    fetchLive();
+    const interval = setInterval(fetchLive, 60 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [currentWeek]);
 
   const pastWeeks = weeks.filter(w => w < currentWeek).sort((a, b) => b - a);
   const futureWeeks = weeks.filter(w => w > currentWeek).sort((a, b) => a - b);
@@ -29,10 +60,23 @@ export default function MatchupsClient({ matchupsByWeek, weeks, teams, currentWe
     );
   }
 
+  function applyLive(matchup: Matchup): Matchup {
+    const live = liveScores[`${matchup.home.teamId}_${matchup.away.teamId}`];
+    if (!live) return matchup;
+    return {
+      ...matchup,
+      home: { ...matchup.home, totalPoints: live.homeScore },
+      away: { ...matchup.away, totalPoints: live.awayScore },
+      winner: live.winner !== undefined ? Number(live.winner) : matchup.winner,
+    };
+  }
+
   function WeekSection({ week, label }: { week: number; label?: string }) {
-    const filtered = filterMatchups(matchupsByWeek[week] ?? []);
-    if (filtered.length === 0) return null;
     const isCurrentWeek = week === currentWeek;
+    const raw = matchupsByWeek[week] ?? [];
+    const patched = isCurrentWeek ? raw.map(applyLive) : raw;
+    const filtered = filterMatchups(patched);
+    if (filtered.length === 0) return null;
     return (
       <div className="mb-8">
         <h2 className="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">

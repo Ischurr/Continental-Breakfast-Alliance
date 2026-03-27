@@ -1831,7 +1831,8 @@ Three compounding bugs caused hitters to appear in SP/RP slots and pitchers in f
 ### Live matchup tracker on every team page (`components/TeamMatchupTracker.tsx`, `app/teams/[teamId]/page.tsx`)
 - **New component**: `components/TeamMatchupTracker.tsx` — `'use client'` component that renders above the team header card on every team page
 - Shows current week's matchup for this team: both team logos, names, and live scores (e.g. `123.4 vs 98.7`)
-- **Status badge**: Upcoming (amber) / In Progress (sky blue) / Win (green) / Loss (gray)
+- **Layout**: no status badge; center column shows "Week N" above "vs"; same `w-20` center column used by the win probability label row below → all three labels perfectly aligned
+- ~~Status badge~~ removed (was Upcoming/In Progress/Win/Loss on the left)
 - **Auto-refresh**: polls `/api/live-scores` on mount + every hour; updates scores via local state (no full page reload)
 - **Scores**: shown as `toFixed(1)` when any points exist; `–` before scoring starts
 - **Links** to `/matchups` — clicking the whole card navigates to the full matchup page
@@ -1860,6 +1861,7 @@ Three compounding bugs caused hitters to appear in SP/RP slots and pitchers in f
 - `MatchupsClient` accepts `winProbByTeamId?` and passes `homeWinPct`/`awayWinPct` to `MatchupCard` only for the current week
 - `MatchupCard` renders `(65%)` in `text-xs text-gray-400` after each team name; hidden when matchup is complete
 - Graceful no-op when KV has no data yet
+- **`MatchupsClient.tsx`** also polls `/api/live-scores` (hourly) and patches current-week matchup scores client-side via `applyLive()` — keeps the matchups page in sync without a full reload
 
 ## Session Work (March 27, 2026 — Win Probability Architecture Fixes)
 
@@ -1880,9 +1882,14 @@ Three compounding bugs caused hitters to appear in SP/RP slots and pitchers in f
   ```
 - `matchupPeriodId` stale guard: if stored `json.matchupPeriodId !== weekNum`, skip (KV has data from prior week's job run)
 
-### Conic gradient border (`components/TeamMatchupTracker.tsx`)
-- Outer div: `background: conic-gradient(from 225deg, #10b981 ${myWinPct}%, #f87171 ${myWinPct}%)`, `padding: '4px'`, `borderRadius: '0.875rem'`
-- Inner card div: `style={{ borderRadius: '8px' }}` (smaller radius to avoid rounding gap)
+### SVG perimeter border (`components/TeamMatchupTracker.tsx`)
+- **Replaced conic gradient** — conic gradients map % to angle (not perimeter distance), so corners appear compressed and 23% looked like much more than 23% of the border visually
+- **New approach**: two SVG `<path>` elements (bottom half + top half), each starting at the left-side midpoint. `pathLength={100}` normalizes each path to 100 units; `strokeDasharray="${winPct} 100"` draws exactly `winPct`% of the true perimeter in green.
+- **Bottom half path**: left-mid → down → BL corner → bottom → BR corner → right-mid
+- **Top half path**: left-mid → up → TL corner → top → TR corner → right-mid
+- Both halves independently show the same win%; result is symmetric green arcs emanating from the left midpoint
+- `ResizeObserver` on `containerRef` measures actual card dimensions so SVG paths use real pixel coordinates
+- Constants: `R_OUTER=12` (border-radius), `SVG_STROKE=4`, `SVG_S=2` (half-stroke inset), `SVG_R=10` (path centerline radius)
 - Without win prob: standard `border: '1px solid'` with `borderRadius: '0.75rem'` (no wrapper padding)
 
 ### Live scores route: force-dynamic + no-store cache (`app/api/live-scores/route.ts`)
