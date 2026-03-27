@@ -7,7 +7,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { TrashTalkData } from '@/lib/types';
-import { getTrashTalk, getTeamContent, getWinProbability } from '@/lib/store';
+import { getTrashTalk, getTeamContent } from '@/lib/store';
 import { TeamBioEditor, TeamStrengthsEditor } from './TeamContentEditor';
 import TeamBaseballField from '@/components/TeamBaseballField';
 import EROSPTable, { type EROSPPlayer, type EROSPMeta } from '@/components/EROSPTable';
@@ -135,10 +135,15 @@ export default async function TeamPage({ params }: Props) {
   const otherTeams = currentSeason.teams.filter(t => t.id !== id);
 
   // Current week matchup for this team
+  // Prefer in-progress weeks; if the last active week is fully final, advance to the next week
   const activeWeeks = currentSeason.matchups
     .filter(m => m.winner !== undefined || m.home.totalPoints > 0 || m.away.totalPoints > 0)
     .map(m => m.week);
-  const currentWeekNum = activeWeeks.length > 0 ? Math.max(...activeWeeks) : 1;
+  const lastActiveWeek = activeWeeks.length > 0 ? Math.max(...activeWeeks) : 1;
+  const lastActiveWeekMatchups = currentSeason.matchups.filter(m => m.week === lastActiveWeek);
+  const lastWeekFullyFinal = lastActiveWeekMatchups.length > 0 &&
+    lastActiveWeekMatchups.every(m => m.winner !== undefined);
+  const currentWeekNum = lastWeekFullyFinal ? lastActiveWeek + 1 : lastActiveWeek;
   const currentWeekMatchup = currentSeason.matchups.find(
     m => m.week === currentWeekNum && (m.home.teamId === id || m.away.teamId === id)
   ) ?? null;
@@ -150,15 +155,6 @@ export default async function TeamPage({ params }: Props) {
   const cwIsFinal  = currentWeekMatchup?.winner !== undefined;
   const cwInProgress = !cwIsFinal && ((cwMyScore ?? 0) > 0 || (cwOppScore ?? 0) > 0);
   const cwMyWon    = cwIsFinal && currentWeekMatchup?.winner === id;
-
-  // Win probability for current matchup
-  const winProbData = await getWinProbability() as { matchups?: { homeTeamId: string; awayTeamId: string; homeWinPct: number; awayWinPct: number }[] } | null;
-  const winProbMatchup = winProbData?.matchups?.find(
-    m => m.homeTeamId === String(id) || m.awayTeamId === String(id)
-  );
-  const cwMyWinPct = winProbMatchup
-    ? (winProbMatchup.homeTeamId === String(id) ? winProbMatchup.homeWinPct : winProbMatchup.awayWinPct)
-    : undefined;
 
   // KV content overrides for team text fields (bio, strengths, weaknesses)
   const contentOverrides = await getTeamContent();
@@ -305,6 +301,7 @@ export default async function TeamPage({ params }: Props) {
         {/* Current week matchup tracker — above team header, auto-refreshes every hour */}
         {currentWeekMatchup && (
           <TeamMatchupTracker
+            teamId={id}
             weekNum={currentWeekNum}
             myName={team.name}
             myLogo={team.logoUrl}
@@ -315,7 +312,6 @@ export default async function TeamPage({ params }: Props) {
             oppScore={cwOppScore ?? 0}
             isFinal={cwIsFinal}
             inProgress={cwInProgress}
-            myWinPct={cwMyWinPct}
           />
         )}
 

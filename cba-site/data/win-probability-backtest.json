@@ -1,0 +1,316 @@
+{
+  "generatedAt": "2026-03-26T23:58:22.552Z",
+  "summary": {
+    "totalPredictions": 424,
+    "winnerAccuracy": 0.5424528301886793,
+    "brierScore": 0.2498361074528298,
+    "logLoss": 0.6938452338527223,
+    "expectedCalibrationError": 0.046708490566037736,
+    "confidenceBias": 0.041325471698113236,
+    "calibration": [
+      {
+        "bucketStart": 0.5,
+        "bucketEnd": 0.55,
+        "predictionCount": 163,
+        "averagePredictedProbability": 0.523440490797546,
+        "actualWinRate": 0.50920245398773,
+        "calibrationError": 0.014238036809815946
+      },
+      {
+        "bucketStart": 0.55,
+        "bucketEnd": 0.6,
+        "predictionCount": 119,
+        "averagePredictedProbability": 0.5723546218487395,
+        "actualWinRate": 0.5294117647058824,
+        "calibrationError": 0.04294285714285717
+      },
+      {
+        "bucketStart": 0.6,
+        "bucketEnd": 0.65,
+        "predictionCount": 69,
+        "averagePredictedProbability": 0.6223362318840581,
+        "actualWinRate": 0.5362318840579711,
+        "calibrationError": 0.086104347826087
+      },
+      {
+        "bucketStart": 0.65,
+        "bucketEnd": 0.7,
+        "predictionCount": 43,
+        "averagePredictedProbability": 0.6711348837209303,
+        "actualWinRate": 0.6976744186046512,
+        "calibrationError": 0.02653953488372085
+      },
+      {
+        "bucketStart": 0.7,
+        "bucketEnd": 0.75,
+        "predictionCount": 19,
+        "averagePredictedProbability": 0.7217052631578947,
+        "actualWinRate": 0.5789473684210527,
+        "calibrationError": 0.14275789473684208
+      },
+      {
+        "bucketStart": 0.75,
+        "bucketEnd": 0.8,
+        "predictionCount": 9,
+        "averagePredictedProbability": 0.7735222222222223,
+        "actualWinRate": 0.5555555555555556,
+        "calibrationError": 0.21796666666666675
+      },
+      {
+        "bucketStart": 0.8,
+        "bucketEnd": 0.85,
+        "predictionCount": 2,
+        "averagePredictedProbability": 0.80845,
+        "actualWinRate": 0.5,
+        "calibrationError": 0.30845
+      },
+      {
+        "bucketStart": 0.85,
+        "bucketEnd": 0.9,
+        "predictionCount": 0,
+        "averagePredictedProbability": 0,
+        "actualWinRate": 0,
+        "calibrationError": 0
+      },
+      {
+        "bucketStart": 0.9,
+        "bucketEnd": 0.95,
+        "predictionCount": 0,
+        "averagePredictedProbability": 0,
+        "actualWinRate": 0,
+        "calibrationError": 0
+      },
+      {
+        "bucketStart": 0.95,
+        "bucketEnd": 1,
+        "predictionCount": 0,
+        "averagePredictedProbability": 0,
+        "actualWinRate": 0,
+        "calibrationError": 0
+      }
+    ],
+    "meetsAccuracyThreshold": false
+  },
+  "samplePredictions": [
+    {
+      "snapshotId": "2022-w3-7-2",
+      "capturedAt": "2026-03-26T23:58:22.030Z",
+      "predictedHomeWinProbability": 0.5381,
+      "predictedAwayWinProbability": 0.4619,
+      "actualHomeWon": true,
+      "actualAwayWon": false,
+      "actualTie": false,
+      "favoredTeam": "home",
+      "favoriteWon": true
+    },
+    {
+      "snapshotId": "2022-w3-9-1",
+      "capturedAt": "2026-03-26T23:58:22.032Z",
+      "predictedHomeWinProbability": 0.553,
+      "predictedAwayWinProbability": 0.447,
+      "actualHomeWon": false,
+      "actualAwayWon": true,
+      "actualTie": false,
+      "favoredTeam": "home",
+      "favoriteWon": false
+    },
+    {
+      "snapshotId": "2022-w3-6-8",
+      "capturedAt": "2026-03-26T23:58:22.034Z",
+      "predictedHomeWinProbability": 0.3643,
+      "predictedAwayWinProbability": 0.6357,
+      "actualHomeWon": false,
+      "actualAwayWon": true,
+      "actualTie": false,
+      "favoredTeam": "away",
+      "favoriteWon": true
+    },
+    {
+      "snapshotId": "2022-w3-3-11",
+      "capturedAt": "2026-03-26T23:58:22.035Z",
+      "predictedHomeWinProbability": 0.6735,
+      "predictedAwayWinProbability": 0.3265,
+      "actualHomeWon": true,
+      "actualAwayWon": false,
+      "actualTie": false,
+      "favoredTeam": "home",
+      "favoriteWon": true
+    },
+    {
+      "snapshotId": "2022-w3-10-4",
+      "capturedAt": "2026-03-26T23:58:22.037Z",
+      "predictedHomeWinProbability": 0.4545,
+      "predictedAwayWinProbability": 0.5455,
+      "actualHomeWon": true,
+      "actualAwayWon": false,
+      "actualTie": false,
+      "favoredTeam": "away",
+      "favoriteWon": false
+    },
+    {
+      "snapshotId": "2022-w4-1-8",
+      "capturedAt": "2026-03-26T23:58:22.039Z",
+      "predictedHomeWinProbability": 0.3594,
+      "predictedAwayWinProbability": 0.6406,
+      "actualHomeWon": false,
+      "actualAwayWon": true,
+      "actualTie": false,
+      "favoredTeam": "away",
+      "favoriteWon": true
+    },
+    {
+      "snapshotId": "2022-w4-11-7",
+      "capturedAt": "2026-03-26T23:58:22.041Z",
+      "predictedHomeWinProbability": 0.2692,
+      "predictedAwayWinProbability": 0.7308,
+      "actualHomeWon": true,
+      "actualAwayWon": false,
+      "actualTie": false,
+      "favoredTeam": "away",
+      "favoriteWon": false
+    },
+    {
+      "snapshotId": "2022-w4-4-2",
+      "capturedAt": "2026-03-26T23:58:22.043Z",
+      "predictedHomeWinProbability": 0.4297,
+      "predictedAwayWinProbability": 0.5703,
+      "actualHomeWon": true,
+      "actualAwayWon": false,
+      "actualTie": false,
+      "favoredTeam": "away",
+      "favoriteWon": false
+    },
+    {
+      "snapshotId": "2022-w4-3-9",
+      "capturedAt": "2026-03-26T23:58:22.044Z",
+      "predictedHomeWinProbability": 0.5596,
+      "predictedAwayWinProbability": 0.4404,
+      "actualHomeWon": true,
+      "actualAwayWon": false,
+      "actualTie": false,
+      "favoredTeam": "home",
+      "favoriteWon": true
+    },
+    {
+      "snapshotId": "2022-w4-10-6",
+      "capturedAt": "2026-03-26T23:58:22.045Z",
+      "predictedHomeWinProbability": 0.4251,
+      "predictedAwayWinProbability": 0.5749,
+      "actualHomeWon": true,
+      "actualAwayWon": false,
+      "actualTie": false,
+      "favoredTeam": "away",
+      "favoriteWon": false
+    },
+    {
+      "snapshotId": "2022-w5-11-4",
+      "capturedAt": "2026-03-26T23:58:22.047Z",
+      "predictedHomeWinProbability": 0.4917,
+      "predictedAwayWinProbability": 0.5083,
+      "actualHomeWon": true,
+      "actualAwayWon": false,
+      "actualTie": false,
+      "favoredTeam": "away",
+      "favoriteWon": false
+    },
+    {
+      "snapshotId": "2022-w5-1-3",
+      "capturedAt": "2026-03-26T23:58:22.048Z",
+      "predictedHomeWinProbability": 0.3943,
+      "predictedAwayWinProbability": 0.6057,
+      "actualHomeWon": true,
+      "actualAwayWon": false,
+      "actualTie": false,
+      "favoredTeam": "away",
+      "favoriteWon": false
+    },
+    {
+      "snapshotId": "2022-w5-8-10",
+      "capturedAt": "2026-03-26T23:58:22.050Z",
+      "predictedHomeWinProbability": 0.6657,
+      "predictedAwayWinProbability": 0.3343,
+      "actualHomeWon": false,
+      "actualAwayWon": true,
+      "actualTie": false,
+      "favoredTeam": "home",
+      "favoriteWon": false
+    },
+    {
+      "snapshotId": "2022-w5-7-9",
+      "capturedAt": "2026-03-26T23:58:22.051Z",
+      "predictedHomeWinProbability": 0.5878,
+      "predictedAwayWinProbability": 0.4122,
+      "actualHomeWon": true,
+      "actualAwayWon": false,
+      "actualTie": false,
+      "favoredTeam": "home",
+      "favoriteWon": true
+    },
+    {
+      "snapshotId": "2022-w5-2-6",
+      "capturedAt": "2026-03-26T23:58:22.053Z",
+      "predictedHomeWinProbability": 0.4671,
+      "predictedAwayWinProbability": 0.5329,
+      "actualHomeWon": false,
+      "actualAwayWon": true,
+      "actualTie": false,
+      "favoredTeam": "away",
+      "favoriteWon": true
+    },
+    {
+      "snapshotId": "2022-w6-10-9",
+      "capturedAt": "2026-03-26T23:58:22.054Z",
+      "predictedHomeWinProbability": 0.5018,
+      "predictedAwayWinProbability": 0.4982,
+      "actualHomeWon": false,
+      "actualAwayWon": true,
+      "actualTie": false,
+      "favoredTeam": "home",
+      "favoriteWon": false
+    },
+    {
+      "snapshotId": "2022-w6-6-7",
+      "capturedAt": "2026-03-26T23:58:22.055Z",
+      "predictedHomeWinProbability": 0.4585,
+      "predictedAwayWinProbability": 0.5415,
+      "actualHomeWon": false,
+      "actualAwayWon": true,
+      "actualTie": false,
+      "favoredTeam": "away",
+      "favoriteWon": true
+    },
+    {
+      "snapshotId": "2022-w6-2-1",
+      "capturedAt": "2026-03-26T23:58:22.056Z",
+      "predictedHomeWinProbability": 0.4392,
+      "predictedAwayWinProbability": 0.5608,
+      "actualHomeWon": true,
+      "actualAwayWon": false,
+      "actualTie": false,
+      "favoredTeam": "away",
+      "favoriteWon": false
+    },
+    {
+      "snapshotId": "2022-w6-8-11",
+      "capturedAt": "2026-03-26T23:58:22.057Z",
+      "predictedHomeWinProbability": 0.7703,
+      "predictedAwayWinProbability": 0.2297,
+      "actualHomeWon": true,
+      "actualAwayWon": false,
+      "actualTie": false,
+      "favoredTeam": "home",
+      "favoriteWon": true
+    },
+    {
+      "snapshotId": "2022-w6-4-3",
+      "capturedAt": "2026-03-26T23:58:22.059Z",
+      "predictedHomeWinProbability": 0.34,
+      "predictedAwayWinProbability": 0.66,
+      "actualHomeWon": false,
+      "actualAwayWon": true,
+      "actualTie": false,
+      "favoredTeam": "away",
+      "favoriteWon": true
+    }
+  ]
+}

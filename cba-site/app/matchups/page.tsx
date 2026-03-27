@@ -1,8 +1,10 @@
 import Header from '@/components/Header';
 import MatchupsClient from '@/components/MatchupsClient';
 import { getAllSeasons, getCurrentSeason } from '@/lib/data-processor';
+import { getWinProbability } from '@/lib/store';
+import type { WinProbabilityStore } from '@/lib/fantasy/nightlyJob';
 
-export default function MatchupsPage() {
+export default async function MatchupsPage() {
   const seasons = getAllSeasons();
   const currentSeason = getCurrentSeason();
 
@@ -34,6 +36,16 @@ export default function MatchupsPage() {
   const allWeeksSorted = [...weeks].sort((a, b) => a - b);
   const nextWeek = allWeeksSorted.find(w => w > currentWeek) ?? null;
 
+  // Win probability: build teamId → win% map for current week
+  const winProbRaw = await getWinProbability() as WinProbabilityStore | null;
+  const winProbByTeamId: Record<number, number> = {};
+  if (winProbRaw?.matchups) {
+    for (const m of winProbRaw.matchups) {
+      winProbByTeamId[Number(m.homeTeamId)] = m.homeWinPct;
+      winProbByTeamId[Number(m.awayTeamId)] = m.awayWinPct;
+    }
+  }
+
   return (
     <div className="min-h-screen bg-sky-50">
       <Header />
@@ -54,6 +66,7 @@ export default function MatchupsPage() {
             teams={currentSeason.teams}
             currentWeek={currentWeek}
             nextWeek={nextWeek}
+            winProbByTeamId={winProbByTeamId}
           />
         )}
 

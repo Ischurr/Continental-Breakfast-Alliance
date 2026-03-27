@@ -15,7 +15,6 @@ interface TrackerProps {
   oppScore: number;
   isFinal: boolean;
   inProgress: boolean;
-  myWinPct?: number;
 }
 
 interface LiveMatchup {
@@ -25,6 +24,13 @@ interface LiveMatchup {
   awayTeamId: number;
   awayScore: number;
   winner?: string;
+}
+
+interface WinProbMatchup {
+  homeTeamId: string;
+  awayTeamId: string;
+  homeWinPct: number;
+  awayWinPct: number;
 }
 
 export default function TeamMatchupTracker({
@@ -39,46 +45,71 @@ export default function TeamMatchupTracker({
   oppScore: initialOppScore,
   isFinal: initialIsFinal,
   inProgress: initialInProgress,
-  myWinPct,
 }: TrackerProps) {
   const [myScore, setMyScore] = useState(initialMyScore);
   const [oppScore, setOppScore] = useState(initialOppScore);
   const [isFinal, setIsFinal] = useState(initialIsFinal);
   const [myWon, setMyWon] = useState(initialMyWon);
   const [inProgress, setInProgress] = useState(initialInProgress);
+  const [myWinPct, setMyWinPct] = useState<number | undefined>(undefined);
 
   useEffect(() => {
-    async function fetchLiveScores() {
+    async function fetchAll() {
+      // 1. Fetch live scores first to determine if week is final
+      let currentlyFinal = initialIsFinal;
       try {
         const res = await fetch('/api/live-scores', { cache: 'no-store' });
-        if (!res.ok) return;
-        const json = await res.json() as { week: number; matchups: LiveMatchup[] };
-        const matchup = json.matchups.find(
-          m => m.homeTeamId === teamId || m.awayTeamId === teamId
-        );
-        if (!matchup) return;
-        const isHome = matchup.homeTeamId === teamId;
-        const newMyScore = isHome ? matchup.homeScore : matchup.awayScore;
-        const newOppScore = isHome ? matchup.awayScore : matchup.homeScore;
-        const newIsFinal = matchup.winner !== undefined;
-        const newMyWon = newIsFinal
-          ? matchup.winner === (isHome ? 'HOME' : 'AWAY')
-          : null;
-        setMyScore(newMyScore);
-        setOppScore(newOppScore);
-        setIsFinal(newIsFinal);
-        setMyWon(newMyWon);
-        setInProgress(!newIsFinal && (newMyScore > 0 || newOppScore > 0));
+        if (res.ok) {
+          const json = await res.json() as { week: number; matchups: LiveMatchup[] };
+          const matchup = json.matchups.find(
+            m => m.homeTeamId === teamId || m.awayTeamId === teamId
+          );
+          if (matchup) {
+            const isHome = matchup.homeTeamId === teamId;
+            const newMyScore = isHome ? matchup.homeScore : matchup.awayScore;
+            const newOppScore = isHome ? matchup.awayScore : matchup.homeScore;
+            const newIsFinal = matchup.winner !== undefined;
+            const newMyWon = newIsFinal
+              ? matchup.winner === (isHome ? 'HOME' : 'AWAY')
+              : null;
+            currentlyFinal = newIsFinal;
+            setMyScore(newMyScore);
+            setOppScore(newOppScore);
+            setIsFinal(newIsFinal);
+            setMyWon(newMyWon);
+            setInProgress(!newIsFinal && (newMyScore > 0 || newOppScore > 0));
+          }
+        }
       } catch {
         // silently fail — keep showing last known scores
+      }
+
+      // 2. Only fetch win probability for non-final matchups
+      if (currentlyFinal) return;
+      try {
+        const res = await fetch('/api/win-probability', { cache: 'no-store' });
+        if (!res.ok) return;
+        const json = await res.json() as { matchupPeriodId?: number; matchups?: WinProbMatchup[] };
+        // Skip stale data — if the stored period doesn't match the current week, don't show it
+        if (json.matchupPeriodId !== undefined && json.matchupPeriodId !== weekNum) return;
+        const matchup = json.matchups?.find(
+          m => m.homeTeamId === String(teamId) || m.awayTeamId === String(teamId)
+        );
+        if (!matchup) return;
+        const pct = matchup.homeTeamId === String(teamId)
+          ? matchup.homeWinPct
+          : matchup.awayWinPct;
+        setMyWinPct(pct);
+      } catch {
+        // silently fail
       }
     }
 
     // Fetch immediately on mount, then every hour
-    fetchLiveScores();
-    const interval = setInterval(fetchLiveScores, 60 * 60 * 1000);
+    fetchAll();
+    const interval = setInterval(fetchAll, 60 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [teamId]);
+  }, [teamId, initialIsFinal]);
 
   const statusLabel = isFinal
     ? myWon ? 'Win' : 'Loss'
@@ -106,8 +137,8 @@ export default function TeamMatchupTracker({
   const borderStyle: React.CSSProperties = showWinProb
     ? {
         background: `conic-gradient(from 225deg, #10b981 ${myWinPct}%, #f87171 ${myWinPct}%)`,
-        padding: '2px',
-        borderRadius: '0.75rem',
+        padding: '4px',
+        borderRadius: '0.875rem',
       }
     : {
         border: '1px solid',
@@ -119,7 +150,7 @@ export default function TeamMatchupTracker({
     <div className="mb-6">
       <Link href="/matchups" className="block group">
         <div style={borderStyle} className="shadow-sm transition-opacity group-hover:opacity-90">
-          <div style={{ borderRadius: '10px' }} className={`px-6 py-4 ${cardBg}`}>
+          <div style={{ borderRadius: '8px' }} className={`px-6 py-4 ${cardBg}`}>
             {/* Main row: status + teams + scores */}
             <div className="flex items-center gap-4">
               {/* Status badge */}

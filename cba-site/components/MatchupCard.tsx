@@ -3,9 +3,11 @@ import { Matchup, Team } from '@/lib/types';
 interface Props {
   matchup: Matchup;
   teams: Team[];
+  homeWinPct?: number;
+  awayWinPct?: number;
 }
 
-export default function MatchupCard({ matchup, teams }: Props) {
+export default function MatchupCard({ matchup, teams, homeWinPct, awayWinPct }: Props) {
   const homeTeam = teams.find(t => t.id === matchup.home.teamId);
   const awayTeam = teams.find(t => t.id === matchup.away.teamId);
   const homeWon = matchup.winner === matchup.home.teamId;
@@ -27,6 +29,9 @@ export default function MatchupCard({ matchup, teams }: Props) {
           <span className={`font-medium text-sm ${awayWon ? 'text-green-700' : 'text-gray-700'}`}>
             {awayWon && <span className="mr-1 text-green-600">W</span>}
             {awayTeam?.name || `Team ${matchup.away.teamId}`}
+            {!isComplete && awayWinPct !== undefined && (
+              <span className="ml-1 text-xs text-gray-400 font-normal">({awayWinPct}%)</span>
+            )}
           </span>
           <span
             className={`font-bold text-lg ${
@@ -46,6 +51,9 @@ export default function MatchupCard({ matchup, teams }: Props) {
           <span className={`font-medium text-sm ${homeWon ? 'text-green-700' : 'text-gray-700'}`}>
             {homeWon && <span className="mr-1 text-green-600">W</span>}
             {homeTeam?.name || `Team ${matchup.home.teamId}`}
+            {!isComplete && homeWinPct !== undefined && (
+              <span className="ml-1 text-xs text-gray-400 font-normal">({homeWinPct}%)</span>
+            )}
           </span>
           <span
             className={`font-bold text-lg ${

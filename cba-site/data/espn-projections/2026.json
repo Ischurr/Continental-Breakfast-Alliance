@@ -1,0 +1,3523 @@
+{
+  "generatedAt": "2026-03-25T00:28:47.895Z",
+  "source": "ESPN Fantasy API (statSourceId=1, statSplitTypeId=0)",
+  "totalPlayers": 267,
+  "players": [
+    {
+      "playerName": "Aaron Judge",
+      "playerId": "33192",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 778,
+      "teamId": 7,
+      "fantasyTeamName": "Syracuse Sky Chiefs"
+    },
+    {
+      "playerName": "Jose Ramirez",
+      "playerId": "32801",
+      "position": "3B",
+      "eligiblePositions": [
+        "3B",
+        "CI",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 747.3,
+      "teamId": 1,
+      "fantasyTeamName": "Sugar Land Space Cowboys"
+    },
+    {
+      "playerName": "Shohei Ohtani",
+      "playerId": "39832",
+      "position": "UTIL",
+      "eligiblePositions": [
+        "UTIL",
+        "DH",
+        "SP"
+      ],
+      "projectedFP": 741.3,
+      "teamId": 6,
+      "fantasyTeamName": "Delmarva Shureburds"
+    },
+    {
+      "playerName": "Juan Soto",
+      "playerId": "36969",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 735,
+      "teamId": 10,
+      "fantasyTeamName": "Bristol Banshees"
+    },
+    {
+      "playerName": "Bobby Witt Jr.",
+      "playerId": "42403",
+      "position": "SS",
+      "eligiblePositions": [
+        "SS",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 724.8,
+      "teamId": 9,
+      "fantasyTeamName": "North Georgia Fuzzy Bottoms"
+    },
+    {
+      "playerName": "Tarik Skubal",
+      "playerId": "42409",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 681,
+      "teamId": 10,
+      "fantasyTeamName": "Bristol Banshees"
+    },
+    {
+      "playerName": "Vladimir Guerrero Jr.",
+      "playerId": "35002",
+      "position": "1B",
+      "eligiblePositions": [
+        "1B",
+        "CI",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 657.5,
+      "teamId": 11,
+      "fantasyTeamName": "Ft. Meade Folksy Ferrets"
+    },
+    {
+      "playerName": "Kyle Tucker",
+      "playerId": "34967",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 633.3,
+      "teamId": 11,
+      "fantasyTeamName": "Ft. Meade Folksy Ferrets"
+    },
+    {
+      "playerName": "Ronald Acuna Jr.",
+      "playerId": "36185",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 632.5,
+      "teamId": 4,
+      "fantasyTeamName": "Manhattan Mega Rats"
+    },
+    {
+      "playerName": "Paul Skenes",
+      "playerId": "4719507",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 622,
+      "teamId": 3,
+      "fantasyTeamName": "West Virginia Pepperoni Rolls"
+    },
+    {
+      "playerName": "Julio Rodriguez",
+      "playerId": "41044",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 613.3,
+      "teamId": 3,
+      "fantasyTeamName": "West Virginia Pepperoni Rolls"
+    },
+    {
+      "playerName": "Fernando Tatis Jr.",
+      "playerId": "35983",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 611.5,
+      "teamId": 4,
+      "fantasyTeamName": "Manhattan Mega Rats"
+    },
+    {
+      "playerName": "Garrett Crochet",
+      "playerId": "4297835",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 611,
+      "teamId": 4,
+      "fantasyTeamName": "Manhattan Mega Rats"
+    },
+    {
+      "playerName": "Corbin Carroll",
+      "playerId": "42404",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 610,
+      "teamId": 10,
+      "fantasyTeamName": "Bristol Banshees"
+    },
+    {
+      "playerName": "Vinnie Pasquantino",
+      "playerId": "4109109",
+      "position": "1B",
+      "eligiblePositions": [
+        "1B",
+        "CI",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 603.8,
+      "teamId": 10,
+      "fantasyTeamName": "Bristol Banshees"
+    },
+    {
+      "playerName": "Gunnar Henderson",
+      "playerId": "42507",
+      "position": "SS",
+      "eligiblePositions": [
+        "SS",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 599,
+      "teamId": 10,
+      "fantasyTeamName": "Bristol Banshees"
+    },
+    {
+      "playerName": "Cal Raleigh",
+      "playerId": "41292",
+      "position": "C",
+      "eligiblePositions": [
+        "C",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 592.8,
+      "teamId": 2,
+      "fantasyTeamName": "Portland Chinook"
+    },
+    {
+      "playerName": "Elly De La Cruz",
+      "playerId": "4917694",
+      "position": "SS",
+      "eligiblePositions": [
+        "SS",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 591.3,
+      "teamId": 3,
+      "fantasyTeamName": "West Virginia Pepperoni Rolls"
+    },
+    {
+      "playerName": "Manny Machado",
+      "playerId": "31097",
+      "position": "3B",
+      "eligiblePositions": [
+        "3B",
+        "CI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 584.3,
+      "teamId": 9,
+      "fantasyTeamName": "North Georgia Fuzzy Bottoms"
+    },
+    {
+      "playerName": "Luis Arraez",
+      "playerId": "39572",
+      "position": "1B",
+      "eligiblePositions": [
+        "1B",
+        "CI",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 584.3,
+      "teamId": 9,
+      "fantasyTeamName": "North Georgia Fuzzy Bottoms"
+    },
+    {
+      "playerName": "Steven Kwan",
+      "playerId": "41996",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 583.3,
+      "teamId": 8,
+      "fantasyTeamName": "Warren Whistlepigs"
+    },
+    {
+      "playerName": "Josh Naylor",
+      "playerId": "35066",
+      "position": "1B",
+      "eligiblePositions": [
+        "1B",
+        "CI",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 582.5,
+      "teamId": 9,
+      "fantasyTeamName": "North Georgia Fuzzy Bottoms"
+    },
+    {
+      "playerName": "Geraldo Perdomo",
+      "playerId": "41355",
+      "position": "SS",
+      "eligiblePositions": [
+        "SS",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 582,
+      "teamId": 7,
+      "fantasyTeamName": "Syracuse Sky Chiefs"
+    },
+    {
+      "playerName": "Yordan Alvarez",
+      "playerId": "36018",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 579.5,
+      "teamId": 1,
+      "fantasyTeamName": "Sugar Land Space Cowboys"
+    },
+    {
+      "playerName": "Francisco Lindor",
+      "playerId": "32129",
+      "position": "SS",
+      "eligiblePositions": [
+        "SS",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 578.5,
+      "teamId": 1,
+      "fantasyTeamName": "Sugar Land Space Cowboys"
+    },
+    {
+      "playerName": "Matt Olson",
+      "playerId": "32767",
+      "position": "1B",
+      "eligiblePositions": [
+        "1B",
+        "CI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 578,
+      "teamId": 2,
+      "fantasyTeamName": "Portland Chinook"
+    },
+    {
+      "playerName": "Ketel Marte",
+      "playerId": "32512",
+      "position": "2B",
+      "eligiblePositions": [
+        "2B",
+        "MI",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 577.8,
+      "teamId": 6,
+      "fantasyTeamName": "Delmarva Shureburds"
+    },
+    {
+      "playerName": "Mookie Betts",
+      "playerId": "33039",
+      "position": "SS",
+      "eligiblePositions": [
+        "SS",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 576.3,
+      "teamId": 9,
+      "fantasyTeamName": "North Georgia Fuzzy Bottoms"
+    },
+    {
+      "playerName": "Trea Turner",
+      "playerId": "33710",
+      "position": "SS",
+      "eligiblePositions": [
+        "SS",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 573.8,
+      "teamId": 2,
+      "fantasyTeamName": "Portland Chinook"
+    },
+    {
+      "playerName": "Jackson Chourio",
+      "playerId": "4917869",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 572,
+      "teamId": 1,
+      "fantasyTeamName": "Sugar Land Space Cowboys"
+    },
+    {
+      "playerName": "Junior Caminero",
+      "playerId": "4905921",
+      "position": "3B",
+      "eligiblePositions": [
+        "3B",
+        "CI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 569.8,
+      "teamId": 4,
+      "fantasyTeamName": "Manhattan Mega Rats"
+    },
+    {
+      "playerName": "Nico Hoerner",
+      "playerId": "41219",
+      "position": "2B",
+      "eligiblePositions": [
+        "2B",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 565,
+      "teamId": 8,
+      "fantasyTeamName": "Warren Whistlepigs"
+    },
+    {
+      "playerName": "Kyle Schwarber",
+      "playerId": "33712",
+      "position": "UTIL",
+      "eligiblePositions": [
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 564,
+      "teamId": 4,
+      "fantasyTeamName": "Manhattan Mega Rats"
+    },
+    {
+      "playerName": "Jarren Duran",
+      "playerId": "41610",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 559.8,
+      "teamId": 6,
+      "fantasyTeamName": "Delmarva Shureburds"
+    },
+    {
+      "playerName": "Pete Alonso",
+      "playerId": "37498",
+      "position": "1B",
+      "eligiblePositions": [
+        "1B",
+        "CI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 559,
+      "teamId": 3,
+      "fantasyTeamName": "West Virginia Pepperoni Rolls"
+    },
+    {
+      "playerName": "Brent Rooker",
+      "playerId": "40926",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 549.8,
+      "teamId": 3,
+      "fantasyTeamName": "West Virginia Pepperoni Rolls"
+    },
+    {
+      "playerName": "Nick Kurtz",
+      "playerId": "4966637",
+      "position": "1B",
+      "eligiblePositions": [
+        "1B",
+        "CI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 549,
+      "teamId": 8,
+      "fantasyTeamName": "Warren Whistlepigs"
+    },
+    {
+      "playerName": "Cristopher Sanchez",
+      "playerId": "42359",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 543,
+      "teamId": 10,
+      "fantasyTeamName": "Bristol Banshees"
+    },
+    {
+      "playerName": "Rafael Devers",
+      "playerId": "33859",
+      "position": "1B",
+      "eligiblePositions": [
+        "1B",
+        "CI",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 542,
+      "teamId": 6,
+      "fantasyTeamName": "Delmarva Shureburds"
+    },
+    {
+      "playerName": "Brice Turang",
+      "playerId": "41179",
+      "position": "2B",
+      "eligiblePositions": [
+        "2B",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 542,
+      "teamId": 7,
+      "fantasyTeamName": "Syracuse Sky Chiefs"
+    },
+    {
+      "playerName": "Freddie Freeman",
+      "playerId": "30193",
+      "position": "1B",
+      "eligiblePositions": [
+        "1B",
+        "CI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 541.5,
+      "teamId": 2,
+      "fantasyTeamName": "Portland Chinook"
+    },
+    {
+      "playerName": "Roman Anthony",
+      "playerId": "5080767",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 540.3,
+      "teamId": 10,
+      "fantasyTeamName": "Bristol Banshees"
+    },
+    {
+      "playerName": "Bo Bichette",
+      "playerId": "38904",
+      "position": "SS",
+      "eligiblePositions": [
+        "SS",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 536.3,
+      "teamId": 10,
+      "fantasyTeamName": "Bristol Banshees"
+    },
+    {
+      "playerName": "Cody Bellinger",
+      "playerId": "33912",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 536.3,
+      "teamId": 11,
+      "fantasyTeamName": "Ft. Meade Folksy Ferrets"
+    },
+    {
+      "playerName": "William Contreras",
+      "playerId": "39895",
+      "position": "C",
+      "eligiblePositions": [
+        "C",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 534.8,
+      "teamId": 8,
+      "fantasyTeamName": "Warren Whistlepigs"
+    },
+    {
+      "playerName": "Alex Bregman",
+      "playerId": "34886",
+      "position": "3B",
+      "eligiblePositions": [
+        "3B",
+        "CI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 533.3,
+      "teamId": 7,
+      "fantasyTeamName": "Syracuse Sky Chiefs"
+    },
+    {
+      "playerName": "Christian Yelich",
+      "playerId": "31283",
+      "position": "UTIL",
+      "eligiblePositions": [
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 528.8,
+      "teamId": 3,
+      "fantasyTeamName": "West Virginia Pepperoni Rolls"
+    },
+    {
+      "playerName": "Pete Crow-Armstrong",
+      "playerId": "4717833",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 528.5,
+      "teamId": 1,
+      "fantasyTeamName": "Sugar Land Space Cowboys"
+    },
+    {
+      "playerName": "Yandy Diaz",
+      "playerId": "33481",
+      "position": "1B",
+      "eligiblePositions": [
+        "1B",
+        "CI",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 526.5,
+      "teamId": 4,
+      "fantasyTeamName": "Manhattan Mega Rats"
+    },
+    {
+      "playerName": "Maikel Garcia",
+      "playerId": "4905884",
+      "position": "3B",
+      "eligiblePositions": [
+        "3B",
+        "CI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 521.5,
+      "teamId": 6,
+      "fantasyTeamName": "Delmarva Shureburds"
+    },
+    {
+      "playerName": "Jeremy Pena",
+      "playerId": "41273",
+      "position": "SS",
+      "eligiblePositions": [
+        "SS",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 519.5,
+      "teamId": 11,
+      "fantasyTeamName": "Ft. Meade Folksy Ferrets"
+    },
+    {
+      "playerName": "Jacob Wilson",
+      "playerId": "4719300",
+      "position": "SS",
+      "eligiblePositions": [
+        "SS",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 518.8,
+      "teamId": 7,
+      "fantasyTeamName": "Syracuse Sky Chiefs"
+    },
+    {
+      "playerName": "Bryce Harper",
+      "playerId": "30951",
+      "position": "1B",
+      "eligiblePositions": [
+        "1B",
+        "CI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 518,
+      "teamId": 7,
+      "fantasyTeamName": "Syracuse Sky Chiefs"
+    },
+    {
+      "playerName": "George Springer",
+      "playerId": "32078",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 516.3,
+      "teamId": 8,
+      "fantasyTeamName": "Warren Whistlepigs"
+    },
+    {
+      "playerName": "Jose Altuve",
+      "playerId": "31662",
+      "position": "2B",
+      "eligiblePositions": [
+        "2B",
+        "MI",
+        "OF",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 516,
+      "teamId": 11,
+      "fantasyTeamName": "Ft. Meade Folksy Ferrets"
+    },
+    {
+      "playerName": "Corey Seager",
+      "playerId": "32691",
+      "position": "SS",
+      "eligiblePositions": [
+        "SS",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 512.5,
+      "teamId": 6,
+      "fantasyTeamName": "Delmarva Shureburds"
+    },
+    {
+      "playerName": "Logan Gilbert",
+      "playerId": "41221",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 510,
+      "teamId": 2,
+      "fantasyTeamName": "Portland Chinook"
+    },
+    {
+      "playerName": "Logan Webb",
+      "playerId": "41216",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 510,
+      "teamId": 11,
+      "fantasyTeamName": "Ft. Meade Folksy Ferrets"
+    },
+    {
+      "playerName": "Max Fried",
+      "playerId": "32685",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 509,
+      "teamId": 1,
+      "fantasyTeamName": "Sugar Land Space Cowboys"
+    },
+    {
+      "playerName": "Michael Harris II",
+      "playerId": "42470",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 508.3,
+      "teamId": 3,
+      "fantasyTeamName": "West Virginia Pepperoni Rolls"
+    },
+    {
+      "playerName": "James Wood",
+      "playerId": "4918256",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 503.8,
+      "teamId": 1,
+      "fantasyTeamName": "Sugar Land Space Cowboys"
+    },
+    {
+      "playerName": "Randy Arozarena",
+      "playerId": "36488",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 500.3,
+      "teamId": 2,
+      "fantasyTeamName": "Portland Chinook"
+    },
+    {
+      "playerName": "Ian Happ",
+      "playerId": "34945",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 499.5,
+      "teamId": 3,
+      "fantasyTeamName": "West Virginia Pepperoni Rolls"
+    },
+    {
+      "playerName": "CJ Abrams",
+      "playerId": "42402",
+      "position": "SS",
+      "eligiblePositions": [
+        "SS",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 499,
+      "teamId": 6,
+      "fantasyTeamName": "Delmarva Shureburds"
+    },
+    {
+      "playerName": "Xavier Edwards",
+      "playerId": "41326",
+      "position": "2B",
+      "eligiblePositions": [
+        "2B",
+        "SS",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 496.5,
+      "teamId": 10,
+      "fantasyTeamName": "Bristol Banshees"
+    },
+    {
+      "playerName": "Brandon Nimmo",
+      "playerId": "32159",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 494.5,
+      "teamId": 6,
+      "fantasyTeamName": "Delmarva Shureburds"
+    },
+    {
+      "playerName": "Ozzie Albies",
+      "playerId": "33783",
+      "position": "2B",
+      "eligiblePositions": [
+        "2B",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 494.3,
+      "teamId": 2,
+      "fantasyTeamName": "Portland Chinook"
+    },
+    {
+      "playerName": "Eugenio Suarez",
+      "playerId": "32367",
+      "position": "3B",
+      "eligiblePositions": [
+        "3B",
+        "CI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 493.8,
+      "teamId": 10,
+      "fantasyTeamName": "Bristol Banshees"
+    },
+    {
+      "playerName": "Jackson Merrill",
+      "playerId": "4872691",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 493,
+      "teamId": 4,
+      "fantasyTeamName": "Manhattan Mega Rats"
+    },
+    {
+      "playerName": "Framber Valdez",
+      "playerId": "36581",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 491,
+      "teamId": 6,
+      "fantasyTeamName": "Delmarva Shureburds"
+    },
+    {
+      "playerName": "Zach Neto",
+      "playerId": "4666100",
+      "position": "SS",
+      "eligiblePositions": [
+        "SS",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 489,
+      "teamId": 4,
+      "fantasyTeamName": "Manhattan Mega Rats"
+    },
+    {
+      "playerName": "Michael Busch",
+      "playerId": "42415",
+      "position": "1B",
+      "eligiblePositions": [
+        "1B",
+        "CI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 487,
+      "teamId": 7,
+      "fantasyTeamName": "Syracuse Sky Chiefs"
+    },
+    {
+      "playerName": "Jesus Luzardo",
+      "playerId": "39667",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 486,
+      "teamId": 3,
+      "fantasyTeamName": "West Virginia Pepperoni Rolls"
+    },
+    {
+      "playerName": "Tyler Soderstrom",
+      "playerId": "4686066",
+      "position": "1B",
+      "eligiblePositions": [
+        "1B",
+        "CI",
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 486,
+      "teamId": 8,
+      "fantasyTeamName": "Warren Whistlepigs"
+    },
+    {
+      "playerName": "Seiya Suzuki",
+      "playerId": "4142424",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 485.8,
+      "teamId": 2,
+      "fantasyTeamName": "Portland Chinook"
+    },
+    {
+      "playerName": "Spencer Torkelson",
+      "playerId": "4424286",
+      "position": "1B",
+      "eligiblePositions": [
+        "1B",
+        "CI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 485.8,
+      "teamId": 6,
+      "fantasyTeamName": "Delmarva Shureburds"
+    },
+    {
+      "playerName": "Jakob Marsee",
+      "playerId": "4866735",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 485,
+      "teamId": 9,
+      "fantasyTeamName": "North Georgia Fuzzy Bottoms"
+    },
+    {
+      "playerName": "Jung Hoo Lee",
+      "playerId": "5134621",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 484.3,
+      "teamId": 2,
+      "fantasyTeamName": "Portland Chinook"
+    },
+    {
+      "playerName": "Wyatt Langford",
+      "playerId": "4719324",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 484,
+      "teamId": 3,
+      "fantasyTeamName": "West Virginia Pepperoni Rolls"
+    },
+    {
+      "playerName": "Alec Burleson",
+      "playerId": "4345070",
+      "position": "1B",
+      "eligiblePositions": [
+        "1B",
+        "CI",
+        "OF",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 483.3,
+      "teamId": 9,
+      "fantasyTeamName": "North Georgia Fuzzy Bottoms"
+    },
+    {
+      "playerName": "Yoshinobu Yamamoto",
+      "playerId": "4872587",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 482,
+      "teamId": 4,
+      "fantasyTeamName": "Manhattan Mega Rats"
+    },
+    {
+      "playerName": "Taylor Ward",
+      "playerId": "34923",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 479.3,
+      "teamId": 2,
+      "fantasyTeamName": "Portland Chinook"
+    },
+    {
+      "playerName": "Bryan Reynolds",
+      "playerId": "38980",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 476.5,
+      "teamId": 11,
+      "fantasyTeamName": "Ft. Meade Folksy Ferrets"
+    },
+    {
+      "playerName": "Hunter Brown",
+      "playerId": "4717803",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 476,
+      "teamId": 8,
+      "fantasyTeamName": "Warren Whistlepigs"
+    },
+    {
+      "playerName": "Otto Lopez",
+      "playerId": "41917",
+      "position": "2B",
+      "eligiblePositions": [
+        "2B",
+        "SS",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 475.3,
+      "teamId": 3,
+      "fantasyTeamName": "West Virginia Pepperoni Rolls"
+    },
+    {
+      "playerName": "Sal Frelick",
+      "playerId": "4417795",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 474.8,
+      "teamId": 7,
+      "fantasyTeamName": "Syracuse Sky Chiefs"
+    },
+    {
+      "playerName": "Luke Keaschall",
+      "playerId": "4977664",
+      "position": "2B",
+      "eligiblePositions": [
+        "2B",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 474.5,
+      "teamId": 4,
+      "fantasyTeamName": "Manhattan Mega Rats"
+    },
+    {
+      "playerName": "Jazz Chisholm Jr.",
+      "playerId": "41433",
+      "position": "2B",
+      "eligiblePositions": [
+        "2B",
+        "3B",
+        "MI",
+        "CI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 474.3,
+      "teamId": 11,
+      "fantasyTeamName": "Ft. Meade Folksy Ferrets"
+    },
+    {
+      "playerName": "Austin Riley",
+      "playerId": "34982",
+      "position": "3B",
+      "eligiblePositions": [
+        "3B",
+        "CI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 472.8,
+      "teamId": 10,
+      "fantasyTeamName": "Bristol Banshees"
+    },
+    {
+      "playerName": "Gleyber Torres",
+      "playerId": "33804",
+      "position": "2B",
+      "eligiblePositions": [
+        "2B",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 471.3,
+      "teamId": 8,
+      "fantasyTeamName": "Warren Whistlepigs"
+    },
+    {
+      "playerName": "Willy Adames",
+      "playerId": "33675",
+      "position": "SS",
+      "eligiblePositions": [
+        "SS",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 471,
+      "teamId": 3,
+      "fantasyTeamName": "West Virginia Pepperoni Rolls"
+    },
+    {
+      "playerName": "Kevin Gausman",
+      "playerId": "32667",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 470,
+      "teamId": 11,
+      "fantasyTeamName": "Ft. Meade Folksy Ferrets"
+    },
+    {
+      "playerName": "Bryan Woo",
+      "playerId": "4629089",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 469,
+      "teamId": 7,
+      "fantasyTeamName": "Syracuse Sky Chiefs"
+    },
+    {
+      "playerName": "Agustin Ramirez",
+      "playerId": "5132014",
+      "position": "C",
+      "eligiblePositions": [
+        "C",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 467.8,
+      "teamId": 6,
+      "fantasyTeamName": "Delmarva Shureburds"
+    },
+    {
+      "playerName": "Byron Buxton",
+      "playerId": "32655",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 465.8,
+      "teamId": 2,
+      "fantasyTeamName": "Portland Chinook"
+    },
+    {
+      "playerName": "Christian Walker",
+      "playerId": "32758",
+      "position": "1B",
+      "eligiblePositions": [
+        "1B",
+        "CI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 465.8,
+      "teamId": 3,
+      "fantasyTeamName": "West Virginia Pepperoni Rolls"
+    },
+    {
+      "playerName": "Riley Greene",
+      "playerId": "42179",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 465.8,
+      "teamId": 6,
+      "fantasyTeamName": "Delmarva Shureburds"
+    },
+    {
+      "playerName": "Yainer Diaz",
+      "playerId": "4781491",
+      "position": "C",
+      "eligiblePositions": [
+        "C",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 465.5,
+      "teamId": 4,
+      "fantasyTeamName": "Manhattan Mega Rats"
+    },
+    {
+      "playerName": "Xander Bogaerts",
+      "playerId": "31606",
+      "position": "SS",
+      "eligiblePositions": [
+        "SS",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 465.3,
+      "teamId": 2,
+      "fantasyTeamName": "Portland Chinook"
+    },
+    {
+      "playerName": "Dansby Swanson",
+      "playerId": "34895",
+      "position": "SS",
+      "eligiblePositions": [
+        "SS",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 464.3,
+      "teamId": 1,
+      "fantasyTeamName": "Sugar Land Space Cowboys"
+    },
+    {
+      "playerName": "Daylen Lile",
+      "playerId": "4917889",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 460.5,
+      "teamId": 2,
+      "fantasyTeamName": "Portland Chinook"
+    },
+    {
+      "playerName": "J.P. Crawford",
+      "playerId": "33210",
+      "position": "SS",
+      "eligiblePositions": [
+        "SS",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 460,
+      "teamId": 8,
+      "fantasyTeamName": "Warren Whistlepigs"
+    },
+    {
+      "playerName": "Bryson Stott",
+      "playerId": "42417",
+      "position": "2B",
+      "eligiblePositions": [
+        "2B",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 456.8,
+      "teamId": 9,
+      "fantasyTeamName": "North Georgia Fuzzy Bottoms"
+    },
+    {
+      "playerName": "Heliot Ramos",
+      "playerId": "39642",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 456.3,
+      "teamId": 4,
+      "fantasyTeamName": "Manhattan Mega Rats"
+    },
+    {
+      "playerName": "Ben Rice",
+      "playerId": "5016968",
+      "position": "C",
+      "eligiblePositions": [
+        "C",
+        "1B",
+        "CI",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 455.8,
+      "teamId": 1,
+      "fantasyTeamName": "Sugar Land Space Cowboys"
+    },
+    {
+      "playerName": "Salvador Perez",
+      "playerId": "31127",
+      "position": "C",
+      "eligiblePositions": [
+        "C",
+        "1B",
+        "CI",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 455.3,
+      "teamId": 3,
+      "fantasyTeamName": "West Virginia Pepperoni Rolls"
+    },
+    {
+      "playerName": "TJ Friedl",
+      "playerId": "36020",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 454.8,
+      "teamId": 8,
+      "fantasyTeamName": "Warren Whistlepigs"
+    },
+    {
+      "playerName": "Kazuma Okamoto",
+      "playerId": "5134636",
+      "position": "3B",
+      "eligiblePositions": [
+        "3B",
+        "CI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 451.8,
+      "teamId": 9,
+      "fantasyTeamName": "North Georgia Fuzzy Bottoms"
+    },
+    {
+      "playerName": "Marcell Ozuna",
+      "playerId": "31668",
+      "position": "UTIL",
+      "eligiblePositions": [
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 451.3,
+      "teamId": 8,
+      "fantasyTeamName": "Warren Whistlepigs"
+    },
+    {
+      "playerName": "Freddy Peralta",
+      "playerId": "39825",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 451,
+      "teamId": 8,
+      "fantasyTeamName": "Warren Whistlepigs"
+    },
+    {
+      "playerName": "Lawrence Butler",
+      "playerId": "4917919",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 448.8,
+      "teamId": 10,
+      "fantasyTeamName": "Bristol Banshees"
+    },
+    {
+      "playerName": "Chris Sale",
+      "playerId": "30948",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 448,
+      "teamId": 9,
+      "fantasyTeamName": "North Georgia Fuzzy Bottoms"
+    },
+    {
+      "playerName": "Luis Garcia Jr.",
+      "playerId": "40459",
+      "position": "2B",
+      "eligiblePositions": [
+        "2B",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 447,
+      "teamId": 4,
+      "fantasyTeamName": "Manhattan Mega Rats"
+    },
+    {
+      "playerName": "Ceddanne Rafaela",
+      "playerId": "4987382",
+      "position": "2B",
+      "eligiblePositions": [
+        "2B",
+        "MI",
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 446,
+      "teamId": 10,
+      "fantasyTeamName": "Bristol Banshees"
+    },
+    {
+      "playerName": "Drake Baldwin",
+      "playerId": "4810190",
+      "position": "C",
+      "eligiblePositions": [
+        "C",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 444,
+      "teamId": 2,
+      "fantasyTeamName": "Portland Chinook"
+    },
+    {
+      "playerName": "Shea Langeliers",
+      "playerId": "42598",
+      "position": "C",
+      "eligiblePositions": [
+        "C",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 443.8,
+      "teamId": 1,
+      "fantasyTeamName": "Sugar Land Space Cowboys"
+    },
+    {
+      "playerName": "Caleb Durbin",
+      "playerId": "5007615",
+      "position": "3B",
+      "eligiblePositions": [
+        "3B",
+        "CI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 443,
+      "teamId": 2,
+      "fantasyTeamName": "Portland Chinook"
+    },
+    {
+      "playerName": "Blake Snell",
+      "playerId": "33748",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 441,
+      "teamId": 1,
+      "fantasyTeamName": "Sugar Land Space Cowboys"
+    },
+    {
+      "playerName": "Jackson Holliday",
+      "playerId": "5080633",
+      "position": "2B",
+      "eligiblePositions": [
+        "2B",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 441,
+      "teamId": 2,
+      "fantasyTeamName": "Portland Chinook"
+    },
+    {
+      "playerName": "Trevor Story",
+      "playerId": "32150",
+      "position": "SS",
+      "eligiblePositions": [
+        "SS",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 441,
+      "teamId": 6,
+      "fantasyTeamName": "Delmarva Shureburds"
+    },
+    {
+      "playerName": "Chase Burns",
+      "playerId": "4927516",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 436,
+      "teamId": 1,
+      "fantasyTeamName": "Sugar Land Space Cowboys"
+    },
+    {
+      "playerName": "Chandler Simpson",
+      "playerId": "4679983",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 436,
+      "teamId": 7,
+      "fantasyTeamName": "Syracuse Sky Chiefs"
+    },
+    {
+      "playerName": "Andy Pages",
+      "playerId": "42468",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 435.8,
+      "teamId": 9,
+      "fantasyTeamName": "North Georgia Fuzzy Bottoms"
+    },
+    {
+      "playerName": "Brendan Donovan",
+      "playerId": "41773",
+      "position": "2B",
+      "eligiblePositions": [
+        "2B",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 435.3,
+      "teamId": 7,
+      "fantasyTeamName": "Syracuse Sky Chiefs"
+    },
+    {
+      "playerName": "Joe Ryan",
+      "playerId": "42450",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 435,
+      "teamId": 6,
+      "fantasyTeamName": "Delmarva Shureburds"
+    },
+    {
+      "playerName": "Adley Rutschman",
+      "playerId": "42178",
+      "position": "C",
+      "eligiblePositions": [
+        "C",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 434.8,
+      "teamId": 9,
+      "fantasyTeamName": "North Georgia Fuzzy Bottoms"
+    },
+    {
+      "playerName": "Isaac Paredes",
+      "playerId": "39706",
+      "position": "3B",
+      "eligiblePositions": [
+        "3B",
+        "CI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 434.3,
+      "teamId": 2,
+      "fantasyTeamName": "Portland Chinook"
+    },
+    {
+      "playerName": "Ernie Clement",
+      "playerId": "41287",
+      "position": "2B",
+      "eligiblePositions": [
+        "2B",
+        "3B",
+        "SS",
+        "MI",
+        "CI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 433.3,
+      "teamId": 6,
+      "fantasyTeamName": "Delmarva Shureburds"
+    },
+    {
+      "playerName": "Sonny Gray",
+      "playerId": "32082",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 432,
+      "teamId": 2,
+      "fantasyTeamName": "Portland Chinook"
+    },
+    {
+      "playerName": "Luis Castillo",
+      "playerId": "35124",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 430,
+      "teamId": 11,
+      "fantasyTeamName": "Ft. Meade Folksy Ferrets"
+    },
+    {
+      "playerName": "George Kirby",
+      "playerId": "42406",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 429,
+      "teamId": 2,
+      "fantasyTeamName": "Portland Chinook"
+    },
+    {
+      "playerName": "Andrew Vaughn",
+      "playerId": "42394",
+      "position": "1B",
+      "eligiblePositions": [
+        "1B",
+        "CI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 428.5,
+      "teamId": 7,
+      "fantasyTeamName": "Syracuse Sky Chiefs"
+    },
+    {
+      "playerName": "Willson Contreras",
+      "playerId": "32532",
+      "position": "1B",
+      "eligiblePositions": [
+        "1B",
+        "CI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 428,
+      "teamId": 6,
+      "fantasyTeamName": "Delmarva Shureburds"
+    },
+    {
+      "playerName": "Teoscar Hernandez",
+      "playerId": "33377",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 425.3,
+      "teamId": 6,
+      "fantasyTeamName": "Delmarva Shureburds"
+    },
+    {
+      "playerName": "Noelvi Marte",
+      "playerId": "41307",
+      "position": "3B",
+      "eligiblePositions": [
+        "3B",
+        "CI",
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 424.8,
+      "teamId": 9,
+      "fantasyTeamName": "North Georgia Fuzzy Bottoms"
+    },
+    {
+      "playerName": "Masyn Winn",
+      "playerId": "4683365",
+      "position": "SS",
+      "eligiblePositions": [
+        "SS",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 424,
+      "teamId": 1,
+      "fantasyTeamName": "Sugar Land Space Cowboys"
+    },
+    {
+      "playerName": "Nick Pivetta",
+      "playerId": "36071",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 424,
+      "teamId": 4,
+      "fantasyTeamName": "Manhattan Mega Rats"
+    },
+    {
+      "playerName": "Dylan Cease",
+      "playerId": "34943",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 423,
+      "teamId": 4,
+      "fantasyTeamName": "Manhattan Mega Rats"
+    },
+    {
+      "playerName": "Tanner Bibee",
+      "playerId": "4345278",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 423,
+      "teamId": 11,
+      "fantasyTeamName": "Ft. Meade Folksy Ferrets"
+    },
+    {
+      "playerName": "Jacob deGrom",
+      "playerId": "32796",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 420,
+      "teamId": 9,
+      "fantasyTeamName": "North Georgia Fuzzy Bottoms"
+    },
+    {
+      "playerName": "Spencer Steer",
+      "playerId": "4722857",
+      "position": "1B",
+      "eligiblePositions": [
+        "1B",
+        "CI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 420,
+      "teamId": 10,
+      "fantasyTeamName": "Bristol Banshees"
+    },
+    {
+      "playerName": "Ryan O'Hearn",
+      "playerId": "35183",
+      "position": "1B",
+      "eligiblePositions": [
+        "1B",
+        "CI",
+        "OF",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 419.8,
+      "teamId": 10,
+      "fantasyTeamName": "Bristol Banshees"
+    },
+    {
+      "playerName": "Jonathan Aranda",
+      "playerId": "40810",
+      "position": "1B",
+      "eligiblePositions": [
+        "1B",
+        "CI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 418.8,
+      "teamId": 4,
+      "fantasyTeamName": "Manhattan Mega Rats"
+    },
+    {
+      "playerName": "Oneil Cruz",
+      "playerId": "39712",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 418.3,
+      "teamId": 1,
+      "fantasyTeamName": "Sugar Land Space Cowboys"
+    },
+    {
+      "playerName": "Hunter Goodman",
+      "playerId": "4416591",
+      "position": "C",
+      "eligiblePositions": [
+        "C",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 417.5,
+      "teamId": 11,
+      "fantasyTeamName": "Ft. Meade Folksy Ferrets"
+    },
+    {
+      "playerName": "Jo Adell",
+      "playerId": "40854",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 417.3,
+      "teamId": 6,
+      "fantasyTeamName": "Delmarva Shureburds"
+    },
+    {
+      "playerName": "Matt Chapman",
+      "playerId": "33857",
+      "position": "3B",
+      "eligiblePositions": [
+        "3B",
+        "CI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 417,
+      "teamId": 8,
+      "fantasyTeamName": "Warren Whistlepigs"
+    },
+    {
+      "playerName": "Nathan Eovaldi",
+      "playerId": "31174",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 416,
+      "teamId": 7,
+      "fantasyTeamName": "Syracuse Sky Chiefs"
+    },
+    {
+      "playerName": "Zac Gallen",
+      "playerId": "39910",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 415,
+      "teamId": 7,
+      "fantasyTeamName": "Syracuse Sky Chiefs"
+    },
+    {
+      "playerName": "Cole Ragans",
+      "playerId": "41054",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 412,
+      "teamId": 2,
+      "fantasyTeamName": "Portland Chinook"
+    },
+    {
+      "playerName": "Brandon Lowe",
+      "playerId": "39961",
+      "position": "2B",
+      "eligiblePositions": [
+        "2B",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 411.8,
+      "teamId": 11,
+      "fantasyTeamName": "Ft. Meade Folksy Ferrets"
+    },
+    {
+      "playerName": "Spencer Strider",
+      "playerId": "4307825",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 411,
+      "teamId": 10,
+      "fantasyTeamName": "Bristol Banshees"
+    },
+    {
+      "playerName": "Alec Bohm",
+      "playerId": "41169",
+      "position": "3B",
+      "eligiblePositions": [
+        "3B",
+        "CI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 409.8,
+      "teamId": 6,
+      "fantasyTeamName": "Delmarva Shureburds"
+    },
+    {
+      "playerName": "Carlos Correa",
+      "playerId": "32653",
+      "position": "3B",
+      "eligiblePositions": [
+        "3B",
+        "SS",
+        "MI",
+        "CI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 409.8,
+      "teamId": 6,
+      "fantasyTeamName": "Delmarva Shureburds"
+    },
+    {
+      "playerName": "Kyle Stowers",
+      "playerId": "42796",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 407,
+      "teamId": 10,
+      "fantasyTeamName": "Bristol Banshees"
+    },
+    {
+      "playerName": "Jorge Polanco",
+      "playerId": "32525",
+      "position": "2B",
+      "eligiblePositions": [
+        "2B",
+        "MI",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 406.8,
+      "teamId": 2,
+      "fantasyTeamName": "Portland Chinook"
+    },
+    {
+      "playerName": "Nolan Arenado",
+      "playerId": "31261",
+      "position": "3B",
+      "eligiblePositions": [
+        "3B",
+        "CI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 406.5,
+      "teamId": 11,
+      "fantasyTeamName": "Ft. Meade Folksy Ferrets"
+    },
+    {
+      "playerName": "Andrew Abbott",
+      "playerId": "4414528",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 406,
+      "teamId": 3,
+      "fantasyTeamName": "West Virginia Pepperoni Rolls"
+    },
+    {
+      "playerName": "Ryan Pepiot",
+      "playerId": "4208281",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 405,
+      "teamId": 9,
+      "fantasyTeamName": "North Georgia Fuzzy Bottoms"
+    },
+    {
+      "playerName": "Cade Smith",
+      "playerId": "4987924",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "RP",
+        "UTIL"
+      ],
+      "projectedFP": 404,
+      "teamId": 8,
+      "fantasyTeamName": "Warren Whistlepigs"
+    },
+    {
+      "playerName": "MacKenzie Gore",
+      "playerId": "39636",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 403,
+      "teamId": 4,
+      "fantasyTeamName": "Manhattan Mega Rats"
+    },
+    {
+      "playerName": "Brandon Woodruff",
+      "playerId": "37515",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 399,
+      "teamId": 8,
+      "fantasyTeamName": "Warren Whistlepigs"
+    },
+    {
+      "playerName": "Adolis Garcia",
+      "playerId": "35537",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 399,
+      "teamId": 8,
+      "fantasyTeamName": "Warren Whistlepigs"
+    },
+    {
+      "playerName": "Wilyer Abreu",
+      "playerId": "4990055",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 398,
+      "teamId": 11,
+      "fantasyTeamName": "Ft. Meade Folksy Ferrets"
+    },
+    {
+      "playerName": "Nick Lodolo",
+      "playerId": "42433",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 397,
+      "teamId": 6,
+      "fantasyTeamName": "Delmarva Shureburds"
+    },
+    {
+      "playerName": "Drew Rasmussen",
+      "playerId": "42584",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 397,
+      "teamId": 8,
+      "fantasyTeamName": "Warren Whistlepigs"
+    },
+    {
+      "playerName": "Kerry Carpenter",
+      "playerId": "42714",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 395,
+      "teamId": 7,
+      "fantasyTeamName": "Syracuse Sky Chiefs"
+    },
+    {
+      "playerName": "Alejandro Kirk",
+      "playerId": "42081",
+      "position": "C",
+      "eligiblePositions": [
+        "C",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 393.8,
+      "teamId": 7,
+      "fantasyTeamName": "Syracuse Sky Chiefs"
+    },
+    {
+      "playerName": "Chase Meidroth",
+      "playerId": "5136929",
+      "position": "2B",
+      "eligiblePositions": [
+        "2B",
+        "SS",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 392.8,
+      "teamId": 9,
+      "fantasyTeamName": "North Georgia Fuzzy Bottoms"
+    },
+    {
+      "playerName": "Evan Carter",
+      "playerId": "4917921",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 391.3,
+      "teamId": 9,
+      "fantasyTeamName": "North Georgia Fuzzy Bottoms"
+    },
+    {
+      "playerName": "Robbie Ray",
+      "playerId": "32175",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 388,
+      "teamId": 10,
+      "fantasyTeamName": "Bristol Banshees"
+    },
+    {
+      "playerName": "Kyle Bradish",
+      "playerId": "4311625",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 387,
+      "teamId": 8,
+      "fantasyTeamName": "Warren Whistlepigs"
+    },
+    {
+      "playerName": "Addison Barger",
+      "playerId": "4997589",
+      "position": "3B",
+      "eligiblePositions": [
+        "3B",
+        "CI",
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 384,
+      "teamId": 9,
+      "fantasyTeamName": "North Georgia Fuzzy Bottoms"
+    },
+    {
+      "playerName": "Matthew Boyd",
+      "playerId": "34401",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 383,
+      "teamId": 11,
+      "fantasyTeamName": "Ft. Meade Folksy Ferrets"
+    },
+    {
+      "playerName": "Will Smith",
+      "playerId": "38309",
+      "position": "C",
+      "eligiblePositions": [
+        "C",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 382.5,
+      "teamId": 11,
+      "fantasyTeamName": "Ft. Meade Folksy Ferrets"
+    },
+    {
+      "playerName": "Jonathan India",
+      "playerId": "41171",
+      "position": "2B",
+      "eligiblePositions": [
+        "2B",
+        "3B",
+        "MI",
+        "CI",
+        "OF",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 379.8,
+      "teamId": 9,
+      "fantasyTeamName": "North Georgia Fuzzy Bottoms"
+    },
+    {
+      "playerName": "Ranger Suarez",
+      "playerId": "39817",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 377,
+      "teamId": 4,
+      "fantasyTeamName": "Manhattan Mega Rats"
+    },
+    {
+      "playerName": "Jake Cronenworth",
+      "playerId": "36364",
+      "position": "2B",
+      "eligiblePositions": [
+        "2B",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 375.3,
+      "teamId": 1,
+      "fantasyTeamName": "Sugar Land Space Cowboys"
+    },
+    {
+      "playerName": "Marcus Semien",
+      "playerId": "32146",
+      "position": "2B",
+      "eligiblePositions": [
+        "2B",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 374.5,
+      "teamId": 1,
+      "fantasyTeamName": "Sugar Land Space Cowboys"
+    },
+    {
+      "playerName": "Jac Caglianone",
+      "playerId": "4926296",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 374.5,
+      "teamId": 4,
+      "fantasyTeamName": "Manhattan Mega Rats"
+    },
+    {
+      "playerName": "Ramon Laureano",
+      "playerId": "35142",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 374.3,
+      "teamId": 2,
+      "fantasyTeamName": "Portland Chinook"
+    },
+    {
+      "playerName": "Jeff McNeil",
+      "playerId": "33900",
+      "position": "2B",
+      "eligiblePositions": [
+        "2B",
+        "MI",
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 374,
+      "teamId": 8,
+      "fantasyTeamName": "Warren Whistlepigs"
+    },
+    {
+      "playerName": "Daulton Varsho",
+      "playerId": "40963",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 373.5,
+      "teamId": 11,
+      "fantasyTeamName": "Ft. Meade Folksy Ferrets"
+    },
+    {
+      "playerName": "Mason Miller",
+      "playerId": "4730225",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "RP",
+        "UTIL"
+      ],
+      "projectedFP": 373,
+      "teamId": 7,
+      "fantasyTeamName": "Syracuse Sky Chiefs"
+    },
+    {
+      "playerName": "Josh Smith",
+      "playerId": "42884",
+      "position": "1B",
+      "eligiblePositions": [
+        "1B",
+        "3B",
+        "SS",
+        "MI",
+        "CI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 372.3,
+      "teamId": 3,
+      "fantasyTeamName": "West Virginia Pepperoni Rolls"
+    },
+    {
+      "playerName": "Bailey Ober",
+      "playerId": "3107919",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 370,
+      "teamId": 9,
+      "fantasyTeamName": "North Georgia Fuzzy Bottoms"
+    },
+    {
+      "playerName": "Gavin Williams",
+      "playerId": "4345076",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 369,
+      "teamId": 9,
+      "fantasyTeamName": "North Georgia Fuzzy Bottoms"
+    },
+    {
+      "playerName": "Luis Robert Jr.",
+      "playerId": "39631",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 367.3,
+      "teamId": 7,
+      "fantasyTeamName": "Syracuse Sky Chiefs"
+    },
+    {
+      "playerName": "Brooks Lee",
+      "playerId": "4629081",
+      "position": "2B",
+      "eligiblePositions": [
+        "2B",
+        "3B",
+        "SS",
+        "MI",
+        "CI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 366.8,
+      "teamId": 9,
+      "fantasyTeamName": "North Georgia Fuzzy Bottoms"
+    },
+    {
+      "playerName": "Colt Keith",
+      "playerId": "4683384",
+      "position": "2B",
+      "eligiblePositions": [
+        "2B",
+        "3B",
+        "MI",
+        "CI",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 366.3,
+      "teamId": 7,
+      "fantasyTeamName": "Syracuse Sky Chiefs"
+    },
+    {
+      "playerName": "Michael King",
+      "playerId": "40429",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 366,
+      "teamId": 11,
+      "fantasyTeamName": "Ft. Meade Folksy Ferrets"
+    },
+    {
+      "playerName": "Matt McLain",
+      "playerId": "4422899",
+      "position": "2B",
+      "eligiblePositions": [
+        "2B",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 365.5,
+      "teamId": 4,
+      "fantasyTeamName": "Manhattan Mega Rats"
+    },
+    {
+      "playerName": "Zack Wheeler",
+      "playerId": "31267",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 364,
+      "teamId": 1,
+      "fantasyTeamName": "Sugar Land Space Cowboys"
+    },
+    {
+      "playerName": "Edwin Diaz",
+      "playerId": "35394",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "RP",
+        "UTIL"
+      ],
+      "projectedFP": 364,
+      "teamId": 8,
+      "fantasyTeamName": "Warren Whistlepigs"
+    },
+    {
+      "playerName": "JJ Wetherholt",
+      "playerId": "4941056",
+      "position": "2B",
+      "eligiblePositions": [
+        "2B",
+        "SS",
+        "MI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 363.3,
+      "teamId": 3,
+      "fantasyTeamName": "West Virginia Pepperoni Rolls"
+    },
+    {
+      "playerName": "Ian Seymour",
+      "playerId": "4669425",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "RP",
+        "UTIL"
+      ],
+      "projectedFP": 363,
+      "teamId": 9,
+      "fantasyTeamName": "North Georgia Fuzzy Bottoms"
+    },
+    {
+      "playerName": "Seth Lugo",
+      "playerId": "34873",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 362,
+      "teamId": 6,
+      "fantasyTeamName": "Delmarva Shureburds"
+    },
+    {
+      "playerName": "Andrew Benintendi",
+      "playerId": "34986",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 361.5,
+      "teamId": 8,
+      "fantasyTeamName": "Warren Whistlepigs"
+    },
+    {
+      "playerName": "Kris Bubic",
+      "playerId": "41201",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 361,
+      "teamId": 10,
+      "fantasyTeamName": "Bristol Banshees"
+    },
+    {
+      "playerName": "Jose Soriano",
+      "playerId": "40973",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 361,
+      "teamId": 11,
+      "fantasyTeamName": "Ft. Meade Folksy Ferrets"
+    },
+    {
+      "playerName": "Lars Nootbaar",
+      "playerId": "4448736",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 360.8,
+      "teamId": 11,
+      "fantasyTeamName": "Ft. Meade Folksy Ferrets"
+    },
+    {
+      "playerName": "Giancarlo Stanton",
+      "playerId": "30583",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 357.5,
+      "teamId": 1,
+      "fantasyTeamName": "Sugar Land Space Cowboys"
+    },
+    {
+      "playerName": "Mike Trout",
+      "playerId": "30836",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 356.8,
+      "teamId": 3,
+      "fantasyTeamName": "West Virginia Pepperoni Rolls"
+    },
+    {
+      "playerName": "Sandy Alcantara",
+      "playerId": "35241",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 356,
+      "teamId": 7,
+      "fantasyTeamName": "Syracuse Sky Chiefs"
+    },
+    {
+      "playerName": "Brenton Doyle",
+      "playerId": "42462",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 355,
+      "teamId": 4,
+      "fantasyTeamName": "Manhattan Mega Rats"
+    },
+    {
+      "playerName": "Merrill Kelly",
+      "playerId": "32968",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 355,
+      "teamId": 8,
+      "fantasyTeamName": "Warren Whistlepigs"
+    },
+    {
+      "playerName": "Jasson Dominguez",
+      "playerId": "42401",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 353.5,
+      "teamId": 3,
+      "fantasyTeamName": "West Virginia Pepperoni Rolls"
+    },
+    {
+      "playerName": "Jack Flaherty",
+      "playerId": "33837",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 353,
+      "teamId": 10,
+      "fantasyTeamName": "Bristol Banshees"
+    },
+    {
+      "playerName": "Yusei Kikuchi",
+      "playerId": "41415",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 353,
+      "teamId": 11,
+      "fantasyTeamName": "Ft. Meade Folksy Ferrets"
+    },
+    {
+      "playerName": "Shota Imanaga",
+      "playerId": "5134630",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 352,
+      "teamId": 9,
+      "fantasyTeamName": "North Georgia Fuzzy Bottoms"
+    },
+    {
+      "playerName": "Gavin Lux",
+      "playerId": "40423",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 350.8,
+      "teamId": 7,
+      "fantasyTeamName": "Syracuse Sky Chiefs"
+    },
+    {
+      "playerName": "Edward Cabrera",
+      "playerId": "40944",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 350,
+      "teamId": 7,
+      "fantasyTeamName": "Syracuse Sky Chiefs"
+    },
+    {
+      "playerName": "Tatsuya Imai",
+      "playerId": "5330833",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 349,
+      "teamId": 1,
+      "fantasyTeamName": "Sugar Land Space Cowboys"
+    },
+    {
+      "playerName": "Josh Jung",
+      "playerId": "42437",
+      "position": "3B",
+      "eligiblePositions": [
+        "3B",
+        "CI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 349,
+      "teamId": 3,
+      "fantasyTeamName": "West Virginia Pepperoni Rolls"
+    },
+    {
+      "playerName": "Gabriel Moreno",
+      "playerId": "42464",
+      "position": "C",
+      "eligiblePositions": [
+        "C",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 348.8,
+      "teamId": 8,
+      "fantasyTeamName": "Warren Whistlepigs"
+    },
+    {
+      "playerName": "David Bednar",
+      "playerId": "38303",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "RP",
+        "UTIL"
+      ],
+      "projectedFP": 348,
+      "teamId": 1,
+      "fantasyTeamName": "Sugar Land Space Cowboys"
+    },
+    {
+      "playerName": "Eury Perez",
+      "playerId": "4917854",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 348,
+      "teamId": 3,
+      "fantasyTeamName": "West Virginia Pepperoni Rolls"
+    },
+    {
+      "playerName": "Brady Singer",
+      "playerId": "41172",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 348,
+      "teamId": 10,
+      "fantasyTeamName": "Bristol Banshees"
+    },
+    {
+      "playerName": "Munetaka Murakami",
+      "playerId": "4872595",
+      "position": "3B",
+      "eligiblePositions": [
+        "3B",
+        "CI",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 347.8,
+      "teamId": 1,
+      "fantasyTeamName": "Sugar Land Space Cowboys"
+    },
+    {
+      "playerName": "Jacob Misiorowski",
+      "playerId": "5080761",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 345,
+      "teamId": 2,
+      "fantasyTeamName": "Portland Chinook"
+    },
+    {
+      "playerName": "Jhoan Duran",
+      "playerId": "41109",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "RP",
+        "UTIL"
+      ],
+      "projectedFP": 344,
+      "teamId": 3,
+      "fantasyTeamName": "West Virginia Pepperoni Rolls"
+    },
+    {
+      "playerName": "Aroldis Chapman",
+      "playerId": "30442",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "RP",
+        "UTIL"
+      ],
+      "projectedFP": 340,
+      "teamId": 10,
+      "fantasyTeamName": "Bristol Banshees"
+    },
+    {
+      "playerName": "Trevor Rogers",
+      "playerId": "39640",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 339,
+      "teamId": 6,
+      "fantasyTeamName": "Delmarva Shureburds"
+    },
+    {
+      "playerName": "Joe Musgrove",
+      "playerId": "34848",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 339,
+      "teamId": 8,
+      "fantasyTeamName": "Warren Whistlepigs"
+    },
+    {
+      "playerName": "Griffin Jax",
+      "playerId": "42604",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "RP",
+        "UTIL"
+      ],
+      "projectedFP": 336,
+      "teamId": 9,
+      "fantasyTeamName": "North Georgia Fuzzy Bottoms"
+    },
+    {
+      "playerName": "Colton Cowser",
+      "playerId": "4416990",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 334.3,
+      "teamId": 3,
+      "fantasyTeamName": "West Virginia Pepperoni Rolls"
+    },
+    {
+      "playerName": "Carlos Rodon",
+      "playerId": "33696",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 334,
+      "teamId": 2,
+      "fantasyTeamName": "Portland Chinook"
+    },
+    {
+      "playerName": "Aaron Nola",
+      "playerId": "33709",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 332,
+      "teamId": 8,
+      "fantasyTeamName": "Warren Whistlepigs"
+    },
+    {
+      "playerName": "Andres Munoz",
+      "playerId": "40939",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "RP",
+        "UTIL"
+      ],
+      "projectedFP": 331,
+      "teamId": 8,
+      "fantasyTeamName": "Warren Whistlepigs"
+    },
+    {
+      "playerName": "Emmet Sheehan",
+      "playerId": "4417806",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 331,
+      "teamId": 8,
+      "fantasyTeamName": "Warren Whistlepigs"
+    },
+    {
+      "playerName": "Abner Uribe",
+      "playerId": "4917865",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "RP",
+        "UTIL"
+      ],
+      "projectedFP": 329,
+      "teamId": 9,
+      "fantasyTeamName": "North Georgia Fuzzy Bottoms"
+    },
+    {
+      "playerName": "Trent Grisham",
+      "playerId": "34995",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 328.8,
+      "teamId": 7,
+      "fantasyTeamName": "Syracuse Sky Chiefs"
+    },
+    {
+      "playerName": "Ryan Jeffers",
+      "playerId": "41587",
+      "position": "C",
+      "eligiblePositions": [
+        "C",
+        "UTIL",
+        "DH"
+      ],
+      "projectedFP": 328,
+      "teamId": 4,
+      "fantasyTeamName": "Manhattan Mega Rats"
+    },
+    {
+      "playerName": "J.T. Realmuto",
+      "playerId": "32177",
+      "position": "C",
+      "eligiblePositions": [
+        "C",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 326.8,
+      "teamId": 9,
+      "fantasyTeamName": "North Georgia Fuzzy Bottoms"
+    },
+    {
+      "playerName": "Nolan McLean",
+      "playerId": "4433874",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 326,
+      "teamId": 1,
+      "fantasyTeamName": "Sugar Land Space Cowboys"
+    },
+    {
+      "playerName": "Jack Leiter",
+      "playerId": "4622181",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 326,
+      "teamId": 3,
+      "fantasyTeamName": "West Virginia Pepperoni Rolls"
+    },
+    {
+      "playerName": "Brayan Bello",
+      "playerId": "4720856",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 326,
+      "teamId": 10,
+      "fantasyTeamName": "Bristol Banshees"
+    },
+    {
+      "playerName": "Tyler Glasnow",
+      "playerId": "33190",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 326,
+      "teamId": 11,
+      "fantasyTeamName": "Ft. Meade Folksy Ferrets"
+    },
+    {
+      "playerName": "Devin Williams",
+      "playerId": "33224",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "RP",
+        "UTIL"
+      ],
+      "projectedFP": 324,
+      "teamId": 11,
+      "fantasyTeamName": "Ft. Meade Folksy Ferrets"
+    },
+    {
+      "playerName": "Bryan Abreu",
+      "playerId": "41208",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "RP",
+        "UTIL"
+      ],
+      "projectedFP": 322,
+      "teamId": 1,
+      "fantasyTeamName": "Sugar Land Space Cowboys"
+    },
+    {
+      "playerName": "Shane Baz",
+      "playerId": "39639",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 316,
+      "teamId": 11,
+      "fantasyTeamName": "Ft. Meade Folksy Ferrets"
+    },
+    {
+      "playerName": "Cam Schlittler",
+      "playerId": "5134581",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 311,
+      "teamId": 1,
+      "fantasyTeamName": "Sugar Land Space Cowboys"
+    },
+    {
+      "playerName": "Bubba Chandler",
+      "playerId": "4683325",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 311,
+      "teamId": 4,
+      "fantasyTeamName": "Manhattan Mega Rats"
+    },
+    {
+      "playerName": "Gerrit Cole",
+      "playerId": "32081",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 309,
+      "teamId": 7,
+      "fantasyTeamName": "Syracuse Sky Chiefs"
+    },
+    {
+      "playerName": "Raisel Iglesias",
+      "playerId": "33618",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "RP",
+        "UTIL"
+      ],
+      "projectedFP": 307,
+      "teamId": 4,
+      "fantasyTeamName": "Manhattan Mega Rats"
+    },
+    {
+      "playerName": "Kyle Teel",
+      "playerId": "4743772",
+      "position": "C",
+      "eligiblePositions": [
+        "C",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 306.5,
+      "teamId": 10,
+      "fantasyTeamName": "Bristol Banshees"
+    },
+    {
+      "playerName": "Ryan Walker",
+      "playerId": "5000950",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "RP",
+        "UTIL"
+      ],
+      "projectedFP": 298,
+      "teamId": 2,
+      "fantasyTeamName": "Portland Chinook"
+    },
+    {
+      "playerName": "Emilio Pagan",
+      "playerId": "33403",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "RP",
+        "UTIL"
+      ],
+      "projectedFP": 298,
+      "teamId": 11,
+      "fantasyTeamName": "Ft. Meade Folksy Ferrets"
+    },
+    {
+      "playerName": "Josh Hader",
+      "playerId": "32760",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "RP",
+        "UTIL"
+      ],
+      "projectedFP": 295,
+      "teamId": 11,
+      "fantasyTeamName": "Ft. Meade Folksy Ferrets"
+    },
+    {
+      "playerName": "Carlos Narvaez",
+      "playerId": "5012120",
+      "position": "C",
+      "eligiblePositions": [
+        "C",
+        "DH",
+        "UTIL"
+      ],
+      "projectedFP": 291,
+      "teamId": 10,
+      "fantasyTeamName": "Bristol Banshees"
+    },
+    {
+      "playerName": "Shane Bieber",
+      "playerId": "40912",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 281,
+      "teamId": 1,
+      "fantasyTeamName": "Sugar Land Space Cowboys"
+    },
+    {
+      "playerName": "Robert Garcia",
+      "playerId": "5125167",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "RP",
+        "UTIL"
+      ],
+      "projectedFP": 279,
+      "teamId": 10,
+      "fantasyTeamName": "Bristol Banshees"
+    },
+    {
+      "playerName": "Trey Yesavage",
+      "playerId": "4949041",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 273,
+      "teamId": 1,
+      "fantasyTeamName": "Sugar Land Space Cowboys"
+    },
+    {
+      "playerName": "Reid Detmers",
+      "playerId": "4326697",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "RP",
+        "UTIL"
+      ],
+      "projectedFP": 269,
+      "teamId": 2,
+      "fantasyTeamName": "Portland Chinook"
+    },
+    {
+      "playerName": "Pete Fairbanks",
+      "playerId": "42180",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "RP",
+        "UTIL"
+      ],
+      "projectedFP": 268,
+      "teamId": 10,
+      "fantasyTeamName": "Bristol Banshees"
+    },
+    {
+      "playerName": "Kenley Jansen",
+      "playerId": "29630",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "RP",
+        "UTIL"
+      ],
+      "projectedFP": 264,
+      "teamId": 6,
+      "fantasyTeamName": "Delmarva Shureburds"
+    },
+    {
+      "playerName": "Carlos Estevez",
+      "playerId": "34861",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "RP",
+        "UTIL"
+      ],
+      "projectedFP": 257,
+      "teamId": 6,
+      "fantasyTeamName": "Delmarva Shureburds"
+    },
+    {
+      "playerName": "Robert Suarez",
+      "playerId": "4148749",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "RP",
+        "UTIL"
+      ],
+      "projectedFP": 256,
+      "teamId": 3,
+      "fantasyTeamName": "West Virginia Pepperoni Rolls"
+    },
+    {
+      "playerName": "Daniel Palencia",
+      "playerId": "4875225",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "RP",
+        "UTIL"
+      ],
+      "projectedFP": 256,
+      "teamId": 4,
+      "fantasyTeamName": "Manhattan Mega Rats"
+    },
+    {
+      "playerName": "Garrett Whitlock",
+      "playerId": "39674",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "RP",
+        "UTIL"
+      ],
+      "projectedFP": 255,
+      "teamId": 3,
+      "fantasyTeamName": "West Virginia Pepperoni Rolls"
+    },
+    {
+      "playerName": "Jeff Hoffman",
+      "playerId": "33841",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "RP",
+        "UTIL"
+      ],
+      "projectedFP": 252,
+      "teamId": 1,
+      "fantasyTeamName": "Sugar Land Space Cowboys"
+    },
+    {
+      "playerName": "Ryan Helsley",
+      "playerId": "39909",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "RP",
+        "UTIL"
+      ],
+      "projectedFP": 250,
+      "teamId": 6,
+      "fantasyTeamName": "Delmarva Shureburds"
+    },
+    {
+      "playerName": "Shane McClanahan",
+      "playerId": "41199",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "UTIL"
+      ],
+      "projectedFP": 240,
+      "teamId": 3,
+      "fantasyTeamName": "West Virginia Pepperoni Rolls"
+    },
+    {
+      "playerName": "Alex Vesia",
+      "playerId": "42622",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "RP",
+        "UTIL"
+      ],
+      "projectedFP": 236,
+      "teamId": 7,
+      "fantasyTeamName": "Syracuse Sky Chiefs"
+    },
+    {
+      "playerName": "Trevor Megill",
+      "playerId": "40080",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "RP",
+        "UTIL"
+      ],
+      "projectedFP": 235,
+      "teamId": 2,
+      "fantasyTeamName": "Portland Chinook"
+    },
+    {
+      "playerName": "Will Vest",
+      "playerId": "41606",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "RP",
+        "UTIL"
+      ],
+      "projectedFP": 235,
+      "teamId": 7,
+      "fantasyTeamName": "Syracuse Sky Chiefs"
+    },
+    {
+      "playerName": "Seranthony Dominguez",
+      "playerId": "37793",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP",
+        "RP",
+        "UTIL"
+      ],
+      "projectedFP": 198,
+      "teamId": 4,
+      "fantasyTeamName": "Manhattan Mega Rats"
+    }
+  ]
+}

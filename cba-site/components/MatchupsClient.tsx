@@ -10,9 +10,11 @@ interface Props {
   teams: Team[];
   currentWeek: number;
   nextWeek: number | null;
+  /** teamId → win probability (%) for current week only */
+  winProbByTeamId?: Record<number, number>;
 }
 
-export default function MatchupsClient({ matchupsByWeek, weeks, teams, currentWeek, nextWeek }: Props) {
+export default function MatchupsClient({ matchupsByWeek, weeks, teams, currentWeek, nextWeek, winProbByTeamId }: Props) {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
@@ -30,6 +32,7 @@ export default function MatchupsClient({ matchupsByWeek, weeks, teams, currentWe
   function WeekSection({ week, label }: { week: number; label?: string }) {
     const filtered = filterMatchups(matchupsByWeek[week] ?? []);
     if (filtered.length === 0) return null;
+    const isCurrentWeek = week === currentWeek;
     return (
       <div className="mb-8">
         <h2 className="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
@@ -39,7 +42,13 @@ export default function MatchupsClient({ matchupsByWeek, weeks, teams, currentWe
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map(matchup => (
-            <MatchupCard key={matchup.id} matchup={matchup} teams={teams} />
+            <MatchupCard
+              key={matchup.id}
+              matchup={matchup}
+              teams={teams}
+              homeWinPct={isCurrentWeek ? winProbByTeamId?.[matchup.home.teamId] : undefined}
+              awayWinPct={isCurrentWeek ? winProbByTeamId?.[matchup.away.teamId] : undefined}
+            />
           ))}
         </div>
       </div>
