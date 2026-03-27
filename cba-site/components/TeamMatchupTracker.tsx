@@ -15,6 +15,7 @@ interface TrackerProps {
   oppScore: number;
   isFinal: boolean;
   inProgress: boolean;
+  myWinPct?: number;
 }
 
 export default function TeamMatchupTracker({
@@ -28,6 +29,7 @@ export default function TeamMatchupTracker({
   oppScore,
   isFinal,
   inProgress,
+  myWinPct,
 }: TrackerProps) {
   const router = useRouter();
 
@@ -55,48 +57,71 @@ export default function TeamMatchupTracker({
     ? 'bg-sky-50 border-sky-300'
     : 'bg-slate-100 border-gray-200';
 
+  const oppWinPct = myWinPct !== undefined ? Math.round((100 - myWinPct) * 10) / 10 : undefined;
+  const showWinProb = !isFinal && myWinPct !== undefined;
+
   return (
     <div className="mb-6">
       <Link href="/matchups" className="block group">
-        <div className={`rounded-xl shadow-sm border px-6 py-4 flex items-center gap-4 transition-opacity group-hover:opacity-90 ${cardBg}`}>
-          {/* Status badge */}
-          <div className="flex-shrink-0 text-center min-w-[80px]">
-            <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${statusColor}`}>
-              {statusLabel}
-            </span>
-            <p className="text-xs text-gray-500 mt-1">Week {weekNum}</p>
-          </div>
+        <div className={`rounded-xl shadow-sm border px-6 py-4 transition-opacity group-hover:opacity-90 ${cardBg}`}>
+          {/* Main row: status + teams + scores */}
+          <div className="flex items-center gap-4">
+            {/* Status badge */}
+            <div className="flex-shrink-0 text-center min-w-[80px]">
+              <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${statusColor}`}>
+                {statusLabel}
+              </span>
+              <p className="text-xs text-gray-500 mt-1">Week {weekNum}</p>
+            </div>
 
-          {/* This team */}
-          <div className="flex items-center gap-3 flex-1">
-            {myLogo && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={myLogo} alt="" className="w-9 h-9 rounded-full object-cover bg-white/30 flex-shrink-0" />
-            )}
-            <div className="min-w-0">
-              <p className="font-semibold text-gray-900 text-sm truncate">{myName}</p>
-              <p className={`text-2xl font-bold leading-tight ${myWon === true ? 'text-emerald-700' : myWon === false ? 'text-gray-500' : 'text-gray-800'}`}>
-                {myScore > 0 ? myScore.toFixed(1) : '–'}
-              </p>
+            {/* This team */}
+            <div className="flex items-center gap-3 flex-1">
+              {myLogo && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={myLogo} alt="" className="w-9 h-9 rounded-full object-cover bg-white/30 flex-shrink-0" />
+              )}
+              <div className="min-w-0">
+                <p className="font-semibold text-gray-900 text-sm truncate">{myName}</p>
+                <p className={`text-2xl font-bold leading-tight ${myWon === true ? 'text-emerald-700' : myWon === false ? 'text-gray-500' : 'text-gray-800'}`}>
+                  {myScore > 0 ? myScore.toFixed(1) : '–'}
+                </p>
+              </div>
+            </div>
+
+            {/* VS */}
+            <div className="text-gray-400 font-semibold text-sm flex-shrink-0">vs</div>
+
+            {/* Opponent */}
+            <div className="flex items-center gap-3 flex-1 justify-end">
+              <div className="min-w-0 text-right">
+                <p className="font-semibold text-gray-900 text-sm truncate">{oppName}</p>
+                <p className={`text-2xl font-bold leading-tight ${myWon === false ? 'text-red-600' : isFinal ? 'text-gray-400' : 'text-gray-800'}`}>
+                  {oppScore > 0 ? oppScore.toFixed(1) : '–'}
+                </p>
+              </div>
+              {oppLogo && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={oppLogo} alt="" className="w-9 h-9 rounded-full object-cover bg-white/30 flex-shrink-0" />
+              )}
             </div>
           </div>
 
-          {/* VS */}
-          <div className="text-gray-400 font-semibold text-sm flex-shrink-0">vs</div>
-
-          {/* Opponent */}
-          <div className="flex items-center gap-3 flex-1 justify-end">
-            <div className="min-w-0 text-right">
-              <p className="font-semibold text-gray-900 text-sm truncate">{oppName}</p>
-              <p className={`text-2xl font-bold leading-tight ${myWon === false ? 'text-red-600' : isFinal ? 'text-gray-400' : 'text-gray-800'}`}>
-                {oppScore > 0 ? oppScore.toFixed(1) : '–'}
-              </p>
+          {/* Win probability bar */}
+          {showWinProb && (
+            <div className="mt-3 pt-3 border-t border-gray-200/60">
+              <div className="flex justify-between text-[11px] font-semibold mb-1">
+                <span className="text-sky-700">{myWinPct!.toFixed(1)}%</span>
+                <span className="text-gray-400 font-normal">win probability</span>
+                <span className="text-gray-500">{oppWinPct!.toFixed(1)}%</span>
+              </div>
+              <div className="h-2 rounded-full bg-gray-200 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-sky-500"
+                  style={{ width: `${myWinPct}%` }}
+                />
+              </div>
             </div>
-            {oppLogo && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={oppLogo} alt="" className="w-9 h-9 rounded-full object-cover bg-white/30 flex-shrink-0" />
-            )}
-          </div>
+          )}
         </div>
       </Link>
     </div>
