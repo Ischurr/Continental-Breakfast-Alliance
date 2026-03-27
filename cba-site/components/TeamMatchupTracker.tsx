@@ -104,9 +104,9 @@ export default function TeamMatchupTracker({
   return (
     <div className="mb-6">
       <Link href="/matchups" className="block group">
-        <div className={`rounded-xl shadow-sm border px-6 py-4 transition-opacity group-hover:opacity-90 ${cardBg}`}>
+        <div className={`rounded-xl shadow-sm border overflow-hidden transition-opacity group-hover:opacity-90 ${cardBg}`}>
           {/* Main row: status + teams + scores */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 px-6 py-4">
             {/* Status badge */}
             <div className="flex-shrink-0 text-center min-w-[80px]">
               <span className={`text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${statusColor}`}>
@@ -147,19 +147,19 @@ export default function TeamMatchupTracker({
             </div>
           </div>
 
-          {/* Win probability bar */}
+          {/* Win probability bar — edge-to-edge at bottom */}
           {showWinProb && (
-            <div className="mt-3 pt-3 border-t border-gray-200/60">
-              <div className="flex items-center text-[11px] font-semibold mb-1">
+            <>
+              <div className="flex items-center px-6 pb-2 text-[11px] font-semibold">
                 <span className="text-emerald-700 flex-1">{myWinPct!.toFixed(1)}%</span>
                 <span className="text-gray-400 font-normal text-center flex-1">win probability</span>
                 <span className="text-red-500 flex-1 text-right">{oppWinPct!.toFixed(1)}%</span>
               </div>
-              <div className="h-2 rounded-full overflow-hidden flex">
-                <div className="h-full bg-emerald-500" style={{ width: `${myWinPct}%` }} />
-                <div className="h-full bg-red-400 flex-1" />
+              <div className="flex h-2">
+                <div className="bg-emerald-500" style={{ width: `${myWinPct}%` }} />
+                <div className="bg-red-400 flex-1" />
               </div>
-            </div>
+            </>
           )}
         </div>
       </Link>
