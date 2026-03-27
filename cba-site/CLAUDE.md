@@ -1849,8 +1849,14 @@ Three compounding bugs caused hitters to appear in SP/RP slots and pitchers in f
 - `WIN_PROBABILITY_SECRET` must be set in both **GitHub Secrets** and **Vercel env vars** (Production)
 
 ### Win probability bar in matchup tracker (`components/TeamMatchupTracker.tsx`, `app/teams/[teamId]/page.tsx`)
-- Team page loads win probability from KV, finds this team's matchup by `homeTeamId`/`awayTeamId`, passes `myWinPct` prop
-- Bar renders below the scores section, separated by a border — **green** for this team's %, **red** for opponent's %
-- Label row: `{myPct}%` left-aligned (emerald), "win probability" centered (gray), `{oppPct}%` right-aligned (red) — all via `flex-1`
-- Hidden when `isFinal` (bar disappears after week ends); shown for upcoming + in-progress matchups
-- **99.8% Space Cowboys explained**: current score gap (33 vs 6) + projected remaining gap (165 vs 116) = no range overlap → genuine extreme probability, not a bug
+- Bar renders below the scores section — **green** for this team's %, **red** for opponent's %
+- Label row: `{myPct}%` left-aligned (emerald), "win probability" centered (gray), `{oppPct}%` right-aligned (red)
+- Hidden when `isFinal`; shown for upcoming + in-progress matchups
+- **Client-side fetch**: `TeamMatchupTracker` fetches `/api/win-probability` itself (not passed from server); skips stale data when stored `matchupPeriodId !== weekNum`
+- **99.8% Space Cowboys explained**: current score gap + EROSP range gap = no simulated overlap → genuine extreme probability, not a bug
+
+### Win probability on matchups page (`components/MatchupCard.tsx`, `components/MatchupsClient.tsx`, `app/matchups/page.tsx`)
+- `app/matchups/page.tsx` made async; fetches `getWinProbability()` from KV and builds `winProbByTeamId: Record<number, number>` (teamId → win%)
+- `MatchupsClient` accepts `winProbByTeamId?` and passes `homeWinPct`/`awayWinPct` to `MatchupCard` only for the current week
+- `MatchupCard` renders `(65%)` in `text-xs text-gray-400` after each team name; hidden when matchup is complete
+- Graceful no-op when KV has no data yet
