@@ -119,7 +119,7 @@ export default function TeamMatchupTracker({
     <div className="mb-6">
       <Link href="/matchups" className="block group">
         <div style={borderStyle} className="shadow-sm transition-opacity group-hover:opacity-90">
-          <div className={`rounded-[10px] px-6 py-4 ${cardBg}`}>
+          <div style={{ borderRadius: '10px' }} className={`px-6 py-4 ${cardBg}`}>
             {/* Main row: status + teams + scores */}
             <div className="flex items-center gap-4">
               {/* Status badge */}
