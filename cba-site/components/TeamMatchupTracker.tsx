@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 interface TrackerProps {
+  teamId: number;
   weekNum: number;
   myName: string;
   myLogo?: string;
@@ -18,26 +18,67 @@ interface TrackerProps {
   myWinPct?: number;
 }
 
+interface LiveMatchup {
+  week: number;
+  homeTeamId: number;
+  homeScore: number;
+  awayTeamId: number;
+  awayScore: number;
+  winner?: string;
+}
+
 export default function TeamMatchupTracker({
+  teamId,
   weekNum,
   myName,
   myLogo,
-  myScore,
-  myWon,
+  myScore: initialMyScore,
+  myWon: initialMyWon,
   oppName,
   oppLogo,
-  oppScore,
-  isFinal,
-  inProgress,
+  oppScore: initialOppScore,
+  isFinal: initialIsFinal,
+  inProgress: initialInProgress,
   myWinPct,
 }: TrackerProps) {
-  const router = useRouter();
+  const [myScore, setMyScore] = useState(initialMyScore);
+  const [oppScore, setOppScore] = useState(initialOppScore);
+  const [isFinal, setIsFinal] = useState(initialIsFinal);
+  const [myWon, setMyWon] = useState(initialMyWon);
+  const [inProgress, setInProgress] = useState(initialInProgress);
 
-  // Re-fetch server data every hour so scores stay current
   useEffect(() => {
-    const interval = setInterval(() => router.refresh(), 60 * 60 * 1000);
+    async function fetchLiveScores() {
+      try {
+        const res = await fetch('/api/live-scores', { cache: 'no-store' });
+        if (!res.ok) return;
+        const json = await res.json() as { week: number; matchups: LiveMatchup[] };
+        const matchup = json.matchups.find(
+          m => m.homeTeamId === teamId || m.awayTeamId === teamId
+        );
+        if (!matchup) return;
+        const isHome = matchup.homeTeamId === teamId;
+        const newMyScore = isHome ? matchup.homeScore : matchup.awayScore;
+        const newOppScore = isHome ? matchup.awayScore : matchup.homeScore;
+        const newIsFinal = matchup.winner !== undefined;
+        const newMyWon = newIsFinal
+          ? matchup.winner === (isHome ? 'HOME' : 'AWAY')
+          : null;
+        setMyScore(newMyScore);
+        setOppScore(newOppScore);
+        setIsFinal(newIsFinal);
+        setMyWon(newMyWon);
+        setInProgress(!newIsFinal && (newMyScore > 0 || newOppScore > 0));
+      } catch {
+        // silently fail — keep showing last known scores
+      }
+    }
+
+    // Fetch immediately on mount, then every hour
+    fetchLiveScores();
+    const interval = setInterval(fetchLiveScores, 60 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [router]);
+  }, [teamId]);
 
   const statusLabel = isFinal
     ? myWon ? 'Win' : 'Loss'
@@ -89,7 +130,7 @@ export default function TeamMatchupTracker({
             </div>
 
             {/* VS */}
-            <div className="text-gray-400 font-semibold text-sm flex-shrink-0">vs</div>
+            <div className="text-gray-400 font-semibold text-sm flex-shrink-0 w-8 text-center">vs</div>
 
             {/* Opponent */}
             <div className="flex items-center gap-3 flex-1 justify-end">
@@ -109,16 +150,14 @@ export default function TeamMatchupTracker({
           {/* Win probability bar */}
           {showWinProb && (
             <div className="mt-3 pt-3 border-t border-gray-200/60">
-              <div className="flex justify-between text-[11px] font-semibold mb-1">
-                <span className="text-sky-700">{myWinPct!.toFixed(1)}%</span>
-                <span className="text-gray-400 font-normal">win probability</span>
-                <span className="text-gray-500">{oppWinPct!.toFixed(1)}%</span>
+              <div className="flex items-center text-[11px] font-semibold mb-1">
+                <span className="text-emerald-700 flex-1">{myWinPct!.toFixed(1)}%</span>
+                <span className="text-gray-400 font-normal text-center flex-1">win probability</span>
+                <span className="text-red-500 flex-1 text-right">{oppWinPct!.toFixed(1)}%</span>
               </div>
-              <div className="h-2 rounded-full bg-gray-200 overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-sky-500"
-                  style={{ width: `${myWinPct}%` }}
-                />
+              <div className="h-2 rounded-full overflow-hidden flex">
+                <div className="h-full bg-emerald-500" style={{ width: `${myWinPct}%` }} />
+                <div className="h-full bg-red-400 flex-1" />
               </div>
             </div>
           )}
