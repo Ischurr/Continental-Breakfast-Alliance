@@ -2,21 +2,21 @@ name: Update Projections
 
 on:
   schedule:
-    # 8:00 AM UTC = 3:00 AM EST — every Monday
+    # 8 AM UTC = 3 AM EST / 4 AM EDT, every Monday
     - cron: '0 8 * * 1'
-  workflow_dispatch: # allow manual trigger from GitHub Actions tab
+  workflow_dispatch:
 
 jobs:
   update-projections:
     runs-on: ubuntu-latest
+
     permissions:
       contents: write
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -25,27 +25,26 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.pybaseball
-          # GitHub Actions evicts caches after 7 days — aligns with weekly job cadence
-          key: pybaseball-${{ runner.os }}-${{ github.run_id }}
+          key: pybaseball-proj-${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
-            pybaseball-${{ runner.os }}-
+            pybaseball-proj-${{ runner.os }}-
 
-      - name: Install Python dependencies
+      - name: Install dependencies
         run: pip install pybaseball pandas numpy requests matplotlib
 
-      - name: Run projection script
-        working-directory: cba-site/scripts
-        run: python generate_projections.py
-        timeout-minutes: 30
+      - name: Run projections
+        run: |
+          cd scripts
+          python3 generate_projections.py
 
-      - name: Commit and push if CSV changed
+      - name: Commit updated projections
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add cba-site/scripts/fantasy_projections_*.csv
+          git add scripts/fantasy_projections_2026.csv data/projections/2026.json
           if git diff --staged --quiet; then
-            echo "No projection changes to commit."
+            echo "No changes to projections"
           else
-            git commit -m "Auto-update projections [$(date -u '+%Y-%m-%d %H:%M UTC')]"
+            git commit -m "chore: update fantasy projections [skip ci]"
             git push
           fi

@@ -2,64 +2,61 @@ name: Update Stats
 
 on:
   schedule:
-    # 10:30 UTC = 5:30 AM EST / 6:30 AM EDT
+    # 10:30 AM UTC = 5:30 AM EST / 6:30 AM EDT
     - cron: '30 10 * * *'
-  workflow_dispatch: # allow manual trigger from GitHub Actions tab
+  workflow_dispatch:
 
 jobs:
-  update:
+  update-stats:
     runs-on: ubuntu-latest
+
     permissions:
       contents: write
-    defaults:
-      run:
-        working-directory: cba-site
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: cba-site/package-lock.json
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Fetch current season data
+      - name: Fetch current ESPN data
         env:
-          ESPN_SWID_RAW: ${{ secrets.ESPN_SWID }}
-          ESPN_S2_RAW: ${{ secrets.ESPN_S2 }}
-          ESPN_LEAGUE_ID: '1562795298'
-          ESPN_SEASON_ID: '2026'
-        run: |
-          export ESPN_SWID=$(echo "$ESPN_SWID_RAW" | tr -d '"' | tr -d "'" | tr -d '\n' | tr -d '\r')
-          export ESPN_S2=$(echo "$ESPN_S2_RAW" | tr -d '"' | tr -d "'" | tr -d '\n' | tr -d '\r')
-          echo "SWID length: ${#ESPN_SWID}, S2 length: ${#ESPN_S2}"
-          npm run fetch-current
+          ESPN_LEAGUE_ID: 1562795298
+          ESPN_SEASON_ID: 2026
+          ESPN_SWID: ${{ secrets.ESPN_SWID }}
+          ESPN_S2: ${{ secrets.ESPN_S2 }}
+        run: npm run fetch-current
 
       - name: Fetch free agents
         env:
-          ESPN_SWID_RAW: ${{ secrets.ESPN_SWID }}
-          ESPN_S2_RAW: ${{ secrets.ESPN_S2 }}
-          ESPN_LEAGUE_ID: '1562795298'
-          ESPN_SEASON_ID: '2026'
-        run: |
-          export ESPN_SWID=$(echo "$ESPN_SWID_RAW" | tr -d '"' | tr -d "'" | tr -d '\n' | tr -d '\r')
-          export ESPN_S2=$(echo "$ESPN_S2_RAW" | tr -d '"' | tr -d "'" | tr -d '\n' | tr -d '\r')
-          npm run fetch-free-agents
+          ESPN_LEAGUE_ID: 1562795298
+          ESPN_SEASON_ID: 2026
+          ESPN_SWID: ${{ secrets.ESPN_SWID }}
+          ESPN_S2: ${{ secrets.ESPN_S2 }}
+        run: npm run fetch-free-agents
 
-      - name: Commit and push if data changed
+      - name: Fetch rosters and player points
+        env:
+          ESPN_LEAGUE_ID: 1562795298
+          ESPN_SEASON_ID: 2026
+          ESPN_SWID: ${{ secrets.ESPN_SWID }}
+          ESPN_S2: ${{ secrets.ESPN_S2 }}
+        run: npm run fetch-rosters
+
+      - name: Commit updated data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/current/
+          git add data/current/2026.json data/current/free-agents.json
           if git diff --staged --quiet; then
-            echo "No data changes to commit."
+            echo "No changes to ESPN data"
           else
-            git commit -m "Auto-update stats [$(date -u '+%Y-%m-%d %H:%M UTC')]"
+            git commit -m "chore: update ESPN stats [skip ci]"
             git push
           fi
