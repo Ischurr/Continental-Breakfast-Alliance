@@ -104,12 +104,13 @@ function daysRemainingInCalendarWeek(now: Date = new Date()): number {
 }
 
 /**
- * Compute remaining days in the current ESPN matchup period using
- * the scoring period map from ESPN settings.
+ * Compute remaining days in the current ESPN matchup period.
  *
  * ESPN fantasy baseball scoring periods increment daily (period 1 = opening day).
- * The matchupPeriods map links each matchup period to its scoring period IDs.
- * If not available, falls back to calendar-week remaining days.
+ * Three-tier approach:
+ *   1. ESPN matchupPeriods map (most accurate — exact scoring period IDs per week)
+ *   2. Scoring period arithmetic (assumes standard 7-day weeks, period 1 = week 1 day 1)
+ *   3. Calendar-week fallback (Mon–Sun — used only if ESPN returns bad/missing data)
  */
 function computeRemainingDays(
   currentScoringPeriodId: number,
@@ -117,15 +118,32 @@ function computeRemainingDays(
   matchupPeriods: Record<string, number[]> | undefined,
   now: Date
 ): number {
+  // Tier 1: ESPN matchup periods map
   if (matchupPeriods) {
     const periodsInMatchup = matchupPeriods[String(currentMatchupPeriod)];
     if (periodsInMatchup && periodsInMatchup.length > 0) {
       const lastPeriod = Math.max(...periodsInMatchup);
-      return Math.max(1, lastPeriod - currentScoringPeriodId + 1);
+      const remaining = Math.max(1, lastPeriod - currentScoringPeriodId + 1);
+      console.log(`[espnLoader] Tier-1 remaining days: period ${currentScoringPeriodId} → last ${lastPeriod} = ${remaining} days`);
+      return remaining;
     }
   }
-  // Fallback: calendar week (Mon–Sun)
-  return daysRemainingInCalendarWeek(now);
+
+  // Tier 2: arithmetic from scoring period ID.
+  // Assumes each matchup week = MATCHUP_WEEK_LENGTH_DAYS scoring periods,
+  // and scoring periods are numbered consecutively from 1 on opening day.
+  // periodEnd = currentMatchupPeriod * MATCHUP_WEEK_LENGTH_DAYS
+  if (currentScoringPeriodId > 0 && currentMatchupPeriod > 0) {
+    const periodEnd = currentMatchupPeriod * MATCHUP_WEEK_LENGTH_DAYS;
+    const remaining = Math.max(1, periodEnd - currentScoringPeriodId + 1);
+    console.log(`[espnLoader] Tier-2 remaining days: period ${currentScoringPeriodId} → periodEnd ${periodEnd} = ${remaining} days`);
+    return remaining;
+  }
+
+  // Tier 3: calendar week (Mon–Sun) — least accurate
+  const remaining = daysRemainingInCalendarWeek(now);
+  console.log(`[espnLoader] Tier-3 remaining days (calendar fallback): ${remaining} days`);
+  return remaining;
 }
 
 /**
