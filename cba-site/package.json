@@ -12,7 +12,8 @@
     "send-newsletter": "tsx scripts/send-newsletter.ts",
     "fetch-free-agents": "tsx scripts/fetch-free-agents.ts",
     "fetch-rosters": "tsx scripts/fetch-rosters-2026.ts",
-    "seed-kv": "tsx scripts/seed-kv.ts"
+    "seed-kv": "tsx scripts/seed-kv.ts",
+    "fetch-schedule-config": "tsx scripts/fetch-schedule-config.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
