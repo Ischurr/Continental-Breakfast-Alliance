@@ -107,10 +107,12 @@ function daysRemainingInCalendarWeek(now: Date = new Date()): number {
  * Compute remaining days in the current ESPN matchup period.
  *
  * ESPN fantasy baseball scoring periods increment daily (period 1 = opening day).
- * Three-tier approach:
- *   1. ESPN matchupPeriods map (most accurate — exact scoring period IDs per week)
- *   2. Scoring period arithmetic (assumes standard 7-day weeks, period 1 = week 1 day 1)
- *   3. Calendar-week fallback (Mon–Sun — used only if ESPN returns bad/missing data)
+ * Weeks are NOT always 7 days — the opening week typically runs from Opening Day
+ * through the following Sunday (e.g. Wed March 25 → Sun April 5 = 12 days).
+ *
+ * Two-tier approach:
+ *   1. ESPN matchupPeriods map (authoritative — exact scoring period IDs per week)
+ *   2. Calendar-week fallback (Mon–Sun — poor approximation, only if ESPN returns nothing)
  */
 function computeRemainingDays(
   currentScoringPeriodId: number,
@@ -118,31 +120,24 @@ function computeRemainingDays(
   matchupPeriods: Record<string, number[]> | undefined,
   now: Date
 ): number {
-  // Tier 1: ESPN matchup periods map
+  // Tier 1: ESPN matchup periods map (most accurate)
   if (matchupPeriods) {
+    const keys = Object.keys(matchupPeriods);
+    console.log(`[espnLoader] matchupPeriods has ${keys.length} weeks; week 1 = [${(matchupPeriods["1"] ?? []).join(",")}]`);
     const periodsInMatchup = matchupPeriods[String(currentMatchupPeriod)];
     if (periodsInMatchup && periodsInMatchup.length > 0) {
       const lastPeriod = Math.max(...periodsInMatchup);
       const remaining = Math.max(1, lastPeriod - currentScoringPeriodId + 1);
-      console.log(`[espnLoader] Tier-1 remaining days: period ${currentScoringPeriodId} → last ${lastPeriod} = ${remaining} days`);
+      console.log(`[espnLoader] Tier-1: period ${currentScoringPeriodId} → last ${lastPeriod} = ${remaining} days remaining`);
       return remaining;
     }
+  } else {
+    console.warn("[espnLoader] matchupPeriods not found in ESPN settings — falling back to calendar week");
   }
 
-  // Tier 2: arithmetic from scoring period ID.
-  // Assumes each matchup week = MATCHUP_WEEK_LENGTH_DAYS scoring periods,
-  // and scoring periods are numbered consecutively from 1 on opening day.
-  // periodEnd = currentMatchupPeriod * MATCHUP_WEEK_LENGTH_DAYS
-  if (currentScoringPeriodId > 0 && currentMatchupPeriod > 0) {
-    const periodEnd = currentMatchupPeriod * MATCHUP_WEEK_LENGTH_DAYS;
-    const remaining = Math.max(1, periodEnd - currentScoringPeriodId + 1);
-    console.log(`[espnLoader] Tier-2 remaining days: period ${currentScoringPeriodId} → periodEnd ${periodEnd} = ${remaining} days`);
-    return remaining;
-  }
-
-  // Tier 3: calendar week (Mon–Sun) — least accurate
+  // Tier 2: calendar week (Mon–Sun) — last resort, inaccurate for non-standard weeks
   const remaining = daysRemainingInCalendarWeek(now);
-  console.log(`[espnLoader] Tier-3 remaining days (calendar fallback): ${remaining} days`);
+  console.log(`[espnLoader] Tier-2 (calendar fallback): ${remaining} days remaining`);
   return remaining;
 }
 
@@ -420,9 +415,19 @@ export async function loadCurrentMatchupStates(
     (matchupData.scoringPeriodId as number | undefined) ?? 1;
 
   // ESPN matchupPeriods maps each matchup period to its scoring period IDs.
-  // Example: { "1": [1,2,3,4,5,6,7], "2": [8,9,...], ... }
+  // Example: { "1": [1,2,3,...,12], "2": [13,14,...,19], ... }
   const scheduleSettings = (settings as ESPNAny | undefined)?.scheduleSettings as ESPNAny | undefined;
   const matchupPeriods = scheduleSettings?.matchupPeriods as Record<string, number[]> | undefined;
+
+  // Debug: log what ESPN is actually returning so we can diagnose fallback issues
+  if (!matchupPeriods) {
+    const settingsKeys = settings ? Object.keys(settings) : [];
+    const schedKeys = scheduleSettings ? Object.keys(scheduleSettings) : [];
+    console.warn(
+      `[espnLoader] matchupPeriods missing. settings keys: [${settingsKeys.join(",")}]; ` +
+      `scheduleSettings keys: [${schedKeys.join(",")}]`
+    );
+  }
 
   const remainingDays = computeRemainingDays(
     currentScoringPeriodId,
