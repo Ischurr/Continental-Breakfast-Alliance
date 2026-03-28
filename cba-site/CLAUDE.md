@@ -1900,3 +1900,30 @@ Three compounding bugs caused hitters to appear in SP/RP slots and pitchers in f
 - **Problem**: "highest week with scoring activity" correctly returns the last played week, but when that week is fully over (all matchups have `winner`), the tracker would show the wrong week until Monday's cron ran.
 - **Fix in both files**: after finding `lastActiveWeek`, check if every matchup in that week has `winner !== undefined` → if so, `currentWeek = lastActiveWeek + 1`. Falls back gracefully when next week has no matchups yet (shows "Upcoming").
 - Between Sunday night (week ends) and Monday morning (nightly job runs for new week), tracker correctly shows next week as "Upcoming" with no win-probability border (KV has no data for the new week yet). Expected behavior.
+
+## Session Work (March 28, 2026 — Win Probability Remaining-Days Fix)
+
+### Root cause of inflated win probabilities (99%+)
+- **Bug**: `lib/fantasy/espnLoader.ts` computed remaining days using a Mon–Sun calendar week assumption. On Saturday March 28, this gave only 2 days remaining (Sat+Sun), massively under-counting uncertainty.
+- **Reality**: Week 1 runs March 25 (Opening Day, Wednesday) – April 5 (Sunday) = 12 days. With 9 days remaining, a 74-pt Emus lead is ~77% (not 99.8%).
+
+### ESPN API discovery
+- **`matchupPeriods` in `settings.scheduleSettings`** maps each matchup week to a single number `{ "1": [1], "2": [2], ... }` — NOT daily scoring periods. Useless for remaining-days math.
+- **`scoringPeriodId` parameter** doesn't change `status.currentMatchupPeriod` in API responses — ESPN always returns live current state regardless of the requested period. Probing technique doesn't work.
+- **`scoringPeriodId` in the response** correctly reflects the current day of the season (1 = Opening Day, 4 = March 28, etc.).
+
+### Fix: cached schedule config (`data/fantasy/schedule-2026.json`, `scripts/fetch-schedule-config.ts`)
+- **`scripts/fetch-schedule-config.ts`**: one-time setup script. Builds the full week-boundary map from dates (season start + week 1 end date) then 7-day weeks thereafter. Confirms against live ESPN scoring period. Run: `npm run fetch-schedule-config`
+- **`data/fantasy/schedule-2026.json`**: committed to repo. Week 1 = scoring periods 1–12 (March 25 – April 5). Weeks 2–23 = 7 days each (periods 13–166).
+- **Override dates**: `SEASON_START=YYYY-MM-DD WEEK1_END=YYYY-MM-DD npm run fetch-schedule-config`
+- **`lib/fantasy/espnLoader.ts`** `loadScheduleConfig()` reads this file as tier-1. Live ESPN matchupPeriods is tier-2. Calendar week (Mon–Sun) is tier-3 last resort.
+- **For future seasons**: re-run `fetch-schedule-config.ts` with the new season's Opening Day and Week 1 end date (first Sunday on or after Opening Day).
+
+### Expected probabilities after fix (March 28, with 9 days remaining)
+| Matchup | Score | Lead | ~Win Prob |
+|---|---|---|---|
+| Emus vs Folksy Ferrets | 157.3 – 83.0 | +74.3 | ~77% |
+| Space Cowboys vs Fuzzy Bottoms | 137.0 – 83.0 | +54.0 | ~71% |
+| Sky Chiefs vs Mega Rats | 116.0 – 77.5 | +38.5 | ~65% |
+| Whistlepigs vs Pepperoni Rolls | 77.0 – 53.3 | +23.8 | ~59% |
+| Banshees vs Chinook | 114.0 – 113.3 | +0.8 | ~51% |
