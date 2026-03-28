@@ -85,21 +85,6 @@ function normalizeName(name: string): string {
     .trim();
 }
 
-/**
- * Returns the ISO date string (YYYY-MM-DD) for the Monday that starts
- * the current matchup week.
- */
-function getCurrentWeekMonday(now: Date = new Date()): Date {
-  const d = new Date(now);
-  // JS getDay(): 0=Sun, 1=Mon, ... 6=Sat
-  const dayOfWeek = d.getDay();
-  // Offset so Monday = 0
-  const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-  d.setDate(d.getDate() - daysFromMonday);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
 function toISODate(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
@@ -108,9 +93,10 @@ function toISODate(d: Date): string {
  * Returns the number of remaining calendar days in the current scoring week
  * (Monday through Sunday), inclusive of today.
  *
+ * Used as a fallback when ESPN scoring period data isn't available.
  * Monday=7, Tuesday=6, ..., Sunday=1, after-Sunday-midnight=0
  */
-function daysRemainingInWeek(now: Date = new Date()): number {
+function daysRemainingInCalendarWeek(now: Date = new Date()): number {
   const dayOfWeek = now.getDay(); // 0=Sun, 1=Mon ... 6=Sat
   // Days until end-of-Sunday (0=already Sunday end, 1=Saturday, ..., 6=Monday)
   const daysToSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
@@ -118,54 +104,69 @@ function daysRemainingInWeek(now: Date = new Date()): number {
 }
 
 /**
- * Estimate how many SP starts have already been used this week.
- * Heuristic: the cap is 7; the week is 7 days; expect ~1 start/day on avg.
- * This is improved if ESPN roster weekly stat data is available.
+ * Compute remaining days in the current ESPN matchup period using
+ * the scoring period map from ESPN settings.
+ *
+ * ESPN fantasy baseball scoring periods increment daily (period 1 = opening day).
+ * The matchupPeriods map links each matchup period to its scoring period IDs.
+ * If not available, falls back to calendar-week remaining days.
  */
-function estimateStartsUsed(
-  cap: number,
-  now: Date = new Date(),
-  weeklyStartsFromRoster?: number
+function computeRemainingDays(
+  currentScoringPeriodId: number,
+  currentMatchupPeriod: number,
+  matchupPeriods: Record<string, number[]> | undefined,
+  now: Date
 ): number {
-  if (weeklyStartsFromRoster !== undefined) return weeklyStartsFromRoster;
-  const dayOfWeek = now.getDay(); // 0=Sun, 1=Mon
-  const daysElapsed = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // days since Monday
-  return Math.min(cap, Math.round(daysElapsed * (cap / MATCHUP_WEEK_LENGTH_DAYS)));
+  if (matchupPeriods) {
+    const periodsInMatchup = matchupPeriods[String(currentMatchupPeriod)];
+    if (periodsInMatchup && periodsInMatchup.length > 0) {
+      const lastPeriod = Math.max(...periodsInMatchup);
+      return Math.max(1, lastPeriod - currentScoringPeriodId + 1);
+    }
+  }
+  // Fallback: calendar week (Mon–Sun)
+  return daysRemainingInCalendarWeek(now);
 }
 
 /**
- * Builds ScheduledGame entries for remaining games this matchup week.
+ * Estimate how many SP starts have already been used this week.
+ * Uses days elapsed in the ESPN matchup period (not calendar week).
+ */
+function estimateStartsUsed(
+  cap: number,
+  daysElapsedInPeriod: number,
+  periodLength: number = MATCHUP_WEEK_LENGTH_DAYS
+): number {
+  return Math.min(cap, Math.round(daysElapsedInPeriod * (cap / periodLength)));
+}
+
+/**
+ * Builds ScheduledGame entries for the remaining days in this matchup period.
  *
- * Since we don't have a per-player/per-day schedule from MLB Stats API here,
- * we use a probabilistic model:
- *   - Each remaining calendar day is one ScheduledGame entry
+ * Uses a probabilistic model (not real MLB schedule):
+ *   - Each remaining day is one ScheduledGame entry
  *   - game_scheduled_prob ≈ 0.89 (most teams play ~6/7 days per week)
  *   - For SPs: isStartingPitcherExpected and startProbability based on rotation slot
  *   - For hitters: appearanceProbability = p_play × game_scheduled_prob
  *   - For RPs: appearanceProbability = p_appear × game_scheduled_prob
  *
- * To replace this with real schedule data: substitute daysRemaining game objects
- * with actual schedule lookups from MLB Stats API /schedule endpoint.
+ * @param remainingDays - days left in the matchup period INCLUDING today
  */
 function buildRemainingGames(
   role: PlayerRole,
   erosp: EROSPPlayerData | undefined,
+  remainingDays: number,
   now: Date = new Date()
 ): ScheduledGame[] {
-  const days = daysRemainingInWeek(now);
-  if (days <= 0) return [];
+  if (remainingDays <= 0) return [];
 
   const games: ScheduledGame[] = [];
-  const monday = getCurrentWeekMonday(now);
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-  for (let d = 0; d < MATCHUP_WEEK_LENGTH_DAYS; d++) {
-    const gameDate = new Date(monday);
+  for (let d = 0; d < remainingDays; d++) {
+    const gameDate = new Date(today);
     gameDate.setDate(gameDate.getDate() + d);
-
-    const isPast = gameDate < new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const isToday = toISODate(gameDate) === toISODate(now);
-
-    if (isPast) continue; // already played, skip — scored points already in currentPoints
+    const isToday = d === 0;
 
     let appearanceProbability: number;
     let isStartingPitcherExpected = false;
@@ -173,20 +174,17 @@ function buildRemainingGames(
 
     if (role === "hitter") {
       const pPlay = erosp?.startProbability
-        ? Math.min(erosp.startProbability, 0.98) // cap at 98%
+        ? Math.min(erosp.startProbability, 0.98)
         : HITTER_P_PLAY_DEFAULT;
       appearanceProbability = pPlay * GAME_SCHEDULED_PROB;
     } else if (role === "starting_pitcher") {
-      // SP starts every ~5 days in the rotation
       const pStart = SP_START_RATE_PER_GAME;
-      // cap_factor < 1 means team has so many SPs that some are capped out; reduce further
       const capAdj = erosp?.capFactor ?? 1.0;
       const pStartAdj = pStart * capAdj;
       appearanceProbability = pStartAdj * GAME_SCHEDULED_PROB;
       isStartingPitcherExpected = true;
       startProbability = pStartAdj * GAME_SCHEDULED_PROB;
     } else {
-      // Relief pitcher
       appearanceProbability = RP_APPEARANCE_RATE_DEFAULT * GAME_SCHEDULED_PROB;
     }
 
@@ -255,6 +253,7 @@ function buildPlayerProjection(
   entry: ESPNAny,
   teamId: number,
   erospIdx: ReturnType<typeof buildEROSPIndex>,
+  remainingDays: number,
   now: Date
 ): PlayerProjectionInput | null {
   const ppe = entry.playerPoolEntry as ESPNAny | undefined;
@@ -274,18 +273,9 @@ function buildPlayerProjection(
   const lineupSlotId = (entry.lineupSlotId as number) ?? 0;
   const active = lineupSlotId < 16 || (lineupSlotId === 12); // not bench/IL
 
-  // Current week's points from weekly stat split
-  const weeklyStatEntry = (player.stats as ESPNAny[] | undefined)?.find(
-    (s) =>
-      (s.statSourceId as number) === 0 &&
-      (s.statSplitTypeId as number) === 1 && // 1 = current scoring period
-      (s.seasonId as number) === parseInt(ESPN_SEASON_ID, 10)
-  );
-  const alreadyScored = (weeklyStatEntry?.appliedTotal as number) ?? 0;
-
   const erosp = lookupEROSP(espnId, name, erospIdx);
 
-  const scheduledGamesRemaining = buildRemainingGames(role, erosp, now);
+  const scheduledGamesRemaining = buildRemainingGames(role, erosp, remainingDays, now);
 
   return {
     playerId: espnId,
@@ -300,7 +290,9 @@ function buildPlayerProjection(
     season: {},
     recent: {},
     erosp,
-    alreadyScoredPointsThisMatchup: alreadyScored,
+    // Set to 0: team-level currentPoints already captures the weekly total.
+    // Adding per-player weekly stats on top would double-count scored points.
+    alreadyScoredPointsThisMatchup: 0,
     scheduledGamesRemaining,
   };
 }
@@ -400,15 +392,42 @@ export async function loadCurrentMatchupStates(
     pointsLeague: true,
   };
 
-  // ---- Determine current matchup period ----
+  // ---- Determine current matchup period and remaining days ----
   const currentMatchupPeriod: number =
     ((matchupData.status as ESPNAny)?.currentMatchupPeriod as number | undefined) ??
     (matchupData.scoringPeriodId as number | undefined) ??
     1;
 
-  const weekMonday = getCurrentWeekMonday(now);
-  const weekSunday = new Date(weekMonday);
-  weekSunday.setDate(weekSunday.getDate() + 6);
+  const currentScoringPeriodId: number =
+    (matchupData.scoringPeriodId as number | undefined) ?? 1;
+
+  // ESPN matchupPeriods maps each matchup period to its scoring period IDs.
+  // Example: { "1": [1,2,3,4,5,6,7], "2": [8,9,...], ... }
+  const scheduleSettings = (settings as ESPNAny | undefined)?.scheduleSettings as ESPNAny | undefined;
+  const matchupPeriods = scheduleSettings?.matchupPeriods as Record<string, number[]> | undefined;
+
+  const remainingDays = computeRemainingDays(
+    currentScoringPeriodId,
+    currentMatchupPeriod,
+    matchupPeriods,
+    now
+  );
+
+  // Period length for starts-used estimation
+  const periodLength = matchupPeriods?.[String(currentMatchupPeriod)]?.length ?? MATCHUP_WEEK_LENGTH_DAYS;
+  const daysElapsed = Math.max(0, periodLength - remainingDays);
+
+  console.log(
+    `[espnLoader] Scoring period ${currentScoringPeriodId}, matchup period ${currentMatchupPeriod}, ` +
+    `${remainingDays} days remaining (period length ${periodLength})`
+  );
+
+  // Compute week start/end from scoring period for matchup config metadata
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const weekStart = new Date(today);
+  weekStart.setDate(weekStart.getDate() - daysElapsed);
+  const weekEnd = new Date(today);
+  weekEnd.setDate(weekEnd.getDate() + remainingDays - 1);
 
   // ---- Build team name map ----
   const teamNameMap = new Map<number, string>();
@@ -469,16 +488,12 @@ export async function loadCurrentMatchupStates(
       const players: PlayerProjectionInput[] = [];
 
       for (const entry of entries) {
-        const proj = buildPlayerProjection(entry, teamId, erospIdx, now);
+        const proj = buildPlayerProjection(entry, teamId, erospIdx, remainingDays, now);
         if (proj) players.push(proj);
       }
 
-      // Estimate starts used: first try counting from roster weekly stats,
-      // then fall back to day-of-week heuristic
-      const startsFromRoster = countStartsUsedFromRoster(players);
-      const usedPitcherStarts = startsFromRoster > 0
-        ? startsFromRoster
-        : estimateStartsUsed(pitcherStartCap, now);
+      // Estimate starts used based on days elapsed in the ESPN matchup period
+      const usedPitcherStarts = estimateStartsUsed(pitcherStartCap, daysElapsed, periodLength);
 
       return {
         fantasyTeamId: String(teamId),
@@ -492,19 +507,15 @@ export async function loadCurrentMatchupStates(
     const homeTeam = buildTeamState(homeTeamId, homeCurrentPoints);
     const awayTeam = buildTeamState(awayTeamId, awayCurrentPoints);
 
-    // Detect extended matchup (e.g., 8-day week due to schedule quirks)
-    const matchupDays = Math.round(
-      (weekSunday.getTime() - weekMonday.getTime()) / (1000 * 60 * 60 * 24)
-    ) + 1;
-    const isExtendedMatchup = matchupDays > 7;
+    const isExtendedMatchup = periodLength > 7;
 
     const matchupConfig: MatchupConfig = {
       matchupId: String(espnMatchup.id ?? `${homeTeamId}-${awayTeamId}`),
       matchupPeriodId: currentMatchupPeriod,
-      weekStart: toISODate(weekMonday),
-      weekEnd: toISODate(weekSunday),
+      weekStart: toISODate(weekStart),
+      weekEnd: toISODate(weekEnd),
       pitcherStartCap: isExtendedMatchup
-        ? Math.ceil(pitcherStartCap * (matchupDays / 7)) // proportional cap for extended weeks
+        ? Math.ceil(pitcherStartCap * (periodLength / 7))
         : pitcherStartCap,
       isExtendedMatchup,
       lastUpdatedAt: now.toISOString(),
@@ -600,7 +611,7 @@ export async function buildOfflineMatchupState(
         recent: {},
         erosp,
         alreadyScoredPointsThisMatchup: 0,
-        scheduledGamesRemaining: buildRemainingGames(role, erosp, now),
+        scheduledGamesRemaining: buildRemainingGames(role, erosp, offlineRemainingDays, now),
       });
     }
 
@@ -609,13 +620,16 @@ export async function buildOfflineMatchupState(
       name: (currentData.teams ?? []).find((t: { id: number }) => t.id === teamId)?.name ?? `Team ${teamId}`,
       currentPoints,
       players,
-      usedPitcherStarts: estimateStartsUsed(CBA_PITCHER_START_CAP, now),
+      usedPitcherStarts: estimateStartsUsed(CBA_PITCHER_START_CAP, offlineDaysElapsed),
     };
   }
 
-  const weekMonday = getCurrentWeekMonday(now);
-  const weekSunday = new Date(weekMonday);
-  weekSunday.setDate(weekSunday.getDate() + 6);
+  const offlineRemainingDays = daysRemainingInCalendarWeek(now);
+  const offlineDaysElapsed = Math.max(0, MATCHUP_WEEK_LENGTH_DAYS - offlineRemainingDays);
+  const offlineWeekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  offlineWeekStart.setDate(offlineWeekStart.getDate() - offlineDaysElapsed);
+  const offlineWeekEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  offlineWeekEnd.setDate(offlineWeekEnd.getDate() + offlineRemainingDays - 1);
 
   return {
     league: {
@@ -630,8 +644,8 @@ export async function buildOfflineMatchupState(
     matchup: {
       matchupId: `${homeTeamId}-${awayTeamId}`,
       matchupPeriodId: 1,
-      weekStart: toISODate(weekMonday),
-      weekEnd: toISODate(weekSunday),
+      weekStart: toISODate(offlineWeekStart),
+      weekEnd: toISODate(offlineWeekEnd),
       pitcherStartCap: CBA_PITCHER_START_CAP,
       isExtendedMatchup: false,
       lastUpdatedAt: now.toISOString(),
