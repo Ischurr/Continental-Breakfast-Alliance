@@ -218,8 +218,8 @@ export default function TeamMatchupTracker({
 
               {/* Center: week label + vs — same column as "win probability" row below */}
               <div className="flex-shrink-0 w-20 text-center">
-                <p className="text-xs text-gray-500 font-medium">Week {weekNum}</p>
-                <p className="text-gray-400 font-semibold text-sm">vs</p>
+                <p className="text-sm text-gray-500 font-medium">Week {weekNum}</p>
+                <p className="text-gray-400 font-semibold text-base">vs</p>
               </div>
 
               {/* Opponent */}
@@ -239,7 +239,7 @@ export default function TeamMatchupTracker({
 
             {/* Win probability row — w-20 center column aligns with "vs" above */}
             {showWinProb && (
-              <div className="flex items-center gap-4 mt-2 pt-2 border-t border-gray-200/60 text-[11px] font-semibold">
+              <div className="flex items-center gap-4 mt-2 pt-2 border-t border-gray-200/60 text-sm font-semibold">
                 <span className="text-emerald-700 flex-1">{myWinPct!.toFixed(1)}%</span>
                 <span className="text-gray-400 font-normal flex-shrink-0 w-20 text-center">win probability</span>
                 <span className="text-red-500 flex-1 text-right">{oppWinPct!.toFixed(1)}%</span>
