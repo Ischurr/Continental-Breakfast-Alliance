@@ -1765,6 +1765,7 @@ All three workflows created, pushed, and confirmed working via manual dispatch.
 - GitHub Secrets `ESPN_SWID` + `ESPN_S2` already set from last month — no action needed
 - EROSP cache (`scripts/erosp_cache/`) and pybaseball cache (`~/.pybaseball/`) persisted between runs via `actions/cache@v4`
 - `[skip ci]` on commit messages prevents GitHub Actions from re-triggering on its own commits
+- **Repo layout gotcha**: `.github/workflows/` is at the repo root, but all code is in `cba-site/`. ALL workflows must use `defaults: run: working-directory: ./cba-site`. Cache paths in `actions/cache@v4` are always repo-root-relative (e.g. `cba-site/scripts/erosp_cache`). `update-erosp` + `update-projections` were missing `defaults.working-directory` and failing with `cd: scripts: No such file or directory` — fixed March 29.
 
 ### `SEASON_STARTED` date corrected (`scripts/compute_erosp.py`)
 - Changed `datetime.date(TARGET_SEASON, 3, 27)` → `datetime.date(TARGET_SEASON, 3, 25)` — season opened March 25
