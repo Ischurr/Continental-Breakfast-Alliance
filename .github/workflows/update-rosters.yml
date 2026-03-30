@@ -12,6 +12,10 @@ jobs:
   update-rosters:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: ./cba-site
+
     permissions:
       contents: write
 
@@ -23,6 +27,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+          cache-dependency-path: cba-site/package-lock.json
 
       - name: Install dependencies
         run: npm ci
