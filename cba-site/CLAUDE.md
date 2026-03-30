@@ -1914,11 +1914,14 @@ Three compounding bugs caused hitters to appear in SP/RP slots and pitchers in f
 - **`scoringPeriodId` in the response** correctly reflects the current day of the season (1 = Opening Day, 4 = March 28, etc.).
 
 ### Fix: cached schedule config (`data/fantasy/schedule-2026.json`, `scripts/fetch-schedule-config.ts`)
-- **`scripts/fetch-schedule-config.ts`**: one-time setup script. Builds the full week-boundary map from dates (season start + week 1 end date) then 7-day weeks thereafter. Confirms against live ESPN scoring period. Run: `npm run fetch-schedule-config`
-- **`data/fantasy/schedule-2026.json`**: committed to repo. Week 1 = scoring periods 1–12 (March 25 – April 5). Weeks 2–23 = 7 days each (periods 13–166).
-- **Override dates**: `SEASON_START=YYYY-MM-DD WEEK1_END=YYYY-MM-DD npm run fetch-schedule-config`
+- **`scripts/fetch-schedule-config.ts`**: one-time setup script. Builds the full week-boundary map from three anchor dates, then 7-day weeks everywhere else. Confirms against live ESPN scoring period. Run: `npm run fetch-schedule-config`
+- **Three anchor dates** (env vars with 2026 defaults):
+  - `SEASON_START=2026-03-25` — Opening Day (scoring period 1)
+  - `WEEK1_END=2026-04-05` — End of 12-day opening week (first Sunday ≥ Opening Day)
+  - `ALLSTAR_END=2026-07-26` — End of 14-day All-Star Break extended week
+- **`data/fantasy/schedule-2026.json`**: committed to repo. Week 1 = periods 1–12, Week 16 = periods 111–124 (14 days, July 13–26), all other weeks = 7 days.
 - **`lib/fantasy/espnLoader.ts`** `loadScheduleConfig()` reads this file as tier-1. Live ESPN matchupPeriods is tier-2. Calendar week (Mon–Sun) is tier-3 last resort.
-- **For future seasons**: re-run `fetch-schedule-config.ts` with the new season's Opening Day and Week 1 end date (first Sunday on or after Opening Day).
+- **For future seasons**: update all three env vars and re-run `fetch-schedule-config.ts`. All-Star Break week varies by year.
 
 ### Expected probabilities after fix (March 28, with 9 days remaining)
 | Matchup | Score | Lead | ~Win Prob |
