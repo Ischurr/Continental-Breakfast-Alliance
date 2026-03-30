@@ -10,6 +10,10 @@ jobs:
   update-erosp:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: ./cba-site
+
     permissions:
       contents: write
 
@@ -32,7 +36,7 @@ jobs:
       - name: Cache EROSP computation cache
         uses: actions/cache@v4
         with:
-          path: scripts/erosp_cache
+          path: cba-site/scripts/erosp_cache
           key: erosp-cache-${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
             erosp-cache-${{ runner.os }}-

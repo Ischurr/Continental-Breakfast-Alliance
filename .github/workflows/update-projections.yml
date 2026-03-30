@@ -10,6 +10,10 @@ jobs:
   update-projections:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: ./cba-site
+
     permissions:
       contents: write
 
