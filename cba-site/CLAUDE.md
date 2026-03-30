@@ -1947,3 +1947,29 @@ Three compounding bugs caused hitters to appear in SP/RP slots and pitchers in f
 | Sky Chiefs vs Mega Rats | 116.0 – 77.5 | +38.5 | ~65% |
 | Whistlepigs vs Pepperoni Rolls | 77.0 – 53.3 | +23.8 | ~59% |
 | Banshees vs Chinook | 114.0 – 113.3 | +0.8 | ~51% |
+
+## Session Work (March 30, 2026 — Live Scores Bug Fix + Score Freshness Labels)
+
+### `/api/live-scores` week 22 bug fixed (`app/api/live-scores/route.ts`)
+- **Root cause**: ESPN returns `winner: "UNDECIDED"` (not `null`/`undefined`) for all unplayed/in-progress matchups. The check `m.winner !== undefined` evaluated `true` for every matchup, causing the loop to treat week 21 (the last scheduled week) as the most-recently-active week — then advance to week 22 (no matchups), returning `{ week: 22, matchups: [] }`.
+- **Fix**: replaced `winner !== undefined` with an explicit `isFinalized()` helper:
+  ```ts
+  const isFinalized = (m: Record<string, unknown>) =>
+    m.winner === 'HOME' || m.winner === 'AWAY';
+  ```
+  Applied in two places: (1) deciding whether a matchup has activity, (2) checking if the last active week is fully final before advancing to the next week.
+- Same `winner === 'HOME' || winner === 'AWAY'` check also applied in `components/MatchupsClient.tsx` where live scores patch `matchup.winner`.
+
+### Score freshness UI language updated
+- Replaced "In progress · scores through completed games" with **"Scores updated as of morning of [Month Day]"** in three places:
+  - `components/MatchupCard.tsx` — matchups page in-progress label
+  - `components/TeamMatchupTracker.tsx` — team page tracker footnote (also shows "· refreshes every 5 min")
+  - `app/page.tsx` — homepage "Game of the Week" matchup card label
+- Date rendered dynamically via `new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' })`
+
+### Polling interval changed: 60 min → 5 min
+- `TeamMatchupTracker.tsx` and `MatchupsClient.tsx`: `setInterval` changed from `60 * 60 * 1000` → `5 * 60 * 1000`
+- ESPN's `mMatchup` API updates overnight (batch processing), not in real-time — so 5-min polling won't give real-time scores, but picks up the batch update faster after it lands
+
+### Key ESPN API insight documented
+- **ESPN `mMatchup` `totalPoints`** reflects batch-processed stats updated overnight, not real-time in-game stats. This is why site scores (~200 pts) differ from ESPN's UI (~248 pts) mid-week. ESPN's UI uses a separate real-time scoring layer we can't access. The score freshness label sets correct expectations for users.
