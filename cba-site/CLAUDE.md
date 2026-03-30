@@ -101,6 +101,7 @@ npm run build            # Production build
 - **In-season mode** (after March 25): `SEASON_STARTED=True` → fetches current-year batting/pitching stats (min 10 PA / 5 IP) + daily IL/injury map from MLB Stats API
 - Can be triggered manually: Actions tab → Update EROSP → Run workflow
 - All four workflows confirmed working; `[skip ci]` tag on commits prevents double-deploy loops
+- **Repo layout gotcha**: `.github/workflows/` lives at the repo root (`Continental-Breakfast-Alliance/`), but `package.json` is in `cba-site/`. All Node.js workflows need `defaults.run.working-directory: ./cba-site` at the job level and `cache-dependency-path: cba-site/package-lock.json` on the `setup-node` step — otherwise `npm ci` fails at the repo root. Fixed March 29, 2026.
 
 ### GitHub Actions (`.github/workflows/update-rosters.yml`)
 - Runs every **3 days** (`0 11 */3 * *`, 11:00 UTC)
