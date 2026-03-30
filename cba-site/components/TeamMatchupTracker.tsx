@@ -248,6 +248,11 @@ export default function TeamMatchupTracker({
           </div>
         </div>
       </Link>
+      {inProgress && (
+        <p className="text-xs text-gray-400 text-center mt-1">
+          Scores reflect completed games · refreshes every 5 min
+        </p>
+      )}
     </div>
   );
 }

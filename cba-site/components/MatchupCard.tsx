@@ -65,7 +65,7 @@ export default function MatchupCard({ matchup, teams, homeWinPct, awayWinPct }: 
         </div>
 
         {!isComplete && (
-          <div className="mt-2 text-center text-xs text-violet-500 font-medium">In Progress</div>
+          <div className="mt-2 text-center text-xs text-violet-500 font-medium">In progress · scores through completed games</div>
         )}
       </div>
     </div>
