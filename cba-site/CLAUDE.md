@@ -100,14 +100,21 @@ npm run build            # Production build
 - Caches `~/.pybaseball/` and `scripts/erosp_cache/` between runs (~1 min with warm cache)
 - **In-season mode** (after March 25): `SEASON_STARTED=True` → fetches current-year batting/pitching stats (min 10 PA / 5 IP) + daily IL/injury map from MLB Stats API
 - Can be triggered manually: Actions tab → Update EROSP → Run workflow
-- All four workflows confirmed working; `[skip ci]` tag on commits prevents double-deploy loops
-- **Repo layout gotcha**: `.github/workflows/` lives at the repo root (`Continental-Breakfast-Alliance/`), but `package.json` is in `cba-site/`. All Node.js workflows need `defaults.run.working-directory: ./cba-site` at the job level and `cache-dependency-path: cba-site/package-lock.json` on the `setup-node` step — otherwise `npm ci` fails at the repo root. Fixed March 29, 2026.
+- **Repo layout gotcha (critical)**: `.github/workflows/` must be at the **repo root** (`Continental-Breakfast-Alliance/.github/workflows/`), NOT inside `cba-site/.github/workflows/`. GitHub ignores subdirectory workflow files entirely — they produce no runs, no errors, nothing visible. All 5 workflows were in the wrong location until March 28, 2026. If adding new workflows, always create them at the repo root.
+- All Node.js workflows need `defaults.run.working-directory: ./cba-site` at the job level and `cache-dependency-path: cba-site/package-lock.json` on the `setup-node` step — otherwise `npm ci` fails at the repo root.
+- `[skip ci]` tag on commits prevents double-deploy loops
 
 ### GitHub Actions (`.github/workflows/update-rosters.yml`)
 - Runs every **3 days** (`0 11 */3 * *`, 11:00 UTC)
 - Runs `npm run fetch-rosters` (`tsx scripts/fetch-rosters-2026.ts`) → commits `data/current/2026.json` rosters if changed
 - Refreshes per-player ESPN position eligibility as players earn new positions during the season
 - Needs `ESPN_SWID` + `ESPN_S2` secrets (same as update-stats)
+
+### GitHub Actions (`.github/workflows/update-win-probability.yml`)
+- Runs daily at **10 PM EST** (03:00 UTC next day)
+- POSTs to `/api/win-probability/refresh` with Bearer token → runs Monte Carlo simulation → stores result in KV key `win-probability-2026`
+- Requires `WIN_PROBABILITY_SECRET` GitHub Secret (also set as Vercel env var for Production)
+- Can be triggered manually: Actions tab → Update Win Probability → Run workflow
 
 ## Recent Work (Feb 2026 — late)
 - **Playoff bracket** (`app/playoffs/page.tsx`): uses last 2 weeks of season as playoff rounds; lowest seed goes LEFT bracket; background photos use `minHeight: 500px` to normalize height across years. **Two-mode background**: current season with no champion → `isFullPageBg=true`, World Series trophy (`PRE_SEASON_BG`) rendered as `fixed inset-0 -z-10` with `bg-black/70` overlay (content scrolls over it, all text white); past seasons with a champion → `isFullPageBg=false`, boxed `relative rounded-2xl overflow-hidden` card with `absolute inset-0` background + `bg-black/60` overlay, page bg `bg-sky-50`, "In the Hunt"/"In the Hurt" text gray
@@ -728,7 +735,8 @@ Multi-stage pipeline:
 6. **Urgency classification**: Urgent Pickup (upgrade% ≥ 15%), Suggested Add (≥ 10% + above absolute floor, or FA pool z ≥ 1.0), Watchlist (≥ 5%). Max 5 recommendations returned.
 7. **Empty-slot spam control**: bottom-3-ranked positions always shown; mid-rank empty slots capped at 2
 
-Key config: `erospFloor=25` (denominator min for upgrade%), `weaknessZThreshold=-0.50`, `maxRecommendations=5`, `MAX_MID_RANK_EMPTY_SLOTS=2`
+Key config: `erospFloor=75` (denominator min for upgrade%), `weaknessZThreshold=-0.50`, `maxRecommendations=5`, `MAX_MID_RANK_EMPTY_SLOTS=2`
+- **IL filtering**: FA pool excludes players with `il_type` of `D60` or `SUSP` — players out 2+ months won't surface as recommendations
 
 Position eligibility mapping: `role='SP'→SP`, `role='RP'→RP`, `pos='TWP'→OF` (if EROSP > 50), LF/CF/RF → OF
 
@@ -979,8 +987,12 @@ Added an "In Memoriam" page for the Dinwiddie Dinos (team ID 10, 2022–2024), t
 **6. Daily injury map** (`ingest.py`, `projection.py`, `compute_erosp.py`)
 - `fetch_injured_players(season)` loops all 30 MLB teams via `/teams/{id}/roster?rosterType=40Man`
 - Returns `{mlbam_id: {"il_type": "D10", "games_missed_est": N}}` for each IL player
-- Uses `expectedActivationDate` when available; falls back to `_il_code_to_games()` (D7→7, D10→14, D15→21, D60→60)
+- Uses `expectedActivationDate` when available; falls back to `_il_code_to_games()` (D7→7, D10→14, D15→21, D60→60, SUSP→30, BRV→3, PL→7)
 - Daily cache: `erosp_cache/injured_players_{season}_{date}.json` — ~3s fetch, idempotent reruns
+- `compute_erosp.py` Step 13 now writes `il_type` field to output JSON for all IL players
+- `EROSPPlayer` interface has `il_type?: string`; red badge shown in EROSP table
+- **Root cause of Hunter Greene bug**: injury map deducted games correctly but `il_type` was never written to output → suggested-moves had no IL awareness. Fix: expose `il_type` in JSON + filter D60/SUSP from FA pool
+- `scripts/patch_injury_status.py` — lightweight standalone IL patcher (~5s, only needs `requests`); updates `il_type` in `latest.json` without full EROSP recompute
 - `compute_all_erosp_raw()` accepts `injury_map` and deducts `games_missed_est` from `games_remaining` for all 3 player types
 
 ### New constants in `config.py`
@@ -1753,19 +1765,22 @@ Startable ≠ "points this player will score." It's value-above-replacement. A r
 
 ## Session Work (March 25, 2026 — GitHub Actions Automation)
 
-### Three GitHub Actions workflows created (`.github/workflows/`)
-All three workflows created, pushed, and confirmed working via manual dispatch.
+### Five GitHub Actions workflows (`.github/workflows/`)
 
 | Workflow | Schedule | Runtime | Purpose |
 |---|---|---|---|
 | `update-stats.yml` | Daily 5:30 AM EST | ~20 sec | ESPN standings/rosters/free agents |
 | `update-erosp.yml` | Daily 6:00 AM EST | ~1 min (warm cache) | EROSP projections + IL/injury map |
 | `update-projections.yml` | Mondays 3:00 AM EST | ~3 min (warm cache) | FanGraphs projections regeneration |
+| `update-rosters.yml` | Every 3 days | ~20 sec | ESPN position eligibility refresh |
+| `update-win-probability.yml` | Daily 10 PM EST | ~1 min | Monte Carlo win probability |
+| `update-injury-status.yml` | 4x daily (9am/1pm/5pm/9pm EST) | ~5 sec | Patch `il_type` in latest.json |
 
-- GitHub Secrets `ESPN_SWID` + `ESPN_S2` already set from last month — no action needed
+- GitHub Secrets: `ESPN_SWID`, `ESPN_S2`, `WIN_PROBABILITY_SECRET` (all set)
 - EROSP cache (`scripts/erosp_cache/`) and pybaseball cache (`~/.pybaseball/`) persisted between runs via `actions/cache@v4`
 - `[skip ci]` on commit messages prevents GitHub Actions from re-triggering on its own commits
-- **Repo layout gotcha**: `.github/workflows/` is at the repo root, but all code is in `cba-site/`. ALL workflows must use `defaults: run: working-directory: ./cba-site`. Cache paths in `actions/cache@v4` are always repo-root-relative (e.g. `cba-site/scripts/erosp_cache`). `update-erosp` + `update-projections` were missing `defaults.working-directory` and failing with `cd: scripts: No such file or directory` — fixed March 29.
+- **CRITICAL gotcha (March 28)**: workflow files were accidentally created inside `cba-site/.github/workflows/` instead of the repo root `Continental-Breakfast-Alliance/.github/workflows/`. GitHub **silently ignores** subdirectory workflows — zero runs, zero errors, zero indication anything is wrong. None of the 5 workflows ever ran until this was fixed March 28. Always create new workflow files at the repo root.
+- Node.js workflows must use `defaults: run: working-directory: ./cba-site` and `cache-dependency-path: cba-site/package-lock.json` since `package.json` is in the subdirectory.
 
 ### `SEASON_STARTED` date corrected (`scripts/compute_erosp.py`)
 - Changed `datetime.date(TARGET_SEASON, 3, 27)` → `datetime.date(TARGET_SEASON, 3, 25)` — season opened March 25
