@@ -788,12 +788,19 @@ export function getSuggestedMoves(input: SuggestedMovesInput): SuggestedMovesRes
 
   // Restrict FA pool to players actually available in this league (from faList)
   const faListNameSet = new Set(faList.map(p => normalizeName(p.playerName)));
-  // IL types to exclude from recommendations: 60-day IL and suspensions
-  const EXCLUDE_IL_TYPES = new Set(['D60', 'SUSP', 'S']);
-  const leagueFAs = faErospPlayers.filter(p =>
-    faListNameSet.has(normalizeName(p.name)) &&
-    !EXCLUDE_IL_TYPES.has(p.il_type ?? '')
-  );
+  // Exclude FA candidates who are too far out to be worth picking up.
+  // Rule: exclude if IL type is a long-term designation (D60/SUSP) AND more
+  // than 21 days remain on the IL stint. Once ≤21 days remain, they become
+  // recommendable again regardless of the IL type — e.g. Greene returning in
+  // 2 weeks in late May should surface as a pickup even though he's D60.
+  const LONG_TERM_IL = new Set(['D60', 'SUSP', 'S']);
+  const IL_RETURN_WINDOW = 21; // days — if closer than this, recommend anyway
+  const leagueFAs = faErospPlayers.filter(p => {
+    if (!faListNameSet.has(normalizeName(p.name))) return false;
+    if (!LONG_TERM_IL.has(p.il_type ?? '')) return true;
+    // Long-term IL: only exclude if they're still far out
+    return (p.il_days_remaining ?? Infinity) <= IL_RETURN_WINDOW;
+  });
 
   // Photo lookup
   const faPhotoLookup = new Map<string, string>();

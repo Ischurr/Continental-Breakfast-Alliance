@@ -518,6 +518,7 @@ for mlbam_id, row in projection_df.sort_values("erosp_startable", ascending=Fals
     # IL status — include if player is currently on IL
     if injury_map and mlbam_id in injury_map:
         player["il_type"] = injury_map[mlbam_id]["il_type"]
+        player["il_days_remaining"] = int(injury_map[mlbam_id].get("games_missed_est", 0))
 
     # Role-specific extras
     if row.get("player_type") == "hitter":

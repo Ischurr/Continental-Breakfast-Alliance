@@ -131,13 +131,17 @@ for player in players:
         continue
 
     if mlbam_id in injury_map:
-        il_type = injury_map[mlbam_id]["il_type"]
-        if player.get("il_type") != il_type:
+        il_info = injury_map[mlbam_id]
+        il_type = il_info["il_type"]
+        il_days = int(il_info.get("games_missed_est", 0))
+        if player.get("il_type") != il_type or player.get("il_days_remaining") != il_days:
             player["il_type"] = il_type
+            player["il_days_remaining"] = il_days
             patched += 1
     else:
         if "il_type" in player:
             del player["il_type"]
+            player.pop("il_days_remaining", None)
             activated += 1
 
 # ── Save ──────────────────────────────────────────────────────────

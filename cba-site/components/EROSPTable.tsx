@@ -20,7 +20,8 @@ export interface EROSPPlayer {
   projected_starts?: number;
   fp_per_start?: number;
   rp_role?: string;
-  il_type?: string;  // e.g. 'D60', 'D15', 'D10' — present if player is on IL
+  il_type?: string;           // e.g. 'D60', 'D15', 'D10' — present if player is on IL
+  il_days_remaining?: number; // estimated days until activation (from expectedActivationDate or IL type estimate)
 }
 
 export interface EROSPMeta {
