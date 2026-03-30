@@ -440,7 +440,13 @@ def fetch_sprint_speed(year: int) -> Optional[pd.DataFrame]:
 
 def _il_code_to_games(code: str) -> int:
     """Conservative estimate of games still to be missed based on IL type."""
-    return {"D7": 7, "D10": 14, "D15": 21, "D60": 60}.get(str(code).upper(), 14)
+    return {
+        "D7": 7, "D10": 14, "D15": 21, "D60": 60,
+        # Suspensions — use 30 days as default when duration unknown
+        "SUSP": 30, "S": 30,
+        # Bereavement / paternity are typically 3–7 days
+        "BRV": 3, "PL": 7,
+    }.get(str(code).upper(), 14)
 
 
 def fetch_injured_players(season: int = 2026) -> Dict[int, dict]:

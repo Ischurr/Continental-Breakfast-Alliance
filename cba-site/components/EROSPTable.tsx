@@ -20,6 +20,7 @@ export interface EROSPPlayer {
   projected_starts?: number;
   fp_per_start?: number;
   rp_role?: string;
+  il_type?: string;  // e.g. 'D60', 'D15', 'D10' — present if player is on IL
 }
 
 export interface EROSPMeta {
@@ -256,6 +257,11 @@ export default function EROSPTable({
                         <td className="px-4 py-2.5 text-gray-300 text-xs">{i + 1}</td>
                         <td className="px-4 py-2.5 font-medium text-gray-800">
                           {p.name}
+                          {p.il_type && (
+                            <span className="ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-600">
+                              {p.il_type}
+                            </span>
+                          )}
                           {p.role === 'SP' && p.projected_starts != null && (
                             <span className="ml-1.5 text-xs text-gray-400 font-normal">
                               ({Math.round(p.projected_starts)} starts)

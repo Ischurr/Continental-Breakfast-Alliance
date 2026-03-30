@@ -515,6 +515,10 @@ for mlbam_id, row in projection_df.sort_values("erosp_startable", ascending=Fals
         "cap_factor":      round(float(row.get("cap_factor", 1.0)), 3),
     }
 
+    # IL status — include if player is currently on IL
+    if injury_map and mlbam_id in injury_map:
+        player["il_type"] = injury_map[mlbam_id]["il_type"]
+
     # Role-specific extras
     if row.get("player_type") == "hitter":
         player["pa_per_game"]  = round(float(row.get("daily_ev_raw", 0) / max(

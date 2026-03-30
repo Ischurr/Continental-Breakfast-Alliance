@@ -1,0 +1,58 @@
+name: Update Injury Status
+
+on:
+  schedule:
+    # Run 4x daily: 9 AM, 1 PM, 5 PM, 9 PM EST (14, 18, 22, 02 UTC)
+    # Keeps IL status within ~4 hours of reality throughout the day
+    - cron: '0 14 * * *'
+    - cron: '0 18 * * *'
+    - cron: '0 22 * * *'
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  update-injury-status:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./cba-site
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache EROSP cache (injury map is stored here)
+        uses: actions/cache@v4
+        with:
+          path: cba-site/scripts/erosp_cache
+          key: erosp-cache-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            erosp-cache-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Patch injury status in latest.json
+        run: |
+          cd scripts
+          python3 patch_injury_status.py
+
+      - name: Commit updated injury status
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/erosp/latest.json
+          if git diff --staged --quiet; then
+            echo "No IL changes"
+          else
+            git commit -m "chore: refresh IL status [skip ci]"
+            git push
+          fi

@@ -788,7 +788,12 @@ export function getSuggestedMoves(input: SuggestedMovesInput): SuggestedMovesRes
 
   // Restrict FA pool to players actually available in this league (from faList)
   const faListNameSet = new Set(faList.map(p => normalizeName(p.playerName)));
-  const leagueFAs = faErospPlayers.filter(p => faListNameSet.has(normalizeName(p.name)));
+  // IL types to exclude from recommendations: 60-day IL and suspensions
+  const EXCLUDE_IL_TYPES = new Set(['D60', 'SUSP', 'S']);
+  const leagueFAs = faErospPlayers.filter(p =>
+    faListNameSet.has(normalizeName(p.name)) &&
+    !EXCLUDE_IL_TYPES.has(p.il_type ?? '')
+  );
 
   // Photo lookup
   const faPhotoLookup = new Map<string, string>();
