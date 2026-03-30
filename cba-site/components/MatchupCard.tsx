@@ -65,7 +65,7 @@ export default function MatchupCard({ matchup, teams, homeWinPct, awayWinPct }: 
         </div>
 
         {!isComplete && (
-          <div className="mt-2 text-center text-xs text-violet-500 font-medium">In progress · scores through completed games</div>
+          <div className="mt-2 text-center text-xs text-violet-500 font-medium">Scores updated as of morning of {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</div>
         )}
       </div>
     </div>

@@ -193,7 +193,7 @@ export default async function Home() {
               return (
                 <Link href="/matchups" className="flex flex-col flex-1 group">
                   <p className="text-xs text-gray-400 mb-3">
-                    Week {week} &bull; {isComplete ? 'Final' : hasActivity ? 'In progress · scores through completed games' : useHistorical ? 'Top all-time records' : 'Best combined record'}
+                    Week {week} &bull; {isComplete ? 'Final' : hasActivity ? `Scores updated as of morning of ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}` : useHistorical ? 'Top all-time records' : 'Best combined record'}
                   </p>
                   <div className="space-y-2 flex-1">
                     {[
