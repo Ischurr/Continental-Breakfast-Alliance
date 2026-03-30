@@ -46,7 +46,7 @@ export default function MatchupsClient({ matchupsByWeek, weeks, teams, currentWe
       }
     }
     fetchLive();
-    const interval = setInterval(fetchLive, 60 * 60 * 1000);
+    const interval = setInterval(fetchLive, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, [currentWeek]);
 
@@ -67,7 +67,7 @@ export default function MatchupsClient({ matchupsByWeek, weeks, teams, currentWe
       ...matchup,
       home: { ...matchup.home, totalPoints: live.homeScore },
       away: { ...matchup.away, totalPoints: live.awayScore },
-      winner: live.winner !== undefined ? Number(live.winner) : matchup.winner,
+      winner: (live.winner === 'HOME' || live.winner === 'AWAY') ? Number(live.winner) : matchup.winner,
     };
   }
 

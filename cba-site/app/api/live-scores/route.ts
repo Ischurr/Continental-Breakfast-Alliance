@@ -11,6 +11,11 @@ export async function GET() {
 
     const schedule: Record<string, unknown>[] = data.schedule ?? [];
 
+    // ESPN returns winner: null for unplayed matchups — must check for 'HOME'/'AWAY' strings,
+    // not just !== undefined (null !== undefined is true, which broke week detection).
+    const isFinalized = (m: Record<string, unknown>) =>
+      m.winner === 'HOME' || m.winner === 'AWAY';
+
     // Find the current week: highest week with any scoring activity.
     // If that week is fully final (all matchups have winners), advance to the next week.
     let lastActiveWeek = 1;
@@ -18,7 +23,7 @@ export async function GET() {
       const home = m.home as Record<string, unknown> | undefined;
       const away = m.away as Record<string, unknown> | undefined;
       if (
-        m.winner !== undefined ||
+        isFinalized(m) ||
         (home?.totalPoints as number ?? 0) > 0 ||
         (away?.totalPoints as number ?? 0) > 0
       ) {
@@ -28,7 +33,7 @@ export async function GET() {
     }
     const lastActiveMatchups = schedule.filter(m => m.matchupPeriodId === lastActiveWeek);
     const lastWeekFullyFinal = lastActiveMatchups.length > 0 &&
-      lastActiveMatchups.every(m => m.winner !== undefined);
+      lastActiveMatchups.every(m => isFinalized(m));
     const currentWeek = lastWeekFullyFinal ? lastActiveWeek + 1 : lastActiveWeek;
 
     // Return all matchups for the current week

@@ -87,7 +87,7 @@ export default function TeamMatchupTracker({
             const isHome = matchup.homeTeamId === teamId;
             const newMyScore = isHome ? matchup.homeScore : matchup.awayScore;
             const newOppScore = isHome ? matchup.awayScore : matchup.homeScore;
-            const newIsFinal = matchup.winner !== undefined;
+            const newIsFinal = matchup.winner === 'HOME' || matchup.winner === 'AWAY';
             const newMyWon = newIsFinal
               ? matchup.winner === (isHome ? 'HOME' : 'AWAY')
               : null;
@@ -124,9 +124,9 @@ export default function TeamMatchupTracker({
       }
     }
 
-    // Fetch immediately on mount, then every hour
+    // Fetch immediately on mount, then every 5 minutes
     fetchAll();
-    const interval = setInterval(fetchAll, 60 * 60 * 1000);
+    const interval = setInterval(fetchAll, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, [teamId, initialIsFinal]);
 
