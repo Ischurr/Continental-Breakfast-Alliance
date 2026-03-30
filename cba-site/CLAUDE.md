@@ -736,7 +736,7 @@ Multi-stage pipeline:
 7. **Empty-slot spam control**: bottom-3-ranked positions always shown; mid-rank empty slots capped at 2
 
 Key config: `erospFloor=75` (denominator min for upgrade%), `weaknessZThreshold=-0.50`, `maxRecommendations=5`, `MAX_MID_RANK_EMPTY_SLOTS=2`
-- **IL filtering**: FA pool excludes players with `il_type` of `D60` or `SUSP` — players out 2+ months won't surface as recommendations
+- **IL filtering**: FA pool excludes players where `il_type` is `D60`/`SUSP` AND `il_days_remaining > 21`. Once ≤21 days remain on the IL stint, they re-enter the pool — e.g. Greene returning in 2 weeks in late May will surface as a pickup even though he's D60
 
 Position eligibility mapping: `role='SP'→SP`, `role='RP'→RP`, `pos='TWP'→OF` (if EROSP > 50), LF/CF/RF → OF
 
@@ -992,7 +992,7 @@ Added an "In Memoriam" page for the Dinwiddie Dinos (team ID 10, 2022–2024), t
 - `compute_erosp.py` Step 13 now writes `il_type` field to output JSON for all IL players
 - `EROSPPlayer` interface has `il_type?: string`; red badge shown in EROSP table
 - **Root cause of Hunter Greene bug**: injury map deducted games correctly but `il_type` was never written to output → suggested-moves had no IL awareness. Fix: expose `il_type` in JSON + filter D60/SUSP from FA pool
-- `scripts/patch_injury_status.py` — lightweight standalone IL patcher (~5s, only needs `requests`); updates `il_type` in `latest.json` without full EROSP recompute
+- `scripts/patch_injury_status.py` — lightweight standalone IL patcher (~5s, only needs `requests`); updates `il_type` and `il_days_remaining` in `latest.json` without full EROSP recompute
 - `compute_all_erosp_raw()` accepts `injury_map` and deducts `games_missed_est` from `games_remaining` for all 3 player types
 
 ### New constants in `config.py`
