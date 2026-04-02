@@ -1973,3 +1973,52 @@ Three compounding bugs caused hitters to appear in SP/RP slots and pitchers in f
 
 ### Key ESPN API insight documented
 - **ESPN `mMatchup` `totalPoints`** reflects batch-processed stats updated overnight, not real-time in-game stats. This is why site scores (~200 pts) differ from ESPN's UI (~248 pts) mid-week. ESPN's UI uses a separate real-time scoring layer we can't access. The score freshness label sets correct expectations for users.
+
+## Session Work (March 30, 2026 — Injury News Integration)
+
+### Overview
+Extended the injury tracker beyond IL type + days-remaining to include actual news blurbs (injury reason, return timeline, severity) from multiple sports news sources.
+
+### New data fields on IL players in `data/erosp/latest.json`
+| Field | Source | Example |
+|---|---|---|
+| `il_type` | MLB Stats API (existing) | `"D15"` |
+| `il_days_remaining` | MLB Stats API (existing) | `8` |
+| `injury_note` | MLB Stats API transactions | `"right forearm inflammation"` |
+| `injury_news` | Rotowire / FantasyPros / RSS | `"Wheeler threw a bullpen session Saturday and is on track to return..."` |
+| `injury_news_source` | — | `"Rotowire"` |
+| `injury_news_date` | — | `"2026-03-29"` |
+
+### New file: `scripts/fetch_injury_news.py`
+Multi-source injury news scraper. Daily-cached to `erosp_cache/injury_news_{season}_{date}.json`.
+
+**Sources (priority order: Rotowire > FantasyPros > RSS):**
+- **Rotowire** (`/baseball/injury-news.php`) — HTML scrape via beautifulsoup4; richest blurbs with return timelines and severity context
+- **FantasyPros** (`/mlb/news/injuries/`) — HTML scrape; aggregates beat reporter updates
+- **CBS Sports** + **ESPN** RSS — XML feeds filtered to injury-keyword items; player name extracted from headlines via regex
+
+Name matching: normalized (lowercase alphanumeric, no accents/suffixes) against EROSP player names.
+If a source is unreachable or returns an unexpected HTML structure, it silently returns `{}` — other sources continue unaffected.
+
+### `scripts/patch_injury_status.py` changes
+- Imports and calls `fetch_all_injury_news(season)` after the existing IL map + transaction note fetches
+- Builds a `{normalized_name: {text, source, date}}` lookup and patches `injury_news` / `injury_news_source` / `injury_news_date` onto each IL player
+- Fields are removed (not just blanked) when a player is activated — clean JSON
+
+### `components/EROSPTable.tsx`
+IL players now show three layers in the name cell:
+1. `D15 ~8d` badge with `injury_note` as hover tooltip (existing)
+2. Red italic line: `right forearm inflammation` (from MLB transactions)
+3. Small gray news line: truncated to 120 chars + `— Rotowire 03/29`; full text on hover via `title`
+
+### `components/SuggestedMoves.tsx` + `lib/suggested-moves.ts`
+`SuggestedMove` interface gains `addPlayerInjuryNews`, `addPlayerInjuryNewsSource`, `addPlayerInjuryNewsDate`.
+When a recommended FA is on short-term IL, a red box below their chip shows the full injury note + news blurb + source — gives managers full context before stashing or adding.
+
+### `.github/workflows/update-injury-status.yml`
+Added `beautifulsoup4` to pip install step (required for HTML scraping).
+
+### Key design notes
+- **Daily cache** prevents hammering Rotowire/FantasyPros on every 4x-daily patch run — news is fetched once per calendar day
+- **Graceful degradation** — if beautifulsoup4 isn't installed, HTML scraping is skipped; RSS still runs. If all news sources fail, IL type/note still patches normally
+- **`NEWS_AVAILABLE` guard** in `patch_injury_status.py` — if `fetch_injury_news.py` can't be imported, script continues without news fields (zero-downtime rollout)

@@ -22,6 +22,10 @@ export interface EROSPPlayer {
   rp_role?: string;
   il_type?: string;           // e.g. 'D60', 'D15', 'D10' — present if player is on IL
   il_days_remaining?: number; // estimated days until activation (from expectedActivationDate or IL type estimate)
+  injury_note?: string;       // e.g. 'right knee inflammation' — from MLB transactions API
+  injury_news?: string;       // Latest news blurb from Rotowire / CBS Sports / FantasyPros
+  injury_news_source?: string;// 'Rotowire', 'CBS Sports', 'FantasyPros', 'ESPN'
+  injury_news_date?: string;  // 'YYYY-MM-DD'
 }
 
 export interface EROSPMeta {
@@ -257,16 +261,45 @@ export default function EROSPTable({
                       <tr key={p.mlbam_id} className="hover:bg-sky-50 transition">
                         <td className="px-4 py-2.5 text-gray-300 text-xs">{i + 1}</td>
                         <td className="px-4 py-2.5 font-medium text-gray-800">
-                          {p.name}
-                          {p.il_type && (
-                            <span className="ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-600">
-                              {p.il_type}
-                            </span>
+                          <div>
+                            {p.name}
+                            {p.il_type && (
+                              <span
+                                className="ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-600"
+                                title={p.injury_note ?? p.il_type}
+                              >
+                                {p.il_type}
+                                {p.il_days_remaining != null && p.il_days_remaining > 0 && (
+                                  <span className="ml-1 font-normal opacity-80">~{p.il_days_remaining}d</span>
+                                )}
+                              </span>
+                            )}
+                            {p.role === 'SP' && p.projected_starts != null && (
+                              <span className="ml-1.5 text-xs text-gray-400 font-normal">
+                                ({Math.round(p.projected_starts)} starts)
+                              </span>
+                            )}
+                          </div>
+                          {p.il_type && p.injury_note && (
+                            <div className="text-[10px] text-red-400 italic leading-tight mt-0.5">
+                              {p.injury_note}
+                            </div>
                           )}
-                          {p.role === 'SP' && p.projected_starts != null && (
-                            <span className="ml-1.5 text-xs text-gray-400 font-normal">
-                              ({Math.round(p.projected_starts)} starts)
-                            </span>
+                          {p.il_type && p.injury_news && (
+                            <div
+                              className="text-[10px] text-gray-500 leading-snug mt-1 max-w-xs"
+                              title={p.injury_news}
+                            >
+                              {p.injury_news.length > 120
+                                ? p.injury_news.slice(0, 120) + '…'
+                                : p.injury_news}
+                              {p.injury_news_source && (
+                                <span className="ml-1 text-gray-400 not-italic">
+                                  — {p.injury_news_source}
+                                  {p.injury_news_date ? ` ${p.injury_news_date.slice(5).replace('-', '/')}` : ''}
+                                </span>
+                              )}
+                            </div>
                           )}
                         </td>
                         <td className="px-4 py-2.5 text-gray-500 text-xs font-semibold">

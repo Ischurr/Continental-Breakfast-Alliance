@@ -38,7 +38,7 @@ jobs:
             erosp-cache-${{ runner.os }}-
 
       - name: Install dependencies
-        run: pip install requests
+        run: pip install requests beautifulsoup4
 
       - name: Patch injury status in latest.json
         run: |

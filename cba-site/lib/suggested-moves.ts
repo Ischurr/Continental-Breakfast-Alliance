@@ -93,6 +93,11 @@ export interface SuggestedMove {
   addPlayerName: string;
   addPlayerMlbamId: number;
   addPlayerPhotoUrl?: string;
+  addPlayerIlType?: string;       // e.g. 'D15' — if FA is on short-term IL (will return soon)
+  addPlayerInjuryNote?: string;   // e.g. 'right hamstring strain' (from MLB transactions)
+  addPlayerInjuryNews?: string;   // Full news blurb from Rotowire/RSS
+  addPlayerInjuryNewsSource?: string; // 'Rotowire', 'CBS Sports', etc.
+  addPlayerInjuryNewsDate?: string;   // 'YYYY-MM-DD'
   replacePlayerName: string;  // "Empty slot" if none
   replacePlayerMlbamId: number;
   replacePlayerPhotoUrl?: string;
@@ -668,6 +673,11 @@ function findSlotSwaps(
         addPlayerName:        bestFA.name,
         addPlayerMlbamId:     bestFA.mlbam_id,
         addPlayerPhotoUrl:    faPhotoLookup.get(normalizeName(bestFA.name)),
+        addPlayerIlType:           bestFA.il_type,
+        addPlayerInjuryNote:       bestFA.injury_note,
+        addPlayerInjuryNews:       bestFA.injury_news,
+        addPlayerInjuryNewsSource: bestFA.injury_news_source,
+        addPlayerInjuryNewsDate:   bestFA.injury_news_date,
         replacePlayerName:    player.name,
         replacePlayerMlbamId: player.mlbam_id,
         replacePlayerPhotoUrl: playerPhotoUrl,
@@ -891,10 +901,15 @@ export function getSuggestedMoves(input: SuggestedMovesInput): SuggestedMovesRes
       urgency:              best.urgency,
       position:             pos,
       targetSlot:           targetSlotLabel,
-      addPlayerName:        best.player.name,
-      addPlayerMlbamId:     best.player.mlbam_id,
-      addPlayerPhotoUrl:    best.photoUrl,
-      replacePlayerName:    targetPlayer ? targetPlayer.name : 'No projection',
+      addPlayerName:         best.player.name,
+      addPlayerMlbamId:      best.player.mlbam_id,
+      addPlayerPhotoUrl:     best.photoUrl,
+      addPlayerIlType:            best.player.il_type,
+      addPlayerInjuryNote:        best.player.injury_note,
+      addPlayerInjuryNews:        best.player.injury_news,
+      addPlayerInjuryNewsSource:  best.player.injury_news_source,
+      addPlayerInjuryNewsDate:    best.player.injury_news_date,
+      replacePlayerName:     targetPlayer ? targetPlayer.name : 'No projection',
       replacePlayerMlbamId: targetPlayer?.mlbam_id ?? 0,
       faErosp:              Math.round(best.player.erosp_raw * 10) / 10,
       currentErosp:         Math.round(targetErosp * 10) / 10,

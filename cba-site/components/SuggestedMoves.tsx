@@ -159,8 +159,31 @@ function MoveCard({ move }: { move: SuggestedMove }) {
             name={move.addPlayerName}
             erosp={move.faErosp}
             photoUrl={move.addPlayerPhotoUrl}
-            label="FA"
+            label={move.addPlayerIlType ? `FA · ${move.addPlayerIlType}` : 'FA'}
           />
+          {(move.addPlayerInjuryNote || move.addPlayerInjuryNews) && (
+            <div className="mt-1.5 ml-11 rounded-lg bg-red-50 border border-red-100 px-2.5 py-2">
+              {move.addPlayerInjuryNote && (
+                <p className="text-[11px] font-semibold text-red-500 leading-tight">
+                  {move.addPlayerIlType && <span className="mr-1">{move.addPlayerIlType} ·</span>}
+                  {move.addPlayerInjuryNote}
+                </p>
+              )}
+              {move.addPlayerInjuryNews && (
+                <p className="text-[11px] text-red-700 leading-snug mt-0.5">
+                  {move.addPlayerInjuryNews}
+                  {move.addPlayerInjuryNewsSource && (
+                    <span className="text-red-400 ml-1">
+                      — {move.addPlayerInjuryNewsSource}
+                      {move.addPlayerInjuryNewsDate
+                        ? ` ${move.addPlayerInjuryNewsDate.slice(5).replace('-', '/')}`
+                        : ''}
+                    </span>
+                  )}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
