@@ -2,12 +2,13 @@ import Header from '@/components/Header';
 import USMapHero from '@/components/USMapHero';
 import Link from 'next/link';
 import Image from 'next/image';
-import { getAllSeasons, getCurrentSeason, getCompletedSeasons, calculateAllTimeStandings, getTopMatchupOfWeek, getNotableAvailablePlayers } from '@/lib/data-processor';
+import { getCurrentSeason, getCompletedSeasons, calculateAllTimeStandings, getTopMatchupOfWeek } from '@/lib/data-processor';
 import { getHottestStory, timeAgo } from '@/lib/news-fetcher';
 import { Poll, TrashTalkData } from '@/lib/types';
 import { getAndProcessPolls, getTrashTalk } from '@/lib/store';
 import { getAllEventsWithin, formatCountdown, formatEventDate } from '@/lib/calendar';
 import teamsJson from '@/data/teams.json';
+import erospJson from '@/data/erosp/latest.json';
 import PollCard from './polls/PollCard';
 
 function getPollWinner(poll: Poll) {
@@ -27,7 +28,6 @@ const SOURCE_COLORS: Record<string, string> = {
 };
 
 export default async function Home() {
-  const seasons = getAllSeasons();
   const completedSeasons = getCompletedSeasons();
   const currentSeason = getCurrentSeason();
   const allTimeStandings = calculateAllTimeStandings();
@@ -38,12 +38,28 @@ export default async function Home() {
   const mostChampionshipsTeam = currentSeason.teams.find(
     t => t.id === mostChampionships.teamId
   );
-  const champion = currentSeason.teams.find(t => t.id === currentSeason.champion);
 
-  const [hottestStory, topMatchupData, freeAgents] = await Promise.all([
+  // Show champion from most recently completed season, not the current in-progress season
+  const lastCompletedSeason = completedSeasons[completedSeasons.length - 1];
+  const champion = lastCompletedSeason?.teams.find(t => t.id === lastCompletedSeason.champion);
+  const championYear = lastCompletedSeason?.year;
+
+  // Top available FAs by remaining EROSP (raw)
+  const erospPlayers = (erospJson as { players: Array<{ mlbam_id: number; espn_id: string; name: string; position: string; mlb_team: string; role: string; is_fa: boolean; erosp_raw: number }> }).players;
+  const topFAsByEROSP = erospPlayers
+    .filter(p => p.is_fa && p.erosp_raw > 0)
+    .sort((a, b) => b.erosp_raw - a.erosp_raw)
+    .slice(0, 5)
+    .map(p => ({
+      playerName: p.name,
+      position: p.position,
+      erospRaw: p.erosp_raw,
+      photoUrl: p.mlbam_id ? `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_213,q_auto:best/v1/people/${p.mlbam_id}/headshot/67/current` : undefined,
+    }));
+
+  const [hottestStory, topMatchupData] = await Promise.all([
     getHottestStory(),
     Promise.resolve(getTopMatchupOfWeek()),
-    Promise.resolve(getNotableAvailablePlayers(5)),
   ]);
 
   const upcomingEvents = getAllEventsWithin(7);
@@ -108,7 +124,7 @@ export default async function Home() {
               Latest Champion
             </p>
             <p className="text-2xl font-bold text-teal-700">{champion?.name ?? 'TBD'}</p>
-            <p className="text-gray-400 text-sm mt-1">{currentSeason.year} Season</p>
+            <p className="text-gray-400 text-sm mt-1">{championYear ?? currentSeason.year} Season</p>
           </div>
 
           <div className="bg-white p-6 rounded-xl shadow-lg border">
@@ -231,10 +247,10 @@ export default async function Home() {
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
               🎯 Top Available Players
             </p>
-            <p className="text-xs text-gray-400 mb-3">Players not on any current roster, ranked by historical pts</p>
-            {freeAgents.length > 0 ? (
+            <p className="text-xs text-gray-400 mb-3">Free agents ranked by EROSP</p>
+            {topFAsByEROSP.length > 0 ? (
               <div className="space-y-2 flex-1">
-                {freeAgents.map((p, i) => (
+                {topFAsByEROSP.map((p, i) => (
                   <div key={p.playerName} className="flex items-center gap-3">
                     <span className="text-xs text-gray-300 font-bold w-4">{i + 1}</span>
                     {p.photoUrl && (
@@ -252,13 +268,13 @@ export default async function Home() {
                       <p className="text-xs text-gray-400">{p.position}</p>
                     </div>
                     <span className="text-sm font-bold text-teal-600 flex-shrink-0">
-                      {Math.round(p.totalPoints).toLocaleString()}
+                      {Math.round(p.erospRaw).toLocaleString()}
                     </span>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-400 flex-1">No roster data available.</p>
+              <p className="text-sm text-gray-400 flex-1">No EROSP data available.</p>
             )}
           </div>
         </div>
