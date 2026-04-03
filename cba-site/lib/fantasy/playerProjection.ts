@@ -164,7 +164,7 @@ function estimateStdDev(
 
   const coeff = VOLATILITY_COEFF[role] ?? 0.7;
   const floors: Record<string, number> = {
-    hitter: 1.5,
+    hitter: 3.5,           // real per-game σ: 0-4 with K = -1pt; HR+R+RBI+H = 8+pt
     starting_pitcher: 4.0,
     relief_pitcher: 1.0,
   };

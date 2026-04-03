@@ -2133,3 +2133,30 @@ Runs 2× daily (11 AM + 5 PM EST). Commits any call-up updates → triggers Verc
 - If `mlbTeamId` is null (data not filled in), the script skips that team — won't false-positive
 - If a player is traded to a different MLB org after being protected, the secondary player-lookup check will still catch the call-up even if the primary team roster check misses it
 - `calledUp` is never reset to `false` by the script — once called up, always called up for the season
+
+## Session Work (April 2, 2026 — Win Probability Variance + Real MLB Schedule)
+
+### Inflated win probability fix
+
+**Root cause**: `floors.hitter = 1.5` (min std dev per hitter game) was too low. With `erosp_per_game × 0.62 < 1.5` for many in-season players, nearly all hitters hit the floor — producing only ~46 pts of uncertainty (σ_diff) over 4 remaining days. A 74-pt lead then simulated at ~95%+.
+
+**Fixes** (`lib/fantasy/constants.ts`, `lib/fantasy/playerProjection.ts`):
+- `VOLATILITY_COEFF.hitter`: `0.62` → `1.00` — per-game CV; reflects real binary hit outcomes (0-for-4+K = -1pt; HR+R+RBI+H = 8+ pts)
+- `floors.hitter` in `estimateStdDev()`: `1.5` → `3.5` — minimum per-game σ for hitters
+- Expected effect: σ_diff rises from ~46 to ~56+ pts; a 74-pt lead with 9 days remaining: ~99% → ~77%
+
+### Real MLB schedule integration
+
+**New file: `lib/fantasy/mlbSchedule.ts`**
+- `PARK_FACTORS` record — all 30 MLB teams, runs-based relative to league average (COL=1.13, WSH=0.94); source: FanGraphs 5-year regressed
+- `MLBGameSlot` interface: `{ date: string, isHome: boolean, opponentAbbr: string, parkFactor: number }`
+- `fetchLeagueSchedule(startDate, endDate)` — single MLB Stats API call for all games league-wide; in-memory cache per date range; graceful empty-map fallback on error
+- API: `https://statsapi.mlb.com/api/v1/schedule?sportId=1&gameType=R&startDate=...&endDate=...&fields=dates,date,games,teams,home,away,team,abbreviation`
+
+**`lib/fantasy/espnLoader.ts`** changes:
+- `buildRemainingGames()` now accepts `teamSchedule?: MLBGameSlot[]` — **real schedule path** creates one `ScheduledGame` per confirmed MLB game (no `GAME_SCHEDULED_PROB` fudge; doubleheaders = 2 entries, off days = 0); **probabilistic fallback** unchanged when no data
+- Each real-schedule entry populates `opponentContext: { parkFactor, opponentTeam }` — feeds `opponentAdjustment()` in `playerProjection.ts` (was always `undefined` before)
+- `buildPlayerProjection()` accepts `scheduleMap?: Map<string, MLBGameSlot[]>`; looks up `mlbTeam` from EROSP or ESPN `proTeamAbbrev`
+- `loadCurrentMatchupStates()` calls `fetchLeagueSchedule(today, weekEnd)` and passes the map to every `buildPlayerProjection`
+
+**What's still not wired**: `opponentVsPositionStrength`, `weatherScore`, `vegasImpliedRuns` — would require additional API integrations (weather, Vegas odds). EROSP already bakes in park factor and talent blend as primary signal.

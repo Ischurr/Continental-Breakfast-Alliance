@@ -36,6 +36,7 @@ import {
   SP_DAYS_BETWEEN_STARTS,
   SP_START_RATE_PER_GAME,
 } from "./constants";
+import { fetchLeagueSchedule, type MLBGameSlot } from "./mlbSchedule";
 
 // ---- EROSP JSON shape ----
 
@@ -195,54 +196,107 @@ function estimateStartsUsed(
 /**
  * Builds ScheduledGame entries for the remaining days in this matchup period.
  *
- * Uses a probabilistic model (not real MLB schedule):
- *   - Each remaining day is one ScheduledGame entry
- *   - game_scheduled_prob ≈ 0.89 (most teams play ~6/7 days per week)
- *   - For SPs: isStartingPitcherExpected and startProbability based on rotation slot
- *   - For hitters: appearanceProbability = p_play × game_scheduled_prob
- *   - For RPs: appearanceProbability = p_appear × game_scheduled_prob
+ * Two modes:
  *
- * @param remainingDays - days left in the matchup period INCLUDING today
+ * REAL SCHEDULE (preferred): when `teamSchedule` is provided, creates one entry
+ * per actual MLB game. No GAME_SCHEDULED_PROB fudge needed since the game is
+ * confirmed. Each entry carries opponentContext.parkFactor from the home ballpark.
+ * Doubleheaders produce two entries on the same date. Off days produce no entry.
+ *
+ * PROBABILISTIC FALLBACK: when no schedule data is available, falls back to
+ * one entry per remaining calendar day with GAME_SCHEDULED_PROB applied.
+ *
+ * @param remainingDays  - days left in the matchup period INCLUDING today
+ * @param teamSchedule   - actual game slots from MLB Stats API (optional)
  */
 function buildRemainingGames(
   role: PlayerRole,
   erosp: EROSPPlayerData | undefined,
   remainingDays: number,
-  now: Date = new Date()
+  now: Date = new Date(),
+  teamSchedule?: MLBGameSlot[]
 ): ScheduledGame[] {
   if (remainingDays <= 0) return [];
 
+  const todayStr = toISODate(new Date(now.getFullYear(), now.getMonth(), now.getDate()));
   const games: ScheduledGame[] = [];
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-  for (let d = 0; d < remainingDays; d++) {
-    const gameDate = new Date(today);
-    gameDate.setDate(gameDate.getDate() + d);
-    const isToday = d === 0;
-
-    let appearanceProbability: number;
-    let isStartingPitcherExpected = false;
-    let startProbability: number | undefined;
+  // ---- Shared per-role probability helpers ----
+  function roleProbs(hasConfirmedGame: boolean): {
+    appearanceProbability: number;
+    isStartingPitcherExpected: boolean;
+    startProbability: number | undefined;
+  } {
+    // When the game is confirmed (real schedule), drop the GAME_SCHEDULED_PROB multiplier.
+    const gameProb = hasConfirmedGame ? 1.0 : GAME_SCHEDULED_PROB;
 
     if (role === "hitter") {
       const pPlay = erosp?.startProbability
         ? Math.min(erosp.startProbability, 0.98)
         : HITTER_P_PLAY_DEFAULT;
-      appearanceProbability = pPlay * GAME_SCHEDULED_PROB;
-    } else if (role === "starting_pitcher") {
-      const pStart = SP_START_RATE_PER_GAME;
-      const capAdj = erosp?.capFactor ?? 1.0;
-      const pStartAdj = pStart * capAdj;
-      appearanceProbability = pStartAdj * GAME_SCHEDULED_PROB;
-      isStartingPitcherExpected = true;
-      startProbability = pStartAdj * GAME_SCHEDULED_PROB;
-    } else {
-      appearanceProbability = RP_APPEARANCE_RATE_DEFAULT * GAME_SCHEDULED_PROB;
+      return {
+        appearanceProbability: pPlay * gameProb,
+        isStartingPitcherExpected: false,
+        startProbability: undefined,
+      };
     }
+
+    if (role === "starting_pitcher") {
+      const capAdj = erosp?.capFactor ?? 1.0;
+      const pStartAdj = SP_START_RATE_PER_GAME * capAdj * gameProb;
+      return {
+        appearanceProbability: pStartAdj,
+        isStartingPitcherExpected: true,
+        startProbability: pStartAdj,
+      };
+    }
+
+    // relief_pitcher
+    return {
+      appearanceProbability: RP_APPEARANCE_RATE_DEFAULT * gameProb,
+      isStartingPitcherExpected: false,
+      startProbability: undefined,
+    };
+  }
+
+  // ---- Real schedule path ----
+  if (teamSchedule && teamSchedule.length > 0) {
+    const relevantGames = teamSchedule.filter((g) => g.date >= todayStr);
+
+    if (relevantGames.length > 0) {
+      for (const game of relevantGames) {
+        const { appearanceProbability, isStartingPitcherExpected, startProbability } =
+          roleProbs(true);
+
+        games.push({
+          date: game.date,
+          gameState: game.date === todayStr ? "live" : "upcoming",
+          locked: false,
+          completed: false,
+          appearanceProbability,
+          isStartingPitcherExpected,
+          startProbability,
+          opponentContext: {
+            parkFactor: game.parkFactor,
+            opponentTeam: game.opponentAbbr,
+          },
+        });
+      }
+      return games;
+    }
+  }
+
+  // ---- Probabilistic fallback (no schedule data) ----
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  for (let d = 0; d < remainingDays; d++) {
+    const gameDate = new Date(today);
+    gameDate.setDate(gameDate.getDate() + d);
+    const { appearanceProbability, isStartingPitcherExpected, startProbability } =
+      roleProbs(false);
 
     games.push({
       date: toISODate(gameDate),
-      gameState: isToday ? "live" : "upcoming",
+      gameState: d === 0 ? "live" : "upcoming",
       locked: false,
       completed: false,
       appearanceProbability,
@@ -306,7 +360,8 @@ function buildPlayerProjection(
   teamId: number,
   erospIdx: ReturnType<typeof buildEROSPIndex>,
   remainingDays: number,
-  now: Date
+  now: Date,
+  scheduleMap?: Map<string, MLBGameSlot[]>
 ): PlayerProjectionInput | null {
   const ppe = entry.playerPoolEntry as ESPNAny | undefined;
   const player = ppe?.player as ESPNAny | undefined;
@@ -327,7 +382,9 @@ function buildPlayerProjection(
 
   const erosp = lookupEROSP(espnId, name, erospIdx);
 
-  const scheduledGamesRemaining = buildRemainingGames(role, erosp, remainingDays, now);
+  const mlbTeam = (erosp?.mlbTeam ?? (player.proTeamAbbrev as string) ?? "").toUpperCase();
+  const teamSchedule = scheduleMap?.get(mlbTeam);
+  const scheduledGamesRemaining = buildRemainingGames(role, erosp, remainingDays, now, teamSchedule);
 
   return {
     playerId: espnId,
@@ -503,6 +560,10 @@ export async function loadCurrentMatchupStates(
     rosterMap.set(teamId, entries);
   }
 
+  // ---- Fetch real MLB schedule for park factor + actual game counts ----
+  const mlbScheduleMap = await fetchLeagueSchedule(toISODate(today), toISODate(weekEnd));
+  console.log(`[espnLoader] MLB schedule: ${mlbScheduleMap.size} teams with game data`);
+
   // ---- Find current week's matchups ----
   const schedule = (matchupData.schedule ?? []) as ESPNAny[];
   const currentMatchups = schedule.filter(
@@ -541,7 +602,7 @@ export async function loadCurrentMatchupStates(
       const players: PlayerProjectionInput[] = [];
 
       for (const entry of entries) {
-        const proj = buildPlayerProjection(entry, teamId, erospIdx, remainingDays, now);
+        const proj = buildPlayerProjection(entry, teamId, erospIdx, remainingDays, now, mlbScheduleMap);
         if (proj) players.push(proj);
       }
 

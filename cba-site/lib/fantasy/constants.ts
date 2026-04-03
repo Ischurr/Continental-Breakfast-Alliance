@@ -82,7 +82,7 @@ export const HITTER_P_PLAY_DEFAULT = 0.85;
 // Standard deviation relative to mean for each role.
 // Calibrated empirically: SPs have large per-start spread due to QS/W bonuses.
 export const VOLATILITY_COEFF: Record<string, number> = {
-  hitter: 0.62,            // per-game CV (coeff of variation)
+  hitter: 1.00,            // per-game CV — high due to binary hit outcomes (0-4 with K vs HR+R+RBI)
   starting_pitcher: 0.75,  // per-start CV — log-normal right tail
   relief_pitcher: 1.10,    // per-appearance CV (high: 0 or big save/hold night)
 };
