@@ -4,6 +4,12 @@ import "./globals.css";
 import EventTickerBanner, { type TickerItem } from '@/components/EventTickerBanner';
 import { getAllEventsWithin, formatCountdown, formatEventDate } from '@/lib/calendar';
 import { getAndProcessPolls, getTrashTalk } from '@/lib/store';
+import prospectProtections from '@/data/prospect-protections.json';
+
+type ProspectEntry = {
+  teamName: string;
+  prospect: { name: string; calledUp: boolean; calledUpDate: string | null };
+};
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -73,7 +79,30 @@ export default async function RootLayout({
       href: `/message-board#${p.id}`,
     }));
 
-  const tickerItems: TickerItem[] = [...announcementTickerItems, ...eventTickerItems, ...pollTickerItems];
+  // Call-up notifications: show for 14 days after a protected prospect reaches the majors
+  const fourteenDayMs = 14 * 24 * 60 * 60 * 1000;
+  const callupTickerItems: TickerItem[] = Object.values(
+    prospectProtections as Record<string, ProspectEntry>
+  )
+    .filter(entry => {
+      const p = entry.prospect;
+      return p.calledUp && p.calledUpDate &&
+        Date.now() - new Date(p.calledUpDate).getTime() < fourteenDayMs;
+    })
+    .map(entry => {
+      const p = entry.prospect;
+      const dateStr = p.calledUpDate
+        ? new Date(p.calledUpDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        : '';
+      return {
+        emoji: '🚀',
+        title: `${p.name} Called Up!`,
+        dateLabel: `${entry.teamName}'s protected prospect`,
+        countdown: dateStr,
+      };
+    });
+
+  const tickerItems: TickerItem[] = [...announcementTickerItems, ...callupTickerItems, ...eventTickerItems, ...pollTickerItems];
 
   return (
     <html lang="en">

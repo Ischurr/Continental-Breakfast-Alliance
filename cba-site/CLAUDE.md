@@ -2069,3 +2069,67 @@ Thin wrapper for any player name string. Props: `name`, `mlbamId?`, `espnId?`, `
 - **Photo URL**: `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_213,q_auto:best/v1/people/${mlbamId}/headshot/67/current`
 - **Trend color**: ERA, WHIP, BB/9 are lower-better; all others higher-better
 - **Caching**: data cached in component state — re-opening popup is instant, no second API call
+
+## Session Work (April 2, 2026 — Protected Prospect System)
+
+### Overview
+After the main draft, the league ran an informal "protection draft" where each team selected one minor league prospect to reserve rights to for the season. Built infrastructure to display these on team pages and fire a banner notification when any protected prospect gets called up to the majors.
+
+### New Files
+
+#### `data/prospect-protections.json`
+One entry per team (IDs 1,2,3,4,6,7,8,9,10,11). Each entry has a `prospect` object:
+```json
+{
+  "1": {
+    "teamName": "Sugar Land Space Cowboys",
+    "prospect": {
+      "name": "Player Name",
+      "mlbamId": 123456,
+      "mlbTeam": "HOU",
+      "mlbTeamId": 117,
+      "position": "OF",
+      "age": 22,
+      "description": "Optional scouting blurb shown in the card",
+      "protectedDate": "2026-03-22",
+      "calledUp": false,
+      "calledUpDate": null
+    }
+  }
+}
+```
+**To fill in players**: edit this file directly and push. The `check_prospect_callups.py` script only patches `calledUp` and `calledUpDate` — all other fields stay as entered.
+
+#### `scripts/check_prospect_callups.py`
+- Primary check: fetches MLB Stats API `GET /teams/{mlbTeamId}/roster?rosterType=26Man` and looks for `mlbamId`
+- Secondary check: `GET /people/{mlbamId}?hydrate=rosterEntries` — catches trades to a different org (looks for `rosterId=26, status.code='A', sport.id=1`)
+- Sets `calledUp: true` + `calledUpDate: today` on detection; writes back to `prospect-protections.json`
+- Run: `cd scripts && python3 check_prospect_callups.py` (only needs `requests`)
+
+#### `.github/workflows/update-prospect-callups.yml`
+Runs 2× daily (11 AM + 5 PM EST). Commits any call-up updates → triggers Vercel redeploy. Workflow is at repo root (not `cba-site/.github/`).
+
+### Modified Files
+
+#### `app/teams/[teamId]/page.tsx`
+- Imports `data/prospect-protections.json` and `ProspectEntry` type
+- Reads `prospectEntry` for current team from the JSON
+- "Protected Prospect" section renders for all teams, placed after team-specific brand sections and before the Top Players / Keepers grid
+- Card: dark purple gradient header (`#2d1b69 → #11001f`) with purple badge, player name + team + position + age
+- Status pill: **"On Farm"** (faint, white/40) while in the minors; **"🚀 Called Up"** (emerald green) after promotion
+- Green footer strip shows call-up date when promoted
+- Optional `description` field renders as a white body section (good for scouting notes)
+- Shows "Prospect to be announced" placeholder until data is filled in
+
+#### `app/layout.tsx`
+- Imports `prospect-protections.json` and reads it server-side
+- Adds **"🚀 [Name] Called Up!"** ticker items for any prospect called up within the last 14 days
+- Items placed after announcement items, before calendar events
+- Disappears automatically after 14 days
+
+### Key Gotchas
+- `mlbTeamId` is the MLB Stats API numeric team ID (not ESPN ID) — e.g. HOU=117, LAD=119, NYY=147. Look up at `https://statsapi.mlb.com/api/v1/teams?sportId=1`
+- `mlbamId` is the same MLBAM player ID used everywhere else in the codebase
+- If `mlbTeamId` is null (data not filled in), the script skips that team — won't false-positive
+- If a player is traded to a different MLB org after being protected, the secondary player-lookup check will still catch the call-up even if the primary team roster check misses it
+- `calledUp` is never reset to `false` by the script — once called up, always called up for the season

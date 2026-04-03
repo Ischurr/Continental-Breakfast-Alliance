@@ -1,0 +1,48 @@
+name: Check Prospect Call-ups
+
+on:
+  schedule:
+    # Run twice daily: 11 AM and 5 PM EST (16:00 and 22:00 UTC)
+    # MLB roster moves are announced throughout the day
+    - cron: '0 16 * * *'
+    - cron: '0 22 * * *'
+  workflow_dispatch:
+
+jobs:
+  check-callups:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./cba-site
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Check prospect call-ups
+        run: |
+          cd scripts
+          python3 check_prospect_callups.py
+
+      - name: Commit if any prospect was called up
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/prospect-protections.json
+          if git diff --staged --quiet; then
+            echo "No call-up changes"
+          else
+            git commit -m "chore: update prospect call-up status [skip ci]"
+            git push
+          fi

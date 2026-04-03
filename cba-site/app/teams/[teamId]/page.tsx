@@ -17,6 +17,23 @@ import { getSuggestedMoves } from '@/lib/suggested-moves';
 import fs from 'fs';
 import path from 'path';
 import draftRounds from '@/data/draft-rounds.json';
+import prospectProtections from '@/data/prospect-protections.json';
+
+type ProspectEntry = {
+  teamName: string;
+  prospect: {
+    name: string;
+    mlbamId: number | null;
+    mlbTeam: string;
+    mlbTeamId: number | null;
+    position: string;
+    age: number | null;
+    description: string;
+    protectedDate: string;
+    calledUp: boolean;
+    calledUpDate: string | null;
+  };
+};
 
 // Build a lookup: { year_name → { round, avgPoints } } for all top3 entries
 // Used to check if a team had a "draft steal" (one of their players was best in their round that year)
@@ -238,6 +255,10 @@ export default async function TeamPage({ params }: Props) {
   const rpNames = new Set(
     teamErospPlayers.filter(p => p.role === 'RP').map(p => p.name)
   );
+
+  // Protected prospect for this team
+  const prospectEntry = (prospectProtections as Record<string, ProspectEntry>)[String(id)];
+  const prospect = prospectEntry?.prospect;
 
   const bgFull  = (meta?.bgPlayers as { bgFull?: string })?.bgFull;
   const bgLeft  = bgFull ? undefined : meta?.bgPlayers?.left;
@@ -610,6 +631,68 @@ export default async function TeamPage({ params }: Props) {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Protected Prospect */}
+        {prospect && (
+          <div className="mb-10">
+            <h2 className="text-2xl font-bold text-gray-900 mb-1">Protected Prospect</h2>
+            <p className="text-sm text-gray-700 mb-4">2026 Protection Draft · Rights reserved for the season</p>
+            <div className="rounded-xl overflow-hidden shadow-sm border border-gray-200 max-w-xl">
+              <div className="px-5 py-4" style={{ background: 'linear-gradient(135deg, #2d1b69 0%, #11001f 100%)' }}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <span
+                      className="inline-block text-[11px] font-bold px-2 py-0.5 rounded-full mb-2 tracking-widest uppercase"
+                      style={{ backgroundColor: '#c084fc', color: '#11001f' }}
+                    >
+                      2026 Protection Draft
+                    </span>
+                    {prospect.name === 'TBD' ? (
+                      <p className="text-white/40 font-medium text-base italic">Prospect to be announced</p>
+                    ) : (
+                      <>
+                        <p className="text-white font-bold text-xl leading-tight">{prospect.name}</p>
+                        <p className="text-xs mt-1" style={{ color: '#c084fc' }}>
+                          {prospect.position}
+                          {prospect.mlbTeam !== 'TBD' && ` · ${prospect.mlbTeam}`}
+                          {prospect.age !== null && ` · Age ${prospect.age}`}
+                        </p>
+                      </>
+                    )}
+                  </div>
+                  {prospect.calledUp ? (
+                    <span className="inline-flex items-center gap-1 bg-emerald-400 text-emerald-900 text-xs font-bold px-2.5 py-1 rounded-full flex-shrink-0 mt-0.5">
+                      🚀 Called Up
+                    </span>
+                  ) : prospect.name !== 'TBD' ? (
+                    <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full flex-shrink-0 mt-0.5" style={{ backgroundColor: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }}>
+                      On Farm
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+              {prospect.calledUp && prospect.calledUpDate && (
+                <div className="px-5 py-3 bg-emerald-50 border-t border-emerald-100">
+                  <p className="text-xs text-emerald-700 font-semibold">
+                    ✓ Called up {new Date(prospect.calledUpDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })} — now on the active roster
+                  </p>
+                </div>
+              )}
+              {prospect.description && (
+                <div className="px-5 py-3 bg-white border-t border-gray-100">
+                  <p className="text-xs text-gray-600 leading-relaxed">{prospect.description}</p>
+                </div>
+              )}
+              {!prospect.calledUp && prospect.name !== 'TBD' && !prospect.description && (
+                <div className="px-5 py-3 bg-white border-t border-gray-100">
+                  <p className="text-xs text-gray-400 italic">
+                    Protected {new Date(prospect.protectedDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         )}
