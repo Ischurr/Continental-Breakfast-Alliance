@@ -2223,6 +2223,12 @@ Runs 2× daily (11 AM + 5 PM EST). Commits any call-up updates → triggers Verc
 - `vegasImpliedAllowedRuns` = opposing team's offensive strength → feeds pitcher adjustments
 - No external API key required — uses EROSP as a proxy for run environment
 
+### Stats Page Primary Table Rotation (`app/stats/players/page.tsx`)
+- **`showErospAsPrimary`** flag: `erospMeta && erospPlayers.length > 0 && !isPreDraft && month < 10`
+- Post-draft through Oct 31 → EROSP leads, labeled **"{year} xRoS Points"**; pre-season projections hidden
+- Nov 1+ → pre-season projections lead; EROSP shown as secondary section below
+- Fully automatic year-over-year — no manual changes needed
+
 ### TypeScript / Build Status
 - `tsc --noEmit` exits 0 (clean compilation)
 - `npm run build` fails with a pre-existing Turbopack panic on `scripts/proj_env/bin/python` broken symlink (pre-dates this session — verified by stashing changes and confirming same failure on unmodified HEAD)
