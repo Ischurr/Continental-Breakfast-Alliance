@@ -2022,3 +2022,50 @@ Added `beautifulsoup4` to pip install step (required for HTML scraping).
 - **Daily cache** prevents hammering Rotowire/FantasyPros on every 4x-daily patch run — news is fetched once per calendar day
 - **Graceful degradation** — if beautifulsoup4 isn't installed, HTML scraping is skipped; RSS still runs. If all news sources fail, IL type/note still patches normally
 - **`NEWS_AVAILABLE` guard** in `patch_injury_status.py` — if `fetch_injury_news.py` can't be imported, script continues without news fields (zero-downtime rollout)
+
+## Session Work (April 2, 2026 — Clickable Player Popups)
+
+### Overview
+Added a clickable player popup to every player name across the site. Clicking any player name opens a modal with injury status, fantasy point trends, and stat splits.
+
+### New Files
+
+#### `lib/player-card-types.ts`
+TypeScript interfaces: `PlayerCardStats`, `RecentGame`, `PlayerCardData`.
+
+#### `app/api/player-stats/route.ts`
+API route (`export const dynamic = 'force-dynamic'`). Query params: `mlbamId` (preferred), `espnId`, or `name`.
+- Looks up player in `data/erosp/latest.json` for injury info + projections
+- Loads 2026 YTD fantasy points from `data/current/2026.json`
+- Loads 2025 actual points from `data/historical/2022-2025.json`
+- Fetches in parallel: season stats, L14 stats, L7 stats, game log via MLB Stats API
+- Calculates fantasy points per game using CBA scoring formula
+- MLB Stats API pattern: `${MLB_BASE}/people/${mlbamId}/stats?stats=${statsType}&season=2026&group=${group}&sportId=1${extra}` (extra = `&days=14` for lastXDays)
+
+#### `components/PlayerPopup.tsx`
+Modal popup (`'use client'`). ESC key handler + body scroll lock.
+- Player photo from `img.mlbstatic.com/mlb-photos/image/upload/...`
+- Injury badge + red box with injury note + news blurb (when on IL)
+- Fantasy points grid: 2025 Actual / 2026 YTD / EROSP (proj)
+- Stats trends table: Season vs L14 vs L7 with color coding (green = improving for that stat direction, red = declining)
+- Recent games table: date, opponent, stat line, fantasy points (teal ≥20, red for negative)
+- Hitter stats: AVG, OBP, SLG, OPS, HR, RBI, SB, K%, BB%, ISO
+- Pitcher stats: ERA, WHIP, K/9, BB/9, K%, FIP, IP, QS, SV, HD
+
+#### `components/PlayerName.tsx`
+Thin wrapper for any player name string. Props: `name`, `mlbamId?`, `espnId?`, `className?`.
+- Renders a `<span>` with `cursor-pointer hover:text-teal-600 hover:underline`
+- Fetches `/api/player-stats?...` on first click; caches so re-opening is instant
+- Uses `createPortal` to render `PlayerPopup` in `document.body`
+
+### Wired Into
+- **`components/EROSPTable.tsx`**: `<PlayerName name={p.name} mlbamId={p.mlbam_id} espnId={p.espn_id} />`
+- **`components/FreeAgentsTable.tsx`**: `<PlayerName name={p.playerName} espnId={p.playerId} />`
+- **`components/ProjectedPointsTable.tsx`**: `<PlayerName name={p.playerName} />` (name-only lookup)
+- **`app/stats/players/page.tsx`** Top 25 table: `<PlayerName name={p.playerName} espnId={p.playerId} />`
+
+### Key Details
+- **IP parsing**: `parseIP("6.2")` = 6.667 (innings, not decimal) — `whole + frac/3`
+- **Photo URL**: `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_213,q_auto:best/v1/people/${mlbamId}/headshot/67/current`
+- **Trend color**: ERA, WHIP, BB/9 are lower-better; all others higher-better
+- **Caching**: data cached in component state — re-opening popup is instant, no second API call

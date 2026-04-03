@@ -19,6 +19,7 @@ import {
 import MlbStatsGrid from '@/components/MlbStatsGrid';
 import ProjectedPointsTable from '@/components/ProjectedPointsTable';
 import EROSPTable, { type EROSPPlayer, type EROSPMeta } from '@/components/EROSPTable';
+import PlayerName from '@/components/PlayerName';
 import fs from 'fs';
 import path from 'path';
 
@@ -281,7 +282,7 @@ export default async function PlayerStatsPage() {
                                   unoptimized
                                 />
                               )}
-                              <span className="font-medium">{p.playerName}</span>
+                              <PlayerName name={p.playerName} espnId={p.playerId} />
                             </div>
                           </td>
                           <td className="px-4 py-3 text-gray-500">{p.position}</td>

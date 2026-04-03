@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import PlayerName from './PlayerName';
 
 export interface EROSPPlayer {
   mlbam_id: number;
@@ -262,7 +263,7 @@ export default function EROSPTable({
                         <td className="px-4 py-2.5 text-gray-300 text-xs">{i + 1}</td>
                         <td className="px-4 py-2.5 font-medium text-gray-800">
                           <div>
-                            {p.name}
+                            <PlayerName name={p.name} mlbamId={p.mlbam_id} espnId={p.espn_id} />
                             {p.il_type && (
                               <span
                                 className="ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-600"

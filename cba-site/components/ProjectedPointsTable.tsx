@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import PlayerName from './PlayerName';
 
 export interface ProjectedPlayer {
   playerName: string;
@@ -112,7 +113,7 @@ export default function ProjectedPointsTable({ players, isProjection, targetYear
                   filtered.map((p, i) => (
                     <tr key={`${p.playerName}-${i}`} className="hover:bg-sky-50 transition">
                       <td className="px-4 py-2.5 text-gray-300 text-xs">{i + 1}</td>
-                      <td className="px-4 py-2.5 font-medium text-gray-800">{p.playerName}</td>
+                      <td className="px-4 py-2.5 font-medium text-gray-800"><PlayerName name={p.playerName} /></td>
                       <td className="px-4 py-2.5 text-gray-500 text-xs font-semibold">
                         {normalizePos(p.position)}
                       </td>

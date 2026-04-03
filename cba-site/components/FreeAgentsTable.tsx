@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import PlayerName from './PlayerName';
 
 interface FreeAgent {
   playerId: string;
@@ -73,7 +74,7 @@ function PlayerTable({ players, positionOptions }: { players: FreeAgent[]; posit
                       unoptimized
                       onError={() => {}}
                     />
-                    <span className="font-medium text-gray-800">{p.playerName}</span>
+                    <PlayerName name={p.playerName} espnId={p.playerId} />
                   </div>
                 </td>
                 <td className="px-3 py-2 text-gray-500 text-xs font-semibold">{p.position}</td>
