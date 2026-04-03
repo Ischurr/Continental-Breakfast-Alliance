@@ -2041,10 +2041,12 @@ API route (`export const dynamic = 'force-dynamic'`). Query params: `mlbamId` (p
 - Fetches in parallel: season stats, L14 stats, L7 stats, game log via MLB Stats API
 - Calculates fantasy points per game using CBA scoring formula
 - MLB Stats API pattern: `${MLB_BASE}/people/${mlbamId}/stats?stats=${statsType}&season=2026&group=${group}&sportId=1${extra}` (extra = `&days=14` for lastXDays)
+- Calls `fetchBaseballNews()` and scans title + summary of all RSS articles for the player's name (normalized); returns up to 2 most recent matches as `mentions: [{ title, url, date }]`
 
 #### `components/PlayerPopup.tsx`
 Modal popup (`'use client'`). ESC key handler + body scroll lock.
 - Player photo from `img.mlbstatic.com/mlb-photos/image/upload/...`
+- **News article links**: up to 2 recent headlines from the `/news` RSS feeds shown in the popup header below position/team; teal 📰 icon, opens original article in new tab
 - Injury badge + red box with injury note + news blurb (when on IL)
 - Fantasy points grid: 2025 Actual / 2026 YTD / EROSP (proj)
 - Stats trends table: Season vs L14 vs L7 with color coding (green = improving for that stat direction, red = declining)
