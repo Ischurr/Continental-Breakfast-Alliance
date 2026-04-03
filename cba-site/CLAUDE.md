@@ -2159,4 +2159,68 @@ Runs 2× daily (11 AM + 5 PM EST). Commits any call-up updates → triggers Verc
 - `buildPlayerProjection()` accepts `scheduleMap?: Map<string, MLBGameSlot[]>`; looks up `mlbTeam` from EROSP or ESPN `proTeamAbbrev`
 - `loadCurrentMatchupStates()` calls `fetchLeagueSchedule(today, weekEnd)` and passes the map to every `buildPlayerProjection`
 
-**What's still not wired**: `opponentVsPositionStrength`, `weatherScore`, `vegasImpliedRuns` — would require additional API integrations (weather, Vegas odds). EROSP already bakes in park factor and talent blend as primary signal.
+**What's still not wired**: `weatherScore` — would require a weather API integration. All other `opponentContext` fields are now populated (see session below).
+
+## Session Work (April 3, 2026 — Win Probability Engine Improvements)
+
+### Improvement 1 — Per-player weekly points (espnLoader.ts + simulation.ts)
+
+**`parseWeeklyPointsFromStats()`** — new helper in `espnLoader.ts` that parses per-player current-week fantasy points from the ESPN `mRoster` stats array:
+- Filters for `seasonId === 2026, statSourceId === 0, statSplitTypeId === 5` (current scoring period / weekly split)
+- Reads `appliedTotal` — ESPN's computed fantasy points for the player this matchup week
+- Populated into `player.alreadyScoredPointsThisMatchup` instead of hardcoded `0`
+
+**Double-counting fix** (`simulation.ts`): Removed `total += player.alreadyScoredPointsThisMatchup` from `simulateTeamFinalPoints()`. `team.currentPoints` (team-level weekly total from ESPN) already includes per-player scores; adding them again was double-counting. Field is now purely informational.
+
+**Starts-used improvement** (`espnLoader.ts`): `buildTeamState()` now prefers `countStartsUsedFromRoster(players)` over `estimateStartsUsed(daysElapsed)` when per-player weekly stats are non-zero. Per-player data gives a direct count of SP appearances with meaningful scores.
+
+### Improvement 2 — Probability calibration (new lib/fantasy/calibration.ts)
+
+**`lib/fantasy/calibration.ts`** — piecewise linear calibration curve derived from 2022–2025 backtest (424 matchups, bias=+4.1%):
+- `CALIBRATION_MAP` — 11 breakpoints from [0.50→0.50] to [1.00→0.92], compressing overconfident estimates toward 50%
+- `calibrateWinProbability(rawProb)` — symmetric: above 0.5 uses the map directly; below 0.5 applies `1 - calibrate(1 - p)`
+- Hard cap: raw 1.00 → calibrated 0.92 (model always has some uncertainty)
+
+**`lib/fantasy/winProbability.ts`** — calibration applied after Monte Carlo:
+- Calibrates home and away raw probabilities separately
+- Re-normalizes so home + away + tie = 1.0 after calibration
+- Corrects the observed +4.1% overconfidence bias
+
+### Improvement 3 — MLB probable pitchers (mlbSchedule.ts)
+
+**`MLBGameSlot`** extended with `opponentVsPositionStrength?: number`, `vegasImpliedRuns?: number`, `vegasImpliedAllowedRuns?: number`.
+
+**`fetchLeagueSchedule()`** now:
+1. Hydrates probable pitchers via `&hydrate=probablePitcher` in the schedule API call
+2. Collects all unique probable pitcher IDs from all games in the date range
+3. Fetches 2026 season ERA for each pitcher in **parallel** (`Promise.all`), with per-ID in-memory cache
+4. Computes `opponentVsPositionStrength = clamp(0.5 + (ERA - 4.20) × 0.05, 0.1, 0.9)` where 0.5 = league average, <0.5 = weaker pitcher (good for hitters)
+
+**New helper**: `fetchPitcherEra(personId)` — MLB Stats API `/api/v1/people/{id}/stats?stats=season&season=2026&group=pitching`; result cached in `pitcherEraCache` Map.
+
+**`buildRemainingGames()`** in `espnLoader.ts` now passes `opponentVsPositionStrength`, `vegasImpliedRuns`, `vegasImpliedAllowedRuns` through to each `ScheduledGame.opponentContext` — `opponentAdjustment()` in `playerProjection.ts` was already wired to use all three.
+
+### Improvement 4 — Intra-team score correlation (simulation.ts)
+
+**`sampleTeamDayFactor()`** — draws a shared environment multiplier from `Normal(1.0, σ=0.12)`, floored at 0.40.
+
+**`simulateTeamFinalPoints()`** — pre-draws one `teamDayFactor` per calendar date (for dates with at least one hitter game), then multiplies each hitter's sampled points by the shared factor for that date. Pitchers are NOT affected.
+
+**Effect**: correctly increases uncertainty in close matchups — a team can get collectively shut out or go off on the same day. Produces ~10–15% more variance in projected team totals, preventing overconfident win probabilities for leads that could evaporate in a bad offensive series.
+
+### Improvement 5 — Vegas implied runs proxy (mlbSchedule.ts + espnLoader.ts)
+
+**`espnLoader.ts`** now computes per-MLB-team average hitter `erosp_per_game` from the loaded EROSP file:
+- Filters hitters (`role === "H"`) with `erosp_per_game > 0`
+- Averages per MLB team abbreviation
+- Passes `teamOffensiveEROSP: Record<string, number>` into `fetchLeagueSchedule()`
+
+**`fetchLeagueSchedule()`** populates `vegasImpliedRuns` and `vegasImpliedAllowedRuns` on each `MLBGameSlot`:
+- Formula: `impliedRuns = clamp(4.3 + (teamEROSP - leagueAvgEROSP) × 0.8, 3.5, 6.0)`
+- `vegasImpliedRuns` = home/away team's own offensive strength → feeds `opponentAdjustment()` for hitters
+- `vegasImpliedAllowedRuns` = opposing team's offensive strength → feeds pitcher adjustments
+- No external API key required — uses EROSP as a proxy for run environment
+
+### TypeScript / Build Status
+- `tsc --noEmit` exits 0 (clean compilation)
+- `npm run build` fails with a pre-existing Turbopack panic on `scripts/proj_env/bin/python` broken symlink (pre-dates this session — verified by stashing changes and confirming same failure on unmodified HEAD)

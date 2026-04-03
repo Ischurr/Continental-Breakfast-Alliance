@@ -7,6 +7,7 @@
 
 import type { MatchupState, WinProbabilityResult } from "./types";
 import { runMatchupSimulation } from "./simulation";
+import { calibrateWinProbability } from "./calibration";
 import { DEFAULT_SIMULATION_COUNT } from "./constants";
 
 // ---- Output shape ----
@@ -61,10 +62,23 @@ export function calculateMatchupWinProbability(
   matchup: MatchupState,
   simulationCount: number = DEFAULT_SIMULATION_COUNT
 ): MatchupWinProbabilityView {
-  const result: WinProbabilityResult = runMatchupSimulation(
+  const rawResult: WinProbabilityResult = runMatchupSimulation(
     matchup,
     simulationCount
   );
+
+  // Apply calibration to correct the observed +4.1% overconfidence bias.
+  // Ties are rare and not compressed (they're already near zero).
+  const calibratedHome = calibrateWinProbability(rawResult.homeWinProbability);
+  const calibratedAway = calibrateWinProbability(rawResult.awayWinProbability);
+  // Re-normalize so home + away + tie = 1 after calibration
+  const calibratedSum = calibratedHome + calibratedAway + rawResult.tieProbability;
+  const result: WinProbabilityResult = {
+    ...rawResult,
+    homeWinProbability: calibratedHome / calibratedSum,
+    awayWinProbability: calibratedAway / calibratedSum,
+    tieProbability: rawResult.tieProbability / calibratedSum,
+  };
 
   const homeCurrentPoints = matchup.home.currentPoints;
   const awayCurrentPoints = matchup.away.currentPoints;

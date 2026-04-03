@@ -126,11 +126,28 @@ function sampleGamePoints(
   return 0;
 }
 
+// ---- Team-day correlation factor ----
+
+/**
+ * Samples a shared environment multiplier for all hitters on a team on a given day.
+ * Drawn from Normal(1.0, 0.12) — represents shared game-level variance:
+ * a hot offense day lifts all hitters; a shut-out day depresses all hitters together.
+ *
+ * This correctly increases uncertainty in close matchups (a team can get shut out
+ * as a unit). Pitchers are NOT affected — their variance is already independent.
+ */
+function sampleTeamDayFactor(): number {
+  return Math.max(0.40, randomNormal(1.0, 0.12));
+}
+
 // ---- Team simulation ----
 
 /**
  * Simulates one team's total fantasy points for the rest of the matchup week.
  * Returns the projected FINAL total (currentPoints + simulated remaining).
+ *
+ * Includes intra-team correlation: all hitters on the same team sharing the same
+ * game day draw a shared teamDayFactor multiplier (Normal(1.0, σ=0.12)).
  */
 function simulateTeamFinalPoints(
   team: FantasyTeamMatchupState,
@@ -142,12 +159,26 @@ function simulateTeamFinalPoints(
     strategy.chosenStarts.map((s) => `${s.playerId}:${s.date}`)
   );
 
+  // Pre-draw one teamDayFactor per calendar date for hitters.
+  // Collects all unique dates that have at least one hitter game.
+  const hitterDates = new Set<string>();
+  for (const player of team.players) {
+    if (player.role !== "hitter") continue;
+    for (const game of player.scheduledGamesRemaining) {
+      if (!game.completed && !game.locked) hitterDates.add(game.date);
+    }
+  }
+  const teamDayFactors = new Map<string, number>();
+  for (const date of hitterDates) {
+    teamDayFactors.set(date, sampleTeamDayFactor());
+  }
+
+  // team.currentPoints is the team's weekly total so far (from ESPN mMatchupScore).
+  // player.alreadyScoredPointsThisMatchup is the per-player breakdown — already
+  // included in team.currentPoints, so we do NOT add it again here.
   let total = team.currentPoints;
 
   for (const player of team.players) {
-    // Include already-scored points per player (0 if we're using team-level currentPoints)
-    total += player.alreadyScoredPointsThisMatchup;
-
     for (const game of player.scheduledGamesRemaining) {
       if (game.completed || game.locked) continue;
 
@@ -156,7 +187,15 @@ function simulateTeamFinalPoints(
       const isCapStart =
         player.role === "starting_pitcher" && cappedStartKeys.has(key);
 
-      total += sampleGamePoints(player, game, isCapStart);
+      let points = sampleGamePoints(player, game, isCapStart);
+
+      // Apply shared team-day multiplier to hitters only.
+      if (player.role === "hitter" && points > 0) {
+        const factor = teamDayFactors.get(game.date) ?? 1.0;
+        points *= factor;
+      }
+
+      total += points;
     }
   }
 

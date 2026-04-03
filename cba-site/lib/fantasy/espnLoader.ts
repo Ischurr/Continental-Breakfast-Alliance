@@ -279,6 +279,9 @@ function buildRemainingGames(
           opponentContext: {
             parkFactor: game.parkFactor,
             opponentTeam: game.opponentAbbr,
+            opponentVsPositionStrength: game.opponentVsPositionStrength,
+            vegasImpliedRuns: game.vegasImpliedRuns,
+            vegasImpliedAllowedRuns: game.vegasImpliedAllowedRuns,
           },
         });
       }
@@ -353,6 +356,29 @@ function lookupEROSP(
   return idx.byEspnId.get(espnPlayerId) ?? idx.byNormName.get(normalizeName(playerName));
 }
 
+// ---- Parse per-player current-week fantasy points from ESPN stats array ----
+// Filters for: seasonId === 2026, statSourceId === 0, statSplitTypeId === 5
+// statSplitTypeId 5 = current scoring period (weekly) total.
+// Returns the appliedTotal (ESPN-computed fantasy points for the week so far).
+
+function parseWeeklyPointsFromStats(player: ESPNAny, seasonId: string): number {
+  const stats = player.stats as Array<Record<string, unknown>> | undefined;
+  if (!Array.isArray(stats)) return 0;
+
+  const seasonNum = Number(seasonId);
+  for (const s of stats) {
+    if (
+      s.seasonId === seasonNum &&
+      s.statSourceId === 0 &&
+      s.statSplitTypeId === 5
+    ) {
+      const total = s.appliedTotal as number | undefined;
+      return typeof total === "number" ? total : 0;
+    }
+  }
+  return 0;
+}
+
 // ---- Build a PlayerProjectionInput from ESPN roster entry + EROSP ----
 
 function buildPlayerProjection(
@@ -361,6 +387,7 @@ function buildPlayerProjection(
   erospIdx: ReturnType<typeof buildEROSPIndex>,
   remainingDays: number,
   now: Date,
+  seasonId: string,
   scheduleMap?: Map<string, MLBGameSlot[]>
 ): PlayerProjectionInput | null {
   const ppe = entry.playerPoolEntry as ESPNAny | undefined;
@@ -386,6 +413,13 @@ function buildPlayerProjection(
   const teamSchedule = scheduleMap?.get(mlbTeam);
   const scheduledGamesRemaining = buildRemainingGames(role, erosp, remainingDays, now, teamSchedule);
 
+  // Per-player weekly fantasy points already scored this matchup period.
+  // Parsed from ESPN statSplitTypeId=5 (current period). This is informational:
+  // team.currentPoints already captures the team-level weekly total, so the
+  // simulation does NOT add this on top of currentPoints (that would double-count).
+  // Used for starts-used estimation and player-level ceiling tracking.
+  const alreadyScoredPointsThisMatchup = parseWeeklyPointsFromStats(player, seasonId);
+
   return {
     playerId: espnId,
     name,
@@ -399,9 +433,7 @@ function buildPlayerProjection(
     season: {},
     recent: {},
     erosp,
-    // Set to 0: team-level currentPoints already captures the weekly total.
-    // Adding per-player weekly stats on top would double-count scored points.
-    alreadyScoredPointsThisMatchup: 0,
+    alreadyScoredPointsThisMatchup,
     scheduledGamesRemaining,
   };
 }
@@ -460,6 +492,7 @@ export async function loadCurrentMatchupStates(
     byEspnId: new Map(),
     byNormName: new Map(),
   };
+  let teamOffensiveEROSP: Record<string, number> | undefined;
 
   if (useEROSP && fs.existsSync(erospFilePath)) {
     try {
@@ -468,6 +501,23 @@ export async function loadCurrentMatchupStates(
       );
       erospIdx = buildEROSPIndex(erospFile.players);
       console.log(`[espnLoader] Loaded ${erospFile.players.length} EROSP players`);
+
+      // Compute per-MLB-team average hitter EROSP/game for implied runs proxy.
+      // Only include hitters (role="H") with meaningful projections.
+      const teamHitterSums = new Map<string, { sum: number; count: number }>();
+      for (const p of erospFile.players) {
+        if (p.role !== "H" || p.erosp_per_game <= 0 || !p.mlb_team) continue;
+        const abbr = p.mlb_team.toUpperCase();
+        const entry = teamHitterSums.get(abbr) ?? { sum: 0, count: 0 };
+        entry.sum += p.erosp_per_game;
+        entry.count += 1;
+        teamHitterSums.set(abbr, entry);
+      }
+      teamOffensiveEROSP = {};
+      for (const [abbr, { sum, count }] of teamHitterSums) {
+        teamOffensiveEROSP[abbr] = sum / count;
+      }
+      console.log(`[espnLoader] Computed offensive EROSP for ${Object.keys(teamOffensiveEROSP).length} MLB teams`);
     } catch (e) {
       console.warn("[espnLoader] Failed to load EROSP file:", e);
     }
@@ -561,7 +611,7 @@ export async function loadCurrentMatchupStates(
   }
 
   // ---- Fetch real MLB schedule for park factor + actual game counts ----
-  const mlbScheduleMap = await fetchLeagueSchedule(toISODate(today), toISODate(weekEnd));
+  const mlbScheduleMap = await fetchLeagueSchedule(toISODate(today), toISODate(weekEnd), teamOffensiveEROSP);
   console.log(`[espnLoader] MLB schedule: ${mlbScheduleMap.size} teams with game data`);
 
   // ---- Find current week's matchups ----
@@ -602,12 +652,16 @@ export async function loadCurrentMatchupStates(
       const players: PlayerProjectionInput[] = [];
 
       for (const entry of entries) {
-        const proj = buildPlayerProjection(entry, teamId, erospIdx, remainingDays, now, mlbScheduleMap);
+        const proj = buildPlayerProjection(entry, teamId, erospIdx, remainingDays, now, seasonId, mlbScheduleMap);
         if (proj) players.push(proj);
       }
 
-      // Estimate starts used based on days elapsed in the ESPN matchup period
-      const usedPitcherStarts = estimateStartsUsed(pitcherStartCap, daysElapsed, periodLength);
+      // Prefer per-player weekly stats for starts-used when data is available.
+      // Fall back to elapsed-days estimate when all weekly stats are 0 (pre-season or data unavailable).
+      const hasPerPlayerStats = players.some((p) => p.alreadyScoredPointsThisMatchup > 0);
+      const usedPitcherStarts = hasPerPlayerStats
+        ? countStartsUsedFromRoster(players)
+        : estimateStartsUsed(pitcherStartCap, daysElapsed, periodLength);
 
       return {
         fantasyTeamId: String(teamId),
