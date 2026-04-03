@@ -197,6 +197,14 @@ export default async function PlayerStatsPage() {
     }
   } catch { /* EROSP data not yet generated */ }
 
+  // Determine whether EROSP is the primary projection table.
+  // In-season (post-draft through Oct 31): EROSP leads.
+  // Offseason (Nov 1 – Opening Day): pre-season projections lead.
+  const todayMonth = new Date().getMonth(); // 0-indexed; 10 = November
+  const isOffseason = todayMonth >= 10;
+  const showErospAsPrimary =
+    erospMeta !== null && erospPlayers.length > 0 && !isPreDraft && !isOffseason;
+
   // Build set of true-RP names for the baseball field (EROSP role = 'RP')
   const rpNames = new Set(
     erospPlayers.filter(p => p.role === 'RP').map(p => p.name)
@@ -320,48 +328,70 @@ export default async function PlayerStatsPage() {
             </>
           )}
 
-          {/* ── Projections / MLB Stats ───────────────────────────────── */}
-          <h2 className="text-2xl font-bold mb-1">
-            {hasProjections
-              ? isPreDraft
-                ? `${projectionYear} Draft Board — Non-Keeper Projected Points`
-                : `${projectionYear} Fantasy Projections`
-              : '2025 MLB Stats'}
-          </h2>
-          <p className="text-sm text-gray-500 mb-6">
-            {hasProjections
-              ? isPreDraft
-                ? `Projected fantasy points for all available players — confirmed keepers (${allKeeperNames.size} players) excluded. Sorted by projected output.`
-                : 'Model-based projections using weighted 3-year history, age curves, park factors, Statcast xwOBA, and sprint speed.'
-              : 'Real MLB stats from last season — the best predictor for 2026 fantasy performance.'}
-          </p>
-
-          <ProjectedPointsTable
-            players={allCombined}
-            isProjection={hasProjections}
-            targetYear={projectionYear}
-            recentYear={projectionYear - 1}
-          />
-
-          {/* ── EROSP Section ─────────────────────────────────────────── */}
-          {erospMeta ? (
+          {/* ── Primary Projection Table ──────────────────────────────── */}
+          {showErospAsPrimary ? (
+            /* IN-SEASON: EROSP is the main projection view */
             <>
-              <h2 className="text-2xl font-bold mb-1 mt-10">
-                {erospMeta.season} Expected Rest of Season Points (EROSP)
+              <h2 className="text-2xl font-bold mb-1">
+                {erospMeta!.season} xRoS Points
               </h2>
               <p className="text-sm text-gray-500 mb-6">
-                Daily-updated model projecting each player&apos;s remaining fantasy points —
-                both unconstrained (<strong>Raw</strong>) and within a 10-team daily-lineup
-                league with 7-SP-start weekly cap (<strong>Startable</strong>).
+                Daily-updated model incorporating YTD stats, playing time, and rest-of-season
+                schedule — both unconstrained (<strong>Raw</strong>) and within a 10-team
+                daily-lineup league with 7-SP-start weekly cap (<strong>Startable</strong>).
               </p>
               <EROSPTable
                 players={erospPlayers}
-                meta={erospMeta}
+                meta={erospMeta!}
                 showTeamColumn={true}
                 teamNames={teamNameById}
               />
             </>
-          ) : null}
+          ) : (
+            /* OFFSEASON / PRE-DRAFT: pre-season projections lead */
+            <>
+              <h2 className="text-2xl font-bold mb-1">
+                {hasProjections
+                  ? isPreDraft
+                    ? `${projectionYear} Draft Board — Non-Keeper Projected Points`
+                    : `${projectionYear} Fantasy Projections`
+                  : '2025 MLB Stats'}
+              </h2>
+              <p className="text-sm text-gray-500 mb-6">
+                {hasProjections
+                  ? isPreDraft
+                    ? `Projected fantasy points for all available players — confirmed keepers (${allKeeperNames.size} players) excluded. Sorted by projected output.`
+                    : 'Model-based projections using weighted 3-year history, age curves, park factors, Statcast xwOBA, and sprint speed.'
+                  : 'Real MLB stats from last season — the best predictor for 2026 fantasy performance.'}
+              </p>
+              <ProjectedPointsTable
+                players={allCombined}
+                isProjection={hasProjections}
+                targetYear={projectionYear}
+                recentYear={projectionYear - 1}
+              />
+
+              {/* EROSP below as secondary section in offseason */}
+              {erospMeta ? (
+                <>
+                  <h2 className="text-2xl font-bold mb-1 mt-10">
+                    {erospMeta.season} Expected Rest of Season Points (EROSP)
+                  </h2>
+                  <p className="text-sm text-gray-500 mb-6">
+                    Daily-updated model projecting each player&apos;s remaining fantasy points —
+                    both unconstrained (<strong>Raw</strong>) and within a 10-team daily-lineup
+                    league with 7-SP-start weekly cap (<strong>Startable</strong>).
+                  </p>
+                  <EROSPTable
+                    players={erospPlayers}
+                    meta={erospMeta}
+                    showTeamColumn={true}
+                    teamNames={teamNameById}
+                  />
+                </>
+              ) : null}
+            </>
+          )}
 
           <MlbStatsGrid
             baLeaders={baLeaders}

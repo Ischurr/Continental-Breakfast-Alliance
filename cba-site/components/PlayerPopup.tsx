@@ -210,6 +210,23 @@ export default function PlayerPopup({ data, loading, mlbamId, onClose }: Props) 
                   <div className="text-sm text-gray-500 mt-0.5">
                     {displayPos(data.position, data.role)} · {data.mlbTeam || '—'}
                   </div>
+                  {data.mentions && data.mentions.length > 0 && (
+                    <div className="mt-2 flex flex-col gap-1">
+                      {data.mentions.map((m, i) => (
+                        <a
+                          key={i}
+                          href={m.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-[11px] text-teal-700 hover:text-teal-900 hover:underline leading-tight"
+                          onClick={e => e.stopPropagation()}
+                        >
+                          <span className="text-teal-400">📰</span>
+                          <span className="truncate">{m.title}</span>
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

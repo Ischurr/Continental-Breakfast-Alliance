@@ -61,4 +61,6 @@ export interface PlayerCardData {
   last14Stats?: PlayerCardStats | null;
   last7Stats?: PlayerCardStats | null;
   recentGames?: RecentGame[];
+
+  mentions?: Array<{ title: string; url: string; date: string }>;
 }

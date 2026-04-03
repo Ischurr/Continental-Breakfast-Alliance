@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import type { EROSPPlayer } from '@/components/EROSPTable';
 import type { PlayerCardData, PlayerCardStats, RecentGame } from '@/lib/player-card-types';
+import { fetchBaseballNews } from '@/lib/news-fetcher';
 
 export const dynamic = 'force-dynamic';
 
@@ -266,6 +267,20 @@ export async function GET(request: Request) {
     }
   }
 
+  // Find the 2 most recent news articles mentioning this player
+  const mentions: PlayerCardData['mentions'] = [];
+  const playerNameNorm = norm(name);
+
+  try {
+    const articles = await fetchBaseballNews();
+    for (const article of articles) {
+      if (norm(article.title).includes(playerNameNorm) || norm(article.summary).includes(playerNameNorm)) {
+        mentions.push({ title: article.title, url: article.link, date: article.pubDate });
+        if (mentions.length >= 2) break;
+      }
+    }
+  } catch { /* ignore — mentions are optional */ }
+
   const result: PlayerCardData = {
     name,
     position: erospPlayer?.position ?? '—',
@@ -289,6 +304,7 @@ export async function GET(request: Request) {
     last14Stats,
     last7Stats,
     recentGames,
+    mentions: mentions.length > 0 ? mentions : undefined,
   };
 
   return Response.json(result);
