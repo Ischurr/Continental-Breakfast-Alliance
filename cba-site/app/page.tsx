@@ -9,6 +9,7 @@ import { getAndProcessPolls, getTrashTalk } from '@/lib/store';
 import { getAllEventsWithin, formatCountdown, formatEventDate } from '@/lib/calendar';
 import teamsJson from '@/data/teams.json';
 import erospJson from '@/data/erosp/latest.json';
+import faJson from '@/data/current/free-agents.json';
 import PollCard from './polls/PollCard';
 
 function getPollWinner(poll: Poll) {
@@ -45,9 +46,13 @@ export default async function Home() {
   const championYear = lastCompletedSeason?.year;
 
   // Top available FAs by remaining EROSP (raw)
+  // Use free-agents.json as the authoritative ESPN FA pool (is_fa flag in EROSP is unreliable)
   const erospPlayers = (erospJson as { players: Array<{ mlbam_id: number; espn_id: string; name: string; position: string; mlb_team: string; role: string; is_fa: boolean; erosp_raw: number }> }).players;
-  const topFAsByEROSP = erospPlayers
-    .filter(p => p.is_fa && p.erosp_raw > 0)
+  const espnFANames = new Set((faJson as { players: Array<{ playerName: string }> }).players.map(p => p.playerName));
+  const erospByName = new Map(erospPlayers.map(p => [p.name, p]));
+  const topFAsByEROSP = [...espnFANames]
+    .map(name => erospByName.get(name))
+    .filter((p): p is NonNullable<typeof p> => !!p && p.erosp_raw > 0)
     .sort((a, b) => b.erosp_raw - a.erosp_raw)
     .slice(0, 5)
     .map(p => ({

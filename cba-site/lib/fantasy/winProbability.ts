@@ -18,9 +18,15 @@ export interface MatchupWinProbabilityView {
   awayTeamId: string;
   homeTeamName: string;
   awayTeamName: string;
-  /** 0–100, one decimal place */
+  /** 0–100, one decimal place. Final display value (adaptive correction applied). */
   homeWinPct: number;
   awayWinPct: number;
+  /**
+   * Post-static-calibration win probability BEFORE adaptive correction (0–100).
+   * Stored in PredictionHistory to measure residual bias for the learning loop.
+   */
+  baselineHomeWinPct: number;
+  baselineAwayWinPct: number;
   /** Projected final total, one decimal place */
   projectedHomePoints: number;
   projectedAwayPoints: number;
@@ -55,44 +61,75 @@ function round1(value: number): number {
 /**
  * Calculates win probability for a matchup.
  *
- * @param matchup - Current matchup state (use espnLoader to build this)
- * @param simulationCount - Number of Monte Carlo iterations (default 20,000)
+ * Probability pipeline:
+ *   1. Monte Carlo simulation → raw win probabilities
+ *   2. Static calibration    → compresses overconfidence (piecewise linear map)
+ *   3. Adaptive correction   → adjusts for residual bias learned this season
+ *   4. [3%, 97%] clamp       → applied only while games remain
+ *
+ * @param matchup               Current matchup state (use espnLoader to build this)
+ * @param simulationCount       Number of Monte Carlo iterations (default 20,000)
+ * @param adaptiveBiasCorrection In probability units (0–1). Learned from this
+ *                               season's resolved outcomes. Negative = decrease
+ *                               home win prob (model over-predicted favorites).
+ *                               Defaults to 0 (no adaptive correction).
  */
 export function calculateMatchupWinProbability(
   matchup: MatchupState,
-  simulationCount: number = DEFAULT_SIMULATION_COUNT
+  simulationCount: number = DEFAULT_SIMULATION_COUNT,
+  adaptiveBiasCorrection: number = 0,
 ): MatchupWinProbabilityView {
   const rawResult: WinProbabilityResult = runMatchupSimulation(
     matchup,
     simulationCount
   );
 
-  // Apply calibration to correct the observed +4.1% overconfidence bias.
-  // Ties are rare and not compressed (they're already near zero).
+  // ---- Step 1: Static calibration ----
+  // Corrects the historical +4.1% overconfidence bias via a piecewise linear map
+  // (derived from 2022–2025 backtest of 424 matchups).
   const calibratedHome = calibrateWinProbability(rawResult.homeWinProbability);
   const calibratedAway = calibrateWinProbability(rawResult.awayWinProbability);
-  // Re-normalize so home + away + tie = 1 after calibration
   const calibratedSum = calibratedHome + calibratedAway + rawResult.tieProbability;
+
+  // Normalize after static calibration — these are the "baseline" probabilities
+  // stored for outcome tracking and residual-bias measurement.
+  const baselineHome = calibratedHome / calibratedSum;
+  const baselineAway = calibratedAway / calibratedSum;
+  const baselineTie  = rawResult.tieProbability / calibratedSum;
+
+  // ---- Step 2: Adaptive bias correction ----
+  // Adjusts for any residual systematic error the static calibration didn't
+  // catch for the current season. Starts at 0 and grows as outcomes accumulate.
+  // Applied symmetrically: adding to home decreases away by the same amount.
+  const correctedHome = baselineHome + adaptiveBiasCorrection;
+  const correctedAway = baselineAway - adaptiveBiasCorrection;
+
+  // Clamp to a sensible range before renormalizing (avoids negative probabilities
+  // if the correction is unexpectedly large early in the season)
+  const clampedHome = Math.max(0.01, Math.min(0.99, correctedHome));
+  const clampedAway = Math.max(0.01, Math.min(0.99, correctedAway));
+  const correctedSum = clampedHome + clampedAway + baselineTie;
+
+  let homeWinProbability = clampedHome / correctedSum;
+  let awayWinProbability = clampedAway / correctedSum;
+  let tieProbability     = baselineTie  / correctedSum;
+
+  // ---- Step 3: Remaining-game clamp ----
+  // While games are still remaining, clamp to [3%, 97%] — 100% is only valid once
+  // all games are complete and the outcome is decided.
   const hasRemainingGames =
     matchup.home.players.some((p) => p.scheduledGamesRemaining.length > 0) ||
     matchup.away.players.some((p) => p.scheduledGamesRemaining.length > 0);
 
-  let homeWinProbability = calibratedHome / calibratedSum;
-  let awayWinProbability = calibratedAway / calibratedSum;
-  let tieProbability = rawResult.tieProbability / calibratedSum;
-
-  // While games are still remaining, clamp to [3%, 97%] — 100% is only valid once
-  // all games are complete and the outcome is decided. The calibration map already
-  // caps at ~92%, but this explicit guard survives any future calibration changes.
   if (hasRemainingGames) {
     const MIN_PROB = 0.03;
     const MAX_PROB = 0.97;
-    const clampedHome = Math.max(MIN_PROB, Math.min(MAX_PROB, homeWinProbability));
-    const clampedAway = Math.max(MIN_PROB, Math.min(MAX_PROB, awayWinProbability));
-    const clampedSum = clampedHome + clampedAway + tieProbability;
-    homeWinProbability = clampedHome / clampedSum;
-    awayWinProbability = clampedAway / clampedSum;
-    tieProbability = tieProbability / clampedSum;
+    const clampedH = Math.max(MIN_PROB, Math.min(MAX_PROB, homeWinProbability));
+    const clampedA = Math.max(MIN_PROB, Math.min(MAX_PROB, awayWinProbability));
+    const clampedS = clampedH + clampedA + tieProbability;
+    homeWinProbability = clampedH / clampedS;
+    awayWinProbability = clampedA / clampedS;
+    tieProbability     = tieProbability / clampedS;
   }
 
   const result: WinProbabilityResult = {
@@ -115,8 +152,10 @@ export function calculateMatchupWinProbability(
     awayTeamId: matchup.away.fantasyTeamId,
     homeTeamName: matchup.home.name,
     awayTeamName: matchup.away.name,
-    homeWinPct: roundPct(result.homeWinProbability),
-    awayWinPct: roundPct(result.awayWinProbability),
+    homeWinPct:        roundPct(homeWinProbability),
+    awayWinPct:        roundPct(awayWinProbability),
+    baselineHomeWinPct: roundPct(baselineHome),
+    baselineAwayWinPct: roundPct(baselineAway),
     projectedHomePoints: round1(result.homeSummary.projectedFinalPoints),
     projectedAwayPoints: round1(result.awaySummary.projectedFinalPoints),
     homeRange: [
@@ -143,7 +182,10 @@ export function calculateMatchupWinProbability(
  */
 export function calculateAllMatchupsWinProbability(
   matchups: MatchupState[],
-  simulationCount: number = DEFAULT_SIMULATION_COUNT
+  simulationCount: number = DEFAULT_SIMULATION_COUNT,
+  adaptiveBiasCorrection: number = 0,
 ): MatchupWinProbabilityView[] {
-  return matchups.map((m) => calculateMatchupWinProbability(m, simulationCount));
+  return matchups.map((m) =>
+    calculateMatchupWinProbability(m, simulationCount, adaptiveBiasCorrection),
+  );
 }

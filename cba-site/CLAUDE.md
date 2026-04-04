@@ -2362,3 +2362,44 @@ MANUAL NOTES: ...
 2. `winProbability.ts`: `hasRemainingGames` was declared twice (lines 76 and 112) — TypeScript error. Removed the duplicate declaration.
 
 **After fix**: `tsc --noEmit` exits 0. Nightly 10 PM job will compute fresh values using the corrected simulation.
+
+## Session Work (April 4, 2026 — Adaptive Win Probability Calibration)
+
+### Overview
+Made the win probability engine self-improving. Each nightly run now records predictions and resolves past outcomes, learning from mistakes to correct residual bias in the static calibration.
+
+### New file: `lib/fantasy/outcomeTracking.ts`
+Core learning system. Types: `PredictionRecord`, `PredictionHistory`, `SeasonLearningStats`.
+- **`buildPredictionRecords(weekId, results)`** — creates records from simulation output; stores the *baseline* (pre-adaptive) calibrated win% so residual bias is measured correctly
+- **`resolveMatchups(history, seasonMatchups)`** — compares stored predictions against actual winners in `data/current/2026.json` (populated by daily `fetch-current` cron); mutates history in-place; returns resolved count
+- **`computeSeasonStats(history)`** — computes accuracy, `residualBias`, `brierScore`, and `adaptiveBiasCorrection` from all resolved matchups
+- **`mergePredictions(history, newRecords)`** — upserts current-week predictions; preserves resolved past-week records
+
+### Algorithm
+```
+residualBias        = mean(baselineCalibrated − actual) over resolved matchups
+blendWeight         = N / (N + 420)       // 420 = historical prior sample size
+adaptiveCorrection  = −residualBias × blendWeight
+```
+Applied as an additive correction to the calibrated home win probability (step 3 in the pipeline), after static piecewise calibration (step 2) and before the [3%, 97%] clamp (step 4). Conservative by design: at 5 outcomes blendWeight ≈ 1.2%, at end-of-season (105 matchups) ≈ 20%.
+
+### `lib/fantasy/winProbability.ts` changes
+- `calculateMatchupWinProbability` accepts optional `adaptiveBiasCorrection: number` (default 0)
+- Added `baselineHomeWinPct` / `baselineAwayWinPct` fields to `MatchupWinProbabilityView` — the post-static-calibration, pre-adaptive values stored for learning
+- Probability pipeline now has 4 stages: Monte Carlo → static calibration → adaptive correction → remaining-game clamp
+
+### `lib/fantasy/nightlyJob.ts` changes
+New options: `loadHistory`, `saveHistory`, `getSeasonMatchups` (all optional — job degrades gracefully if not provided). Extended flow:
+1. Load history → resolve previous weeks → compute adaptive correction
+2. Run simulations with correction applied
+3. Record new predictions → save history
+4. Save win-probability store (now includes `learningStats` field)
+
+### `lib/store.ts`
+Added `getPredictionHistory(year)` / `setPredictionHistory(year, data)`. KV key: `win-probability-history-{year}`. Local fallback: `data/win-probability-history-{year}.json`.
+
+### `app/api/win-probability/refresh/route.ts`
+Now passes `loadHistory`, `saveHistory`, and `getSeasonMatchups` (reads `data/current/2026.json` at request time). Response includes `predictionsResolved` and `learningStats`.
+
+### No GitHub Actions changes needed
+The existing `update-win-probability.yml` workflow already POSTs to `/api/win-probability/refresh` — the learning loop runs automatically every night.

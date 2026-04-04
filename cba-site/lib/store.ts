@@ -197,3 +197,29 @@ export async function setAdminNotes(data: AdminNotes): Promise<void> {
   }
   fsWrite(path.join(DATA_DIR, 'admin-notes.json'), JSON.stringify(data, null, 2));
 }
+
+// ── Win probability prediction history ────────────────────────────────────────
+
+export async function getPredictionHistory(year: string): Promise<unknown | null> {
+  if (useKV()) {
+    return (await kvGet<unknown>(`win-probability-history-${year}`)) ?? null;
+  }
+  try {
+    return JSON.parse(
+      fs.readFileSync(path.join(DATA_DIR, `win-probability-history-${year}.json`), 'utf-8'),
+    );
+  } catch {
+    return null;
+  }
+}
+
+export async function setPredictionHistory(year: string, data: unknown): Promise<void> {
+  if (useKV()) {
+    await kvSet(`win-probability-history-${year}`, data);
+    return;
+  }
+  fsWrite(
+    path.join(DATA_DIR, `win-probability-history-${year}.json`),
+    JSON.stringify(data, null, 2),
+  );
+}
