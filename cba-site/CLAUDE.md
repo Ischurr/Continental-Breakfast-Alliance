@@ -2403,3 +2403,20 @@ Now passes `loadHistory`, `saveHistory`, and `getSeasonMatchups` (reads `data/cu
 
 ### No GitHub Actions changes needed
 The existing `update-win-probability.yml` workflow already POSTs to `/api/win-probability/refresh` — the learning loop runs automatically every night.
+
+## Session Work (April 4, 2026 — Baseball Field Position Bug Fix)
+
+### `components/BaseballFieldLeaders.tsx` — OF/DH/Bullpen empty slots fixed
+
+**Root cause**: The March 26 fix to `scripts/fetch-rosters-2026.ts` changed player position labels to use real MLB positions from `defaultPositionId` (`OF`, `DH`, `RP`). But `BaseballFieldLeaders.tsx` still had pre-March-26 logic:
+- OF slots filtered `position === 'UTIL'` — no match since players now have `'OF'`
+- DH: same UTIL logic — no match since DHs now have `'DH'`
+- Bullpen filtered `position === 'SP'` only — true RPs now have `'RP'`, so bullpen was empty
+
+**Fix (rostered view)**:
+- OFs/DH: removed `'UTIL'` special case; now uses `top('OF', 3)` and `top('DH', 1)` for all views (FA, rostered, draftBoard all have real labels now)
+- Pitchers: filter changed from `position === 'SP'` to `position === 'SP' || position === 'RP'`; when `rpNames` not available, falls back to position label directly
+
+**Also fixed** (`app/admin/page.tsx`): EROSP data loading used `Array.isArray(raw)` but `latest.json` has shape `{ players: [...] }` — fixed to `raw?.players ?? []`.
+
+**Also fixed** (`app/admin/AdminDashboardClient.tsx`): Added `← Home` link to admin dashboard header.

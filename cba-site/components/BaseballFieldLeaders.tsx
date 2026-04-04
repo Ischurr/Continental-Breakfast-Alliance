@@ -214,17 +214,11 @@ export default function BaseballFieldLeaders({ rosteredPlayers, freeAgents, rpNa
       .sort((a, b) => b.totalPoints - a.totalPoints)
       .slice(0, n);
 
-  // Draft board mode uses real position labels (OF, DH, SP, RP) from CSV projections.
-  // Rostered view uses ESPN's UTIL slot for outfielders/DH.
-  const ofs: Player[] = (draftBoardMode || view === 'fa')
-    ? top('OF', 3)
-    : activePool.filter(p => p.position === 'UTIL' && p.totalPoints > 0)
-        .sort((a, b) => b.totalPoints - a.totalPoints).slice(0, 3);
+  // Roster data now uses real position labels (OF, DH) from defaultPositionId.
+  // FA and draft board mode also use real labels — all views can use the same logic.
+  const ofs: Player[] = top('OF', 3);
 
-  const dh: Player | null = (draftBoardMode || view === 'fa')
-    ? (top('DH', 1)[0] ?? null)
-    : (activePool.filter(p => p.position === 'UTIL' && p.totalPoints > 0)
-        .sort((a, b) => b.totalPoints - a.totalPoints)[3] ?? null);
+  const dh: Player | null = top('DH', 1)[0] ?? null;
 
   // Split pitchers into starters vs relievers.
   let sp1: Player | null;
@@ -232,16 +226,17 @@ export default function BaseballFieldLeaders({ rosteredPlayers, freeAgents, rpNa
   let bullpen: Player[];
 
   if (!draftBoardMode && view === 'rostered') {
-    const allSPs = activePool
-      .filter(p => p.position === 'SP' && p.totalPoints > 0)
+    // Include both SP and RP position labels — roster data uses real labels from defaultPositionId
+    const allPitchers = activePool
+      .filter(p => (p.position === 'SP' || p.position === 'RP') && p.totalPoints > 0)
       .sort((a, b) => b.totalPoints - a.totalPoints);
 
     const trueSPs = rpNames
-      ? allSPs.filter(p => !rpNames.has(p.playerName))
-      : allSPs.slice(0, 4);
+      ? allPitchers.filter(p => !rpNames.has(p.playerName))
+      : allPitchers.filter(p => p.position === 'SP').slice(0, 4);
     const trueRPs = rpNames
-      ? allSPs.filter(p => rpNames.has(p.playerName))
-      : allSPs.slice(4, 9);
+      ? allPitchers.filter(p => rpNames.has(p.playerName))
+      : allPitchers.filter(p => p.position === 'RP').slice(0, 5);
 
     sp1      = trueSPs[0] ?? null;
     rotation = trueSPs.slice(1, 5);

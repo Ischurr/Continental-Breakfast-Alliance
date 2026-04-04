@@ -35,7 +35,7 @@ export default async function AdminPage() {
     const raw = JSON.parse(
       readFileSync(path.join(DATA_DIR, 'erosp', 'latest.json'), 'utf-8')
     );
-    erospPlayers = Array.isArray(raw) ? raw : [];
+    erospPlayers = Array.isArray(raw) ? raw : (raw?.players ?? []);
   } catch {
     erospPlayers = [];
   }
