@@ -472,7 +472,7 @@ Applied consistent mobile-first treatment across all data tables:
 
 ### Landing page Quick Stats + Top Available Players (`app/page.tsx`)
 - **"Latest Champion" box**: uses `completedSeasons[completedSeasons.length - 1]` (e.g. 2025 Banshees), NOT `currentSeason.champion` (which is undefined mid-season). Shows correct year label.
-- **"Top Available Players" box**: ranked by `erosp_raw` from `data/erosp/latest.json` (filtered to `is_fa === true`), NOT historical pts. Subtitle says "Free agents ranked by EROSP". Photo URLs built from `mlbam_id` via MLB static CDN. Score column shows rounded EROSP raw.
+- **"Top Available Players" box**: ranked by `erosp_raw`, cross-referenced against `data/current/free-agents.json` player names (authoritative ESPN FA pool). **Do NOT use `is_fa` flag from EROSP** — it marks ~1,492 players as FA (all non-rostered MLB players) including rostered CBA players and phantom name-reversed entries. `free-agents.json` is the correct filter. Photo URLs built from `mlbam_id` via MLB static CDN. Score column shows rounded EROSP raw.
 
 ### Landing page "Recently Decided" section (`app/page.tsx`)
 - `getPollWinner(poll)` helper at module level: returns `{ text, pct }` for the option with most votes, or `null` if 0 votes.
