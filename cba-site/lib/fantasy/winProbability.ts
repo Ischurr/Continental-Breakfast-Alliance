@@ -109,10 +109,6 @@ export function calculateMatchupWinProbability(
   const awayProjectedRemaining =
     result.awaySummary.projectedFinalPoints - awayCurrentPoints;
 
-  const hasRemainingGames =
-    matchup.home.players.some((p) => p.scheduledGamesRemaining.length > 0) ||
-    matchup.away.players.some((p) => p.scheduledGamesRemaining.length > 0);
-
   return {
     matchupId: matchup.matchup.matchupId,
     homeTeamId: matchup.home.fantasyTeamId,

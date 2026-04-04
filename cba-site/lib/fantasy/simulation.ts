@@ -223,6 +223,14 @@ export function runMatchupSimulation(
     const homeTotal = simulateTeamFinalPoints(matchup.home, matchup);
     const awayTotal = simulateTeamFinalPoints(matchup.away, matchup);
 
+    homeTotals[i] = homeTotal;
+    awayTotals[i] = awayTotal;
+
+    if (homeTotal > awayTotal) homeWins++;
+    else if (awayTotal > homeTotal) awayWins++;
+    else ties++;
+  }
+
   homeTotals.sort((a, b) => a - b);
   awayTotals.sort((a, b) => a - b);
 
