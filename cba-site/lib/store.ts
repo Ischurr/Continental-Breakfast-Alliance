@@ -172,3 +172,28 @@ export async function setDinosContent(data: DinosContent): Promise<void> {
   }
   fsWrite(path.join(DATA_DIR, 'dinos-content.json'), JSON.stringify(data, null, 2));
 }
+
+// ── Admin notes ───────────────────────────────────────────────────────────────
+
+export interface AdminNotes {
+  weeks: Record<string, { text: string; updatedAt: string }>;
+}
+
+export async function getAdminNotes(): Promise<AdminNotes> {
+  if (useKV()) {
+    return (await kvGet<AdminNotes>('admin-notes')) ?? { weeks: {} };
+  }
+  try {
+    return JSON.parse(fs.readFileSync(path.join(DATA_DIR, 'admin-notes.json'), 'utf-8'));
+  } catch {
+    return { weeks: {} };
+  }
+}
+
+export async function setAdminNotes(data: AdminNotes): Promise<void> {
+  if (useKV()) {
+    await kvSet('admin-notes', data);
+    return;
+  }
+  fsWrite(path.join(DATA_DIR, 'admin-notes.json'), JSON.stringify(data, null, 2));
+}

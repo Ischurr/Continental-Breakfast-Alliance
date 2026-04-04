@@ -2270,3 +2270,77 @@ The `update-prospect-callups.yml` workflow ran after the initial commit and auto
 - The 14-day ticker window means his ticker item won't show (debut was 7+ months ago), but his team card shows "🚀 Called Up" pill
 
 **As of April 3**: 4 of 10 prospects are called up (Griffin, Jensen, McGonigle all 2026-04-03; Early 2025-09-09).
+
+## Session Work (April 3, 2026 — Admin Editorial Intelligence Dashboard)
+
+### Overview
+Built a private admin-only dashboard at `/admin` to help write weekly rankings posts. Surfaces auto-generated storyline bullets, team trends, player over/underperformers, position group analysis, roster move impact, and storyline continuity from prior rankings articles.
+
+### Access
+- Admin link `⚙ Admin` appears in header nav **only when admin mode is active** (same localStorage/PIN system used everywhere else)
+- Dashboard itself shows a lock screen until PIN is entered; once unlocked, full dashboard visible
+- Route is `/admin` — not linked anywhere public
+
+### New Files
+
+#### `lib/admin-analytics.ts` — pure analytics engine
+Synchronous functions; takes pre-loaded data, returns `AdminAnalytics`. Key computations:
+- **Team trends**: weekly scores from matchups, recent form vs season avg, vs EROSP pace %, trend direction (rising/falling/stable)
+- **Player signals**: match roster players to EROSP by normalized name; flag overperformers (>20% above pace), underperformers (>25% below pace), injury watch (on IL + EROSP ≥ 100). Only fires when `erospPace ≥ 15` AND `totalPoints ≥ 5`
+- **Position groups**: SP / RP / C / INF / OF / DH — EROSP total per team per group, league avg, std dev, z-scores, rank 1–10
+- **Roster moves**: find ADD/TRADE acquisitionType players, match to EROSP, rank by projected value
+- **Storyline bullets**: 8–12 prioritized bullets (0–100 priority) auto-generated across 6 categories; at least one per category
+- **Rankings themes**: extract player/team name mentions from prior rankings articles; tag new/continuing/fading
+
+#### `app/admin/page.tsx` — server component
+- `force-dynamic` (never cached)
+- Loads: `data/current/2026.json`, `data/erosp/latest.json` (try/catch — may not exist), `data/teams.json`, rankings via KV, admin notes via KV
+- Runs `computeAdminAnalytics()` synchronously
+- Renders `<AdminDashboardClient analytics={...} adminNotes={...} />`
+
+#### `app/admin/AdminDashboardClient.tsx` — `'use client'` dashboard
+7-tab interface:
+1. **Bullets** (default) — ranked bullets, color-coded by category; "Copy" button
+2. **Teams** — table: W-L, total pts, weekly scores, trend arrow, vs EROSP pace %, projected total
+3. **Players** — three sections: Outperforming Pace, Underperforming Pace, Injury Watch
+4. **Positions** — 6 position group cards, top 3 / bottom 3 teams per group with z-scores and player lists
+5. **Moves** — FA adds + trades ranked by EROSP value, impact badges (Strong / Moderate / Watch)
+6. **Storylines** — themes from prior rankings articles tagged new/continuing/fading
+7. **Notes & Export** — weekly notes textarea (saved to KV per week), copy-all button (bullets + notes in plain text)
+
+Copy format:
+```
+=== CBA Week N Editorial Notes ===
+AUTO-GENERATED SIGNALS: • bullet...
+MANUAL NOTES: ...
+```
+
+#### `app/api/admin/notes/route.ts`
+- `GET /api/admin/notes` — returns all notes from KV
+- `POST /api/admin/notes` — body `{ pin, week, text }`; validates PIN server-side; saves to KV key `admin-notes`
+
+#### `data/admin-notes.json` — local dev fallback stub `{ "weeks": {} }`
+
+### Modified Files
+
+#### `lib/store.ts`
+- Added `AdminNotes` interface: `{ weeks: Record<string, { text: string; updatedAt: string }> }`
+- Added `getAdminNotes()` / `setAdminNotes()` — KV key `admin-notes`, fallback `data/admin-notes.json`
+
+#### `components/Header.tsx`
+- Added `useAdminMode` import + `const { isAdmin } = useAdminMode()`
+- Amber `⚙ Admin` link at end of desktop nav and mobile nav, rendered only when `isAdmin === true`
+
+### Bullet Categories
+- `trend` (blue) — team rising/falling in scores
+- `player_over` (green) — overperforming EROSP pace
+- `player_under` (orange) — underperforming EROSP pace
+- `position` (purple) — strongest/weakest position group
+- `roster` (teal) — high-value FA add or trade
+- `injury` (red) — IL player with significant EROSP at stake
+
+### Design Notes
+- Analytics degrade gracefully when season data is thin (early season) — bullets still fire from EROSP/position data even before real scores accumulate
+- Player signals gated by minimum data threshold (erospPace ≥ 15, totalPoints ≥ 5) to avoid noise early in season
+- TOTAL_WEEKS = 21 (hardcoded for 2026 season); completion fraction = currentWeek / 21
+- Position group EROSP analysis uses `fantasy_team_id != 0` to skip pre-draft state

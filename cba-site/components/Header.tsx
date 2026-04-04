@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useRef, useEffect } from 'react';
 import season2025 from '@/data/historical/2025.json';
+import { useAdminMode } from '@/hooks/useAdminMode';
 
 const TEAMS = season2025.teams;
 
@@ -68,6 +69,7 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [teamsExpanded, setTeamsExpanded] = useState(false);
   const [statsExpanded, setStatsExpanded] = useState(false);
+  const { isAdmin } = useAdminMode();
 
   const teamItems = [
     ...TEAMS.map(team => ({ href: `/teams/${team.id}`, label: team.name, dimmed: false })),
@@ -112,6 +114,11 @@ export default function Header() {
             <Link href="/history" className="hover:text-teal-200 transition">History</Link>
             <Link href="/news" className="hover:text-teal-200 transition">News</Link>
             <Link href="/message-board" className="hover:text-teal-200 transition">Message Board</Link>
+            {isAdmin && (
+              <Link href="/admin" className="text-amber-300 hover:text-amber-100 transition font-medium">
+                ⚙ Admin
+              </Link>
+            )}
           </nav>
 
           {/* Mobile menu button */}
@@ -204,6 +211,11 @@ export default function Header() {
             <Link href="/history" className="hover:text-teal-200 transition" onClick={() => setMenuOpen(false)}>History</Link>
             <Link href="/news" className="hover:text-teal-200 transition" onClick={() => setMenuOpen(false)}>News</Link>
             <Link href="/message-board" className="hover:text-teal-200 transition" onClick={() => setMenuOpen(false)}>Message Board</Link>
+            {isAdmin && (
+              <Link href="/admin" className="text-amber-300 hover:text-amber-100 transition font-medium" onClick={() => setMenuOpen(false)}>
+                ⚙ Admin
+              </Link>
+            )}
           </nav>
         )}
       </div>

@@ -73,11 +73,33 @@ export function calculateMatchupWinProbability(
   const calibratedAway = calibrateWinProbability(rawResult.awayWinProbability);
   // Re-normalize so home + away + tie = 1 after calibration
   const calibratedSum = calibratedHome + calibratedAway + rawResult.tieProbability;
+  const hasRemainingGames =
+    matchup.home.players.some((p) => p.scheduledGamesRemaining.length > 0) ||
+    matchup.away.players.some((p) => p.scheduledGamesRemaining.length > 0);
+
+  let homeWinProbability = calibratedHome / calibratedSum;
+  let awayWinProbability = calibratedAway / calibratedSum;
+  let tieProbability = rawResult.tieProbability / calibratedSum;
+
+  // While games are still remaining, clamp to [3%, 97%] — 100% is only valid once
+  // all games are complete and the outcome is decided. The calibration map already
+  // caps at ~92%, but this explicit guard survives any future calibration changes.
+  if (hasRemainingGames) {
+    const MIN_PROB = 0.03;
+    const MAX_PROB = 0.97;
+    const clampedHome = Math.max(MIN_PROB, Math.min(MAX_PROB, homeWinProbability));
+    const clampedAway = Math.max(MIN_PROB, Math.min(MAX_PROB, awayWinProbability));
+    const clampedSum = clampedHome + clampedAway + tieProbability;
+    homeWinProbability = clampedHome / clampedSum;
+    awayWinProbability = clampedAway / clampedSum;
+    tieProbability = tieProbability / clampedSum;
+  }
+
   const result: WinProbabilityResult = {
     ...rawResult,
-    homeWinProbability: calibratedHome / calibratedSum,
-    awayWinProbability: calibratedAway / calibratedSum,
-    tieProbability: rawResult.tieProbability / calibratedSum,
+    homeWinProbability,
+    awayWinProbability,
+    tieProbability,
   };
 
   const homeCurrentPoints = matchup.home.currentPoints;
