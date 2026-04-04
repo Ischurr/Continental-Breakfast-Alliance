@@ -1967,7 +1967,7 @@ Three compounding bugs caused hitters to appear in SP/RP slots and pitchers in f
 ### Score freshness UI language updated
 - Replaced "In progress · scores through completed games" with **"Scores updated as of morning of [Month Day]"** in three places:
   - `components/MatchupCard.tsx` — matchups page in-progress label
-  - `components/TeamMatchupTracker.tsx` — team page tracker footnote (also shows "· refreshes every 5 min")
+  - `components/TeamMatchupTracker.tsx` — team page tracker footnote
   - `app/page.tsx` — homepage "Game of the Week" matchup card label
 - Date rendered dynamically via `new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' })`
 

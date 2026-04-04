@@ -250,7 +250,7 @@ export default function TeamMatchupTracker({
       </Link>
       {inProgress && (
         <p className="text-xs text-gray-400 text-center mt-1">
-          Scores updated as of morning of {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} · refreshes every 5 min
+          Scores updated as of morning of {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
         </p>
       )}
     </div>
