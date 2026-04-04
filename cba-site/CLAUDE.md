@@ -2344,3 +2344,21 @@ MANUAL NOTES: ...
 - Player signals gated by minimum data threshold (erospPace ≥ 15, totalPoints ≥ 5) to avoid noise early in season
 - TOTAL_WEEKS = 21 (hardcoded for 2026 season); completion fraction = currentWeek / 21
 - Position group EROSP analysis uses `fantasy_team_id != 0` to skip pre-draft state
+
+## Session Work (April 3, 2026 — Win Probability Clamping Fix)
+
+### Win prob: clamp [3%,97%] only while games remain (`lib/fantasy/winProbability.ts`, `lib/fantasy/simulation.ts`)
+
+**User request**: 100% win probability was showing mid-week when it shouldn't. Fix: only clamp when games are remaining; allow 100% once all games are complete (outcome decided).
+
+**`winProbability.ts`** — conditional clamp:
+- `hasRemainingGames` check already existed (computed at line 76); now drives a conditional block
+- When `hasRemainingGames=true`: clamp home/away to [3%, 97%] and re-normalize with tie probability
+- When `hasRemainingGames=false` (all games done): no clamp — 100% is valid for a decided result
+- Display layer (`TeamMatchupTracker`) already hides win prob when `isFinal`, so 100% only briefly appears between last game ending and ESPN officially declaring the winner
+
+**Bugs also fixed (introduced during prior revert):**
+1. `simulation.ts`: for-loop body was missing win-counter increments (`homeWins++`/`awayWins++`/`ties++`) and array assignments (`homeTotals[i] = homeTotal`). Simulation was running but never counting outcomes or storing results.
+2. `winProbability.ts`: `hasRemainingGames` was declared twice (lines 76 and 112) — TypeScript error. Removed the duplicate declaration.
+
+**After fix**: `tsc --noEmit` exits 0. Nightly 10 PM job will compute fresh values using the corrected simulation.
