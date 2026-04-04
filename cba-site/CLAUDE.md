@@ -2236,3 +2236,37 @@ Runs 2× daily (11 AM + 5 PM EST). Commits any call-up updates → triggers Verc
 ### TypeScript / Build Status
 - `tsc --noEmit` exits 0 (clean compilation)
 - `npm run build` fails with a pre-existing Turbopack panic on `scripts/proj_env/bin/python` broken symlink (pre-dates this session — verified by stashing changes and confirming same failure on unmodified HEAD)
+
+## Session Work (April 3, 2026 — Prospect Data Population + Connelly Early)
+
+### All 10 protected prospects filled in
+
+`data/prospect-protections.json` now has complete data for all 10 teams (previously all were `name: 'TBD'`):
+
+| TeamId | Team | Prospect | mlbamId | Pos | Org |
+|--------|------|----------|---------|-----|-----|
+| 1 | Space Cowboys | Konnor Griffin | 804606 | SS | PIT |
+| 2 | Portland Chinook | Colt Emerson | 806068 | SS | SEA |
+| 3 | Pepperoni Rolls | Carter Jensen | 695600 | C | KC |
+| 4 | Manhattan Mega Rats | Noah Schultz | 702273 | SP | CWS |
+| 6 | Delmarva Emus | Leo De Vries | 815888 | SS | ATH |
+| 7 | Syracuse Sky Chiefs | Kevin McGonigle | 805808 | SS | DET |
+| 8 | Ghent Whistlepigs | Carlos Lagrange | 801739 | SP | NYY |
+| 9 | North Georgia Fuzzy Bottoms | Max Clark | 703601 | OF | DET |
+| 10 | Bristol Banshees | Connelly Early | 813349 | SP | BOS |
+| 11 | Fort Meade Folksy Ferrets | Aidan Miller | 805795 | SS | PHI |
+
+### GitHub Actions auto-detected 3 call-ups on April 3
+
+The `update-prospect-callups.yml` workflow ran after the initial commit and automatically flagged Griffin (PIT), Jensen (KC), and McGonigle (DET) as called up on 2026-04-03 — all 3 debuted on Opening Day.
+
+### Connelly Early — name correction and retroactive call-up
+
+**Wrong name used initially**: "Connor Early" — no such player exists in MLB.
+
+**Correct player**: Todd Connelly McNeil Early, goes by "Connelly". BOS SP, mlbamId 813349.
+- Debuted **2025-09-09** (already on 26-man active roster before the protection draft)
+- `calledUp: true, calledUpDate: "2025-09-09"` — set manually (GitHub Actions skips already-called-up entries)
+- The 14-day ticker window means his ticker item won't show (debut was 7+ months ago), but his team card shows "🚀 Called Up" pill
+
+**As of April 3**: 4 of 10 prospects are called up (Griffin, Jensen, McGonigle all 2026-04-03; Early 2025-09-09).
