@@ -21,11 +21,14 @@ const POSITION_MAP: Record<number, string> = {
 };
 
 // Maps ESPN slot IDs (from eligibleSlots array) to position labels
+// Confirmed from API: 0=C 1=1B 2=2B 3=3B 4=SS  8/9/10=OF  12=DH  13/14=SP  15=RP
+// Excluded: 5(UTIL/OF-flex) 6(MI) 7(CI) 11(IL) 16(bench) 17(bench) 19(UTIL-INF)
 const SLOT_POSITION_MAP: Record<number, string> = {
   0: 'C', 1: '1B', 2: '2B', 3: '3B', 4: 'SS',
-  5: 'OF', 6: 'OF', 7: 'OF', 12: 'DH', 13: 'SP', 14: 'SP', 15: 'RP', 16: 'RP',
+  8: 'OF', 9: 'OF', 10: 'OF',
+  12: 'DH', 13: 'SP', 14: 'SP', 15: 'RP',
 };
-const LINEUP_SLOTS = new Set([0, 1, 2, 3, 4, 5, 6, 7, 12, 13, 14, 15, 16]);
+const LINEUP_SLOTS = new Set(Object.keys(SLOT_POSITION_MAP).map(Number));
 
 async function fetchFreeAgents() {
   if (!process.env.ESPN_SWID || process.env.ESPN_SWID === 'your_swid_here') {

@@ -13,7 +13,13 @@ const LOGO_OVERRIDES: Record<number, string> = Object.fromEntries(
     .map(t => [t.id, t.logoUrl!])
 );
 
-const POSITION_MAP: Record<number, string> = { 0: 'C', 1: '1B', 2: '2B', 3: '3B', 4: 'SS', 5: 'OF', 6: 'OF', 7: 'OF', 12: 'DH', 13: 'SP', 14: 'SP', 15: 'RP', 16: 'RP' };
+// ESPN defaultPositionId — the player's actual MLB position:
+//   1=SP  2=C  3=1B  4=2B  5=3B  6=SS  7=LF  8=CF  9=RF  10=DH  11=RP
+const DEFAULT_POSITION_MAP: Record<number, string> = {
+  1: 'SP', 2: 'C', 3: '1B', 4: '2B', 5: '3B', 6: 'SS',
+  7: 'OF', 8: 'OF', 9: 'OF',
+  10: 'DH', 11: 'RP',
+};
 
 type PlayerAccum = {
   points: number;
@@ -59,8 +65,8 @@ async function buildAccumulatedPoints(
           );
           const seasonTotal = ((seasonStat as Record<string, unknown> | undefined)?.appliedTotal as number) ?? 0;
 
-          const eligibleSlots = (player.eligibleSlots as number[]) ?? [];
-          const position = POSITION_MAP[eligibleSlots[0]] ?? 'UTIL';
+          const defaultPositionId = player.defaultPositionId as number | undefined;
+          const position = (defaultPositionId !== undefined ? DEFAULT_POSITION_MAP[defaultPositionId] : undefined) ?? 'UTIL';
           const keeperValue = (ppe?.keeperValue as number) ?? 0;
           const acquisitionType = entry.acquisitionType as string | undefined;
 
@@ -96,8 +102,8 @@ function extractRostersFromTeams(teams: Record<string, unknown>[]) {
       const seasonStat = (player?.stats as Record<string, unknown>[] | undefined)
         ?.find(s => (s as Record<string, unknown>).statSourceId === 0 && (s as Record<string, unknown>).statSplitTypeId === 0);
       const appliedStatTotal = (seasonStat?.appliedTotal as number) ?? 0;
-      const eligibleSlots = (player?.eligibleSlots as number[]) ?? [];
-      const position = POSITION_MAP[eligibleSlots[0]] ?? 'UTIL';
+      const defaultPositionId = player?.defaultPositionId as number | undefined;
+      const position = (defaultPositionId !== undefined ? DEFAULT_POSITION_MAP[defaultPositionId] : undefined) ?? 'UTIL';
       const playerId = String(player?.id ?? entry.playerId);
       const keeperValue = (playerPoolEntry?.keeperValue as number) ?? 0;
       const acquisitionType = entry.acquisitionType as string | undefined;

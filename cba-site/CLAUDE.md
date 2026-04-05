@@ -2420,3 +2420,14 @@ The existing `update-win-probability.yml` workflow already POSTs to `/api/win-pr
 **Also fixed** (`app/admin/page.tsx`): EROSP data loading used `Array.isArray(raw)` but `latest.json` has shape `{ players: [...] }` — fixed to `raw?.players ?? []`.
 
 **Also fixed** (`app/admin/AdminDashboardClient.tsx`): Added `← Home` link to admin dashboard header.
+
+## Session Work (April 4, 2026 — ESPN Slot Map Bug Fix in Fetch Scripts)
+
+### Root cause
+The March 26 `SLOT_POSITION_MAP` fix was applied to `scripts/fetch-rosters-2026.ts` but missed in two other scripts that build `eligiblePositions` from ESPN's `eligibleSlots` array.
+
+### `scripts/fetch-free-agents.ts` — fixed
+Old map had `5:'OF', 6:'OF', 7:'OF'` (slots 5/6/7 are UTIL/MI/CI flex — not OF), `16:'RP'` (slot 16 is bench — present on every player, so every FA got `'RP'` in their `eligiblePositions`), and real OF slots 8/9/10 were missing entirely. Fixed to match `fetch-rosters-2026.ts`: `8:'OF', 9:'OF', 10:'OF'` only; `LINEUP_SLOTS` derived from map keys. **Impact**: `data/current/free-agents.json` `eligiblePositions` were corrupt — every FA appeared RP-eligible, infielders appeared OF-eligible, actual OFs had no OF eligibility. Affected Suggested Moves FA candidate matching. Auto-corrects on next `npm run fetch-free-agents` run.
+
+### `scripts/fetch-historical.ts` — fixed
+Same slot map bug. Also used `POSITION_MAP[eligibleSlots[0]]` for position instead of `defaultPositionId`. Renamed to `DEFAULT_POSITION_MAP`, switched both call sites to `player.defaultPositionId`. **Impact**: only matters if `fetch-historical.ts` is re-run; committed historical data is unaffected.
