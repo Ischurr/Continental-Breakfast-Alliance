@@ -217,14 +217,14 @@ export default async function PlayerStatsPage() {
   // Fetch MLB Stats API data in parallel
   const [baLeaders, hitsLeaders, hrLeaders, sbLeaders, eraLeaders, savesLeaders, kLeaders, whipLeaders] =
     await Promise.all([
-      getBattingAvgLeaders(2025, 100),
-      getHitsLeaders(2025, 100),
-      getHomeRunLeaders(2025, 100),
-      getStolenBaseLeaders(2025, 100),
-      getEraLeaders(2025, 100),
-      getSavesLeaders(2025, 100),
-      getStrikeoutLeaders(2025, 100),
-      getWhipLeaders(2025, 100),
+      getBattingAvgLeaders(2026, 100),
+      getHitsLeaders(2026, 100),
+      getHomeRunLeaders(2026, 100),
+      getStolenBaseLeaders(2026, 100),
+      getEraLeaders(2026, 100),
+      getSavesLeaders(2026, 100),
+      getStrikeoutLeaders(2026, 100),
+      getWhipLeaders(2026, 100),
     ]);
 
   return (
@@ -336,15 +336,14 @@ export default async function PlayerStatsPage() {
                 {erospMeta!.season} xRoS Points
               </h2>
               <p className="text-sm text-gray-500 mb-6">
-                Daily-updated model incorporating YTD stats, playing time, and rest-of-season
-                schedule — both unconstrained (<strong>Raw</strong>) and within a 10-team
-                daily-lineup league with 7-SP-start weekly cap (<strong>Startable</strong>).
+                Daily-updated model incorporating YTD stats, playing time, and rest-of-season schedule — projecting each player&apos;s remaining fantasy points for the {erospMeta!.season} season.
               </p>
               <EROSPTable
                 players={erospPlayers}
                 meta={erospMeta!}
                 showTeamColumn={true}
                 teamNames={teamNameById}
+                faNames={faNameSet}
               />
             </>
           ) : (
@@ -378,15 +377,14 @@ export default async function PlayerStatsPage() {
                     {erospMeta.season} Expected Rest of Season Points (EROSP)
                   </h2>
                   <p className="text-sm text-gray-500 mb-6">
-                    Daily-updated model projecting each player&apos;s remaining fantasy points —
-                    both unconstrained (<strong>Raw</strong>) and within a 10-team daily-lineup
-                    league with 7-SP-start weekly cap (<strong>Startable</strong>).
+                    Daily-updated model projecting each player&apos;s remaining fantasy points for the season.
                   </p>
                   <EROSPTable
                     players={erospPlayers}
                     meta={erospMeta}
                     showTeamColumn={true}
                     teamNames={teamNameById}
+                    faNames={faNameSet}
                   />
                 </>
               ) : null}

@@ -150,7 +150,7 @@ export interface SuggestedMovesResult {
 // Helpers
 // ─────────────────────────────────────────────────────────────────
 
-function normalizeName(name: string): string {
+export function normalizeName(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 

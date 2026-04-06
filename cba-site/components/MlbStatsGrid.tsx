@@ -128,9 +128,9 @@ export default function MlbStatsGrid({
       {/* Hitting */}
       <h3 className="text-lg font-bold mb-3 text-gray-700">Hitting</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
-        <StatLeaderCard title="Batting Average" subtitle="2025 season leaders" label="AVG" rows={baLeaders} accentClass="text-blue-600" faNames={faNames} faOnly={faOnly} />
-        <StatLeaderCard title="Hits" subtitle="2025 season leaders" label="H" rows={hitsLeaders} accentClass="text-violet-600" faNames={faNames} faOnly={faOnly} />
-        <StatLeaderCard title="Home Runs" subtitle="2025 season leaders" label="HR" rows={hrLeaders} accentClass="text-red-500" faNames={faNames} faOnly={faOnly} />
+        <StatLeaderCard title="Batting Average" subtitle="2026 season leaders" label="AVG" rows={baLeaders} accentClass="text-blue-600" faNames={faNames} faOnly={faOnly} />
+        <StatLeaderCard title="Hits" subtitle="2026 season leaders" label="H" rows={hitsLeaders} accentClass="text-violet-600" faNames={faNames} faOnly={faOnly} />
+        <StatLeaderCard title="Home Runs" subtitle="2026 season leaders" label="HR" rows={hrLeaders} accentClass="text-red-500" faNames={faNames} faOnly={faOnly} />
         <StatLeaderCard title="Stolen Bases" subtitle="Speed &amp; fantasy SB points" label="SB" rows={sbLeaders} accentClass="text-amber-600" faNames={faNames} faOnly={faOnly} />
       </div>
 
@@ -138,7 +138,7 @@ export default function MlbStatsGrid({
       <h3 className="text-lg font-bold mb-3 text-gray-700">Pitching</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
         <StatLeaderCard title="ERA" subtitle="Lowest ERA (min. innings)" label="ERA" rows={eraLeaders} accentClass="text-green-600" faNames={faNames} faOnly={faOnly} />
-        <StatLeaderCard title="Saves" subtitle="2025 season leaders" label="SV" rows={savesLeaders} accentClass="text-teal-600" faNames={faNames} faOnly={faOnly} />
+        <StatLeaderCard title="Saves" subtitle="2026 season leaders" label="SV" rows={savesLeaders} accentClass="text-teal-600" faNames={faNames} faOnly={faOnly} />
         <StatLeaderCard title="Strikeouts" subtitle="K leaders — SP &amp; RP" label="K" rows={kLeaders} accentClass="text-purple-600" faNames={faNames} faOnly={faOnly} />
         <StatLeaderCard title="WHIP" subtitle="Walks+Hits per inning (low = good)" label="WHIP" rows={whipLeaders} accentClass="text-sky-600" faNames={faNames} faOnly={faOnly} />
       </div>

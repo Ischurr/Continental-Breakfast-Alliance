@@ -47,7 +47,7 @@ const BATTER_POSITIONS  = ['C', '1B', '2B', '3B', 'SS', 'OF', 'DH'];
 const PITCHER_POSITIONS = ['SP', 'RP'];
 const ALL_POSITIONS     = ['All', ...BATTER_POSITIONS, ...PITCHER_POSITIONS];
 
-type SortCol = 'erosp_startable' | 'erosp_raw' | 'erosp_per_game' | 'name';
+type SortCol = 'erosp_raw' | 'erosp_per_game' | 'name';
 type SortDir = 'asc' | 'desc';
 
 interface Props {
@@ -59,6 +59,8 @@ interface Props {
   teamNames?: Record<number, string>;
   /** If non-zero, pre-filter to this fantasy team ID */
   fantasyTeamId?: number;
+  /** Authoritative FA name set from ESPN free-agents.json — overrides unreliable is_fa flag */
+  faNames?: Set<string>;
 }
 
 export default function EROSPTable({
@@ -67,12 +69,12 @@ export default function EROSPTable({
   showTeamColumn = true,
   teamNames,
   fantasyTeamId,
+  faNames,
 }: Props) {
   const [faFilter, setFaFilter]     = useState<'all' | 'fa' | 'rostered'>('all');
   const [posFilter, setPosFilter]   = useState('All');
   const [sortCol, setSortCol]       = useState<SortCol>('erosp_raw');
   const [sortDir, setSortDir]       = useState<SortDir>('desc');
-  const [showRaw, setShowRaw]       = useState(true);
 
   function handleSort(col: SortCol) {
     if (sortCol === col) {
@@ -98,9 +100,10 @@ export default function EROSPTable({
       list = list.filter(p => p.fantasy_team_id === fantasyTeamId);
     }
 
-    // FA / rostered filter
-    if (faFilter === 'fa')       list = list.filter(p => p.is_fa);
-    if (faFilter === 'rostered') list = list.filter(p => !p.is_fa);
+    // FA / rostered filter — use authoritative faNames when provided, fall back to is_fa
+    const isFa = (p: EROSPPlayer) => faNames ? faNames.has(p.name) : p.is_fa;
+    if (faFilter === 'fa')       list = list.filter(p => isFa(p));
+    if (faFilter === 'rostered') list = list.filter(p => !isFa(p));
 
     // Position filter
     if (posFilter !== 'All') {
@@ -116,10 +119,9 @@ export default function EROSPTable({
     list.sort((a, b) => {
       let va: number | string, vb: number | string;
       switch (sortCol) {
-        case 'name':             va = a.name;             vb = b.name;             break;
-        case 'erosp_startable':  va = a.erosp_startable;  vb = b.erosp_startable;  break;
-        case 'erosp_per_game':   va = a.erosp_per_game;   vb = b.erosp_per_game;   break;
-        default:                 va = a.erosp_raw;        vb = b.erosp_raw;        break;
+        case 'name':           va = a.name;           vb = b.name;           break;
+        case 'erosp_per_game': va = a.erosp_per_game; vb = b.erosp_per_game; break;
+        default:               va = a.erosp_raw;      vb = b.erosp_raw;      break;
       }
       if (typeof va === 'string') {
         return sortDir === 'asc'
@@ -170,25 +172,6 @@ export default function EROSPTable({
             </div>
           )}
 
-          {/* Raw vs Startable toggle */}
-          <div className="flex rounded-lg border border-gray-200 overflow-hidden text-sm font-semibold">
-            <button
-              onClick={() => setShowRaw(false)}
-              className={`px-3 py-1.5 transition ${
-                !showRaw ? 'bg-teal-600 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'
-              }`}
-            >
-              Startable
-            </button>
-            <button
-              onClick={() => setShowRaw(true)}
-              className={`px-3 py-1.5 transition ${
-                showRaw ? 'bg-teal-600 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'
-              }`}
-            >
-              Raw
-            </button>
-          </div>
         </div>
 
         {/* Metadata */}
@@ -240,24 +223,20 @@ export default function EROSPTable({
                   <th className={`hidden md:table-cell ${thClass('erosp_per_game')}`} onClick={() => handleSort('erosp_per_game')}>
                     /Game <SortIcon col="erosp_per_game" />
                   </th>
-                  <th className={`hidden md:table-cell ${thClass('erosp_startable')}`} onClick={() => handleSort('erosp_startable')}>
-                    Startable <SortIcon col="erosp_startable" />
-                  </th>
                   <th className={thClass('erosp_raw')} onClick={() => handleSort('erosp_raw')}>
-                    {showRaw ? 'EROSP' : 'Startable'} <SortIcon col="erosp_raw" />
+                    EROSP <SortIcon col="erosp_raw" />
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-100">
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={showTeamColumn ? 8 : 7} className="px-4 py-10 text-center text-gray-400 text-sm">
+                    <td colSpan={showTeamColumn ? 7 : 6} className="px-4 py-10 text-center text-gray-400 text-sm">
                       No players found
                     </td>
                   </tr>
                 ) : (
                   filtered.map((p, i) => {
-                    const primaryValue = showRaw ? p.erosp_raw : p.erosp_startable;
                     return (
                       <tr key={p.mlbam_id} className="hover:bg-sky-50 transition">
                         <td className="px-4 py-2.5 text-gray-300 text-xs">{i + 1}</td>
@@ -312,7 +291,7 @@ export default function EROSPTable({
                           </td>
                         )}
                         <td className="hidden md:table-cell px-4 py-2.5 text-center">
-                          {p.is_fa ? (
+                          {(faNames ? faNames.has(p.name) : p.is_fa) ? (
                             <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-orange-100 text-orange-600">
                               Free Agent
                             </span>
@@ -325,11 +304,8 @@ export default function EROSPTable({
                         <td className="hidden md:table-cell px-4 py-2.5 text-right text-gray-500 text-xs">
                           {p.erosp_per_game.toFixed(2)}
                         </td>
-                        <td className="hidden md:table-cell px-4 py-2.5 text-right text-gray-400 text-xs">
-                          {Math.round(p.erosp_startable).toLocaleString()}
-                        </td>
                         <td className="px-4 py-2.5 text-right font-bold text-teal-600">
-                          {Math.round(showRaw ? p.erosp_raw : p.erosp_startable).toLocaleString()}
+                          {Math.round(p.erosp_raw).toLocaleString()}
                         </td>
                       </tr>
                     );
@@ -343,9 +319,9 @@ export default function EROSPTable({
           <div className="px-4 py-2 bg-gray-50 border-t flex items-center justify-between text-xs text-gray-400">
             <span>{filtered.length.toLocaleString()} player{filtered.length !== 1 ? 's' : ''}</span>
             <span className="hidden md:inline">
-              <strong>EROSP</strong> = projected season pts · <strong>Startable</strong> = value above replacement · 7-SP-start cap
+              <strong>EROSP</strong> = projected remaining season pts · 7-SP-start cap applied
             </span>
-            <span className="md:hidden">7-start SP cap applied</span>
+            <span className="md:hidden">7-SP-start cap applied</span>
           </div>
         </div>
       </div>

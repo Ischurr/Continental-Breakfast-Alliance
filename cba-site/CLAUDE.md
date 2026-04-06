@@ -2431,3 +2431,75 @@ Old map had `5:'OF', 6:'OF', 7:'OF'` (slots 5/6/7 are UTIL/MI/CI flex — not OF
 
 ### `scripts/fetch-historical.ts` — fixed
 Same slot map bug. Also used `POSITION_MAP[eligibleSlots[0]]` for position instead of `defaultPositionId`. Renamed to `DEFAULT_POSITION_MAP`, switched both call sites to `player.defaultPositionId`. **Impact**: only matters if `fetch-historical.ts` is re-run; committed historical data is unaffected.
+
+## Session Work (April 5, 2026 — Stats Page Cleanup + EROSP Phantom Player Fix)
+
+### Free Agents section — removed stale pre-season message (`components/FreeAgentsTable.tsx`)
+- Removed "Showing 2025 stats — 2026 season not yet started." orange warning
+- Replaced with neutral gray text: "Ranked by 2025 season points — 2026 stats accumulating." (only shown when `statSeason < currentYear && seasonHasStarted`)
+- `seasonHasStarted` check uses March 25 as Opening Day so it never fires pre-season
+
+### EROSPTable — Startable toggle removed (`components/EROSPTable.tsx`)
+- Removed Raw/Startable toggle entirely; table always shows Raw (projected season pts)
+- Removed secondary always-visible Startable column
+- Footer text simplified: "EROSP = projected remaining season pts · 7-SP-start cap applied"
+- Added `faNames?: Set<string>` prop — when provided, FA/Rostered filter uses this authoritative set instead of the unreliable `is_fa` flag
+- Status badge in rows also uses `faNames` when provided
+
+### Stats page — 2026 MLB stats leaders (`app/stats/players/page.tsx`)
+- All 8 stat leader calls updated from `season=2025` → `season=2026`
+- Both EROSP description texts simplified (removed Startable explanation)
+- `faNames={faNameSet}` passed to both EROSPTable instances
+
+### MlbStatsGrid — 2026 subtitles (`components/MlbStatsGrid.tsx`)
+- All subtitle strings updated from "2025 season leaders" → "2026 season leaders"
+
+### MLB stats — team abbreviations (`lib/mlb-stats.ts`)
+- Added `TEAM_ABBREV` record mapping all 30 MLB full team names → abbreviations
+- `toRows()` now emits `abbreviation` (from API field) → `TEAM_ABBREV` fallback → last word of name
+- Hitting/Pitching stat boxes now show "LAD", "BOS", etc. instead of full team names — fits without truncation
+
+### fetch-free-agents.ts — prefer 2026 stats + CBA roster cross-reference
+- Stats lookup now prefers `seasonId === currentSeasonYear` entries when points > 0; falls back to any season
+- Cross-references against `data/current/2026.json` rosters and excludes any player already on a CBA team (belt-and-suspenders on top of ESPN's own FA filter)
+
+### Team page — faNames passed to EROSPTable (`app/teams/[teamId]/page.tsx`)
+- EROSPTable on team pages now receives `faNames={new Set(faList.map(p => p.playerName))}`
+
+### EROSP pipeline — active 40-man roster filter (`scripts/erosp/ingest.py`, `scripts/compute_erosp.py`)
+- **Root cause of phantom players**: pipeline pulled 3 years of FanGraphs history and projected every player found, including released/non-tendered players (e.g. Stone Garrett, no longer on any 40-man roster)
+- **`fetch_active_40man_mlbam_ids(season)`** — new function in `ingest.py`; calls MLB Stats API `rosterType=40Man` for all 30 teams, returns union of all active MLBAM IDs; cached daily to `erosp_cache/active_40man_{season}_{YYYYMMDD}.json`
+- **Step 9c** added to `compute_erosp.py` — after the injury map (Step 9b), filters both `hitter_talent_df` and `pitcher_talent_df` to only players with MLBAM IDs in the active 40-man set. Only fires when `SEASON_STARTED=True` (skipped pre-season — spring rosters are unstable). Runs automatically via the existing `update-erosp.yml` daily 6 AM cron. No manual steps needed.
+
+## Session Work (April 5, 2026 — Codebase Audit + Forward-Compatibility Fixes)
+
+### Codebase audit performed
+Full audit of import/export mismatches, data shape assumptions, hardcoded years, dead code paths, and type consistency. No critical issues found. Key findings addressed below.
+
+### `lib/store.ts` — dynamic win probability KV key
+- **Was**: `'win-probability-2026'` hardcoded — would silently read/write the wrong key in 2027
+- **Fix**: `winProbKey()` helper reads `process.env['ESPN_SEASON_ID']` (already set in `.env.local` and Vercel); falls back to `new Date().getFullYear()`. Rolls over automatically each season.
+
+### `lib/calendar.ts` — exported season date constants
+- Added `KEEPER_DEADLINE` and `SEASON_END` as named exports at the top of the file
+- Centralizes the two dates that drive keeper display logic on team pages
+- `app/teams/[teamId]/page.tsx` now imports these instead of hardcoding them inline
+
+### `lib/suggested-moves.ts` — exported `normalizeName`
+- Changed `function normalizeName` from unexported to `export function normalizeName`
+- Used by `lib/data-processor.ts` (imported) and available for any future callers
+
+### `lib/data-processor.ts` — unified normalization + keeper photo fallback
+- **normalizeName**: removed local `normalize` function (preserved spaces, different behavior); now imports and uses `normalizeName` from `lib/suggested-moves.ts` consistently
+- **Keeper photo fallback**: `getSuggestedKeepers()` now falls back to MLB static CDN (`img.mlbstatic.com`) using `mlbamId` from `data/projections/2026.json` when ESPN `photoUrl` is missing (e.g. players from `keeper-overrides.json` who were dropped mid-prior-season)
+
+### `app/teams/[teamId]/page.tsx` — `faNames` passed to EROSPTable
+- EROSPTable on team pages now receives `faNames={faNames}` (built from the already-loaded `faList`)
+- FA/Rostered filter and Status badge now use the authoritative `free-agents.json` list instead of the unreliable `is_fa` flag
+
+### Remaining forward-compatibility items (not yet fixed — prompt written for next session)
+- `lib/fantasy/espnLoader.ts` — likely hardcodes `seasonId: 2026` in ESPN API calls
+- `lib/admin-analytics.ts` — `TOTAL_WEEKS = 21` hardcoded
+- `scripts/fetch-rosters-2026.ts` — filename includes year; should be renamed and use `ESPN_SEASON_ID`
+- `lib/fantasy/espnLoader.ts` `loadScheduleConfig()` — reads `schedule-2026.json` by hardcoded path
+- `getCurrentSeason()` March 9 cutover date is a magic number (low priority)

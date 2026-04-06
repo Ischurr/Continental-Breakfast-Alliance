@@ -1,8 +1,43 @@
-// MLB Stats API helper — fetches 2025 season stats for display on the stats page.
+// MLB Stats API helper — fetches current season stats for display on the stats page.
 // Uses the public MLB Stats API (no auth required).
 // Results are not cached server-side; Next.js fetch cache handles deduplication per build.
 
 const BASE = 'https://statsapi.mlb.com/api/v1';
+
+// Full team name → abbreviation lookup (all 30 MLB teams)
+const TEAM_ABBREV: Record<string, string> = {
+  'Arizona Diamondbacks': 'ARI',
+  'Atlanta Braves': 'ATL',
+  'Baltimore Orioles': 'BAL',
+  'Boston Red Sox': 'BOS',
+  'Chicago Cubs': 'CHC',
+  'Chicago White Sox': 'CWS',
+  'Cincinnati Reds': 'CIN',
+  'Cleveland Guardians': 'CLE',
+  'Colorado Rockies': 'COL',
+  'Detroit Tigers': 'DET',
+  'Houston Astros': 'HOU',
+  'Kansas City Royals': 'KC',
+  'Los Angeles Angels': 'LAA',
+  'Los Angeles Dodgers': 'LAD',
+  'Miami Marlins': 'MIA',
+  'Milwaukee Brewers': 'MIL',
+  'Minnesota Twins': 'MIN',
+  'New York Mets': 'NYM',
+  'New York Yankees': 'NYY',
+  'Athletics': 'ATH',
+  'Oakland Athletics': 'OAK',
+  'Philadelphia Phillies': 'PHI',
+  'Pittsburgh Pirates': 'PIT',
+  'San Diego Padres': 'SD',
+  'San Francisco Giants': 'SF',
+  'Seattle Mariners': 'SEA',
+  'St. Louis Cardinals': 'STL',
+  'Tampa Bay Rays': 'TB',
+  'Texas Rangers': 'TEX',
+  'Toronto Blue Jays': 'TOR',
+  'Washington Nationals': 'WSH',
+};
 
 export interface MlbStatRow {
   rank: number;
@@ -15,7 +50,7 @@ interface Split {
   season?: string;
   rank?: number;
   player: { fullName: string };
-  team?: { name: string };
+  team?: { name: string; abbreviation?: string };
   stat: Record<string, number | string>;
 }
 
@@ -39,12 +74,16 @@ async function fetchStats(
 }
 
 function toRows(splits: Split[], format: (stat: Record<string, number | string>) => string): MlbStatRow[] {
-  return splits.map((s, i) => ({
-    rank: s.rank ?? i + 1,
-    playerName: s.player.fullName,
-    teamName: s.team?.name ?? '—',
-    value: format(s.stat),
-  }));
+  return splits.map((s, i) => {
+    const fullName = s.team?.name ?? '';
+    const abbrev = s.team?.abbreviation ?? TEAM_ABBREV[fullName] ?? fullName.split(' ').pop() ?? '—';
+    return {
+      rank: s.rank ?? i + 1,
+      playerName: s.player.fullName,
+      teamName: abbrev,
+      value: format(s.stat),
+    };
+  });
 }
 
 export async function getBattingAvgLeaders(season = 2025, limit = 10): Promise<MlbStatRow[]> {

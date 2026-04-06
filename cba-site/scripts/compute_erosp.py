@@ -53,6 +53,7 @@ from erosp.ingest import (
     fetch_statcast_xwoba, fetch_sprint_speed,
     fetch_schedule_summary,
     fetch_injured_players,
+    fetch_active_40man_mlbam_ids,
     load_espn_data,
     build_name_to_mlbam, build_name_to_mlbam_from_chadwick,
     build_fangraphs_to_mlbam, espn_name_to_mlbam,
@@ -362,6 +363,34 @@ try:
     injury_map = fetch_injured_players(TARGET_SEASON)
 except Exception as exc:
     print(f"  WARNING: Could not fetch injury data ({exc}). Proceeding without.")
+print()
+
+
+# ---------------------------------------------------------------------------
+# STEP 9c: Active 40-man roster filter — exclude released/non-rostered players
+# ---------------------------------------------------------------------------
+print("─── Step 9c: Active roster filter ───────────────────────────────")
+active_40man_ids: set = set()
+if SEASON_STARTED:
+    try:
+        active_40man_ids = fetch_active_40man_mlbam_ids(TARGET_SEASON)
+        print(f"  Will filter hitters/pitchers to active 40-man only ({len(active_40man_ids):,} IDs).")
+    except Exception as exc:
+        print(f"  WARNING: Could not fetch 40-man roster ({exc}). Skipping filter.")
+else:
+    print("  Pre-season — skipping active roster filter (spring training rosters not stable).")
+print()
+
+
+# Apply active 40-man filter to talent DFs (in-season only)
+if active_40man_ids and not hitter_talent_df.empty:
+    before_h = len(hitter_talent_df)
+    hitter_talent_df = hitter_talent_df[hitter_talent_df.index.isin(active_40man_ids)]
+    print(f"  Active roster filter: {before_h:,} → {len(hitter_talent_df):,} hitters")
+if active_40man_ids and not pitcher_talent_df.empty:
+    before_p = len(pitcher_talent_df)
+    pitcher_talent_df = pitcher_talent_df[pitcher_talent_df.index.isin(active_40man_ids)]
+    print(f"  Active roster filter: {before_p:,} → {len(pitcher_talent_df):,} pitchers")
 print()
 
 

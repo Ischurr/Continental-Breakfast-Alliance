@@ -1,3 +1,14 @@
+// ── Season-specific dates (update each preseason) ────────────────────────────
+// These are imported by app/teams/[teamId]/page.tsx for keeper deadline logic.
+
+/** Day after draft — team pages show actual keepers instead of suggestions after this date. */
+export const KEEPER_DEADLINE = new Date('2026-03-22');
+
+/** End of fantasy season — after this date pages switch to suggesting next-year keepers. */
+export const SEASON_END = new Date('2026-10-01');
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export interface CalendarEvent {
   title: string;
   date: Date;

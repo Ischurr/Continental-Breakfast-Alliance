@@ -104,7 +104,10 @@ export default function FreeAgentsTable({ pitchers, batters, fetchedAt, statSeas
   const date = new Date(fetchedAt);
   const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   const currentYear = new Date().getFullYear();
-  const isPreseason = statSeason !== null && statSeason < currentYear;
+  // Season opens ~March 25; if statSeason is prior year after that date, note it but don't alarm
+  const seasonOpeningDay = new Date(`${currentYear}-03-25`);
+  const seasonHasStarted = new Date() >= seasonOpeningDay;
+  const showingPriorStats = statSeason !== null && statSeason < currentYear && seasonHasStarted;
 
   return (
     <div>
@@ -114,8 +117,8 @@ export default function FreeAgentsTable({ pitchers, batters, fetchedAt, statSeas
       </div>
       <p className="text-sm text-gray-500 mb-6">
         Highest-scoring available players not rostered by any team.{' '}
-        {isPreseason
-          ? <span className="text-orange-500 font-medium">Showing {statSeason} stats — {currentYear} season not yet started.</span>
+        {showingPriorStats
+          ? <span className="text-gray-400">Ranked by {statSeason} season points — {currentYear} stats accumulating.</span>
           : 'Sorted by fantasy points this season.'}
       </p>
 

@@ -133,9 +133,14 @@ export async function setTeamContent(data: TeamContentOverrides): Promise<void> 
 
 // ── Win probability ───────────────────────────────────────────────────────────
 
+/** KV key for win probability — tracks ESPN_SEASON_ID so it rolls over each year automatically. */
+function winProbKey() {
+  return `win-probability-${process.env['ESPN_SEASON_ID'] ?? new Date().getFullYear()}`;
+}
+
 export async function getWinProbability(): Promise<unknown | null> {
   if (useKV()) {
-    return (await kvGet<unknown>('win-probability-2026')) ?? null;
+    return (await kvGet<unknown>(winProbKey())) ?? null;
   }
   try {
     return JSON.parse(fs.readFileSync(path.join(DATA_DIR, 'win-probability.json'), 'utf-8'));
@@ -146,7 +151,7 @@ export async function getWinProbability(): Promise<unknown | null> {
 
 export async function setWinProbability(data: unknown): Promise<void> {
   if (useKV()) {
-    await kvSet('win-probability-2026', data);
+    await kvSet(winProbKey(), data);
     return;
   }
   fsWrite(path.join(DATA_DIR, 'win-probability.json'), JSON.stringify(data, null, 2));

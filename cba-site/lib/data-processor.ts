@@ -1,4 +1,5 @@
 import { SeasonData, AllTimeStandings, Matchup } from './types';
+import { normalizeName } from './suggested-moves';
 import season2022 from '../data/historical/2022.json';
 import season2023 from '../data/historical/2023.json';
 import season2024 from '../data/historical/2024.json';
@@ -67,7 +68,9 @@ export function getSeasonByYear(year: number): SeasonData | undefined {
 export function getCurrentSeason(): SeasonData {
   const all = getAllSeasons();
   const today = new Date();
-  const marchCutover = new Date(today.getFullYear(), 2, 9); // March 9 (month is 0-indexed)
+  const SEASON_CUTOVER_MONTH = 3; // March
+  const SEASON_CUTOVER_DAY = 9;
+  const marchCutover = new Date(today.getFullYear(), SEASON_CUTOVER_MONTH - 1, SEASON_CUTOVER_DAY); // March 9 (month is 0-indexed)
 
   if (today >= marchCutover) {
     const thisSeason = all.find(s => s.year === today.getFullYear());
@@ -362,16 +365,22 @@ export function getSuggestedKeepers(teamId: number, limit = 7, rosterYear = 2025
   const roster = priorSeason.rosters?.find(r => r.teamId === teamId);
   if (!roster) return [];
 
+  // MLB static CDN photo URL — used as fallback when ESPN photoUrl is unavailable
+  const mlbPhotoUrl = (mlbamId: number | null | undefined) =>
+    mlbamId
+      ? `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_213,q_auto:best/v1/people/${mlbamId}/headshot/67/current`
+      : '';
+
   // Build a name-lookup map from projections (case-insensitive, normalized)
-  const normalize = (name: string) => name.toLowerCase().replace(/[^a-z ]/g, '').trim();
-  const projMap = new Map<string, { projectedFP: number; position: string; age: number | null; percentile: number | null }>();
+  const projMap = new Map<string, { projectedFP: number; position: string; age: number | null; percentile: number | null; mlbamId: number | null }>();
   for (const p of projections2026.players) {
     if (p.projectedFP !== null) {
-      projMap.set(normalize(p.playerName), {
+      projMap.set(normalizeName(p.playerName), {
         projectedFP: p.projectedFP,
         position: p.position ?? '',
         age: p.age,
         percentile: p.percentile,
+        mlbamId: (p as { mlbamId?: number }).mlbamId ?? null,
       });
     }
   }
@@ -379,15 +388,15 @@ export function getSuggestedKeepers(teamId: number, limit = 7, rosterYear = 2025
   // Manual overrides only apply when suggesting 2026 keepers (rosterYear=2025)
   const overrides = rosterYear === 2025 ? (keeperOverrides as Record<string, string[]>)[String(teamId)] : undefined;
   if (overrides) {
-    const rosterMap = new Map(roster.players.map(p => [normalize(p.playerName), p]));
+    const rosterMap = new Map(roster.players.map(p => [normalizeName(p.playerName), p]));
     return overrides.slice(0, limit).map(name => {
-      const rp = rosterMap.get(normalize(name));
-      const proj = projMap.get(normalize(name));
+      const rp = rosterMap.get(normalizeName(name));
+      const proj = projMap.get(normalizeName(name));
       return {
         playerId: rp?.playerId ?? '',
         playerName: name,
         position: rp?.position ?? proj?.position ?? '?',
-        photoUrl: rp?.photoUrl ?? '',
+        photoUrl: rp?.photoUrl || mlbPhotoUrl(proj?.mlbamId),
         keeperValue: rp?.keeperValue ?? 0,
         totalPoints2025: rp?.totalPoints ?? null,
         projectedFP2026: proj?.projectedFP ?? null,
@@ -399,12 +408,12 @@ export function getSuggestedKeepers(teamId: number, limit = 7, rosterYear = 2025
 
   return roster.players
     .map(p => {
-      const proj = projMap.get(normalize(p.playerName));
+      const proj = projMap.get(normalizeName(p.playerName));
       return {
         playerId: p.playerId,
         playerName: p.playerName,
         position: p.position,
-        photoUrl: p.photoUrl,
+        photoUrl: p.photoUrl || mlbPhotoUrl(proj?.mlbamId),
         keeperValue: p.keeperValue ?? 0,
         totalPoints2025: p.totalPoints,
         projectedFP2026: proj?.projectedFP ?? null,

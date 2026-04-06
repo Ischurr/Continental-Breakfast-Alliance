@@ -37,7 +37,26 @@ async function fetchFreeAgents() {
   }
 
   const seasonId = process.env.ESPN_SEASON_ID ?? '2026';
+  const currentSeasonYear = parseInt(seasonId);
   console.log(`\nFetching free agents for ${seasonId}...`);
+
+  // Load CBA rosters to cross-reference and exclude already-rostered players
+  // ESPN's FA filter should already exclude them, but this is a belt-and-suspenders guard
+  const cbaRosteredIds = new Set<string>();
+  try {
+    const rosterFile = path.join(__dirname, '../data/current/2026.json');
+    if (fs.existsSync(rosterFile)) {
+      const rosterData = JSON.parse(fs.readFileSync(rosterFile, 'utf-8'));
+      for (const roster of (rosterData.rosters ?? []) as Array<{ players?: Array<{ playerId?: string }> }>) {
+        for (const player of (roster.players ?? [])) {
+          if (player.playerId) cbaRosteredIds.add(String(player.playerId));
+        }
+      }
+      console.log(`Cross-referencing against ${cbaRosteredIds.size} CBA rostered player IDs`);
+    }
+  } catch {
+    // Non-fatal — proceed without cross-reference
+  }
 
   const client = createESPNClient(seasonId);
 
@@ -66,9 +85,11 @@ async function fetchFreeAgents() {
     const ownership = player?.ownership as Record<string, unknown> | undefined;
     const percentOwned = (ownership?.percentOwned as number) ?? 0;
 
-    // Get the most recent full-season actual stats (statSourceId=0, statSplitTypeId=0)
+    // Get stats — prefer current-season (2026) if points exist, fall back to most recent
     const stats = (player?.stats as Record<string, unknown>[]) ?? [];
-    const seasonStat = stats.find(s => s.statSourceId === 0 && s.statSplitTypeId === 0);
+    const stat2026 = stats.find(s => s.statSourceId === 0 && s.statSplitTypeId === 0 && s.seasonId === currentSeasonYear);
+    const statAny  = stats.find(s => s.statSourceId === 0 && s.statSplitTypeId === 0);
+    const seasonStat = (stat2026 && (stat2026.appliedTotal as number) > 0) ? stat2026 : statAny;
     const totalPoints = (seasonStat?.appliedTotal as number) ?? 0;
     const statSeasonId = (seasonStat?.seasonId as number) ?? null;
 
@@ -82,7 +103,7 @@ async function fetchFreeAgents() {
       photoUrl: `https://a.espncdn.com/i/headshots/mlb/players/full/${playerId}.png`,
       percentOwned,
     };
-  }).filter(p => p.playerName !== 'Unknown' && p.playerName !== '');
+  }).filter(p => p.playerName !== 'Unknown' && p.playerName !== '' && !cbaRosteredIds.has(p.playerId));
 
   // Sort by totalPoints desc; fall back to percentOwned if all pts are 0 (preseason)
   const allZero = players.every(p => p.totalPoints === 0);

@@ -13,7 +13,8 @@ import TeamBaseballField from '@/components/TeamBaseballField';
 import EROSPTable, { type EROSPPlayer, type EROSPMeta } from '@/components/EROSPTable';
 import SuggestedMoves from '@/components/SuggestedMoves';
 import TeamMatchupTracker from '@/components/TeamMatchupTracker';
-import { getSuggestedMoves } from '@/lib/suggested-moves';
+import { getSuggestedMoves, normalizeName } from '@/lib/suggested-moves';
+import { KEEPER_DEADLINE, SEASON_END } from '@/lib/calendar';
 import fs from 'fs';
 import path from 'path';
 import draftRounds from '@/data/draft-rounds.json';
@@ -137,8 +138,8 @@ export default async function TeamPage({ params }: Props) {
   // - Before Mar 23 draft: show suggested/confirmed 2026 keepers (from overrides or algorithm)
   // - Mar 23 – Oct 1: show actual 2026 keepers from ESPN roster data
   // - After Oct 1 (offseason): show suggested 2027 keepers based on 2026 season stats
-  const keeperDeadline = new Date('2026-03-22');
-  const seasonEnd2026 = new Date('2026-10-01');
+  const keeperDeadline = KEEPER_DEADLINE;
+  const seasonEnd2026 = SEASON_END;
   const now = new Date();
   const showSuggestedKeepers = now < keeperDeadline;
   const showSuggested2027 = now >= seasonEnd2026;
@@ -216,10 +217,10 @@ export default async function TeamPage({ params }: Props) {
   if (isPreDraft) {
     const keeperNames = new Set(
       ((keeperOverrides as Record<string, string[]>)[String(id)] ?? [])
-        .map(n => n.toLowerCase().replace(/[^a-z0-9]/g, ''))
+        .map(n => normalizeName(n))
     );
     teamErospPlayers = erospPlayers.filter(p =>
-      keeperNames.has(p.name.toLowerCase().replace(/[^a-z0-9]/g, ''))
+      keeperNames.has(normalizeName(p.name))
     );
   } else {
     teamErospPlayers = erospPlayers.filter(p => p.fantasy_team_id === id);
@@ -239,6 +240,8 @@ export default async function TeamPage({ params }: Props) {
       }));
     }
   } catch { /* FA data unavailable */ }
+
+  const faNames = new Set(faList.map(p => p.playerName));
 
   // Run Suggested Moves engine — only show post-draft
   const suggestedMovesResult = erospPlayers.length > 0 && !showSuggestedKeepers
@@ -853,6 +856,7 @@ export default async function TeamPage({ params }: Props) {
                 players={teamErospPlayers}
                 meta={erospMeta}
                 showTeamColumn={false}
+                faNames={faNames}
               />
             ) : (
               <div className="bg-slate-200 rounded-xl border shadow-sm p-6 text-center text-gray-400 text-sm">

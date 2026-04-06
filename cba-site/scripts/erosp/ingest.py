@@ -449,6 +449,50 @@ def _il_code_to_games(code: str) -> int:
     }.get(str(code).upper(), 14)
 
 
+def fetch_active_40man_mlbam_ids(season: int = 2026) -> set:
+    """
+    Returns a set of MLBAM player IDs currently on any MLB team's 40-man roster.
+    Used to filter out released/non-tendered players from EROSP projections.
+    Cached daily alongside the injury map.
+    """
+    import requests
+
+    today = datetime.date.today()
+    cache_path = CACHE_DIR / f"active_40man_{season}_{today.strftime('%Y%m%d')}.json"
+
+    if cache_path.exists():
+        print(f"    Cache hit  → {cache_path.name}")
+        with open(cache_path) as f:
+            return set(json.load(f))
+
+    print(f"    Fetching 40-man rosters ({season}) to identify active players…")
+    active_ids: set = set()
+
+    for team_id in sorted(MLB_TEAM_ID_TO_ABBREV.keys()):
+        url = (
+            f"https://statsapi.mlb.com/api/v1/teams/{team_id}/roster"
+            f"?rosterType=40Man&season={season}"
+            f"&fields=roster,person,id"
+        )
+        try:
+            resp = requests.get(url, timeout=10)
+            if resp.status_code != 200:
+                continue
+            for entry in resp.json().get("roster", []):
+                mlbam_id = entry.get("person", {}).get("id")
+                if mlbam_id:
+                    active_ids.add(int(mlbam_id))
+            time.sleep(0.05)
+        except Exception as exc:
+            print(f"    WARNING: 40-man fetch failed for team {team_id}: {exc}")
+
+    with open(cache_path, "w") as f:
+        json.dump(list(active_ids), f)
+
+    print(f"    Active 40-man roster: {len(active_ids):,} players across all 30 teams.")
+    return active_ids
+
+
 def fetch_injured_players(season: int = 2026) -> Dict[int, dict]:
     """
     Fetch current IL status for all 30 MLB teams (cached daily).
