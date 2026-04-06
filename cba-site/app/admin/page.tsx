@@ -74,12 +74,14 @@ export default async function AdminPage() {
   const adminNotes = await getAdminNotes();
 
   // -- Compute analytics --
+  const TOTAL_WEEKS = Math.max(...currentSeason.matchups.map((m: { week: number }) => m.week), 21);
+
   const analytics = computeAdminAnalytics({
     currentSeason,
     erospPlayers,
     teamMetadata,
     rankingsArticles,
-    TOTAL_WEEKS: 21,
+    TOTAL_WEEKS,
   });
 
   return <AdminDashboardClient analytics={analytics} adminNotes={adminNotes} />;
