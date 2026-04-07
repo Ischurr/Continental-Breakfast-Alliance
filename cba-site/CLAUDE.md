@@ -2525,3 +2525,13 @@ All items from the prior TODO list are resolved:
 - `lib/fantasy/espnLoader.ts` `loadScheduleConfig()` — already reads `schedule-${seasonId}.json` dynamically
 - `getCurrentSeason()` — March 9 cutover extracted to `SEASON_CUTOVER_MONTH = 3` / `SEASON_CUTOVER_DAY = 9` constants
 - Team page pre-draft EROSP filter — uses `normalizeName()` from `@/lib/suggested-moves` instead of inline regex
+
+## Session Work (April 6, 2026 — Week Rollover Fix)
+
+### Monday week-advance bug fixed (matchups page + homepage + win probability schedule)
+- **Root cause**: `app/matchups/page.tsx` and `getTopMatchupOfWeek()` in `lib/data-processor.ts` both found the highest week with scoring activity but had no logic to advance past it after all matchups were decided. On Monday morning with week 1 fully final, both still showed week 1 as "current."
+- **Note**: Team pages (`app/teams/[teamId]/page.tsx`) and `/api/live-scores` already had the advance logic — this was the inconsistency.
+- **Fix 1** (`app/matchups/page.tsx`): after finding `lastActive` week, if `matchupsByWeek[lastActive].every(m => m.winner !== undefined)` → advance `currentWeek` to the next scheduled week.
+- **Fix 2** (`lib/data-processor.ts` `getTopMatchupOfWeek()`): same pattern — `lastWeekFullyFinal` check using `allWeeks.find(w => w > lastActiveWeek)` to get the next week.
+- **Fix 3** (`.github/workflows/update-win-probability.yml`): added a second Monday 7 AM EST run (`0 12 * * 1`). Previously win probability only refreshed at 10 PM EST — new week's probabilities weren't available until Monday night. Now they're ready by Monday morning, after the 5:30 AM stats + 6 AM EROSP updates complete.
+- The week-advance pattern: find highest week with activity → check all final → if so, advance to next scheduled week → fall back to current if no next week exists yet.

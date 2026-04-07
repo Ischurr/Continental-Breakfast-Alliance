@@ -22,14 +22,27 @@ export default async function MatchupsPage() {
     .map(Number)
     .sort((a, b) => b - a); // Most recent first
 
-  // Determine the "current" week: last week with any scoring activity, else week 1
+  // Determine the "current" week: last week with any scoring activity, else week 1.
+  // If that week is fully final (all matchups have winners), advance to the next week
+  // so Monday morning the site flips to the new week immediately.
   const currentWeek = (() => {
-    const active = weeks.find(w =>
+    const allWeeksAsc = [...weeks].sort((a, b) => a - b);
+    // Find the highest week with any activity
+    const lastActive = allWeeksAsc.findLast(w =>
       matchupsByWeek[w].some(
         m => m.winner !== undefined || m.home.totalPoints > 0 || m.away.totalPoints > 0
       )
     );
-    return active ?? (weeks.length > 0 ? weeks[weeks.length - 1] : 1); // earliest week if nothing started
+    if (lastActive === undefined) {
+      return weeks.length > 0 ? weeks[weeks.length - 1] : 1; // earliest week pre-season
+    }
+    // If every matchup in that week is decided, advance to next week
+    const fullyFinal = matchupsByWeek[lastActive].every(m => m.winner !== undefined);
+    if (fullyFinal) {
+      const next = allWeeksAsc.find(w => w > lastActive);
+      return next ?? lastActive; // stay if no next week scheduled yet
+    }
+    return lastActive;
   })();
 
   // Next scheduled week (one after current)

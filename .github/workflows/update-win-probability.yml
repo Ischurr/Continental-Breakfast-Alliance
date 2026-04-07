@@ -2,8 +2,10 @@ name: Update Win Probability
 
 on:
   schedule:
-    # 10:00 PM EST = 03:00 UTC (next day) — runs every day during MLB season
+    # 10:00 PM EST = 03:00 UTC (next day) — nightly run
     - cron: '0 3 * * *'
+    # 7:00 AM EST = 12:00 UTC Monday — picks up the new week right after the 5:30 AM stats update
+    - cron: '0 12 * * 1'
   workflow_dispatch: # Allow manual trigger from Actions tab
 
 jobs:

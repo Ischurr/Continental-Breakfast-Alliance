@@ -311,11 +311,20 @@ export function getTopMatchupOfWeek() {
   if (currentSeason.matchups.length === 0) return null;
 
   // Find the latest week with any scoring activity; fall back to week 1 pre-season.
-  // Math.max on all weeks would return the last week of the season (week 21), not the current one.
+  // If that week is fully final (all matchups decided), advance to next week so the
+  // homepage flips to the new week on Monday without waiting for the daily cron.
   const activeWeeks = currentSeason.matchups
     .filter(m => m.winner !== undefined || m.home.totalPoints > 0 || m.away.totalPoints > 0)
     .map(m => m.week);
-  const currentWeek = activeWeeks.length > 0 ? Math.max(...activeWeeks) : 1;
+  const lastActiveWeek = activeWeeks.length > 0 ? Math.max(...activeWeeks) : 1;
+  const lastActiveMatchups = currentSeason.matchups.filter(m => m.week === lastActiveWeek);
+  const lastWeekFullyFinal = lastActiveMatchups.length > 0 &&
+    lastActiveMatchups.every(m => m.winner !== undefined);
+  const allWeeks = [...new Set(currentSeason.matchups.map(m => m.week))].sort((a, b) => a - b);
+  const nextWeekAfterLast = allWeeks.find(w => w > lastActiveWeek);
+  const currentWeek = lastWeekFullyFinal && nextWeekAfterLast !== undefined
+    ? nextWeekAfterLast
+    : lastActiveWeek;
   const thisWeekMatchups = currentSeason.matchups.filter(m => m.week === currentWeek);
   if (thisWeekMatchups.length === 0) return null;
 
