@@ -5,6 +5,8 @@ import { createESPNClient } from '../lib/espn-api';
 import * as fs from 'fs';
 import * as path from 'path';
 
+const season = parseInt(process.env['ESPN_SEASON_ID'] ?? '2026', 10);
+
 // ESPN defaultPositionId — the player's actual MLB position, confirmed from API:
 //   1=SP  2=C  3=1B  4=2B  5=3B  6=SS  7=LF  8=CF  9=RF  10=DH  11=RP
 // LF/CF/RF all map to 'OF' for fantasy purposes.
@@ -34,7 +36,7 @@ function extractRostersFromTeams(teams: Record<string, unknown>[]) {
       const seasonStat = (player?.stats as Record<string, unknown>[] | undefined)
         ?.find(s => (s as Record<string, unknown>).statSourceId === 0
           && (s as Record<string, unknown>).statSplitTypeId === 0
-          && (s as Record<string, unknown>).seasonId === 2026);
+          && (s as Record<string, unknown>).seasonId === season);
       const appliedStatTotal = (seasonStat?.appliedTotal as number) ?? 0;
       const eligibleSlots = (player?.eligibleSlots as number[]) ?? [];
       const defaultPositionId = player?.defaultPositionId as number | undefined;
@@ -70,16 +72,16 @@ function extractRostersFromTeams(teams: Record<string, unknown>[]) {
 }
 
 async function main() {
-  console.log('\nFetching 2026 rosters + keepers...');
-  const client = createESPNClient('2026');
+  console.log(`\nFetching ${season} rosters + keepers...`);
+  const client = createESPNClient(String(season));
   const data = await client.fetchLeagueData(['mTeam', 'mRoster']);
   const rosters = extractRostersFromTeams(data.teams as Record<string, unknown>[]);
 
-  const filePath = path.join(__dirname, '../data/current/2026.json');
+  const filePath = path.join(__dirname, `../data/current/${season}.json`);
   const existing = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
   existing.rosters = rosters;
   fs.writeFileSync(filePath, JSON.stringify(existing, null, 2));
-  console.log('\nRosters merged into data/current/2026.json');
+  console.log(`\nRosters merged into data/current/${season}.json`);
 }
 
 main().catch(console.error);

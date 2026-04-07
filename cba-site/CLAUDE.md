@@ -106,7 +106,7 @@ npm run build            # Production build
 
 ### GitHub Actions (`.github/workflows/update-rosters.yml`)
 - Runs every **3 days** (`0 11 */3 * *`, 11:00 UTC)
-- Runs `npm run fetch-rosters` (`tsx scripts/fetch-rosters-2026.ts`) → commits `data/current/2026.json` rosters if changed
+- Runs `npm run fetch-rosters` (`tsx scripts/fetch-rosters-current.ts`) → commits `data/current/${ESPN_SEASON_ID}.json` rosters if changed
 - Refreshes per-player ESPN position eligibility as players earn new positions during the season
 - Needs `ESPN_SWID` + `ESPN_S2` secrets (same as update-stats)
 
@@ -581,11 +581,11 @@ Applied consistent mobile-first treatment across all data tables:
 - `keeperValue` in ESPN API = draft round cost for all rostered players, NOT a keeper designation flag
 - Pre-draft: can't distinguish the 6 true keepers from a 20-player roster via API alone
 - Post-draft: actual keepers identifiable via `acquisitionType === 'KEEPER'` in roster entries
-- After Mar 23 draft: run `npx tsx scripts/fetch-rosters-2026.ts` then `getTeamKeepersForYear` will return real keepers
+- After Mar 23 draft: run `npx tsx scripts/fetch-rosters-current.ts` then `getTeamKeepersForYear` will return real keepers
 
-### `scripts/fetch-rosters-2026.ts` (new script)
+### `scripts/fetch-rosters-current.ts` (new script)
 - Fetches 2026 ESPN rosters with `mRoster` view and merges `rosters` array into `data/current/2026.json`
-- Run post-draft to populate actual keeper data: `npx tsx scripts/fetch-rosters-2026.ts`
+- Run post-draft to populate actual keeper data: `npx tsx scripts/fetch-rosters-current.ts`
 - Historical data (2022-2025) also refreshed via `npx tsx scripts/fetch-historical.ts`
 
 ### SP 7-start weekly cap (was 6)
@@ -760,7 +760,7 @@ Position eligibility mapping: `role='SP'→SP`, `role='RP'→RP`, `pos='TWP'→O
 ### Pre-draft behavior (current state, March 9)
 All EROSP players have `fantasy_team_id=0` pre-draft → engine uses keeper-overrides.json. Each team has 6 keepers, leaving most position slots empty. Recommendations reflect genuine FA availability (from free-agents.json) against those keeper gaps.
 
-Post-draft: run `npx tsx scripts/fetch-rosters-2026.ts` → EROSP daily cron will pick up team assignments → feature auto-upgrades to full-roster analysis.
+Post-draft: run `npx tsx scripts/fetch-rosters-current.ts` → EROSP daily cron will pick up team assignments → feature auto-upgrades to full-roster analysis.
 
 ## Session Work (March 9, 2026 — EROSP Pipeline Fixes)
 
@@ -1445,7 +1445,7 @@ Integrated `data/draft-rounds.json` (avg pts per effective round, 2023–2025) i
 ### Draft completed March 22, 2026
 
 #### Data fetched
-- **`scripts/fetch-rosters-2026.ts`** updated to capture `acquisitionType` from `entry.acquisitionType` (was missing). Re-run post-draft → 26 players per team, all `acquisitionType='DRAFT'` (ESPN returns DRAFT for everyone including keepers — confirmed limitation, same as historical seasons)
+- **`scripts/fetch-rosters-current.ts`** updated to capture `acquisitionType` from `entry.acquisitionType` (was missing). Re-run post-draft → 26 players per team, all `acquisitionType='DRAFT'` (ESPN returns DRAFT for everyone including keepers — confirmed limitation, same as historical seasons)
 - **`data/current/free-agents.json`** updated via `npm run fetch-free-agents` — reflects post-draft FA pool
 - **`data/erosp/latest.json`** regenerated via `python3 compute_erosp.py` — 1,750 players, 245 assigned to teams with real `fantasy_team_id` (was all 0 pre-draft)
 
@@ -1456,7 +1456,7 @@ Integrated `data/draft-rounds.json` (avg pts per effective round, 2023–2025) i
 #### `scripts/fetch-current.ts` roster preservation fix
 - Daily `npm run fetch-current` was overwriting `data/current/2026.json` and wiping the `rosters` key entirely
 - **Fix**: reads existing file before write; if `existing.rosters` is present, copies it into the new data before saving
-- This means the daily GitHub Actions cron no longer clobbers rosters — run `fetch-rosters-2026.ts` once after draft, then `fetch-current.ts` can run daily safely
+- This means the daily GitHub Actions cron no longer clobbers rosters — run `fetch-rosters-current.ts` once after draft, then `fetch-current.ts` can run daily safely
 
 #### Whistlepigs relocation to Warren, Ohio
 - **`components/USMapHero.tsx`**: coordinates changed from Norfolk VA `[-76.29, 36.85]` → Warren OH `[-80.82, 41.24]`; logo offset `dx:70, dy:45` → `dx:55, dy:-35`
@@ -1465,7 +1465,7 @@ Integrated `data/draft-rounds.json` (avg pts per effective round, 2023–2025) i
 
 #### Post-draft workflow (for future reference)
 1. `npm run fetch-current` — standings/matchups/schedule (preserves rosters)
-2. `npx tsx scripts/fetch-rosters-2026.ts` — actual post-draft rosters (run once after draft)
+2. `npx tsx scripts/fetch-rosters-current.ts` — actual post-draft rosters (run once after draft)
 3. `npm run fetch-free-agents` — updated FA pool
 4. `cd scripts && python3 compute_erosp.py` — re-run EROSP with new team assignments (~6 min with cache)
 5. `git add -p && git commit && git push` — triggers Vercel redeploy
@@ -1734,7 +1734,7 @@ Startable ≠ "points this player will score." It's value-above-replacement. A r
 - `faList` type updated to include `eligiblePositions?: string[]`
 - FA mapping now includes `eligiblePositions: p.eligiblePositions` so the engine can match FAs to positions they're ESPN-eligible at beyond their EROSP primary position
 
-### `scripts/fetch-rosters-2026.ts` — position from `lineupSlotId`
+### `scripts/fetch-rosters-current.ts` — position from `lineupSlotId`
 - Position resolution order: `lineupSlotId` → `eligibleSlots[0]` → `'UTIL'`
 - `lineupSlotId` (the slot they were actually slotted into at roster fetch time) is more accurate than first eligible slot
 
@@ -1812,7 +1812,7 @@ Startable ≠ "points this player will score." It's value-above-replacement. A r
 
 ## Session Work (March 26, 2026 — Baseball Field Position Bug Fixes)
 
-### Root cause: wrong ESPN slot ID mappings (`scripts/fetch-rosters-2026.ts`)
+### Root cause: wrong ESPN slot ID mappings (`scripts/fetch-rosters-current.ts`)
 Three compounding bugs caused hitters to appear in SP/RP slots and pitchers in field positions:
 
 **Bug 1 — slot 16 in every player's `eligibleSlots`**: ESPN includes slot 16 (bench/IL) in ALL players' `eligibleSlots`. It was mapped to `'RP'` in `POSITION_MAP` and included in `LINEUP_SLOTS`, so every hitter got `'RP'` in `eligiblePositions`. `isPitcher()` returned true for all hitters.
@@ -1840,7 +1840,7 @@ Three compounding bugs caused hitters to appear in SP/RP slots and pitchers in f
 ### `update-rosters.yml` GitHub Action
 - New workflow runs every 3 days (`0 11 */3 * *`) to refresh per-player ESPN eligibility
 - Player eligibility changes during the season as players log games at new positions (e.g. a 1B who starts playing OF earns OF eligibility)
-- Added `fetch-rosters` to `package.json` scripts (`tsx scripts/fetch-rosters-2026.ts`)
+- Added `fetch-rosters` to `package.json` scripts (`tsx scripts/fetch-rosters-current.ts`)
 
 ### 2026 in-season points fix
 - ESPN's `player.stats` array contains entries for multiple seasons. Previous filter matched `statSourceId=0, statSplitTypeId=0` without checking `seasonId`, so it picked up the 2025 full-season total (e.g. Ramirez 736 pts) instead of the accumulating 2026 YTD total.
@@ -2408,7 +2408,7 @@ The existing `update-win-probability.yml` workflow already POSTs to `/api/win-pr
 
 ### `components/BaseballFieldLeaders.tsx` — OF/DH/Bullpen empty slots fixed
 
-**Root cause**: The March 26 fix to `scripts/fetch-rosters-2026.ts` changed player position labels to use real MLB positions from `defaultPositionId` (`OF`, `DH`, `RP`). But `BaseballFieldLeaders.tsx` still had pre-March-26 logic:
+**Root cause**: The March 26 fix to `scripts/fetch-rosters-current.ts` changed player position labels to use real MLB positions from `defaultPositionId` (`OF`, `DH`, `RP`). But `BaseballFieldLeaders.tsx` still had pre-March-26 logic:
 - OF slots filtered `position === 'UTIL'` — no match since players now have `'OF'`
 - DH: same UTIL logic — no match since DHs now have `'DH'`
 - Bullpen filtered `position === 'SP'` only — true RPs now have `'RP'`, so bullpen was empty
@@ -2424,10 +2424,10 @@ The existing `update-win-probability.yml` workflow already POSTs to `/api/win-pr
 ## Session Work (April 4, 2026 — ESPN Slot Map Bug Fix in Fetch Scripts)
 
 ### Root cause
-The March 26 `SLOT_POSITION_MAP` fix was applied to `scripts/fetch-rosters-2026.ts` but missed in two other scripts that build `eligiblePositions` from ESPN's `eligibleSlots` array.
+The March 26 `SLOT_POSITION_MAP` fix was applied to `scripts/fetch-rosters-current.ts` but missed in two other scripts that build `eligiblePositions` from ESPN's `eligibleSlots` array.
 
 ### `scripts/fetch-free-agents.ts` — fixed
-Old map had `5:'OF', 6:'OF', 7:'OF'` (slots 5/6/7 are UTIL/MI/CI flex — not OF), `16:'RP'` (slot 16 is bench — present on every player, so every FA got `'RP'` in their `eligiblePositions`), and real OF slots 8/9/10 were missing entirely. Fixed to match `fetch-rosters-2026.ts`: `8:'OF', 9:'OF', 10:'OF'` only; `LINEUP_SLOTS` derived from map keys. **Impact**: `data/current/free-agents.json` `eligiblePositions` were corrupt — every FA appeared RP-eligible, infielders appeared OF-eligible, actual OFs had no OF eligibility. Affected Suggested Moves FA candidate matching. Auto-corrects on next `npm run fetch-free-agents` run.
+Old map had `5:'OF', 6:'OF', 7:'OF'` (slots 5/6/7 are UTIL/MI/CI flex — not OF), `16:'RP'` (slot 16 is bench — present on every player, so every FA got `'RP'` in their `eligiblePositions`), and real OF slots 8/9/10 were missing entirely. Fixed to match `fetch-rosters-current.ts`: `8:'OF', 9:'OF', 10:'OF'` only; `LINEUP_SLOTS` derived from map keys. **Impact**: `data/current/free-agents.json` `eligiblePositions` were corrupt — every FA appeared RP-eligible, infielders appeared OF-eligible, actual OFs had no OF eligibility. Affected Suggested Moves FA candidate matching. Auto-corrects on next `npm run fetch-free-agents` run.
 
 ### `scripts/fetch-historical.ts` — fixed
 Same slot map bug. Also used `POSITION_MAP[eligibleSlots[0]]` for position instead of `defaultPositionId`. Renamed to `DEFAULT_POSITION_MAP`, switched both call sites to `player.defaultPositionId`. **Impact**: only matters if `fetch-historical.ts` is re-run; committed historical data is unaffected.
@@ -2497,9 +2497,11 @@ Full audit of import/export mismatches, data shape assumptions, hardcoded years,
 - EROSPTable on team pages now receives `faNames={faNames}` (built from the already-loaded `faList`)
 - FA/Rostered filter and Status badge now use the authoritative `free-agents.json` list instead of the unreliable `is_fa` flag
 
-### Remaining forward-compatibility items (not yet fixed — prompt written for next session)
-- `lib/fantasy/espnLoader.ts` — likely hardcodes `seasonId: 2026` in ESPN API calls
-- `lib/admin-analytics.ts` — `TOTAL_WEEKS = 21` hardcoded
-- `scripts/fetch-rosters-2026.ts` — filename includes year; should be renamed and use `ESPN_SEASON_ID`
-- `lib/fantasy/espnLoader.ts` `loadScheduleConfig()` — reads `schedule-2026.json` by hardcoded path
-- `getCurrentSeason()` March 9 cutover date is a magic number (low priority)
+### Forward-compatibility fixes applied (April 5, 2026)
+All items from the prior TODO list are resolved:
+- `lib/fantasy/espnLoader.ts` — already fully dynamic (no hardcoded 2026 season IDs)
+- `lib/admin-analytics.ts` — `TOTAL_WEEKS` derived dynamically in `app/admin/page.tsx` (`Math.max(...matchups.map(m => m.week), 21)`)
+- `scripts/fetch-rosters-current.ts` — renamed from `fetch-rosters-2026.ts`; uses `parseInt(process.env['ESPN_SEASON_ID'] ?? '2026', 10)` and `${season}.json`
+- `lib/fantasy/espnLoader.ts` `loadScheduleConfig()` — already reads `schedule-${seasonId}.json` dynamically
+- `getCurrentSeason()` — March 9 cutover extracted to `SEASON_CUTOVER_MONTH = 3` / `SEASON_CUTOVER_DAY = 9` constants
+- Team page pre-draft EROSP filter — uses `normalizeName()` from `@/lib/suggested-moves` instead of inline regex

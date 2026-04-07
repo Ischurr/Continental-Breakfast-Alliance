@@ -414,9 +414,10 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
         const erospRaw = ep?.erosp_raw ?? 0;
         const impact: RosterMoveSignal['impact'] =
           erospRaw >= 300 ? 'strong' : erospRaw >= 150 ? 'moderate' : 'watch';
+        const seasonStarted = standings.some(s => s.wins > 0 || s.losses > 0);
         const note =
           at === 'ADD'
-            ? `Added this offseason · ${Math.round(erospRaw)} projected pts`
+            ? `${seasonStarted ? 'Added in-season' : 'Added this offseason'} · ${Math.round(erospRaw)} projected pts`
             : `Acquired via trade · ${Math.round(erospRaw)} projected pts`;
 
         rosterMoves.push({
