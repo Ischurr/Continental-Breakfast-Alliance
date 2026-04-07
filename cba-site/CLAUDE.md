@@ -2535,3 +2535,33 @@ All items from the prior TODO list are resolved:
 - **Fix 2** (`lib/data-processor.ts` `getTopMatchupOfWeek()`): same pattern — `lastWeekFullyFinal` check using `allWeeks.find(w => w > lastActiveWeek)` to get the next week.
 - **Fix 3** (`.github/workflows/update-win-probability.yml`): added a second Monday 7 AM EST run (`0 12 * * 1`). Previously win probability only refreshed at 10 PM EST — new week's probabilities weren't available until Monday night. Now they're ready by Monday morning, after the 5:30 AM stats + 6 AM EROSP updates complete.
 - The week-advance pattern: find highest week with activity → check all final → if so, advance to next scheduled week → fall back to current if no next week exists yet.
+
+## Session Work (April 6, 2026 — Admin Dashboard: Units Tab + All-Time Records)
+
+### Two new features added to the editorial intelligence dashboard (`/admin`)
+
+#### Units Tab — actual scored points by position group
+- **New tab "Units (Actual)"** next to "Positions (EROSP)" — shows real 2026 fantasy points scored, not projections
+- **7 unit groups**: SP, RP, C, MIF (2B/SS), CIF (1B/3B), OF, DH
+- **Each group card**: all 10 teams ranked by actual pts; top 2 green, bottom 2 red; σ badge shows distance from league mean
+- **Player detail row**: top 3 players per unit shown as `LastName pts` (e.g. `Verlander 84 · Cole 71`)
+- **SP/RP split**: uses EROSP `role` field to correctly classify pitchers (ESPN labels everyone 'SP')
+- **Data path**: `app/admin/page.tsx` → `computeAdminAnalytics()` → `unitStats: UnitGroupStats[]` → `UnitsTab` component in `AdminDashboardClient.tsx`
+
+#### All-Time Records — franchise high/low tracking
+- **Historical seasons loaded** in `app/admin/page.tsx`: reads 2022–2025 JSON files, passes as `historicalSeasons` to analytics engine
+- **`allTimeRecordByTeam`** computed from all seasons respecting `TEAM_JOIN_YEAR` (Banshees only from 2025)
+- **Teams tab**: two new columns — "Season Hi/Lo" (current season best/worst week with week number) and "All-Time Hi" (franchise record + year/week label, all-time low shown smaller below)
+- **Emoji badges** in team name column: 🏆 all-time high this week · 💀 all-time low · 📈 season high · 📉 season low
+- **Auto-bullets** fire in Bullets tab when a team sets a record (priority 92 for all-time high, 88 for all-time low, 72/68 for season high/low)
+- **Legend** below Teams table explains icons and Banshees caveat
+
+### New types in `lib/admin-analytics.ts`
+- `AllTimeRecord` — `{ highPoints, highWeek, highYear, lowPoints, lowWeek, lowYear }`
+- `SeasonHighLow` — `{ highPoints, highWeek, lowPoints, lowWeek }`
+- `UnitGroup` — `'SP' | 'RP' | 'C' | 'MIF' | 'CIF' | 'OF' | 'DH'`
+- `UNIT_LABELS` — human-readable labels for each group
+- `UnitTeamEntry` / `UnitGroupStats` — parallel to existing `PositionGroupTeamEntry` / `PositionGroupStats` but uses actual pts not EROSP
+- `TeamTrend` extended with `allTimeRecord`, `seasonHighLow`, `isAllTimeHigh`, `isAllTimeLow`, `isSeasonHigh`, `isSeasonLow`
+- `AdminAnalytics` extended with `unitStats: UnitGroupStats[]`
+- `AdminAnalyticsInput` extended with `historicalSeasons?: SeasonData[]`

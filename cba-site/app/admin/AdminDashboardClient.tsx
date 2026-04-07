@@ -13,7 +13,7 @@ interface Props {
   adminNotes: AdminNotes;
 }
 
-type Tab = 'bullets' | 'teams' | 'players' | 'positions' | 'moves' | 'storylines' | 'notes';
+type Tab = 'bullets' | 'teams' | 'players' | 'positions' | 'units' | 'moves' | 'storylines' | 'notes';
 
 const CATEGORY_COLORS: Record<string, string> = {
   trend: 'border-blue-400',
@@ -144,59 +144,88 @@ function TeamsTab({ analytics }: { analytics: AdminAnalytics }) {
   const sorted = [...analytics.teamTrends].sort((a, b) => b.actualPointsFor - a.actualPointsFor);
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-gray-200">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="bg-gray-50 border-b border-gray-200">
-            <th className="text-left px-4 py-3 font-semibold text-gray-700">Team</th>
-            <th className="text-left px-4 py-3 font-semibold text-gray-700">Owner</th>
-            <th className="text-center px-3 py-3 font-semibold text-gray-700">W-L</th>
-            <th className="text-right px-3 py-3 font-semibold text-gray-700">Points</th>
-            <th className="text-right px-3 py-3 font-semibold text-gray-700">Wk Avg</th>
-            <th className="text-center px-3 py-3 font-semibold text-gray-700">Trend</th>
-            <th className="text-right px-3 py-3 font-semibold text-gray-700">vs EROSP</th>
-            <th className="text-right px-3 py-3 font-semibold text-gray-700">EROSP Proj</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-100">
-          {sorted.map(t => {
-            const weeklyAvg =
-              t.weeklyScores.length > 0
-                ? mean(t.weeklyScores.map(w => w.points))
-                : 0;
-            const pacePct = t.vsErospPacePct;
-            const paceColor =
-              pacePct > 5 ? 'text-green-600' : pacePct < -5 ? 'text-red-500' : 'text-gray-500';
+    <div className="space-y-4">
+      <div className="overflow-x-auto rounded-xl border border-gray-200">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-200">
+              <th className="text-left px-4 py-3 font-semibold text-gray-700">Team</th>
+              <th className="text-left px-4 py-3 font-semibold text-gray-700">Owner</th>
+              <th className="text-center px-3 py-3 font-semibold text-gray-700">W-L</th>
+              <th className="text-right px-3 py-3 font-semibold text-gray-700">Points</th>
+              <th className="text-right px-3 py-3 font-semibold text-gray-700">Wk Scores</th>
+              <th className="text-center px-3 py-3 font-semibold text-gray-700">Trend</th>
+              <th className="text-right px-3 py-3 font-semibold text-gray-700">vs EROSP</th>
+              <th className="text-right px-3 py-3 font-semibold text-gray-700">Season Hi/Lo</th>
+              <th className="text-right px-3 py-3 font-semibold text-gray-700">All-Time Hi</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {sorted.map(t => {
+              const pacePct = t.vsErospPacePct;
+              const paceColor =
+                pacePct > 5 ? 'text-green-600' : pacePct < -5 ? 'text-red-500' : 'text-gray-500';
+              const atr = t.allTimeRecord;
+              const shl = t.seasonHighLow;
 
-            return (
-              <tr key={t.teamId} className="hover:bg-gray-50 transition">
-                <td className="px-4 py-3 font-medium text-gray-900">{t.teamName}</td>
-                <td className="px-4 py-3 text-gray-500 text-xs">{t.owner}</td>
-                <td className="px-3 py-3 text-center text-gray-700">{t.record}</td>
-                <td className="px-3 py-3 text-right font-mono text-gray-900">
-                  {t.actualPointsFor.toFixed(1)}
-                </td>
-                <td className="px-3 py-3 text-right font-mono text-gray-600 text-xs">
-                  {weeklyAvg > 0 ? weeklyAvg.toFixed(1) : '—'}
-                  {t.weeklyScores.length > 0 && (
-                    <div className="text-gray-400 text-[10px]">
-                      {t.weeklyScores.map(w => `W${w.week}:${w.points.toFixed(0)}`).join(' ')}
+              return (
+                <tr key={t.teamId} className="hover:bg-gray-50 transition">
+                  <td className="px-4 py-3 font-medium text-gray-900">
+                    <div className="flex items-center gap-1.5">
+                      {t.isAllTimeHigh && <span title="All-time franchise high this week!">🏆</span>}
+                      {t.isAllTimeLow && <span title="All-time franchise low this week!">💀</span>}
+                      {t.isSeasonHigh && !t.isAllTimeHigh && <span title="Season high this week">📈</span>}
+                      {t.isSeasonLow && !t.isAllTimeLow && <span title="Season low this week">📉</span>}
+                      {t.teamName}
                     </div>
-                  )}
-                </td>
-                <td className="px-3 py-3 text-center">{trendIcon(t.trendDirection)}</td>
-                <td className={`px-3 py-3 text-right font-mono text-xs ${paceColor}`}>
-                  {pacePct > 0 ? '+' : ''}
-                  {pacePct.toFixed(1)}%
-                </td>
-                <td className="px-3 py-3 text-right font-mono text-gray-600 text-xs">
-                  {t.erospTotal > 0 ? Math.round(t.erospTotal).toLocaleString() : '—'}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                  </td>
+                  <td className="px-4 py-3 text-gray-500 text-xs">{t.owner}</td>
+                  <td className="px-3 py-3 text-center text-gray-700">{t.record}</td>
+                  <td className="px-3 py-3 text-right font-mono text-gray-900">
+                    {t.actualPointsFor.toFixed(1)}
+                  </td>
+                  <td className="px-3 py-3 text-right font-mono text-gray-600 text-xs">
+                    {t.weeklyScores.length > 0 ? (
+                      <div className="text-gray-400 text-[10px]">
+                        {t.weeklyScores.map(w => `W${w.week}:${w.points.toFixed(0)}`).join(' ')}
+                      </div>
+                    ) : '—'}
+                  </td>
+                  <td className="px-3 py-3 text-center">{trendIcon(t.trendDirection)}</td>
+                  <td className={`px-3 py-3 text-right font-mono text-xs ${paceColor}`}>
+                    {pacePct > 0 ? '+' : ''}
+                    {pacePct.toFixed(1)}%
+                  </td>
+                  <td className="px-3 py-3 text-right font-mono text-xs text-gray-600">
+                    {shl ? (
+                      <div className="space-y-0.5">
+                        <div className="text-green-700">↑ {Math.round(shl.highPoints)} <span className="text-gray-400">W{shl.highWeek}</span></div>
+                        <div className="text-red-500">↓ {Math.round(shl.lowPoints)} <span className="text-gray-400">W{shl.lowWeek}</span></div>
+                      </div>
+                    ) : '—'}
+                  </td>
+                  <td className="px-3 py-3 text-right font-mono text-xs text-gray-500">
+                    {atr ? (
+                      <div className="space-y-0.5">
+                        <div className={`font-semibold ${t.isAllTimeHigh ? 'text-amber-600' : 'text-gray-700'}`}>
+                          {Math.round(atr.highPoints)}
+                          <span className="text-gray-400 font-normal ml-1">'{String(atr.highYear).slice(2)} W{atr.highWeek}</span>
+                        </div>
+                        <div className={`text-[10px] ${t.isAllTimeLow ? 'text-red-600' : 'text-gray-400'}`}>
+                          Lo: {Math.round(atr.lowPoints)} '{String(atr.lowYear).slice(2)} W{atr.lowWeek}
+                        </div>
+                      </div>
+                    ) : '—'}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <p className="text-xs text-gray-400">
+        🏆 = all-time franchise high this week · 💀 = all-time franchise low · 📈/📉 = season high/low · Banshees records from 2025 only
+      </p>
     </div>
   );
 }
@@ -341,6 +370,86 @@ function PositionsTab({ analytics }: { analytics: AdminAnalytics }) {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+// ── Units tab ─────────────────────────────────────────────────────────────────
+
+function UnitsTab({ analytics }: { analytics: AdminAnalytics }) {
+  const { unitStats, currentWeek } = analytics;
+  const hasData = unitStats.some(u => u.teams.some(t => t.actualPts > 0));
+
+  if (!hasData) {
+    return (
+      <div className="text-center py-16 text-gray-400 text-sm">
+        No scoring data yet — unit breakdown available once games are recorded.
+      </div>
+    );
+  }
+
+  function rankColor(rank: number, total: number) {
+    if (rank <= 2) return 'text-green-700 font-bold';
+    if (rank >= total - 1) return 'text-red-500 font-bold';
+    return 'text-gray-700';
+  }
+
+  function zBadge(z: number) {
+    if (z >= 1.5) return <span className="ml-1 text-[10px] px-1 py-0.5 rounded bg-green-100 text-green-800">+{z.toFixed(1)}σ</span>;
+    if (z >= 0.5) return <span className="ml-1 text-[10px] px-1 py-0.5 rounded bg-green-50 text-green-700">+{z.toFixed(1)}σ</span>;
+    if (z <= -1.5) return <span className="ml-1 text-[10px] px-1 py-0.5 rounded bg-red-100 text-red-700">{z.toFixed(1)}σ</span>;
+    if (z <= -0.5) return <span className="ml-1 text-[10px] px-1 py-0.5 rounded bg-red-50 text-red-600">{z.toFixed(1)}σ</span>;
+    return null;
+  }
+
+  return (
+    <div className="space-y-2">
+      <p className="text-xs text-gray-400 mb-4">
+        Actual 2026 fantasy points scored by position group through Week {currentWeek}. Uses EROSP role (SP/RP) to correctly split pitchers.
+      </p>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {unitStats.map(ug => {
+          const teamsWithData = ug.teams.filter(t => t.actualPts > 0);
+          const total = ug.teams.length;
+          return (
+            <div key={ug.group} className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+              <div className="px-4 py-2.5 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+                <div>
+                  <span className="font-bold text-gray-900 text-sm">{ug.group}</span>
+                  <span className="ml-2 text-xs text-gray-500">{ug.label}</span>
+                </div>
+                <span className="text-xs text-gray-400">
+                  avg {Math.round(ug.leagueAvg)} pts
+                </span>
+              </div>
+              <div className="divide-y divide-gray-50">
+                {ug.teams.map(t => (
+                  <div key={t.teamId} className={`px-3 py-2 flex items-start gap-2 ${t.actualPts === 0 ? 'opacity-40' : ''}`}>
+                    <span className={`text-xs w-5 flex-shrink-0 ${rankColor(t.rank, total)}`}>{t.rank}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs font-medium text-gray-800 truncate">{t.teamName}</span>
+                        {t.actualPts > 0 && zBadge(t.zScore)}
+                      </div>
+                      {t.players.slice(0, 3).length > 0 && (
+                        <div className="text-[10px] text-gray-400 truncate mt-0.5">
+                          {t.players.slice(0, 3).map(p => `${p.name.split(' ').slice(-1)[0]} ${p.pts.toFixed(0)}`).join(' · ')}
+                        </div>
+                      )}
+                    </div>
+                    <span className={`text-xs font-mono flex-shrink-0 ${rankColor(t.rank, total)}`}>
+                      {t.actualPts > 0 ? Math.round(t.actualPts) : '—'}
+                    </span>
+                  </div>
+                ))}
+                {teamsWithData.length === 0 && (
+                  <div className="px-3 py-3 text-xs text-gray-400 italic">No scoring data yet</div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -562,7 +671,8 @@ export default function AdminDashboardClient({ analytics, adminNotes }: Props) {
     { id: 'bullets', label: 'Bullets' },
     { id: 'teams', label: 'Teams' },
     { id: 'players', label: 'Players' },
-    { id: 'positions', label: 'Positions' },
+    { id: 'positions', label: 'Positions (EROSP)' },
+    { id: 'units', label: 'Units (Actual)' },
     { id: 'moves', label: 'Moves' },
     { id: 'storylines', label: 'Storylines' },
     { id: 'notes', label: 'Notes' },
@@ -621,6 +731,7 @@ export default function AdminDashboardClient({ analytics, adminNotes }: Props) {
         {activeTab === 'teams' && <TeamsTab analytics={analytics} />}
         {activeTab === 'players' && <PlayersTab analytics={analytics} />}
         {activeTab === 'positions' && <PositionsTab analytics={analytics} />}
+        {activeTab === 'units' && <UnitsTab analytics={analytics} />}
         {activeTab === 'moves' && <MovesTab analytics={analytics} />}
         {activeTab === 'storylines' && <StorylinesTab analytics={analytics} />}
         {activeTab === 'notes' && (

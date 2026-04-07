@@ -59,6 +59,20 @@ export default async function AdminPage() {
     teamMetadata = [];
   }
 
+  // -- Load historical seasons (2022-2025) for all-time records --
+  const HISTORICAL_YEARS = [2022, 2023, 2024, 2025];
+  const historicalSeasons: SeasonData[] = [];
+  for (const year of HISTORICAL_YEARS) {
+    try {
+      const raw = JSON.parse(
+        readFileSync(path.join(DATA_DIR, 'historical', `${year}.json`), 'utf-8')
+      ) as SeasonData;
+      historicalSeasons.push(raw);
+    } catch {
+      // year may not exist yet; skip silently
+    }
+  }
+
   // -- Load rankings articles --
   const rankingsData = await getRankings();
   const rankingsArticles: AdminAnalyticsInput['rankingsArticles'] = (rankingsData.articles ?? []).map(
@@ -82,6 +96,7 @@ export default async function AdminPage() {
     teamMetadata,
     rankingsArticles,
     TOTAL_WEEKS,
+    historicalSeasons,
   });
 
   return <AdminDashboardClient analytics={analytics} adminNotes={adminNotes} />;
