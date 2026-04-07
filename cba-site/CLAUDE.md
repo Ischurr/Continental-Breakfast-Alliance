@@ -2345,6 +2345,26 @@ MANUAL NOTES: ...
 - TOTAL_WEEKS = 21 (hardcoded for 2026 season); completion fraction = currentWeek / 21
 - Position group EROSP analysis uses `fantasy_team_id != 0` to skip pre-draft state
 
+## Session Work (April 6, 2026 — Admin Analytics Type Fixes + Label Fix)
+
+### "Added this offseason" label fix (`lib/admin-analytics.ts`)
+- Roster moves section was always showing "Added this offseason" regardless of whether the season had started
+- Fix: `seasonStarted = standings.some(s => s.wins > 0 || s.losses > 0)` computed once above the loop; label now shows "Added in-season" post-Opening Day
+
+### Missing type definitions added (`lib/admin-analytics.ts`)
+The admin analytics engine had grown new features referencing types that weren't defined yet. Added:
+- `AllTimeRecord` — `{ highPoints, highWeek, highYear, lowPoints, lowWeek, lowYear }` — all-time franchise scoring records
+- `SeasonHighLow` — `{ highPoints, highWeek, lowPoints, lowWeek }` — current-season highs/lows
+- `UnitGroup` type — `'SP' | 'RP' | 'C' | 'MIF' | 'CIF' | 'OF' | 'DH'` — finer position splits than `PosGroup`
+- `UnitTeamEntry` — actual-pts-based team entry for unit stats
+- `UnitGroupStats` — actual scored points by unit group per team (vs `PositionGroupStats` which uses EROSP)
+- `UNIT_LABELS` — display labels for each `UnitGroup`
+- Added `historicalSeasons?: SeasonData[]` to `AdminAnalyticsInput` (passed from `app/admin/page.tsx`)
+- Added `unitStats: UnitGroupStats[]` to `AdminAnalytics` return type
+- Added new fields to `TeamTrend`: `allTimeRecord`, `seasonHighLow`, `isAllTimeHigh`, `isAllTimeLow`, `isSeasonHigh`, `isSeasonLow`
+
+**Key distinction**: `positionGroups` uses EROSP projected values; `unitStats` uses actual fantasy points scored — surfaced in a separate tab in the dashboard.
+
 ## Session Work (April 3, 2026 — Win Probability Clamping Fix)
 
 ### Win prob: clamp [3%,97%] only while games remain (`lib/fantasy/winProbability.ts`, `lib/fantasy/simulation.ts`)
