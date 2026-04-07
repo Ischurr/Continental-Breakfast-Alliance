@@ -46,9 +46,26 @@ export interface AdminAnalyticsInput {
   teamMetadata: TeamMetaEntry[];
   rankingsArticles: RankingsArticle[];
   TOTAL_WEEKS: number;
+  historicalSeasons?: SeasonData[];
 }
 
 // ── Output types ──────────────────────────────────────────────────────────────
+
+export interface AllTimeRecord {
+  highPoints: number;
+  highWeek: number;
+  highYear: number;
+  lowPoints: number;
+  lowWeek: number;
+  lowYear: number;
+}
+
+export interface SeasonHighLow {
+  highPoints: number;
+  highWeek: number;
+  lowPoints: number;
+  lowWeek: number;
+}
 
 export interface TeamTrend {
   teamId: number;
@@ -63,6 +80,12 @@ export interface TeamTrend {
   actualPointsFor: number;
   erospPace: number;
   vsErospPacePct: number;
+  allTimeRecord: AllTimeRecord | null;
+  seasonHighLow: SeasonHighLow | null;
+  isAllTimeHigh: boolean;
+  isAllTimeLow: boolean;
+  isSeasonHigh: boolean;
+  isSeasonLow: boolean;
 }
 
 export interface PlayerSignal {
@@ -79,6 +102,35 @@ export interface PlayerSignal {
   ilType?: string;
   ilDaysRemaining?: number;
   injuryNote?: string;
+}
+
+export type UnitGroup = 'SP' | 'RP' | 'C' | 'MIF' | 'CIF' | 'OF' | 'DH';
+
+export const UNIT_LABELS: Record<UnitGroup, string> = {
+  SP: 'Starting Pitching',
+  RP: 'Relief Pitching',
+  C: 'Catcher',
+  MIF: 'Middle Infield',
+  CIF: 'Corner Infield',
+  OF: 'Outfield',
+  DH: 'DH / Utility',
+};
+
+export interface UnitTeamEntry {
+  teamId: number;
+  teamName: string;
+  actualPts: number;
+  rank: number;
+  zScore: number;
+  players: { name: string; pts: number; position: string }[];
+}
+
+export interface UnitGroupStats {
+  group: UnitGroup;
+  label: string;
+  leagueAvg: number;
+  leagueStdDev: number;
+  teams: UnitTeamEntry[];
 }
 
 export interface PositionGroupTeamEntry {
@@ -131,6 +183,7 @@ export interface AdminAnalytics {
   teamTrends: TeamTrend[];
   playerSignals: PlayerSignal[];
   positionGroups: PositionGroupStats[];
+  unitStats: UnitGroupStats[];
   rosterMoves: RosterMoveSignal[];
   bullets: StorylineBullet[];
   rankingsThemes: RankingsTheme[];
@@ -191,10 +244,30 @@ function teamOwner(teamId: number, meta: TeamMetaEntry[]): string {
   return m?.owner || '';
 }
 
+// Banshees (id=10) joined in 2025; all other teams since 2022
+const TEAM_JOIN_YEAR: Record<number, number> = { 10: 2025 };
+function teamJoinYear(teamId: number): number {
+  return TEAM_JOIN_YEAR[teamId] ?? 2022;
+}
+
+// Classify a roster player into a unit group using EROSP role when available
+function classifyUnit(position: string, erospRole?: 'H' | 'SP' | 'RP'): UnitGroup | null {
+  if (erospRole === 'SP') return 'SP';
+  if (erospRole === 'RP') return 'RP';
+  if (position === 'SP') return 'SP';
+  if (position === 'RP') return 'RP';
+  if (position === 'C') return 'C';
+  if (position === '2B' || position === 'SS') return 'MIF';
+  if (position === '1B' || position === '3B') return 'CIF';
+  if (['OF', 'LF', 'CF', 'RF'].includes(position)) return 'OF';
+  if (position === 'DH') return 'DH';
+  return null;
+}
+
 // ── Main function ─────────────────────────────────────────────────────────────
 
 export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytics {
-  const { currentSeason, erospPlayers, teamMetadata, rankingsArticles, TOTAL_WEEKS } = input;
+  const { currentSeason, erospPlayers, teamMetadata, rankingsArticles, TOTAL_WEEKS, historicalSeasons } = input;
   const { matchups, standings, rosters } = currentSeason;
 
   // -- Current week and completion fraction --
@@ -205,6 +278,38 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
   const completionFraction = Math.min(currentWeek / TOTAL_WEEKS, 1);
 
   const teamIds = standings.map(s => s.teamId);
+
+  // ── ALL-TIME RECORDS ──────────────────────────────────────────────────────────
+
+  // Collect all weekly scores across every season (historical + current), respecting join year
+  const allTimeWeeklyScores: Record<number, { points: number; week: number; year: number }[]> = {};
+  const allSeasons: SeasonData[] = [...(historicalSeasons ?? []), currentSeason];
+  for (const season of allSeasons) {
+    const year = season.year;
+    for (const m of season.matchups) {
+      const addScore = (teamId: number, pts: number) => {
+        if (pts <= 0) return;
+        if (year < teamJoinYear(teamId)) return;
+        if (!allTimeWeeklyScores[teamId]) allTimeWeeklyScores[teamId] = [];
+        allTimeWeeklyScores[teamId].push({ points: pts, week: m.week, year });
+      };
+      addScore(m.home.teamId, m.home.totalPoints);
+      addScore(m.away.teamId, m.away.totalPoints);
+    }
+  }
+
+  // Compute all-time high/low per team
+  const allTimeRecordByTeam: Record<number, AllTimeRecord> = {};
+  for (const [tid, scores] of Object.entries(allTimeWeeklyScores)) {
+    const teamId = Number(tid);
+    if (scores.length === 0) continue;
+    const hi = scores.reduce((a, b) => (b.points > a.points ? b : a));
+    const lo = scores.reduce((a, b) => (b.points < a.points ? b : a));
+    allTimeRecordByTeam[teamId] = {
+      highPoints: hi.points, highWeek: hi.week, highYear: hi.year,
+      lowPoints: lo.points, lowWeek: lo.week, lowYear: lo.year,
+    };
+  }
 
   // ── TEAM TRENDS ──────────────────────────────────────────────────────────────
 
@@ -255,6 +360,23 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
     const erospPace = erospTotal * completionFraction;
     const vsErospPacePct = erospPace > 0 ? ((pointsFor - erospPace) / erospPace) * 100 : 0;
 
+    // Season high/low (current season only, completed weeks)
+    const completedPoints = completedWeeks.map(w => w.points);
+    let seasonHighLow: SeasonHighLow | null = null;
+    if (completedPoints.length > 0) {
+      const hiW = completedWeeks.reduce((a, b) => (b.points > a.points ? b : a));
+      const loW = completedWeeks.reduce((a, b) => (b.points < a.points ? b : a));
+      seasonHighLow = { highPoints: hiW.points, highWeek: hiW.week, lowPoints: loW.points, lowWeek: loW.week };
+    }
+
+    // All-time record comparisons
+    const atr = allTimeRecordByTeam[teamId] ?? null;
+    const currentWeekPts = weeklyScores.find(w => w.week === currentWeek)?.points ?? 0;
+    const isAllTimeHigh = atr !== null && currentWeekPts > 0 && currentWeekPts >= atr.highPoints;
+    const isAllTimeLow = atr !== null && currentWeekPts > 0 && currentWeekPts <= atr.lowPoints && currentWeek > 1;
+    const isSeasonHigh = seasonHighLow !== null && currentWeekPts > 0 && currentWeekPts >= seasonHighLow.highPoints && currentWeek > 1;
+    const isSeasonLow = seasonHighLow !== null && currentWeekPts > 0 && currentWeekPts <= seasonHighLow.lowPoints && currentWeek > 1;
+
     return {
       teamId,
       teamName: teamDisplayName(teamId, teamMetadata),
@@ -268,6 +390,12 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
       actualPointsFor: pointsFor,
       erospPace,
       vsErospPacePct,
+      allTimeRecord: atr,
+      seasonHighLow,
+      isAllTimeHigh,
+      isAllTimeLow,
+      isSeasonHigh,
+      isSeasonLow,
     };
   });
 
@@ -397,11 +525,65 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
     return { group: grp, leagueAvg: avg, leagueStdDev: sd, teams };
   });
 
+  // ── UNIT STATS (actual scored points by position group) ───────────────────────
+
+  // Build EROSP role lookup by normalized name
+  const erospRoleByName: Record<string, 'H' | 'SP' | 'RP'> = {};
+  for (const ep of erospPlayers) {
+    erospRoleByName[normalizeName(ep.name)] = ep.role;
+  }
+
+  const unitGroups: UnitGroup[] = ['SP', 'RP', 'C', 'MIF', 'CIF', 'OF', 'DH'];
+
+  // Collect actual pts per team per unit from current rosters
+  const unitByTeam: Record<number, Partial<Record<UnitGroup, { total: number; players: { name: string; pts: number; position: string }[] }>>> = {};
+  for (const tid of teamIds) unitByTeam[tid] = {};
+
+  if (rosters && rosters.length > 0) {
+    for (const roster of rosters) {
+      const { teamId, players } = roster;
+      if (!unitByTeam[teamId]) unitByTeam[teamId] = {};
+      for (const rp of players) {
+        if (rp.totalPoints <= 0) continue;
+        const erospRole = erospRoleByName[normalizeName(rp.playerName)];
+        const grp = classifyUnit(rp.position, erospRole);
+        if (!grp) continue;
+        if (!unitByTeam[teamId][grp]) unitByTeam[teamId][grp] = { total: 0, players: [] };
+        unitByTeam[teamId][grp]!.total += rp.totalPoints;
+        unitByTeam[teamId][grp]!.players.push({ name: rp.playerName, pts: rp.totalPoints, position: rp.position });
+      }
+    }
+  }
+
+  const unitStats: UnitGroupStats[] = unitGroups.map(grp => {
+    const teamTotals = teamIds.map(tid => ({
+      teamId: tid,
+      total: unitByTeam[tid]?.[grp]?.total ?? 0,
+      players: unitByTeam[tid]?.[grp]?.players ?? [],
+    }));
+    const totals = teamTotals.map(t => t.total);
+    const avg = mean(totals);
+    const sd = stdDev(totals);
+
+    const sorted = [...teamTotals].sort((a, b) => b.total - a.total);
+    const teams: UnitTeamEntry[] = sorted.map((t, i) => ({
+      teamId: t.teamId,
+      teamName: teamDisplayName(t.teamId, teamMetadata),
+      actualPts: t.total,
+      rank: i + 1,
+      zScore: zScore(t.total, avg, sd),
+      players: t.players.sort((a, b) => b.pts - a.pts),
+    }));
+
+    return { group: grp, label: UNIT_LABELS[grp], leagueAvg: avg, leagueStdDev: sd, teams };
+  });
+
   // ── ROSTER MOVES ─────────────────────────────────────────────────────────────
 
   const rosterMoves: RosterMoveSignal[] = [];
 
   if (rosters && rosters.length > 0) {
+    const seasonStarted = standings.some(s => s.wins > 0 || s.losses > 0);
     for (const roster of rosters) {
       const { teamId, players } = roster;
       const tName = teamDisplayName(teamId, teamMetadata);
@@ -414,7 +596,6 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
         const erospRaw = ep?.erosp_raw ?? 0;
         const impact: RosterMoveSignal['impact'] =
           erospRaw >= 300 ? 'strong' : erospRaw >= 150 ? 'moderate' : 'watch';
-        const seasonStarted = standings.some(s => s.wins > 0 || s.losses > 0);
         const note =
           at === 'ADD'
             ? `${seasonStarted ? 'Added in-season' : 'Added this offseason'} · ${Math.round(erospRaw)} projected pts`
@@ -685,6 +866,56 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
     });
   }
 
+  // All-time and season record bullets
+  for (const trend of teamTrends) {
+    const curPts = trend.weeklyScores.find(w => w.week === currentWeek)?.points ?? 0;
+    if (curPts <= 0) continue;
+    if (trend.isAllTimeHigh) {
+      const yrsLabel = trend.allTimeRecord!.highYear < currentSeason.year
+        ? ` (prev best: ${Math.round(trend.allTimeRecord!.highPoints)} in ${trend.allTimeRecord!.highYear})`
+        : '';
+      bullets.push({
+        priority: 92,
+        category: 'trend',
+        emoji: '🏆',
+        headline: `**${trend.teamName}** scored ${Math.round(curPts)} pts in Week ${currentWeek} — a new all-time franchise record${yrsLabel}`,
+        detail: undefined,
+        teamIds: [trend.teamId],
+      });
+    } else if (trend.isSeasonHigh && !trend.isAllTimeHigh && trend.seasonHighLow) {
+      bullets.push({
+        priority: 72,
+        category: 'trend',
+        emoji: '📊',
+        headline: `**${trend.teamName}** had their best week of the season — ${Math.round(curPts)} pts in Week ${currentWeek}`,
+        detail: `All-time high: ${Math.round(trend.allTimeRecord?.highPoints ?? 0)} pts (${trend.allTimeRecord?.highYear ?? ''}).`,
+        teamIds: [trend.teamId],
+      });
+    }
+    if (trend.isAllTimeLow) {
+      const yrsLabel = trend.allTimeRecord!.lowYear < currentSeason.year
+        ? ` (prev worst: ${Math.round(trend.allTimeRecord!.lowPoints)} in ${trend.allTimeRecord!.lowYear})`
+        : '';
+      bullets.push({
+        priority: 88,
+        category: 'trend',
+        emoji: '💀',
+        headline: `**${trend.teamName}** scored only ${Math.round(curPts)} pts in Week ${currentWeek} — a new all-time franchise low${yrsLabel}`,
+        detail: undefined,
+        teamIds: [trend.teamId],
+      });
+    } else if (trend.isSeasonLow && !trend.isAllTimeLow && trend.seasonHighLow) {
+      bullets.push({
+        priority: 68,
+        category: 'trend',
+        emoji: '📉',
+        headline: `**${trend.teamName}** had their worst week of the season — ${Math.round(curPts)} pts in Week ${currentWeek}`,
+        detail: `All-time low: ${Math.round(trend.allTimeRecord?.lowPoints ?? 0)} pts (${trend.allTimeRecord?.lowYear ?? ''}).`,
+        teamIds: [trend.teamId],
+      });
+    }
+  }
+
   // Deduplicate by headline and sort by priority
   const seen = new Set<string>();
   const dedupedBullets = bullets
@@ -711,6 +942,7 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
     teamTrends,
     playerSignals,
     positionGroups,
+    unitStats,
     rosterMoves,
     bullets: dedupedBullets,
     rankingsThemes,
