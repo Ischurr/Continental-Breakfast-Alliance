@@ -52,6 +52,18 @@ export default function StandingsPage() {
 
   const useProjectedSort = !seasonStarted && projectedByTeam !== null;
 
+  // Build week -> day-count map from schedule config (used to normalize scores for xW-L)
+  let weekLengths: Record<number, number> = {};
+  try {
+    const schedPath = path.join(process.cwd(), 'data', 'fantasy', 'schedule-2026.json');
+    if (fs.existsSync(schedPath)) {
+      const sched = JSON.parse(fs.readFileSync(schedPath, 'utf-8'));
+      for (const [week, periods] of Object.entries(sched.matchupPeriods as Record<string, number[]>)) {
+        weekLengths[Number(week)] = periods.length;
+      }
+    }
+  } catch { /* fall back to no normalization */ }
+
   // Sort standings: projected EROSP pre-season, wins/PF once games are played
   const sortedStandings = [...currentSeason.standings].sort((a, b) => {
     if (useProjectedSort) {
@@ -111,6 +123,8 @@ export default function StandingsPage() {
               : s
           )}
           teams={currentSeason.teams}
+          matchups={useProjectedSort ? undefined : currentSeason.matchups}
+          weekLengths={useProjectedSort ? undefined : weekLengths}
           showPlayoffLine
           playoffCount={4}
           loserCount={2}

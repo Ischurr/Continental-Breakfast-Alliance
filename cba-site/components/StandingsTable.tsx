@@ -5,47 +5,52 @@ interface Props {
   standings: StandingEntry[];
   teams: Team[];
   matchups?: Matchup[];
+  weekLengths?: Record<number, number>;
   showPlayoffLine?: boolean;
   playoffCount?: number;
   loserCount?: number;
 }
 
-function computeXRecord(standings: StandingEntry[], matchups: Matchup[]) {
+function computeXRecord(matchups: Matchup[], weekLengths: Record<number, number> = {}) {
   const xWins = new Map<number, number>();
   const xLosses = new Map<number, number>();
-  for (const s of standings) {
-    xWins.set(s.teamId, 0);
-    xLosses.set(s.teamId, 0);
-  }
 
-  // Group matchups by week
+  // Group completed matchups by week
   const byWeek = new Map<number, Matchup[]>();
   for (const m of matchups) {
+    if (m.winner === undefined) continue;
     if (!byWeek.has(m.week)) byWeek.set(m.week, []);
     byWeek.get(m.week)!.push(m);
   }
 
   for (const weekMatchups of byWeek.values()) {
-    // Only count fully completed weeks (all matchups have a decided winner)
+    // Skip weeks where any matchup is still undecided
     if (!weekMatchups.every(m => m.winner !== undefined)) continue;
 
-    // Collect all team scores for this week
-    const scores: [number, number][] = weekMatchups.flatMap(m => [
-      [m.home.teamId, m.home.totalPoints],
-      [m.away.teamId, m.away.totalPoints],
-    ]);
+    const week = weekMatchups[0].week;
 
-    // For each team, count how many other teams they beat / lost to
-    for (const [tid, score] of scores) {
-      let w = 0, l = 0;
-      for (const [oid, oscore] of scores) {
-        if (oid === tid) continue;
-        if (score > oscore) w++;
-        else if (score < oscore) l++;
-        // exact tie in score: neither wins (vanishingly rare)
+    // Normalize scores to 7-day equivalent so long/short weeks don't skew comparisons
+    const days = weekLengths[week];
+    const normalize = (pts: number) => days && days !== 7 ? pts * 7 / days : pts;
+
+    // Threshold = median normalized score across all teams this week → always a clean split
+    const weekScores = weekMatchups
+      .flatMap(m => [normalize(m.home.totalPoints), normalize(m.away.totalPoints)])
+      .sort((a, b) => a - b);
+    const mid = Math.floor(weekScores.length / 2);
+    const threshold = weekScores.length % 2 === 0
+      ? (weekScores[mid - 1] + weekScores[mid]) / 2
+      : weekScores[mid];
+
+    for (const m of weekMatchups) {
+      for (const side of [m.home, m.away]) {
+        const key = side.teamId;
+        if (normalize(side.totalPoints) >= threshold) {
+          xWins.set(key, (xWins.get(key) ?? 0) + 1);
+        } else {
+          xLosses.set(key, (xLosses.get(key) ?? 0) + 1);
+        }
       }
-      xWins.set(tid, (xWins.get(tid) ?? 0) + w);
-      xLosses.set(tid, (xLosses.get(tid) ?? 0) + l);
     }
   }
 
@@ -56,6 +61,7 @@ export default function StandingsTable({
   standings,
   teams,
   matchups,
+  weekLengths,
   showPlayoffLine = true,
   playoffCount = 4,
   loserCount = 2,
@@ -68,7 +74,7 @@ export default function StandingsTable({
 
   // Compute expected W-L (vs the field each week) when matchup data is available
   const { xWins, xLosses } = matchups && matchups.length > 0
-    ? computeXRecord(standings, matchups)
+    ? computeXRecord(matchups, weekLengths)
     : { xWins: new Map<number, number>(), xLosses: new Map<number, number>() };
   const showXRecord = matchups != null && xWins.size > 0 && [...xWins.values()].some(v => v > 0);
 
@@ -88,7 +94,12 @@ export default function StandingsTable({
             <th className="hidden md:table-cell px-4 py-3 text-right w-24">PA</th>
             <th className="hidden md:table-cell px-4 py-3 text-center w-24">DIFF</th>
             {showXRecord && (
-              <th className="hidden md:table-cell px-4 py-3 text-center w-24">xW-L</th>
+              <th
+                className="hidden md:table-cell px-4 py-3 text-center w-24 cursor-help"
+                title="Expected W-L: win if your score beat the historical + weekly median threshold, loss if below. Highlights scheduling luck."
+              >
+                xW-L
+              </th>
             )}
           </tr>
         </thead>
@@ -144,11 +155,23 @@ export default function StandingsTable({
                   {diff > 0 ? '+' : ''}
                   {diff.toFixed(1)}
                 </td>
-                {showXRecord && (
-                  <td className="hidden md:table-cell px-4 py-3 text-center font-medium">
-                    {xWins.get(standing.teamId) ?? 0}-{xLosses.get(standing.teamId) ?? 0}
-                  </td>
-                )}
+                {showXRecord && (() => {
+                  const xW = xWins.get(standing.teamId) ?? 0;
+                  const xL = xLosses.get(standing.teamId) ?? 0;
+                  // Positive = luckier than deserved (actual W > xW), negative = unlucky
+                  const luckDiff = standing.wins - xW;
+                  const color = luckDiff > 0 ? 'text-amber-600' : luckDiff < 0 ? 'text-blue-600' : 'text-gray-700';
+                  const title = luckDiff > 0
+                    ? `+${luckDiff.toFixed(1)} lucky (actual record better than expected)`
+                    : luckDiff < 0
+                    ? `${luckDiff.toFixed(1)} unlucky (actual record worse than expected)`
+                    : 'On pace with expected record';
+                  return (
+                    <td className={`hidden md:table-cell px-4 py-3 text-center font-medium ${color}`} title={title}>
+                      {xW}-{xL}
+                    </td>
+                  );
+                })()}
               </tr>
             );
           })}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import MatchupCard from '@/components/MatchupCard';
 import { Matchup, Team } from '@/lib/types';
 
@@ -28,22 +29,56 @@ export default function MatchupsClient({ matchupsByWeek, weeks, teams, currentWe
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
   // keyed by "homeTeamId_awayTeamId"
   const [liveScores, setLiveScores] = useState<Record<string, LiveScore>>({});
+  const [todayDeltaByTeamId, setTodayDeltaByTeamId] = useState<Record<number, number>>({});
+  const [liveWinProbByTeamId, setLiveWinProbByTeamId] = useState<Record<number, number> | null>(null);
 
   useEffect(() => {
     async function fetchLive() {
+      // 1. ESPN batch scores
       try {
         const res = await fetch('/api/live-scores', { cache: 'no-store' });
-        if (!res.ok) return;
-        const json = await res.json();
-        if (json.week !== currentWeek) return;
-        const map: Record<string, LiveScore> = {};
-        for (const m of json.matchups as LiveScore[]) {
-          map[`${m.homeTeamId}_${m.awayTeamId}`] = m;
+        if (res.ok) {
+          const json = await res.json();
+          if (json.week === currentWeek) {
+            const map: Record<string, LiveScore> = {};
+            for (const m of json.matchups as LiveScore[]) {
+              map[`${m.homeTeamId}_${m.awayTeamId}`] = m;
+            }
+            setLiveScores(map);
+          }
         }
-        setLiveScores(map);
-      } catch {
-        // silent — fall back to static data
-      }
+      } catch { /* silent */ }
+
+      // 2. Today's MLB-derived delta
+      try {
+        const res = await fetch('/api/live-player-points', { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.source === 'mlb_live' && data.teams) {
+            const deltas: Record<number, number> = {};
+            for (const [id, team] of Object.entries(data.teams as Record<string, { totalTodayPoints: number }>)) {
+              deltas[parseInt(id)] = team.totalTodayPoints;
+            }
+            setTodayDeltaByTeamId(deltas);
+          }
+        }
+      } catch { /* silent */ }
+
+      // 3. Live win probabilities (re-run with today's scores)
+      try {
+        const res = await fetch('/api/win-probability/live', { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.matchups?.length) {
+            const probMap: Record<number, number> = {};
+            for (const m of data.matchups as { homeTeamId: string; awayTeamId: string; homeWinPct: number; awayWinPct: number }[]) {
+              probMap[parseInt(m.homeTeamId)] = m.homeWinPct;
+              probMap[parseInt(m.awayTeamId)] = m.awayWinPct;
+            }
+            setLiveWinProbByTeamId(probMap);
+          }
+        }
+      } catch { /* silent */ }
     }
     fetchLive();
     const interval = setInterval(fetchLive, 5 * 60 * 1000);
@@ -62,13 +97,23 @@ export default function MatchupsClient({ matchupsByWeek, weeks, teams, currentWe
 
   function applyLive(matchup: Matchup): Matchup {
     const live = liveScores[`${matchup.home.teamId}_${matchup.away.teamId}`];
-    if (!live) return matchup;
+    // Prefer MLB-derived today delta on top of ESPN batch; fall back to ESPN batch alone
+    const homeBase = live ? live.homeScore : matchup.home.totalPoints;
+    const awayBase = live ? live.awayScore : matchup.away.totalPoints;
+    const homeDelta = todayDeltaByTeamId[matchup.home.teamId] ?? 0;
+    const awayDelta = todayDeltaByTeamId[matchup.away.teamId] ?? 0;
+    const hasAnyChange = live || homeDelta !== 0 || awayDelta !== 0;
+    if (!hasAnyChange) return matchup;
     return {
       ...matchup,
-      home: { ...matchup.home, totalPoints: live.homeScore },
-      away: { ...matchup.away, totalPoints: live.awayScore },
-      winner: (live.winner === 'HOME' || live.winner === 'AWAY') ? Number(live.winner) : matchup.winner,
+      home: { ...matchup.home, totalPoints: homeBase + homeDelta },
+      away: { ...matchup.away, totalPoints: awayBase + awayDelta },
+      winner: live && (live.winner === 'HOME' || live.winner === 'AWAY') ? Number(live.winner) : matchup.winner,
     };
+  }
+
+  function matchupHref(matchup: Matchup): string {
+    return `/matchups/${matchup.week}/${matchup.home.teamId}-${matchup.away.teamId}`;
   }
 
   function WeekSection({ week, label }: { week: number; label?: string }) {
@@ -85,15 +130,19 @@ export default function MatchupsClient({ matchupsByWeek, weeks, teams, currentWe
           </span>
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map(matchup => (
-            <MatchupCard
-              key={matchup.id}
-              matchup={matchup}
-              teams={teams}
-              homeWinPct={isCurrentWeek ? winProbByTeamId?.[matchup.home.teamId] : undefined}
-              awayWinPct={isCurrentWeek ? winProbByTeamId?.[matchup.away.teamId] : undefined}
-            />
-          ))}
+          {filtered.map(matchup => {
+            const probMap = liveWinProbByTeamId ?? winProbByTeamId;
+            return (
+              <Link key={matchup.id} href={matchupHref(matchup)} className="block hover:no-underline">
+                <MatchupCard
+                  matchup={matchup}
+                  teams={teams}
+                  homeWinPct={isCurrentWeek ? probMap?.[matchup.home.teamId] : undefined}
+                  awayWinPct={isCurrentWeek ? probMap?.[matchup.away.teamId] : undefined}
+                />
+              </Link>
+            );
+          })}
         </div>
       </div>
     );
@@ -203,9 +252,9 @@ export default function MatchupsClient({ matchupsByWeek, weeks, teams, currentWe
                 <div className="flex flex-wrap justify-center gap-4">
                   {futureWeeks.flatMap(week =>
                     filterMatchups(matchupsByWeek[week] ?? []).map(matchup => (
-                      <div key={matchup.id} className="flex-1 min-w-[220px] max-w-[320px]">
+                      <Link key={matchup.id} href={matchupHref(matchup)} className="flex-1 min-w-[220px] max-w-[320px] block hover:no-underline">
                         <MatchupCard matchup={matchup} teams={teams} />
-                      </div>
+                      </Link>
                     ))
                   )}
                 </div>

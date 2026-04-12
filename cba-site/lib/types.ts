@@ -161,3 +161,38 @@ export interface DinosContent {
   legacyQuote?: string;
   legacyText?: string;
 }
+
+// ── Live Player Points (MLB Stats API) ────────────────────────────────────────
+
+export interface LiveStatLine {
+  stat: string;    // "1B", "HR", "R", "IP", "ER", "QS", etc.
+  value: number;   // raw stat value (e.g. 1, 2, 6.333 for 6 IP)
+  points: number;  // fantasy points this line contributed (e.g. +3, -2)
+}
+
+export interface LiveBreakdown {
+  label: string;        // human-readable summary: "1B, R, RBI"
+  lines: LiveStatLine[];
+}
+
+export interface LivePlayerPoints {
+  name: string;
+  mlbamId: number;
+  espnId: number;
+  position: string;    // 'H', 'SP', 'RP'
+  todayPoints: number;
+  gameStatus: string;  // 'Final', 'In Progress', 'Not Started', 'No Game'
+  breakdown: LiveBreakdown | null;
+}
+
+export interface LiveTeamPoints {
+  totalTodayPoints: number;
+  players: LivePlayerPoints[];
+}
+
+export interface LivePlayerPointsResponse {
+  source: 'mlb_live' | 'espn_only';
+  asOf?: string;
+  week?: number;
+  teams?: Record<number, LiveTeamPoints>;
+}

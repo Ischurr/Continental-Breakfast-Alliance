@@ -2577,3 +2577,60 @@ All items from the prior TODO list are resolved:
 ### RankingsClient: sticky toolbar + footer (`app/rankings/RankingsClient.tsx`)
 - Formatting toolbar: `sticky top-16 z-30` so it stays visible while scrolling long articles
 - PIN + submit footer: `sticky bottom-0 z-30` with `bg-white border-t` so the save button is always accessible without scrolling to the bottom
+
+## Session Work (April 12, 2026 — Live Score Overlay + Live Win Probability)
+
+### Overview
+Wired up live MLB-derived scores (ESPN base + today's delta) and re-simulated win probabilities across every score-displaying surface on the site during game hours (11 AM–11 PM ET).
+
+### New API route: `GET /api/win-probability/live`
+- Outside game hours → returns nightly `WinProbabilityStore` unchanged (no simulation cost)
+- During game hours:
+  1. Checks 5-min cache (`win-probability-live-{YYYY-MM-DD}` in KV)
+  2. Reads `live-player-points-{date}` from KV (populated by `/api/live-player-points`)
+  3. For each matchup: `espnBase + todayDelta` → re-runs Monte Carlo via `buildOfflineMatchupState` (local files only, no ESPN API call) at 5k iterations
+  4. Caches result 5 min, returns it
+- Falls back to nightly store if no live player data in KV yet
+- `force-dynamic`, `runtime: 'nodejs'`
+
+### Score overlay pattern (all surfaces)
+- **ESPN base** (`m.homeCurrentPoints` from nightly job / `liveScores` from `/api/live-scores`) is last night's batch total
+- **MLB delta** (`totalTodayPoints` from `/api/live-player-points`) is today's MLB Stats API box-score-derived points
+- **Displayed score** = ESPN base + MLB delta
+- During game hours both are non-zero; overnight ESPN catches up and delta returns to ~0 next morning
+
+### Updated components
+
+#### `components/MatchupsClient.tsx`
+- Each 5-min poll now fetches 3 endpoints sequentially: `/api/live-scores` → `/api/live-player-points` → `/api/win-probability/live`
+- `todayDeltaByTeamId: Record<number, number>` state built from live-player-points response
+- `applyLive()` updated: displayed score = `espnBaseScore + todayDelta` (was ESPN-only)
+- Win prob: prefers `liveWinProbByTeamId` (from `/api/win-probability/live`), falls back to server-passed nightly `winProbByTeamId`
+
+#### `components/TeamMatchupTracker.tsx`
+- Sequential fetch: live-scores → live-player-points → win-prob/live
+- Opponent's teamId captured from live-scores response, then both team's deltas looked up from live-player-points
+- Win-prob endpoint switched from `/api/win-probability` → `/api/win-probability/live`
+- `useEffect` deps updated: `[teamId, weekNum, initialIsFinal, initialMyScore, initialOppScore]`
+
+#### `app/matchups/[week]/[matchupId]/MatchupDetailClient.tsx`
+- Header scores now use `matchup.totalPoints + liveData.teams[teamId].totalTodayPoints` (live data already in state from existing polling)
+- `displayHomeScore` / `displayAwayScore` computed from delta; 0 delta when not live
+
+#### `components/HomepageMatchupCard.tsx` (new file)
+- `'use client'` component replacing the inline server-rendered matchup card on the homepage
+- Polls `/api/live-scores` + `/api/live-player-points` every 5 min; shows `espnBase + delta`
+- `app/page.tsx` imports and uses this instead of the previous inline IIFE rendering
+
+### Coverage summary
+| Surface | Live scores | Live win prob |
+|---|---|---|
+| Matchups page (current week) | ✅ | ✅ |
+| Team page matchup tracker | ✅ | ✅ |
+| Matchup detail header | ✅ | N/A (no prob shown there) |
+| Homepage Game of the Week | ✅ | N/A |
+
+### Not updated (intentional)
+- Standings table (user decision)
+- Historical/past-week matchup cards (final scores, no live data needed)
+- Baseball field player badges (cumulative season totals, not current-week)

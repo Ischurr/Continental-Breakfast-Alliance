@@ -74,8 +74,12 @@ export default function TeamMatchupTracker({
 
   useEffect(() => {
     async function fetchAll() {
-      // 1. Fetch live scores first to determine if week is final
+      // 1. ESPN batch scores — determines finality and gives us the opponent teamId
       let currentlyFinal = initialIsFinal;
+      let espnMyScore = initialMyScore;
+      let espnOppScore = initialOppScore;
+      let oppTeamId: number | null = null;
+
       try {
         const res = await fetch('/api/live-scores', { cache: 'no-store' });
         if (res.ok) {
@@ -85,31 +89,48 @@ export default function TeamMatchupTracker({
           );
           if (matchup) {
             const isHome = matchup.homeTeamId === teamId;
-            const newMyScore = isHome ? matchup.homeScore : matchup.awayScore;
-            const newOppScore = isHome ? matchup.awayScore : matchup.homeScore;
+            espnMyScore = isHome ? matchup.homeScore : matchup.awayScore;
+            espnOppScore = isHome ? matchup.awayScore : matchup.homeScore;
+            oppTeamId = isHome ? matchup.awayTeamId : matchup.homeTeamId;
             const newIsFinal = matchup.winner === 'HOME' || matchup.winner === 'AWAY';
             const newMyWon = newIsFinal
               ? matchup.winner === (isHome ? 'HOME' : 'AWAY')
               : null;
             currentlyFinal = newIsFinal;
-            setMyScore(newMyScore);
-            setOppScore(newOppScore);
             setIsFinal(newIsFinal);
             setMyWon(newMyWon);
-            setInProgress(!newIsFinal && (newMyScore > 0 || newOppScore > 0));
           }
         }
-      } catch {
-        // silently fail — keep showing last known scores
+      } catch { /* silently fail */ }
+
+      // 2. Today's MLB-derived delta — overlay on top of ESPN batch scores
+      let myDelta = 0;
+      let oppDelta = 0;
+      if (!currentlyFinal) {
+        try {
+          const res = await fetch('/api/live-player-points', { cache: 'no-store' });
+          if (res.ok) {
+            const data = await res.json() as { source?: string; teams?: Record<string, { totalTodayPoints: number }> };
+            if (data.source === 'mlb_live' && data.teams) {
+              myDelta = data.teams[String(teamId)]?.totalTodayPoints ?? 0;
+              if (oppTeamId !== null) {
+                oppDelta = data.teams[String(oppTeamId)]?.totalTodayPoints ?? 0;
+              }
+            }
+          }
+        } catch { /* silently fail */ }
       }
 
-      // 2. Only fetch win probability for non-final matchups
+      setMyScore(espnMyScore + myDelta);
+      setOppScore(espnOppScore + oppDelta);
+      setInProgress(!currentlyFinal && (espnMyScore + myDelta > 0 || espnOppScore + oppDelta > 0));
+
+      // 3. Live win probability (re-simulated with today's MLB scores)
       if (currentlyFinal) return;
       try {
-        const res = await fetch('/api/win-probability', { cache: 'no-store' });
+        const res = await fetch('/api/win-probability/live', { cache: 'no-store' });
         if (!res.ok) return;
         const json = await res.json() as { matchupPeriodId?: number; matchups?: WinProbMatchup[] };
-        // Skip stale data — if the stored period doesn't match the current week, don't show it
         if (json.matchupPeriodId !== undefined && json.matchupPeriodId !== weekNum) return;
         const matchup = json.matchups?.find(
           m => m.homeTeamId === String(teamId) || m.awayTeamId === String(teamId)
@@ -119,16 +140,13 @@ export default function TeamMatchupTracker({
           ? matchup.homeWinPct
           : matchup.awayWinPct;
         setMyWinPct(pct);
-      } catch {
-        // silently fail
-      }
+      } catch { /* silently fail */ }
     }
 
-    // Fetch immediately on mount, then every 5 minutes
     fetchAll();
     const interval = setInterval(fetchAll, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [teamId, initialIsFinal]);
+  }, [teamId, weekNum, initialIsFinal, initialMyScore, initialOppScore]);
 
   const cardBg = isFinal
     ? 'bg-slate-200'

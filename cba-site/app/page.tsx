@@ -11,6 +11,7 @@ import teamsJson from '@/data/teams.json';
 import erospJson from '@/data/erosp/latest.json';
 import faJson from '@/data/current/free-agents.json';
 import PollCard from './polls/PollCard';
+import HomepageMatchupCard from '@/components/HomepageMatchupCard';
 
 function getPollWinner(poll: Poll) {
   const total = poll.options.reduce((s, o) => s + o.votes, 0);
@@ -199,50 +200,15 @@ export default async function Home() {
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
               ⚡ Game of the Week
             </p>
-            {topMatchupData ? (() => {
-              const { matchup, week, useHistorical, teams, standings } = topMatchupData;
-              const homeTeam = teams.find(t => t.id === matchup.home.teamId);
-              const awayTeam = teams.find(t => t.id === matchup.away.teamId);
-              const homeStanding = standings.find(s => s.teamId === matchup.home.teamId);
-              const awayStanding = standings.find(s => s.teamId === matchup.away.teamId);
-              const isComplete = matchup.winner !== undefined;
-              const hasActivity = matchup.home.totalPoints > 0 || matchup.away.totalPoints > 0;
-
-              const getRecord = (standing: typeof homeStanding) =>
-                standing ? `${standing.wins}-${standing.losses}` : '—';
-
-              return (
-                <Link href="/matchups" className="flex flex-col flex-1 group">
-                  <p className="text-xs text-gray-400 mb-3">
-                    Week {week} &bull; {isComplete ? 'Final' : hasActivity ? `Scores updated as of morning of ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}` : useHistorical ? 'Top all-time records' : 'Best combined record'}
-                  </p>
-                  <div className="space-y-2 flex-1">
-                    {[
-                      { team: awayTeam, standing: awayStanding, score: matchup.away.totalPoints, won: matchup.winner === matchup.away.teamId },
-                      { team: homeTeam, standing: homeStanding, score: matchup.home.totalPoints, won: matchup.winner === matchup.home.teamId },
-                    ].map(({ team, standing, score, won }) => (
-                      <div
-                        key={team?.id}
-                        className={`flex items-center justify-between p-3 rounded-lg ${won ? 'bg-green-50 border border-green-200' : isComplete ? 'bg-red-50 border border-red-100' : 'bg-sky-50 border border-sky-100'}`}
-                      >
-                        <div>
-                          <p className={`font-semibold text-sm ${won ? 'text-green-700' : 'text-gray-800'}`}>
-                            {team?.name ?? '—'}
-                          </p>
-                          <p className="text-xs text-gray-400">{getRecord(standing)} this season</p>
-                        </div>
-                        {(isComplete || hasActivity) && (
-                          <span className={`text-lg font-bold ${won ? 'text-green-700' : isComplete ? 'text-gray-400' : 'text-sky-600'}`}>
-                            {score.toFixed(1)}
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                  <p className="text-xs text-teal-600 mt-3 font-medium group-hover:underline">See all matchups →</p>
-                </Link>
-              );
-            })() : (
+            {topMatchupData ? (
+              <HomepageMatchupCard
+                matchup={topMatchupData.matchup}
+                week={topMatchupData.week}
+                useHistorical={topMatchupData.useHistorical}
+                teams={topMatchupData.teams}
+                standings={topMatchupData.standings}
+              />
+            ) : (
               <p className="text-sm text-gray-400 flex-1">No matchup data available yet.</p>
             )}
           </div>

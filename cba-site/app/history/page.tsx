@@ -186,6 +186,7 @@ export default function HistoryPage() {
               <StandingsTable
                 standings={sortedStandings}
                 teams={season.teams}
+                matchups={season.matchups}
                 showPlayoffLine
                 playoffCount={4}
                 loserCount={2}
@@ -281,6 +282,7 @@ export default function HistoryPage() {
               <StandingsTable
                 standings={sortedStandings}
                 teams={season.teams}
+                matchups={season.matchups}
                 showPlayoffLine
                 playoffCount={4}
                 loserCount={2}
