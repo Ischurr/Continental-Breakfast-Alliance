@@ -293,6 +293,19 @@ Implemented admin-editable polls integrated into the message board with PIN prot
 - In `PollsViewer`: `onEdit` prop is now always passed — routes to `unlock()` when not authenticated, to `setEditing()` when authenticated
 - Clicking the ✏️ on an active poll prompts for the admin PIN if not logged in, or opens the edit form immediately if already logged in
 
+### xW-L Column (`components/StandingsTable.tsx`, `app/standings/page.tsx`, `app/history/page.tsx`)
+- **Expected W-L**: new column on all standings tables showing how a team "should have" done each week based on their score vs the league
+- **Algorithm per completed week**:
+  1. Normalize each team's score to a 7-day equivalent: `score × 7 / weekLength` (from `schedule-2026.json` `matchupPeriods` day counts — fixes long weeks like week 1 at 12 days)
+  2. Compute the median normalized score across all 10 teams that week
+  3. Teams at or above median → xW; below → xL
+- Always produces a ~5-5 split per week; purely relative ("did you outscore the league this week?")
+- `weekLengths` prop (`Record<number, number>`) passed from standings page (loaded from `data/fantasy/schedule-2026.json`); history page passes `matchups` but no `weekLengths` (defaults to no normalization — historical schedule configs not available)
+- Column hidden on mobile; desktop-only like T/PCT/PA/DIFF
+- Color-coded: **amber** = lucky (actual W > xW), **blue** = unlucky (actual W < xW), **gray** = on pace
+- Hover the header for explanation tooltip; hover a cell for luck delta
+- Hidden pre-season (no `matchups` prop passed when `useProjectedSort` is true)
+
 ### PF Rank Column (`components/StandingsTable.tsx`, `app/history/page.tsx`)
 - **StandingsTable**: Added "PF Rank" column between PF and PA on all per-season standings tables (current standings, every-season history view, single-season history view)
   - Computed by sorting a copy of standings by `pointsFor` descending, building a `Map<teamId, rank>`

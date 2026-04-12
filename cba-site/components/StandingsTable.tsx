@@ -11,6 +11,7 @@ interface Props {
   loserCount?: number;
 }
 
+
 function computeXRecord(matchups: Matchup[], weekLengths: Record<number, number> = {}) {
   const xWins = new Map<number, number>();
   const xLosses = new Map<number, number>();
@@ -33,7 +34,7 @@ function computeXRecord(matchups: Matchup[], weekLengths: Record<number, number>
     const days = weekLengths[week];
     const normalize = (pts: number) => days && days !== 7 ? pts * 7 / days : pts;
 
-    // Threshold = median normalized score across all teams this week → always a clean split
+    // Threshold = this week's median normalized score → always a clean ~5-5 split
     const weekScores = weekMatchups
       .flatMap(m => [normalize(m.home.totalPoints), normalize(m.away.totalPoints)])
       .sort((a, b) => a - b);
