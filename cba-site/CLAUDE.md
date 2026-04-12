@@ -2565,3 +2565,15 @@ All items from the prior TODO list are resolved:
 - `TeamTrend` extended with `allTimeRecord`, `seasonHighLow`, `isAllTimeHigh`, `isAllTimeLow`, `isSeasonHigh`, `isSeasonLow`
 - `AdminAnalytics` extended with `unitStats: UnitGroupStats[]`
 - `AdminAnalyticsInput` extended with `historicalSeasons?: SeasonData[]`
+
+## Session Work (April 6, 2026 — Standings xW-L + Rankings Editor Sticky UI)
+
+### StandingsTable: xW-L column (`components/StandingsTable.tsx`)
+- Added optional `matchups?: Matchup[]` prop; when passed, computes **expected W-L** (how many wins/losses a team would have vs. the whole field in each completed week)
+- `computeXRecord()`: groups matchups by week, skips incomplete weeks (`!every(m => m.winner !== undefined)`), then for each team counts beats/losses vs. every other team's score that week
+- `showXRecord` guard: only renders the column when `matchups` is provided and at least one team has a win (hides pre-season, hides when prop is omitted)
+- Column is `hidden md:table-cell` (desktop only), labeled **xW-L**
+
+### RankingsClient: sticky toolbar + footer (`app/rankings/RankingsClient.tsx`)
+- Formatting toolbar: `sticky top-16 z-30` so it stays visible while scrolling long articles
+- PIN + submit footer: `sticky bottom-0 z-30` with `bg-white border-t` so the save button is always accessible without scrolling to the bottom

@@ -1,17 +1,61 @@
-import { StandingEntry, Team } from '@/lib/types';
+import { StandingEntry, Team, Matchup } from '@/lib/types';
 import Link from 'next/link';
 
 interface Props {
   standings: StandingEntry[];
   teams: Team[];
+  matchups?: Matchup[];
   showPlayoffLine?: boolean;
   playoffCount?: number;
   loserCount?: number;
 }
 
+function computeXRecord(standings: StandingEntry[], matchups: Matchup[]) {
+  const xWins = new Map<number, number>();
+  const xLosses = new Map<number, number>();
+  for (const s of standings) {
+    xWins.set(s.teamId, 0);
+    xLosses.set(s.teamId, 0);
+  }
+
+  // Group matchups by week
+  const byWeek = new Map<number, Matchup[]>();
+  for (const m of matchups) {
+    if (!byWeek.has(m.week)) byWeek.set(m.week, []);
+    byWeek.get(m.week)!.push(m);
+  }
+
+  for (const weekMatchups of byWeek.values()) {
+    // Only count fully completed weeks (all matchups have a decided winner)
+    if (!weekMatchups.every(m => m.winner !== undefined)) continue;
+
+    // Collect all team scores for this week
+    const scores: [number, number][] = weekMatchups.flatMap(m => [
+      [m.home.teamId, m.home.totalPoints],
+      [m.away.teamId, m.away.totalPoints],
+    ]);
+
+    // For each team, count how many other teams they beat / lost to
+    for (const [tid, score] of scores) {
+      let w = 0, l = 0;
+      for (const [oid, oscore] of scores) {
+        if (oid === tid) continue;
+        if (score > oscore) w++;
+        else if (score < oscore) l++;
+        // exact tie in score: neither wins (vanishingly rare)
+      }
+      xWins.set(tid, (xWins.get(tid) ?? 0) + w);
+      xLosses.set(tid, (xLosses.get(tid) ?? 0) + l);
+    }
+  }
+
+  return { xWins, xLosses };
+}
+
 export default function StandingsTable({
   standings,
   teams,
+  matchups,
   showPlayoffLine = true,
   playoffCount = 4,
   loserCount = 2,
@@ -21,6 +65,12 @@ export default function StandingsTable({
   // Compute PF rank independently of W-L rank
   const pfSorted = [...standings].sort((a, b) => b.pointsFor - a.pointsFor);
   const pfRankMap = new Map(pfSorted.map((s, i) => [s.teamId, i + 1]));
+
+  // Compute expected W-L (vs the field each week) when matchup data is available
+  const { xWins, xLosses } = matchups && matchups.length > 0
+    ? computeXRecord(standings, matchups)
+    : { xWins: new Map<number, number>(), xLosses: new Map<number, number>() };
+  const showXRecord = matchups != null && xWins.size > 0 && [...xWins.values()].some(v => v > 0);
 
   return (
     <div className="overflow-x-auto overflow-y-hidden">
@@ -37,6 +87,9 @@ export default function StandingsTable({
             <th className="px-2 py-2 md:px-4 md:py-3 text-center w-16 md:w-24">PF Rank</th>
             <th className="hidden md:table-cell px-4 py-3 text-right w-24">PA</th>
             <th className="hidden md:table-cell px-4 py-3 text-center w-24">DIFF</th>
+            {showXRecord && (
+              <th className="hidden md:table-cell px-4 py-3 text-center w-24">xW-L</th>
+            )}
           </tr>
         </thead>
         <tbody>
@@ -91,6 +144,11 @@ export default function StandingsTable({
                   {diff > 0 ? '+' : ''}
                   {diff.toFixed(1)}
                 </td>
+                {showXRecord && (
+                  <td className="hidden md:table-cell px-4 py-3 text-center font-medium">
+                    {xWins.get(standing.teamId) ?? 0}-{xLosses.get(standing.teamId) ?? 0}
+                  </td>
+                )}
               </tr>
             );
           })}

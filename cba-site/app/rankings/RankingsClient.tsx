@@ -185,7 +185,7 @@ function ArticleEditForm({
       </div>
 
       {/* Toolbar */}
-      <div className="flex gap-1.5 flex-wrap items-center p-2 bg-gray-50 border border-gray-200 rounded-t-lg border-b-0">
+      <div className="sticky top-16 z-30 flex gap-1.5 flex-wrap items-center p-2 bg-gray-50 border border-gray-200 rounded-t-lg border-b-0">
         <FmtBtn
           label={<strong>B</strong>}
           title="Bold"
@@ -256,7 +256,7 @@ function ArticleEditForm({
       </p>
 
       {/* PIN + actions */}
-      <div className="flex flex-wrap items-center gap-3 pt-1">
+      <div className="sticky bottom-0 z-30 flex flex-wrap items-center gap-3 pt-2 pb-2 bg-white border-t border-gray-100">
         <input
           type="password"
           placeholder="Admin PIN"
