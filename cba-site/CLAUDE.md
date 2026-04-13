@@ -106,7 +106,8 @@ npm run build            # Production build
 
 ### GitHub Actions (`.github/workflows/update-rosters.yml`)
 - Runs every **3 days** (`0 11 */3 * *`, 11:00 UTC)
-- Runs `npm run fetch-rosters` (`tsx scripts/fetch-rosters-current.ts`) → commits `data/current/${ESPN_SEASON_ID}.json` rosters if changed
+- Runs `npm run fetch-rosters` (`tsx scripts/fetch-rosters-current.ts`) → commits `data/current/2026.json` rosters if changed
+- **Gotcha**: `ESPN_SEASON_ID` env var is scoped to the fetch step only — use a hardcoded year (e.g. `2026.json`) in the commit step, not `${ESPN_SEASON_ID}` (expands to empty string, causing `git add data/current/.json` → fatal error)
 - Refreshes per-player ESPN position eligibility as players earn new positions during the season
 - Needs `ESPN_SWID` + `ESPN_S2` secrets (same as update-stats)
 
@@ -2665,9 +2666,10 @@ Wired up live MLB-derived scores (ESPN base + today's delta) and re-simulated wi
 - Tooltip positioned below the clicked header; closes on ESC, click-outside, or re-clicking the same header
 - `'use client'` added to `StandingsTable` (was a server component)
 
-### Playoffs projected bracket (`app/playoffs/page.tsx`)
-- When the current season has no playoff matchups yet (pre-playoffs), shows a "Projected — based on current standings" bracket from top 4 seeds instead of the "No playoff bracket data" empty state
-- #1 vs #4 and #2 vs #3 semifinal matchups shown; Championship shows TBD; visual style matches real bracket (desktop + mobile layouts)
+### Playoffs projected bracket + duplicate-team bug fix (`app/playoffs/page.tsx`)
+- **Bug**: with fewer than 2 actual playoff matchups, the fallback `[r1A, r1B] = [r1Matchups[0], r1Matchups[0]]` caused both halves of the bracket to show the same two teams
+- **Fix**: `isProjected` flag (`playoffMatchups.length < 2 && !season.champion`) triggers a fully separate projected bracket from the current standings top 4 — #1 vs #4 on the left, #2 vs #3 on the right; all advances/championship TBD; italic "Projected — based on current standings" label
+- Desktop + mobile layouts both implemented; automatically uses real bracket once actual playoff matchups exist
 
 ### BaseballFieldLeaders EROSP tab (`components/BaseballFieldLeaders.tsx`)
 - New optional `erospPlayers?: EROSPPlayer[]` prop — when provided, adds an "EROSP" view tab alongside Rostered/FA
