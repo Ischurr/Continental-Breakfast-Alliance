@@ -102,11 +102,93 @@ function PlayoffBracket({ season, hasBg, isVacated }: { season: SeasonData; hasB
     .filter(m => lastTwoWeeks.includes(m.week) && playoffTeamSet.has(m.home.teamId) && playoffTeamSet.has(m.away.teamId))
     .sort((a, b) => a.week - b.week);
 
-  if (season.playoffTeams.length === 0 || playoffMatchups.length === 0) {
+  // If no actual playoff matchups yet, show a projected bracket from current standings top 4
+  const isProjected = playoffMatchups.length < 2 && !season.champion;
+  if (isProjected && seeds.length < 4) {
     return (
       <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-10 text-center">
         <p className="text-gray-400 text-sm">No playoff bracket data available for this season yet.</p>
       </div>
+    );
+  }
+  if (isProjected) {
+    // Projected bracket: #1 vs #4 on the left (worst seed left), #2 vs #3 on the right
+    const [s1, s2, s3, s4] = seeds;
+    const labelCls2 = hasBg ? 'text-white/70' : 'text-gray-400';
+    const projLabel = (
+      <p className={`text-[11px] italic mb-4 text-center ${hasBg ? 'text-white/50' : 'text-gray-400'}`}>
+        Projected — based on current standings
+      </p>
+    );
+    const tbdChamp = (
+      <div className="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center shadow-sm bg-white">
+        <div className="text-2xl mb-1 text-gray-200">★</div>
+        <p className="text-sm text-gray-400 font-medium">TBD</p>
+      </div>
+    );
+    const CONNECTOR_H2 = 88;
+    const LABEL_OFFSET2 = 20;
+    const connBorder2 = hasBg ? 'rgba(255,255,255,0.35)' : '#e5e7eb';
+    const connectorStyle2 = { height: CONNECTOR_H2, marginTop: LABEL_OFFSET2, flexShrink: 0 as const, width: 32, display: 'flex' as const, flexDirection: 'column' as const };
+    const hLineStyle2 = { width: 24, marginTop: LABEL_OFFSET2, flexShrink: 0 as const, borderTop: `2px solid ${connBorder2}`, alignSelf: 'center' as const };
+    return (
+      <>
+        {projLabel}
+        {/* Desktop */}
+        <div className="hidden md:flex items-center justify-center mx-auto" style={{ maxWidth: '900px' }}>
+          <div className="flex-shrink-0" style={{ width: 192 }}>
+            <p className={`text-[11px] font-semibold uppercase tracking-wide mb-2 text-center ${labelCls2}`}>Semifinal</p>
+            <div className="rounded-xl overflow-hidden border border-gray-200 shadow-sm">
+              {s1 && <SeedRow s={s1} />}
+              {s4 && <SeedRow s={s4} />}
+            </div>
+          </div>
+          <div style={connectorStyle2}>
+            <div className="flex-1 border-t-2 border-r-2 rounded-tr-lg" style={{ borderColor: connBorder2 }} />
+            <div className="flex-1 border-b-2 border-r-2 rounded-br-lg" style={{ borderColor: connBorder2 }} />
+          </div>
+          <div style={{ marginTop: LABEL_OFFSET2, flexShrink: 0 }}><AdvancesSlot team={undefined} /></div>
+          <div style={hLineStyle2} />
+          <div className="flex-shrink-0" style={{ width: 176 }}>
+            <p className={`text-[11px] font-semibold uppercase tracking-wide mb-2 text-center ${labelCls2}`}>Championship</p>
+            {tbdChamp}
+          </div>
+          <div style={hLineStyle2} />
+          <div style={{ marginTop: LABEL_OFFSET2, flexShrink: 0 }}><AdvancesSlot team={undefined} /></div>
+          <div style={connectorStyle2}>
+            <div className="flex-1 border-t-2 border-l-2 rounded-tl-lg" style={{ borderColor: connBorder2 }} />
+            <div className="flex-1 border-b-2 border-l-2 rounded-bl-lg" style={{ borderColor: connBorder2 }} />
+          </div>
+          <div className="flex-shrink-0" style={{ width: 192 }}>
+            <p className={`text-[11px] font-semibold uppercase tracking-wide mb-2 text-center ${labelCls2}`}>Semifinal</p>
+            <div className="rounded-xl overflow-hidden border border-gray-200 shadow-sm">
+              {s2 && <SeedRow s={s2} />}
+              {s3 && <SeedRow s={s3} />}
+            </div>
+          </div>
+        </div>
+        {/* Mobile */}
+        <div className="md:hidden space-y-4">
+          <div>
+            <p className={`text-xs font-semibold uppercase tracking-wide mb-2 ${labelCls2}`}>Semifinal A — #{s1?.seed} vs #{s4?.seed}</p>
+            <div className="rounded-xl overflow-hidden border border-gray-200 shadow-sm">
+              {s1 && <SeedRow s={s1} />}
+              {s4 && <SeedRow s={s4} />}
+            </div>
+          </div>
+          <div>
+            <p className={`text-xs font-semibold uppercase tracking-wide mb-2 ${labelCls2}`}>Semifinal B — #{s2?.seed} vs #{s3?.seed}</p>
+            <div className="rounded-xl overflow-hidden border border-gray-200 shadow-sm">
+              {s2 && <SeedRow s={s2} />}
+              {s3 && <SeedRow s={s3} />}
+            </div>
+          </div>
+          <div>
+            <p className={`text-xs font-semibold uppercase tracking-wide mb-2 ${labelCls2}`}>Championship</p>
+            {tbdChamp}
+          </div>
+        </div>
+      </>
     );
   }
 

@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { EROSPPlayer } from './EROSPTable';
 
 type Player = {
   playerName: string;
@@ -21,6 +22,44 @@ interface Props {
   /** When true: uses real position labels (OF, DH, SP, RP) instead of ESPN UTIL logic,
    *  hides the Rostered/FA toggle, and shows draft-board heading. */
   draftBoardMode?: boolean;
+  /** When provided, shows an EROSP tab with league-wide position leaders ranked by EROSP raw score.
+   *  Suspended (SUSP) and D60 players with >21 days remaining are filtered out. */
+  erospPlayers?: EROSPPlayer[];
+}
+
+// MLB headshot CDN — has generic fallback image built in
+function mlbPhotoUrl(mlbamId: number): string {
+  return `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_213,q_auto:best/v1/people/${mlbamId}/headshot/67/current`;
+}
+
+// Map an EROSP player's role/position to a field position label
+function normalizeErospPos(p: EROSPPlayer): string {
+  if (p.role === 'SP') return 'SP';
+  if (p.role === 'RP') return 'RP';
+  const pos = p.position;
+  if (['LF', 'CF', 'RF'].includes(pos)) return 'OF';
+  return pos;
+}
+
+// Exclude long-term suspended / 60-day IL players (>21 days remaining)
+function isErospActive(p: EROSPPlayer): boolean {
+  if (!p.il_type) return true;
+  const longTerm = p.il_type === 'D60' || p.il_type === 'SUSP';
+  if (longTerm && (p.il_days_remaining ?? 99) > 21) return false;
+  return true;
+}
+
+function buildErospPool(erospPlayers: EROSPPlayer[]): Player[] {
+  return erospPlayers
+    .filter(isErospActive)
+    .filter(p => p.erosp_raw > 0)
+    .map(p => ({
+      playerName: p.name,
+      teamName: p.mlb_team,
+      totalPoints: p.erosp_raw,
+      photoUrl: mlbPhotoUrl(p.mlbam_id),
+      position: normalizeErospPos(p),
+    }));
 }
 
 // "Vladimir Guerrero Jr." → "Guerrero Jr."  |  "Mike Trout" → "Trout"
@@ -178,11 +217,13 @@ const FIELD_SLOTS: Record<string, [string, string]> = {
 
 // ─── Main component ────────────────────────────────────────────────────────────
 
-export default function BaseballFieldLeaders({ rosteredPlayers, freeAgents, rpNames, draftBoardMode }: Props) {
-  const [view, setView] = useState<'rostered' | 'fa'>('rostered');
+export default function BaseballFieldLeaders({ rosteredPlayers, freeAgents, rpNames, draftBoardMode, erospPlayers }: Props) {
+  const [view, setView] = useState<'rostered' | 'fa' | 'erosp'>('rostered');
   const wrapperRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const [sideBySide, setSideBySide] = useState(false);
+
+  const erospPool = erospPlayers ? buildErospPool(erospPlayers) : [];
 
   const checkLayout = useCallback(() => {
     const isLg = window.innerWidth >= 1024;
@@ -204,9 +245,10 @@ export default function BaseballFieldLeaders({ rosteredPlayers, freeAgents, rpNa
   // Re-check when view switches (Ohtani may appear/disappear, changing sidebar height)
   useEffect(() => { checkLayout(); }, [view, checkLayout]);
 
-  const allInView = view === 'rostered' ? rosteredPlayers : freeAgents;
-  const ohtani: Player | null = allInView.find(p => p.playerName === 'Shohei Ohtani') ?? null;
-  const activePool = allInView.filter(p => p.playerName !== 'Shohei Ohtani');
+  const allInView = view === 'rostered' ? rosteredPlayers : view === 'fa' ? freeAgents : erospPool;
+  // Ohtani gets a special card only in rostered/FA views; in EROSP view he slots normally as SP
+  const ohtani: Player | null = view !== 'erosp' ? (allInView.find(p => p.playerName === 'Shohei Ohtani') ?? null) : null;
+  const activePool = ohtani ? allInView.filter(p => p.playerName !== 'Shohei Ohtani') : allInView;
 
   const top = (pos: string, n: number): Player[] =>
     activePool
@@ -242,7 +284,7 @@ export default function BaseballFieldLeaders({ rosteredPlayers, freeAgents, rpNa
     rotation = trueSPs.slice(1, 5);
     bullpen  = trueRPs.slice(0, 5);
   } else {
-    // FA view and draft board mode both use real SP/RP position labels
+    // FA view, draft board mode, and EROSP view all use real SP/RP position labels
     sp1      = top('SP', 1)[0] ?? null;
     rotation = top('SP', 5).slice(1);
     bullpen  = top('RP', 5);
@@ -265,7 +307,7 @@ export default function BaseballFieldLeaders({ rosteredPlayers, freeAgents, rpNa
 
       {/* Toggle — hidden in draft board mode */}
       {!draftBoardMode && (
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {(['rostered', 'fa'] as const).map(v => (
             <button
               key={v}
@@ -279,7 +321,26 @@ export default function BaseballFieldLeaders({ rosteredPlayers, freeAgents, rpNa
               {v === 'rostered' ? 'Rostered Leaders' : 'Free Agents'}
             </button>
           ))}
+          {erospPlayers && erospPlayers.length > 0 && (
+            <button
+              onClick={() => setView('erosp')}
+              className={`px-4 py-2 rounded-full text-sm font-semibold border transition ${
+                view === 'erosp'
+                  ? 'bg-indigo-700 text-white border-indigo-700'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-400 hover:text-indigo-600'
+              }`}
+            >
+              EROSP Leaders
+            </button>
+          )}
         </div>
+      )}
+
+      {/* EROSP view context note */}
+      {view === 'erosp' && (
+        <p className="text-xs text-indigo-600 font-medium -mt-2">
+          League-wide leaders by projected remaining season points (EROSP) · Suspended &amp; long-term IL players excluded · Numbers show EROSP raw
+        </p>
       )}
 
       {/* Field row: relative container — sidebar absolutely pinned when it fits, stacked otherwise */}

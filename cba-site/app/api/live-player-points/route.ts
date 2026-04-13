@@ -8,12 +8,16 @@ import type {
   LiveStatLine,
   LiveBreakdown,
 } from '@/lib/types';
+import { createESPNClient } from '@/lib/espn-api';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 const MLB_BASE = 'https://statsapi.mlb.com/api/v1';
 const DATA_DIR = path.join(process.cwd(), 'data');
+
+// Max SP appearances that count per matchup week (CBA rule: 7)
+const PITCHER_START_CAP = 7;
 
 // ── Scoring helpers ───────────────────────────────────────────────────────────
 
@@ -240,6 +244,49 @@ export async function GET(): Promise<NextResponse> {
     if (norm) nameToErosp.set(norm, p);
   }
 
+  // ── Fetch ESPN weekly SP starts per team ──────────────────────────────────
+  // ESPN's batch score (last night) already handles the cap correctly.
+  // We need to know how many SP starts each team has already used this week
+  // (through yesterday) so we can exclude pitchers in today's live delta when
+  // the team has hit the 7-start cap.
+  const weeklySpStartsFromESPN = new Map<number, number>(); // teamId → starts used
+  try {
+    const seasonId = process.env.ESPN_SEASON_ID ?? '2026';
+    const seasonNum = Number(seasonId);
+    const client = createESPNClient(seasonId);
+    const espnData = await client.fetchLeagueData(['mRoster']);
+    const espnTeams = (espnData?.teams ?? []) as Array<Record<string, unknown>>;
+    for (const teamEntry of espnTeams) {
+      const teamId = teamEntry.id as number;
+      const rosterObj = teamEntry.roster as Record<string, unknown> | undefined;
+      const entries = (rosterObj?.entries ?? []) as Array<Record<string, unknown>>;
+      let startsUsed = 0;
+      for (const entry of entries) {
+        const ppe = entry.playerPoolEntry as Record<string, unknown> | undefined;
+        const player = ppe?.player as Record<string, unknown> | undefined;
+        if (!player) continue;
+        // Only count SP appearances (defaultPositionId=1)
+        if ((player.defaultPositionId as number) !== 1) continue;
+        const stats = (player.stats ?? []) as Array<Record<string, unknown>>;
+        for (const s of stats) {
+          if (s.seasonId === seasonNum && s.statSourceId === 0 && s.statSplitTypeId === 5) {
+            // appliedTotal > 2 = had a meaningful start (any appearance scores ≥ 3 IP)
+            if (Number(s.appliedTotal ?? 0) > 2) {
+              startsUsed++;
+            }
+            break;
+          }
+        }
+      }
+      weeklySpStartsFromESPN.set(teamId, startsUsed);
+    }
+  } catch {
+    // ESPN unavailable — proceed without cap enforcement (existing behavior)
+  }
+
+  // Tracks SP starts added from today's live games, per team
+  const todaySpStartsAdded = new Map<number, number>();
+
   // ── Load ESPN rosters (fallback for players not in EROSP) ─────────────────
   // teamId → players array
   interface RosterPlayer {
@@ -390,6 +437,24 @@ export async function GET(): Promise<NextResponse> {
 
     if (statsList && statsList.length > 0) {
       ({ todayPoints, gameStatus, breakdown } = processStats(statsList, p.role));
+
+      // SP starts cap enforcement: if this pitcher is an SP and their team has
+      // already hit (or now hits) the weekly 7-start cap, zero out their stats.
+      // ESPN's batch score already excluded over-cap pitchers — we must do the
+      // same for our live delta so we don't add points ESPN won't count.
+      if (p.role === 'SP' && todayPoints !== 0) {
+        const teamId = p.fantasy_team_id;
+        const usedViaESPN = weeklySpStartsFromESPN.get(teamId) ?? 0;
+        const usedToday = todaySpStartsAdded.get(teamId) ?? 0;
+        if (usedViaESPN + usedToday >= PITCHER_START_CAP) {
+          // Cap already hit — this start doesn't count toward the live delta
+          todayPoints = 0;
+          breakdown = null;
+        } else {
+          // This start counts; track it
+          todaySpStartsAdded.set(teamId, usedToday + 1);
+        }
+      }
     }
 
     team.totalTodayPoints += todayPoints;
@@ -418,7 +483,19 @@ export async function GET(): Promise<NextResponse> {
 
       const isPitcher = rp.position === 'SP' || rp.position === 'RP';
       const role = isPitcher ? rp.position : 'H';
-      const { todayPoints, gameStatus, breakdown } = processStats(statsList, role);
+      let { todayPoints, gameStatus, breakdown } = processStats(statsList, role);
+
+      // SP starts cap enforcement (same as Pass 1)
+      if (role === 'SP' && todayPoints !== 0) {
+        const usedViaESPN = weeklySpStartsFromESPN.get(teamId) ?? 0;
+        const usedToday = todaySpStartsAdded.get(teamId) ?? 0;
+        if (usedViaESPN + usedToday >= PITCHER_START_CAP) {
+          todayPoints = 0;
+          breakdown = null;
+        } else {
+          todaySpStartsAdded.set(teamId, usedToday + 1);
+        }
+      }
 
       team.totalTodayPoints += todayPoints;
       team.players.push({

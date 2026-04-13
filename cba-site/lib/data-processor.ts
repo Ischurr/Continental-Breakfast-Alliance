@@ -110,6 +110,8 @@ export function calculateAllTimeStandings(): AllTimeStandings[] {
           averageFinish: 0,
           bestFinish: 100,
           worstFinish: 0,
+          totalExpectedWins: 0,
+          totalExpectedLosses: 0,
         });
       }
 
@@ -148,6 +150,39 @@ export function calculateAllTimeStandings(): AllTimeStandings[] {
     });
 
     stats.averageFinish = seasonCount > 0 ? totalFinish / seasonCount : 0;
+  });
+
+  // Compute all-time expected W-L across all seasons
+  seasons.forEach((season) => {
+    // Group completed matchups by week
+    const byWeek = new Map<number, Matchup[]>();
+    for (const m of season.matchups) {
+      if (m.winner !== 'HOME' && m.winner !== 'AWAY') continue;
+      const arr = byWeek.get(m.week) ?? [];
+      arr.push(m);
+      byWeek.set(m.week, arr);
+    }
+
+    byWeek.forEach((weekMatchups) => {
+      const scores = weekMatchups.flatMap(m => [m.home.totalPoints, m.away.totalPoints]);
+      const sorted = [...scores].sort((a, b) => a - b);
+      const mid = Math.floor(sorted.length / 2);
+      const median = sorted.length % 2 === 0
+        ? (sorted[mid - 1] + sorted[mid]) / 2
+        : sorted[mid];
+
+      for (const m of weekMatchups) {
+        for (const side of [m.home, m.away]) {
+          const stats = teamStats.get(side.teamId);
+          if (!stats) continue;
+          if (side.totalPoints >= median) {
+            stats.totalExpectedWins++;
+          } else {
+            stats.totalExpectedLosses++;
+          }
+        }
+      }
+    });
   });
 
   return Array.from(teamStats.values()).sort((a, b) => b.totalWins - a.totalWins);

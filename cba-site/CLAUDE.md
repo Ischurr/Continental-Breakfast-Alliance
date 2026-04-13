@@ -2647,3 +2647,39 @@ Wired up live MLB-derived scores (ESPN base + today's delta) and re-simulated wi
 - Standings table (user decision)
 - Historical/past-week matchup cards (final scores, no live data needed)
 - Baseball field player badges (cumulative season totals, not current-week)
+
+## Session Work (April 12-13, 2026 — All-Time xW-L + Misc Improvements)
+
+### All-time xW-L column (`lib/types.ts`, `lib/data-processor.ts`, `app/history/page.tsx`, `app/standings/all-time/page.tsx`)
+- Added `totalExpectedWins` / `totalExpectedLosses` to `AllTimeStandings` interface
+- `calculateAllTimeStandings()` now computes career xW-L by iterating all completed matchups across all historical seasons: per week, finds the median score, teams at/above median get xW, below get xL
+- Both all-time tables (`/history` all-time tab, `/standings/all-time`) show the column after L; same amber/blue/gray luck coloring as per-season xW-L; hover cell for career luck delta tooltip
+
+### Historical per-season xW-L now uses proper week lengths (`app/history/page.tsx`)
+- Added `computeHistoricalWeekLengths()` which infers week length from score medians (dividing by 57.91 pts/day); overrides known Week 1 lengths from `WEEK1_KNOWN` record (`{ 2022:9, 2023:11, 2024:5, 2025:4 }`)
+- Both the "Every Season" and single-season views now pass `weekLengths` to `StandingsTable`, so per-season xW-L correctly normalizes scores for multi-day weeks
+
+### StandingsTable clickable header tooltips (`components/StandingsTable.tsx`)
+- All column headers are now clickable (hover style `hover:bg-gray-700`); clicking opens a floating tooltip explaining that column
+- `COL_INFO` record maps each column key to a `{ label, desc }` pair
+- Tooltip positioned below the clicked header; closes on ESC, click-outside, or re-clicking the same header
+- `'use client'` added to `StandingsTable` (was a server component)
+
+### Playoffs projected bracket (`app/playoffs/page.tsx`)
+- When the current season has no playoff matchups yet (pre-playoffs), shows a "Projected — based on current standings" bracket from top 4 seeds instead of the "No playoff bracket data" empty state
+- #1 vs #4 and #2 vs #3 semifinal matchups shown; Championship shows TBD; visual style matches real bracket (desktop + mobile layouts)
+
+### BaseballFieldLeaders EROSP tab (`components/BaseballFieldLeaders.tsx`)
+- New optional `erospPlayers?: EROSPPlayer[]` prop — when provided, adds an "EROSP" view tab alongside Rostered/FA
+- `buildErospPool()` converts EROSP players to field player format (photo from MLB CDN, position normalized via role); filters out D60/SUSP players with >21 days remaining
+- `mlbPhotoUrl(mlbamId)` helper generates MLB static CDN headshot URLs
+
+### Live-player-points SP start cap enforcement (`app/api/live-player-points/route.ts`)
+- Added `PITCHER_START_CAP = 7` (CBA rule)
+- On each request, fetches ESPN `mRoster` with `statSplitTypeId=5` (weekly split) to count how many SP appearances each team has already accumulated through last night's batch
+- During live game processing, tracks additional SP starts added today; if `espnStarts + todayStarts >= 7`, zeroes out that pitcher's live delta so it matches what ESPN will ultimately score
+- Prevents live delta from adding points for over-cap SP appearances that ESPN won't count
+
+### Team page: client components for prospect + tonight's games (`app/teams/[teamId]/page.tsx`)
+- Protected Prospect card replaced with `<ProspectStatusChecker teamId={id} prospect={prospect} />` — client component that polls `/api/prospect-status` for real-time call-up detection without a full page reload
+- Added `<TonightGamesWidget teamId={id} />` above the team header — shows tonight's scheduled MLB games for the team's rostered players (fetches `/api/tonight-games`)

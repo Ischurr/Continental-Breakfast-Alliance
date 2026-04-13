@@ -39,6 +39,10 @@ export default function AllTimeStandingsPage() {
                 <th className="px-4 py-3 text-left">Team</th>
                 <th className="px-4 py-3 text-center">W</th>
                 <th className="px-4 py-3 text-center">L</th>
+                <th
+                  className="px-4 py-3 text-center cursor-help"
+                  title="Expected W-L: each completed week, teams at or above the weekly median score get an xW, below get an xL. Highlights scheduling luck over a career."
+                >xW-L</th>
                 <th className="px-4 py-3 text-center">T</th>
                 <th className="px-4 py-3 text-center">PCT</th>
                 <th className="px-4 py-3 text-center">Titles</th>
@@ -66,6 +70,22 @@ export default function AllTimeStandingsPage() {
                     </td>
                     <td className="px-4 py-3 text-center">{team.totalWins}</td>
                     <td className="px-4 py-3 text-center">{team.totalLosses}</td>
+                    {(() => {
+                      const xW = team.totalExpectedWins;
+                      const xL = team.totalExpectedLosses;
+                      const luckDiff = team.totalWins - xW;
+                      const color = luckDiff > 0 ? 'text-amber-600' : luckDiff < 0 ? 'text-blue-600' : 'text-gray-700';
+                      const tip = luckDiff > 0
+                        ? `+${luckDiff} lucky over career`
+                        : luckDiff < 0
+                        ? `${luckDiff} unlucky over career`
+                        : 'On pace with expected record';
+                      return (
+                        <td className={`px-4 py-3 text-center font-medium ${color}`} title={tip}>
+                          {xW}-{xL}
+                        </td>
+                      );
+                    })()}
                     <td className="px-4 py-3 text-center">{team.totalTies}</td>
                     <td className="px-4 py-3 text-center">{Math.round(winPct * 100)}%</td>
                     <td className="px-4 py-3 text-center">

@@ -3,8 +3,39 @@
 import Header from '@/components/Header';
 import StandingsTable from '@/components/StandingsTable';
 import { getAllSeasons, getCurrentSeason, calculateAllTimeStandings } from '@/lib/data-processor';
+import { Matchup } from '@/lib/types';
 import Link from 'next/link';
 import { useState } from 'react';
+
+// Known week-1 lengths by year (confirmed from the schedule)
+const WEEK1_KNOWN: Record<number, number> = { 2022: 9, 2023: 11, 2024: 5, 2025: 4 };
+const PTS_PER_DAY = 57.91;
+
+function computeHistoricalWeekLengths(matchups: Matchup[], year?: number): Record<number, number> {
+  const byWeek = new Map<number, number[]>();
+  for (const m of matchups) {
+    if (!byWeek.has(m.week)) byWeek.set(m.week, []);
+    byWeek.get(m.week)!.push(m.home.totalPoints, m.away.totalPoints);
+  }
+
+  const result: Record<number, number> = {};
+  for (const [week, scores] of byWeek) {
+    // Week 1 override for known years
+    if (week === 1 && year !== undefined && WEEK1_KNOWN[year] !== undefined) {
+      result[week] = WEEK1_KNOWN[year];
+      continue;
+    }
+    const nonZero = scores.filter(s => s > 0);
+    if (nonZero.length === 0) continue;
+    const sorted = [...nonZero].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    const median = sorted.length % 2 === 0
+      ? (sorted[mid - 1] + sorted[mid]) / 2
+      : sorted[mid];
+    result[week] = Math.min(14, Math.max(4, Math.round(median / PTS_PER_DAY)));
+  }
+  return result;
+}
 
 const seasons = getAllSeasons();
 const allTimeStandings = calculateAllTimeStandings();
@@ -73,6 +104,10 @@ export default function HistoryPage() {
                     <th className="px-2 py-2 md:px-4 md:py-3 text-left">Team</th>
                     <th className="px-2 py-2 md:px-4 md:py-3 text-center">W</th>
                     <th className="px-2 py-2 md:px-4 md:py-3 text-center">L</th>
+                    <th
+                      className="hidden md:table-cell px-4 py-3 text-center cursor-help"
+                      title="Expected W-L: each completed week, teams at or above the weekly median score get an xW, below get an xL. Highlights scheduling luck over a career."
+                    >xW-L</th>
                     <th className="hidden md:table-cell px-4 py-3 text-center">T</th>
                     <th className="hidden md:table-cell px-4 py-3 text-center">PCT</th>
                     <th className="px-2 py-2 md:px-4 md:py-3 text-center">Titles</th>
@@ -99,6 +134,22 @@ export default function HistoryPage() {
                         </td>
                         <td className="px-2 py-2 md:px-4 md:py-3 text-center">{team.totalWins}</td>
                         <td className="px-2 py-2 md:px-4 md:py-3 text-center">{team.totalLosses}</td>
+                        {(() => {
+                          const xW = team.totalExpectedWins;
+                          const xL = team.totalExpectedLosses;
+                          const luckDiff = team.totalWins - xW;
+                          const color = luckDiff > 0 ? 'text-amber-600' : luckDiff < 0 ? 'text-blue-600' : 'text-gray-700';
+                          const tip = luckDiff > 0
+                            ? `+${luckDiff} lucky over career`
+                            : luckDiff < 0
+                            ? `${luckDiff} unlucky over career`
+                            : 'On pace with expected record';
+                          return (
+                            <td className={`hidden md:table-cell px-4 py-3 text-center font-medium ${color}`} title={tip}>
+                              {xW}-{xL}
+                            </td>
+                          );
+                        })()}
                         <td className="hidden md:table-cell px-4 py-3 text-center">{team.totalTies}</td>
                         <td className="hidden md:table-cell px-4 py-3 text-center">{Math.round(winPct * 100)}%</td>
                         <td className="px-2 py-2 md:px-4 md:py-3 text-center">
@@ -187,6 +238,7 @@ export default function HistoryPage() {
                 standings={sortedStandings}
                 teams={season.teams}
                 matchups={season.matchups}
+                weekLengths={computeHistoricalWeekLengths(season.matchups, season.year)}
                 showPlayoffLine
                 playoffCount={4}
                 loserCount={2}
@@ -283,6 +335,7 @@ export default function HistoryPage() {
                 standings={sortedStandings}
                 teams={season.teams}
                 matchups={season.matchups}
+                weekLengths={computeHistoricalWeekLengths(season.matchups, season.year)}
                 showPlayoffLine
                 playoffCount={4}
                 loserCount={2}

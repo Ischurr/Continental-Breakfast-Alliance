@@ -91,6 +91,8 @@ export interface AllTimeStandings {
   averageFinish: number;
   bestFinish: number;
   worstFinish: number;
+  totalExpectedWins: number;
+  totalExpectedLosses: number;
 }
 
 export interface PollOption {

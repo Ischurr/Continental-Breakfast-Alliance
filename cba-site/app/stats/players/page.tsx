@@ -257,7 +257,7 @@ export default async function PlayerStatsPage() {
               {/* Position Leaders — Baseball Field */}
               <h2 className="text-2xl font-bold mb-4">Position Leaders</h2>
               <div className="mb-12">
-                <BaseballFieldLeaders rosteredPlayers={allPlayers} freeAgents={freeAgents} rpNames={rpNames.size > 0 ? rpNames : undefined} />
+                <BaseballFieldLeaders rosteredPlayers={allPlayers} freeAgents={freeAgents} rpNames={rpNames.size > 0 ? rpNames : undefined} erospPlayers={erospPlayers.length > 0 ? erospPlayers : undefined} />
               </div>
 
               {/* Top 25 Overall */}
