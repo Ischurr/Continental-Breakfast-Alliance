@@ -2697,3 +2697,20 @@ Wired up live MLB-derived scores (ESPN base + today's delta) and re-simulated wi
 ### PF Rank column alignment fix
 - **Problem**: rank numbers (1–10) were not left-aligned with each other because some rows had `↑N`/`↓N` arrows before them and some didn't, causing different total widths
 - **Fix**: wrapped rank + arrow in `inline-flex items-center gap-1`; rank uses `w-4 text-right` (fixed width); arrow uses `w-6 text-left` (fixed width, `invisible` class instead of conditional render when no diff, so it still occupies space). Result: all rank numbers align in the same column regardless of arrow presence.
+
+## Session Work (April 13, 2026 — Baseball Field EROSP Tab + FA Stats Fix)
+
+### EROSP Leaders tab added to baseball field (`components/BaseballFieldLeaders.tsx`)
+- New **"EROSP Leaders"** button (indigo) alongside the existing Rostered / Free Agents toggles — only appears when `erospPlayers` prop is provided
+- Shows league-wide position leaders ranked by `erosp_raw` (projected remaining season points), not current scored points
+- Uses MLB headshot CDN (`img.mlbstatic.com`) for photos — works for any MLB player, not just rostered/FA
+- **Suspended + long-term IL filtering**: `isErospActive()` — excludes players where `il_type === 'D60' || il_type === 'SUSP'` AND `il_days_remaining > 21` (same rule as Suggested Moves FA pool)
+- In EROSP view, Ohtani slots normally into SP (no special card); pitcher split uses real SP/RP labels from EROSP `role`
+- Small indigo context note appears below toggles when EROSP view is active: "League-wide leaders by projected remaining season points · Suspended & long-term IL excluded · Numbers show EROSP raw"
+- `app/stats/players/page.tsx`: passes `erospPlayers={erospPlayers.length > 0 ? erospPlayers : undefined}` to `BaseballFieldLeaders`
+
+### Free Agents stats fixed to 2026 (`scripts/fetch-free-agents.ts`)
+- **Root cause**: when a player had 0 points in 2026 (suspended, hasn't played), `stat2026 && appliedTotal > 0` failed so the script fell back to `statAny` — picking up their 2025 full-season total. Profar (80-game suspension) was ranking as a top OF FA with 324 pts from 2025.
+- **Fix 1 — stat selection**: changed fallback to `stat2026 ?? statPrior` — uses the 2026 entry whenever ESPN has one, even at 0 pts. Only falls back to a prior-year record when ESPN has no 2026 entry at all.
+- **Fix 2 — drop 0-pt players**: once the season is underway (`!allZero`), filters out all players with 0 2026 points before saving. A 0-pt player in-season means suspended/injured/hasn't played — they shouldn't hold ranked slots in a current-season FA leaderboard. Preseason (when `allZero`) the filter is skipped and list sorts by `percentOwned` instead.
+- **Result**: `free-agents.json` now always shows 2026 stats; 15 zero-point players removed from the April 13 refresh. `statSeason: 2026` confirmed in output.
