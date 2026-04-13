@@ -85,11 +85,13 @@ async function fetchFreeAgents() {
     const ownership = player?.ownership as Record<string, unknown> | undefined;
     const percentOwned = (ownership?.percentOwned as number) ?? 0;
 
-    // Get stats — prefer current-season (2026) if points exist, fall back to most recent
+    // Get stats — use current-season (2026) entry whenever it exists (even 0 pts),
+    // so suspended/injured players don't inherit last year's totals and falsely rank high.
+    // Only fall back to prior year when there's genuinely no 2026 record in ESPN's data.
     const stats = (player?.stats as Record<string, unknown>[]) ?? [];
     const stat2026 = stats.find(s => s.statSourceId === 0 && s.statSplitTypeId === 0 && s.seasonId === currentSeasonYear);
-    const statAny  = stats.find(s => s.statSourceId === 0 && s.statSplitTypeId === 0);
-    const seasonStat = (stat2026 && (stat2026.appliedTotal as number) > 0) ? stat2026 : statAny;
+    const statPrior = stats.find(s => s.statSourceId === 0 && s.statSplitTypeId === 0 && s.seasonId !== currentSeasonYear);
+    const seasonStat = stat2026 ?? statPrior;
     const totalPoints = (seasonStat?.appliedTotal as number) ?? 0;
     const statSeasonId = (seasonStat?.seasonId as number) ?? null;
 
@@ -111,6 +113,15 @@ async function fetchFreeAgents() {
     ? b.percentOwned - a.percentOwned
     : b.totalPoints - a.totalPoints
   );
+
+  // Once the season is underway (at least one player has scored), drop 0-pt players.
+  // A 0-pt 2026 entry means suspended/injured/hasn't played — they shouldn't hold
+  // ranked slots in a current-season leaderboard.
+  if (!allZero) {
+    const before = players.length;
+    players.splice(0, players.length, ...players.filter(p => p.totalPoints > 0));
+    console.log(`Filtered out ${before - players.length} players with 0 2026 points`);
+  }
 
   // Figure out what season the stats represent (for UI labeling)
   const statSeason = players[0]?.statSeasonId ?? null;

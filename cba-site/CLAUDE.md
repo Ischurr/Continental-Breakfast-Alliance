@@ -2685,3 +2685,15 @@ Wired up live MLB-derived scores (ESPN base + today's delta) and re-simulated wi
 ### Team page: client components for prospect + tonight's games (`app/teams/[teamId]/page.tsx`)
 - Protected Prospect card replaced with `<ProspectStatusChecker teamId={id} prospect={prospect} />` — client component that polls `/api/prospect-status` for real-time call-up detection without a full page reload
 - Added `<TonightGamesWidget teamId={id} />` above the team header — shows tonight's scheduled MLB games for the team's rostered players (fetches `/api/tonight-games`)
+
+## Session Work (April 13, 2026 — Standings Table: PF Rank Alignment + Column Tooltips)
+
+### StandingsTable converted to `'use client'` (`components/StandingsTable.tsx`)
+- Added `'use client'` directive + `useState`/`useEffect` imports — required for interactive tooltip system
+- All column headers are now clickable: clicking a `<th>` opens a floating tooltip explaining that column; clicking again or pressing Escape closes it. Tooltip is a fixed-positioned card (`z-50`) anchored below the clicked header.
+- `COL_INFO` record defines label + description for all 11 column keys (`rank`, `team`, `w`, `l`, `t`, `pct`, `pf`, `pfrank`, `pa`, `diff`, `xwl`)
+- `thBase` class string: `cursor-pointer select-none hover:bg-gray-700 transition-colors` applied to all `<th>` elements
+
+### PF Rank column alignment fix
+- **Problem**: rank numbers (1–10) were not left-aligned with each other because some rows had `↑N`/`↓N` arrows before them and some didn't, causing different total widths
+- **Fix**: wrapped rank + arrow in `inline-flex items-center gap-1`; rank uses `w-4 text-right` (fixed width); arrow uses `w-6 text-left` (fixed width, `invisible` class instead of conditional render when no diff, so it still occupies space). Result: all rank numbers align in the same column regardless of arrow presence.
