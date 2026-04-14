@@ -2714,3 +2714,19 @@ Wired up live MLB-derived scores (ESPN base + today's delta) and re-simulated wi
 - **Fix 1 — stat selection**: changed fallback to `stat2026 ?? statPrior` — uses the 2026 entry whenever ESPN has one, even at 0 pts. Only falls back to a prior-year record when ESPN has no 2026 entry at all.
 - **Fix 2 — drop 0-pt players**: once the season is underway (`!allZero`), filters out all players with 0 2026 points before saving. A 0-pt player in-season means suspended/injured/hasn't played — they shouldn't hold ranked slots in a current-season FA leaderboard. Preseason (when `allZero`) the filter is skipped and list sorts by `percentOwned` instead.
 - **Result**: `free-agents.json` now always shows 2026 stats; 15 zero-point players removed from the April 13 refresh. `statSeason: 2026` confirmed in output.
+
+## Session Work (April 14, 2026 — Historical xW-L Week Normalization + Column Tooltips)
+
+### `computeHistoricalWeekLengths` added to history page (`app/history/page.tsx`)
+- **Problem**: history page passed `matchups={season.matchups}` to StandingsTable but no `weekLengths`, so xW-L for historical seasons used raw un-normalized scores — long weeks (Week 1 = 9–11 days) skewed comparisons.
+- **New function**: `computeHistoricalWeekLengths(matchups, year?)` — infers week length from score medians using `impliedDays = clamp(round(medianScore / 57.91), 4, 14)`. `57.91 pts/day` derived from normal 7-day weeks.
+- **Week 1 overrides**: `WEEK1_KNOWN = { 2022: 9, 2023: 11, 2024: 5, 2025: 4 }` — confirmed actual lengths bypass the inference formula.
+- **Wired into**: both `StandingsTable` calls in the history page (every-season view + single-season view) now pass `weekLengths={computeHistoricalWeekLengths(season.matchups, season.year)}`.
+
+### StandingsTable clickable column header tooltips (`components/StandingsTable.tsx`)
+- **Converted to `'use client'`** — required for `useState`/`useEffect` tooltip interactivity.
+- **`COL_INFO` map**: label + description for all 11 columns (`rank`, `team`, `w`, `l`, `t`, `pct`, `pf`, `pfrank`, `pa`, `diff`, `xwl`).
+- **`openTooltip(col, e)`**: `e.stopPropagation()` prevents immediate dismissal; toggles off when same column clicked again; captures `getBoundingClientRect()` with `Math.min(rect.left, window.innerWidth - 340)` viewport-edge clamping.
+- **`useEffect`**: adds `keydown` (Escape) + `click` (outside) document listeners while tooltip is open; cleaned up on close.
+- **All `<th>` elements**: `cursor-pointer select-none hover:bg-gray-700 transition-colors`; each fires `onClick={e => openTooltip(colKey, e)}`.
+- **Tooltip**: `position: fixed; z-index: 50` div anchored 6px below the header; `onClick={e => e.stopPropagation()}` so clicking inside the popover doesn't dismiss it.
