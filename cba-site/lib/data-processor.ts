@@ -157,7 +157,7 @@ export function calculateAllTimeStandings(): AllTimeStandings[] {
     // Group completed matchups by week
     const byWeek = new Map<number, Matchup[]>();
     for (const m of season.matchups) {
-      if (m.winner !== 'HOME' && m.winner !== 'AWAY') continue;
+      if (m.winner === undefined) continue;
       const arr = byWeek.get(m.week) ?? [];
       arr.push(m);
       byWeek.set(m.week, arr);

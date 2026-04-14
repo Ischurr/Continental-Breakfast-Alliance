@@ -2730,3 +2730,21 @@ Wired up live MLB-derived scores (ESPN base + today's delta) and re-simulated wi
 - **`useEffect`**: adds `keydown` (Escape) + `click` (outside) document listeners while tooltip is open; cleaned up on close.
 - **All `<th>` elements**: `cursor-pointer select-none hover:bg-gray-700 transition-colors`; each fires `onClick={e => openTooltip(colKey, e)}`.
 - **Tooltip**: `position: fixed; z-index: 50` div anchored 6px below the header; `onClick={e => e.stopPropagation()}` so clicking inside the popover doesn't dismiss it.
+
+## Session Work (April 14, 2026 — Editorial Page Prior-Week Fix)
+
+### Root cause
+`currentWeek` was set to `Math.max(weeks with any score > 0)`. By Monday morning, ESPN's overnight batch pushes partial Week N scores, making `currentWeek = N` (new in-progress week) while the editorial should cover the just-finished Week N-1.
+
+### Fix: `priorWeek` concept (`lib/admin-analytics.ts`, `app/admin/AdminDashboardClient.tsx`)
+- **`priorWeek`** = most recently **fully finalized** week: all matchups have `winner !== undefined`. 0 if no week is complete yet.
+- **`priorWeekMatchupResults`** = array of matchup results for that week (home/away team names, scores, winner); sorted by highest score for editorial scanning.
+- **`completionFraction`** now uses `priorWeek` (not `currentWeek`) for pace calculations — player over/underperformance is measured against the correct completed baseline.
+- **`isAllTimeHigh/Low`** and **`isSeasonHigh/Low`** checks use `priorWeek` scores, not the in-progress current week's partial scores.
+- Bullet text now says "through Week 2" (completed) instead of "through Week 3" (1 day old).
+- Dashboard header shows "Covering **Week 2** results · Week 3 in progress".
+- Bullets tab opens with a "📋 Week N Results" card (indigo) showing all 5 matchups with scores and ✓ winner marks, sorted by highest-scoring matchup.
+- Notes tab saves under `priorWeek` key so notes always correspond to the week being written about.
+
+### `data-processor.ts` winner check fix
+- Changed `m.winner !== 'HOME' && m.winner !== 'AWAY'` → `m.winner === undefined` in `calculateAllTimeStandings()` — `Matchup.winner` is typed as `number | undefined` (the winning teamId), not a string.

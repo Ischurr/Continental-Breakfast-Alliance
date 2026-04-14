@@ -92,18 +92,48 @@ function LockScreen({ unlock }: { unlock: () => void }) {
 // ── Bullets tab ───────────────────────────────────────────────────────────────
 
 function BulletsTab({ analytics, onCopy }: { analytics: AdminAnalytics; onCopy: () => void }) {
-  const { bullets } = analytics;
-
-  if (bullets.length === 0) {
-    return (
-      <div className="text-center py-16 text-gray-400">
-        No significant signals detected yet — check back after more games.
-      </div>
-    );
-  }
+  const { bullets, priorWeek, priorWeekMatchupResults } = analytics;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
+      {/* Prior week matchup results */}
+      {priorWeek > 0 && priorWeekMatchupResults.length > 0 && (
+        <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4">
+          <h3 className="text-sm font-bold text-indigo-800 mb-3">📋 Week {priorWeek} Results</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {priorWeekMatchupResults
+              .sort((a, b) => Math.max(b.homePoints, b.awayPoints) - Math.max(a.homePoints, a.awayPoints))
+              .map((m, i) => {
+                const homeWon = m.winnerId === m.homeTeamId;
+                const awayWon = m.winnerId === m.awayTeamId;
+                return (
+                  <div key={i} className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 text-xs border border-indigo-100">
+                    <span className={`font-semibold ${homeWon ? 'text-gray-900' : 'text-gray-400'} truncate flex-1`}>
+                      {homeWon ? '✓ ' : ''}{m.homeTeamName}
+                    </span>
+                    <span className={`font-bold tabular-nums ${homeWon ? 'text-gray-900' : 'text-gray-400'}`}>
+                      {m.homePoints.toFixed(1)}
+                    </span>
+                    <span className="text-gray-300 mx-1">–</span>
+                    <span className={`font-bold tabular-nums ${awayWon ? 'text-gray-900' : 'text-gray-400'}`}>
+                      {m.awayPoints.toFixed(1)}
+                    </span>
+                    <span className={`font-semibold ${awayWon ? 'text-gray-900' : 'text-gray-400'} truncate flex-1 text-right`}>
+                      {awayWon ? '✓ ' : ''}{m.awayTeamName}
+                    </span>
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+      )}
+
+      {bullets.length === 0 ? (
+        <div className="text-center py-16 text-gray-400">
+          No significant signals detected yet — check back after more games.
+        </div>
+      ) : (
+      <div className="space-y-3">
       {bullets.map((b, i) => (
         <div
           key={i}
@@ -134,6 +164,8 @@ function BulletsTab({ analytics, onCopy }: { analytics: AdminAnalytics; onCopy: 
           Copy bullets to clipboard
         </button>
       </div>
+    </div>
+      )}
     </div>
   );
 }
@@ -377,7 +409,8 @@ function PositionsTab({ analytics }: { analytics: AdminAnalytics }) {
 // ── Units tab ─────────────────────────────────────────────────────────────────
 
 function UnitsTab({ analytics }: { analytics: AdminAnalytics }) {
-  const { unitStats, currentWeek } = analytics;
+  const { unitStats, priorWeek, currentWeek } = analytics;
+  const displayWeek = priorWeek || currentWeek;
   const hasData = unitStats.some(u => u.teams.some(t => t.actualPts > 0));
 
   if (!hasData) {
@@ -405,7 +438,7 @@ function UnitsTab({ analytics }: { analytics: AdminAnalytics }) {
   return (
     <div className="space-y-2">
       <p className="text-xs text-gray-400 mb-4">
-        Actual 2026 fantasy points scored by position group through Week {currentWeek}. Uses EROSP role (SP/RP) to correctly split pitchers.
+        Actual 2026 fantasy points scored by position group through Week {displayWeek}. Uses EROSP role (SP/RP) to correctly split pitchers.
       </p>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {unitStats.map(ug => {
@@ -553,7 +586,7 @@ function NotesTab({
   adminNotes: AdminNotes;
   onCopyAll: (text: string) => void;
 }) {
-  const week = analytics.currentWeek;
+  const week = analytics.priorWeek || analytics.currentWeek;
   const weekKey = String(week);
   const savedNote = adminNotes.weeks[weekKey];
 
@@ -689,7 +722,11 @@ export default function AdminDashboardClient({ analytics, adminNotes }: Props) {
             </Link>
             <div>
               <h1 className="text-lg font-bold text-gray-900">📊 Editorial Intelligence Dashboard</h1>
-              <p className="text-xs text-gray-400">{today} · Week {analytics.currentWeek}</p>
+              <p className="text-xs text-gray-400">
+                {today} · {analytics.priorWeek > 0
+                  ? <>Covering <strong>Week {analytics.priorWeek}</strong> results{analytics.currentWeek > analytics.priorWeek ? ` · Week ${analytics.currentWeek} in progress` : ''}</>
+                  : `Week ${analytics.currentWeek}`}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">

@@ -177,8 +177,20 @@ export interface RankingsTheme {
   currentStatus: 'new' | 'continuing' | 'fading';
 }
 
+export interface PriorWeekMatchupResult {
+  homeTeamId: number;
+  homeTeamName: string;
+  homePoints: number;
+  awayTeamId: number;
+  awayTeamName: string;
+  awayPoints: number;
+  winnerId: number | undefined;
+}
+
 export interface AdminAnalytics {
   currentWeek: number;
+  priorWeek: number;
+  priorWeekMatchupResults: PriorWeekMatchupResult[];
   completionFraction: number;
   teamTrends: TeamTrend[];
   playerSignals: PlayerSignal[];
@@ -270,12 +282,38 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
   const { currentSeason, erospPlayers, teamMetadata, rankingsArticles, TOTAL_WEEKS, historicalSeasons } = input;
   const { matchups, standings, rosters } = currentSeason;
 
-  // -- Current week and completion fraction --
+  // -- Current week (in-progress or latest active) --
   const weeksWithActivity = matchups
     .filter(m => (m.home.totalPoints > 0 || m.away.totalPoints > 0))
     .map(m => m.week);
   const currentWeek = weeksWithActivity.length > 0 ? Math.max(...weeksWithActivity) : 1;
-  const completionFraction = Math.min(currentWeek / TOTAL_WEEKS, 1);
+
+  // -- Prior week = most recently FULLY completed week (all matchups have a winner) --
+  const weeksByNum: Record<number, typeof matchups> = {};
+  for (const m of matchups) {
+    if (!weeksByNum[m.week]) weeksByNum[m.week] = [];
+    weeksByNum[m.week].push(m);
+  }
+  const finalizedWeeks = Object.entries(weeksByNum)
+    .filter(([, ms]) => ms.length > 0 && ms.every(m => m.winner !== undefined))
+    .map(([wk]) => Number(wk));
+  const priorWeek = finalizedWeeks.length > 0 ? Math.max(...finalizedWeeks) : 0;
+
+  // Prior week matchup results (for editorial display)
+  const priorWeekMatchupResults: PriorWeekMatchupResult[] = priorWeek > 0
+    ? (weeksByNum[priorWeek] ?? []).map(m => ({
+        homeTeamId: m.home.teamId,
+        homeTeamName: teamDisplayName(m.home.teamId, teamMetadata),
+        homePoints: m.home.totalPoints,
+        awayTeamId: m.away.teamId,
+        awayTeamName: teamDisplayName(m.away.teamId, teamMetadata),
+        awayPoints: m.away.totalPoints,
+        winnerId: m.winner,
+      }))
+    : [];
+
+  // Completion fraction based on prior completed week (for pace analysis)
+  const completionFraction = Math.min((priorWeek || currentWeek) / TOTAL_WEEKS, 1);
 
   const teamIds = standings.map(s => s.teamId);
 
@@ -369,13 +407,13 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
       seasonHighLow = { highPoints: hiW.points, highWeek: hiW.week, lowPoints: loW.points, lowWeek: loW.week };
     }
 
-    // All-time record comparisons
+    // All-time record comparisons (use prior completed week, not in-progress current week)
     const atr = allTimeRecordByTeam[teamId] ?? null;
-    const currentWeekPts = weeklyScores.find(w => w.week === currentWeek)?.points ?? 0;
-    const isAllTimeHigh = atr !== null && currentWeekPts > 0 && currentWeekPts >= atr.highPoints;
-    const isAllTimeLow = atr !== null && currentWeekPts > 0 && currentWeekPts <= atr.lowPoints && currentWeek > 1;
-    const isSeasonHigh = seasonHighLow !== null && currentWeekPts > 0 && currentWeekPts >= seasonHighLow.highPoints && currentWeek > 1;
-    const isSeasonLow = seasonHighLow !== null && currentWeekPts > 0 && currentWeekPts <= seasonHighLow.lowPoints && currentWeek > 1;
+    const priorWeekPts = weeklyScores.find(w => w.week === priorWeek)?.points ?? 0;
+    const isAllTimeHigh = atr !== null && priorWeekPts > 0 && priorWeekPts >= atr.highPoints;
+    const isAllTimeLow = atr !== null && priorWeekPts > 0 && priorWeekPts <= atr.lowPoints && priorWeek > 1;
+    const isSeasonHigh = seasonHighLow !== null && priorWeekPts > 0 && priorWeekPts >= seasonHighLow.highPoints && priorWeek > 1;
+    const isSeasonLow = seasonHighLow !== null && priorWeekPts > 0 && priorWeekPts <= seasonHighLow.lowPoints && priorWeek > 1;
 
     return {
       teamId,
@@ -762,7 +800,7 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
         priority: Math.min(70, 30 + absPct),
         category: 'trend',
         emoji: trend.vsErospPacePct > 0 ? '🔥' : '⚠️',
-        headline: `**${trend.teamName}** is ${absPct}% ${dir} their EROSP pace through Week ${currentWeek}`,
+        headline: `**${trend.teamName}** is ${absPct}% ${dir} their EROSP pace through Week ${priorWeek || currentWeek}`,
         detail: `Actual: ${Math.round(trend.actualPointsFor)} pts · Expected: ${Math.round(trend.erospPace)} pts`,
         teamIds: [trend.teamId],
       });
@@ -780,7 +818,7 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
       priority: Math.min(90, 50 + pct / 2),
       category: 'player_over',
       emoji: '⭐',
-      headline: `**${sig.playerName}** (${sig.teamName}) is outperforming EROSP pace by ${pct}% through Week ${currentWeek}`,
+      headline: `**${sig.playerName}** (${sig.teamName}) is outperforming EROSP pace by ${pct}% through Week ${priorWeek || currentWeek}`,
       detail: `${sig.totalPoints.toFixed(1)} actual pts vs ${sig.erospPace.toFixed(1)} projected pace (${sig.erospRaw} full-season EROSP).`,
       teamIds: [sig.teamId],
       playerName: sig.playerName,
@@ -938,6 +976,8 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
 
   return {
     currentWeek,
+    priorWeek,
+    priorWeekMatchupResults,
     completionFraction,
     teamTrends,
     playerSignals,
