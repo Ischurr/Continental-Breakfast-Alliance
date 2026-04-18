@@ -2774,3 +2774,34 @@ Wired up live MLB-derived scores (ESPN base + today's delta) and re-simulated wi
 - `buildAiExport()` produces a **flat `•` bullet list** — no section headers, no labels, no closing prompt. Each bullet is self-contained data (matchup results, player signals, team scores/trends, position group rankings, unit breakdowns, roster moves). Paste-ready for any AI to organize freely.
 - `AiExportTab` component shows a monospace read-only textarea (click-to-select) + a "📋 Copy All to Clipboard" button.
 - `Tab` type extended with `'export'`.
+
+## Session Work (April 17, 2026 — Player Description Blurbs)
+
+### Clickable player popup descriptions (background + recent analysis)
+Added two narrative paragraphs to every player popup across the site. Previously the popup showed only stats tables — now it opens with written descriptions.
+
+**Files:**
+- `scripts/generate-player-descriptions.ts` — generation script; reads top 400 players from EROSP, fetches Season + L30 stats from MLB Stats API, calls Claude Haiku to write both paragraphs; saves to `data/player-descriptions.json`
+- `data/player-descriptions.json` — cache file keyed by `mlbamId` string; committed to repo so Vercel sees it
+- `.github/workflows/update-player-descriptions.yml` — weekly Monday 7 AM EST cron (at repo root); needs `ANTHROPIC_API_KEY` GitHub Secret
+- `lib/player-card-types.ts` — added `background?: string` and `recentAnalysis?: string` to `PlayerCardData`
+- `app/api/player-stats/route.ts` — `loadPlayerDescription(mlbamId)` reads cache and includes both fields in response
+- `components/PlayerPopup.tsx` — renders "Background" section + sky-blue "Recent Performance" box below the header, above injury/stats
+
+**Cache structure:**
+```json
+{ "592450": { "name": "Aaron Judge", "background": "...", "backgroundGeneratedAt": "2026-04-17", "recentAnalysis": "...", "recentAnalysisUpdatedAt": "2026-04-17" } }
+```
+
+**Workflow (manual approach — preferred):**
+- Generate descriptions by pasting the prompt from this session into a new Claude Code conversation
+- That conversation reads EROSP + MLB Stats API, writes descriptions in batches of 25, saves progress incrementally
+- Update every ~2 weeks by running the same prompt in a new conversation
+- Alternatively: run `npm run generate-descriptions` if `ANTHROPIC_API_KEY` is set in `.env.local`
+
+**Background vs recent:**
+- Background: career history, playing style, historical fantasy impact, keeper value — written once, stable
+- Recent analysis: 1-2 sentences on 2026 performance so far — updated every ~2 weeks
+- Script only regenerates `recentAnalysis` when older than 6 days; background cached indefinitely unless `--force-background` flag used
+
+**Cost:** ~$0.17/week if using automated script (Claude Haiku, 400 players)

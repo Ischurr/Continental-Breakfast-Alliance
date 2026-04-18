@@ -231,6 +231,24 @@ export default function PlayerPopup({ data, loading, mlbamId, onClose }: Props) 
               </div>
             </div>
 
+            {/* ── Player Descriptions ── */}
+            {(data.background || data.recentAnalysis) && (
+              <div className="mx-5 mt-4 space-y-3">
+                {data.background && (
+                  <div>
+                    <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Background</div>
+                    <p className="text-sm text-gray-700 leading-snug">{data.background}</p>
+                  </div>
+                )}
+                {data.recentAnalysis && (
+                  <div className="bg-sky-50 rounded-xl px-3 py-2.5">
+                    <div className="text-[10px] font-semibold text-sky-500 uppercase tracking-wider mb-1">Recent Performance</div>
+                    <p className="text-sm text-sky-900 leading-snug">{data.recentAnalysis}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* ── Injury box ── */}
             {data.ilType && (
               <div className="mx-5 mt-3 p-3 bg-red-50 border border-red-200 rounded-xl">

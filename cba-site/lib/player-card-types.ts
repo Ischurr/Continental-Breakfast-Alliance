@@ -63,4 +63,7 @@ export interface PlayerCardData {
   recentGames?: RecentGame[];
 
   mentions?: Array<{ title: string; url: string; date: string }>;
+
+  background?: string;
+  recentAnalysis?: string;
 }

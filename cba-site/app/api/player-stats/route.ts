@@ -8,6 +8,22 @@ export const dynamic = 'force-dynamic';
 
 const MLB_BASE = 'https://statsapi.mlb.com/api/v1';
 
+interface PlayerDescription {
+  background?: string;
+  recentAnalysis?: string;
+}
+
+function loadPlayerDescription(mlbamId: number | null): PlayerDescription {
+  try {
+    const descPath = path.join(process.cwd(), 'data', 'player-descriptions.json');
+    if (!mlbamId || !fs.existsSync(descPath)) return {};
+    const cache = JSON.parse(fs.readFileSync(descPath, 'utf-8')) as Record<string, PlayerDescription>;
+    return cache[String(mlbamId)] ?? {};
+  } catch {
+    return {};
+  }
+}
+
 function norm(name: string): string {
   return name.toLowerCase().replace(/[^a-z ]/g, '').trim();
 }
@@ -281,6 +297,8 @@ export async function GET(request: Request) {
     }
   } catch { /* ignore — mentions are optional */ }
 
+  const descriptions = loadPlayerDescription(mlbamId);
+
   const result: PlayerCardData = {
     name,
     position: erospPlayer?.position ?? '—',
@@ -305,6 +323,9 @@ export async function GET(request: Request) {
     last7Stats,
     recentGames,
     mentions: mentions.length > 0 ? mentions : undefined,
+
+    background: descriptions.background || undefined,
+    recentAnalysis: descriptions.recentAnalysis || undefined,
   };
 
   return Response.json(result);
