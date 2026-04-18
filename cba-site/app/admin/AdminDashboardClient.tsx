@@ -13,7 +13,7 @@ interface Props {
   adminNotes: AdminNotes;
 }
 
-type Tab = 'bullets' | 'teams' | 'players' | 'positions' | 'units' | 'moves' | 'storylines' | 'notes';
+type Tab = 'bullets' | 'teams' | 'players' | 'positions' | 'units' | 'moves' | 'storylines' | 'notes' | 'export';
 
 const CATEGORY_COLORS: Record<string, string> = {
   trend: 'border-blue-400',
@@ -700,6 +700,117 @@ export default function AdminDashboardClient({ analytics, adminNotes }: Props) {
       .join('\n');
   }
 
+  function buildAiExport(): string {
+    const week = analytics.priorWeek || analytics.currentWeek;
+    const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    const lines: string[] = [];
+
+    lines.push(`=== CBA FANTASY LEAGUE — WEEK ${week} EDITORIAL DATA ===`);
+    lines.push(`Generated: ${today}`);
+    lines.push(`Context: 10-team keeper fantasy baseball league (ESPN). Use this data to write weekly power rankings.`);
+    lines.push('');
+
+    // Prior week results
+    if (analytics.priorWeek > 0 && analytics.priorWeekMatchupResults.length > 0) {
+      lines.push(`--- WEEK ${analytics.priorWeek} MATCHUP RESULTS ---`);
+      for (const m of [...analytics.priorWeekMatchupResults].sort((a, b) =>
+        Math.max(b.homePoints, b.awayPoints) - Math.max(a.homePoints, a.awayPoints)
+      )) {
+        const homeWon = m.winnerId === m.homeTeamId;
+        lines.push(`${homeWon ? '[W]' : '   '} ${m.homeTeamName} ${m.homePoints.toFixed(1)} — ${m.awayPoints.toFixed(1)} ${m.awayTeamName} ${homeWon ? '' : '[W]'}`);
+      }
+      lines.push('');
+    }
+
+    // Bullets
+    lines.push('--- AUTO-GENERATED SIGNALS ---');
+    for (const b of analytics.bullets) {
+      const plain = b.headline.replace(/\*\*(.+?)\*\*/g, '$1');
+      lines.push(`${b.emoji} [${b.category}] ${plain}`);
+      if (b.detail) lines.push(`   ${b.detail}`);
+    }
+    lines.push('');
+
+    // Teams
+    lines.push('--- TEAMS (sorted by total points) ---');
+    const sortedTeams = [...analytics.teamTrends].sort((a, b) => b.actualPointsFor - a.actualPointsFor);
+    for (const t of sortedTeams) {
+      const weekScores = t.weeklyScores.map(w => `W${w.week}:${w.points.toFixed(0)}`).join(' ');
+      const pace = `${t.vsErospPacePct > 0 ? '+' : ''}${t.vsErospPacePct.toFixed(1)}% vs EROSP`;
+      lines.push(`${t.teamName} (${t.owner}) | ${t.record} | ${t.actualPointsFor.toFixed(1)} pts | trend:${t.trendDirection} | ${pace}`);
+      if (weekScores) lines.push(`  Weekly: ${weekScores}`);
+    }
+    lines.push('');
+
+    // Players
+    lines.push('--- PLAYER SIGNALS ---');
+    const over = analytics.playerSignals.filter(s => s.signalType === 'overperforming');
+    const under = analytics.playerSignals.filter(s => s.signalType === 'underperforming');
+    const inj = analytics.playerSignals.filter(s => s.signalType === 'injury_watch');
+    if (over.length) {
+      lines.push('Overperforming:');
+      for (const s of over) lines.push(`  ${s.playerName} (${s.teamName}, ${s.position}) — ${s.totalPoints.toFixed(1)} actual vs ${s.erospPace.toFixed(1)} pace (${Math.round(s.erospRaw)} EROSP)`);
+    }
+    if (under.length) {
+      lines.push('Underperforming:');
+      for (const s of under) lines.push(`  ${s.playerName} (${s.teamName}, ${s.position}) — ${s.totalPoints.toFixed(1)} actual vs ${s.erospPace.toFixed(1)} pace (${Math.round(s.erospRaw)} EROSP)`);
+    }
+    if (inj.length) {
+      lines.push('Injury Watch:');
+      for (const s of inj) lines.push(`  ${s.playerName} (${s.teamName}) — ${s.ilType} IL, ${s.ilDaysRemaining ?? '?'}d remaining, ${Math.round(s.erospRaw)} EROSP${s.injuryNote ? `: ${s.injuryNote}` : ''}`);
+    }
+    lines.push('');
+
+    // Positions (EROSP)
+    lines.push('--- POSITION GROUP STRENGTH (EROSP projected pts) ---');
+    for (const pg of analytics.positionGroups) {
+      lines.push(`${pg.group} — league avg: ${Math.round(pg.leagueAvg)} pts`);
+      for (const t of pg.teams) {
+        const z = t.zScore !== 0 ? ` (z${t.zScore > 0 ? '+' : ''}${t.zScore.toFixed(1)})` : '';
+        const players = t.players.slice(0, 3).map(p => p.name).join(', ');
+        lines.push(`  ${t.rank}. ${t.teamName}: ${Math.round(t.erospTotal)} pts${z}${players ? ` — ${players}` : ''}`);
+      }
+    }
+    lines.push('');
+
+    // Units (Actual)
+    const hasUnits = analytics.unitStats.some(u => u.teams.some(t => t.actualPts > 0));
+    if (hasUnits) {
+      lines.push('--- UNIT STATS (actual 2026 pts scored) ---');
+      for (const ug of analytics.unitStats) {
+        const teamsWithData = ug.teams.filter(t => t.actualPts > 0);
+        if (teamsWithData.length === 0) continue;
+        lines.push(`${ug.group} (${ug.label}) — avg: ${Math.round(ug.leagueAvg)} pts`);
+        for (const t of ug.teams) {
+          if (t.actualPts === 0) continue;
+          const players = t.players.slice(0, 3).map(p => `${p.name.split(' ').slice(-1)[0]} ${p.pts.toFixed(0)}`).join(', ');
+          lines.push(`  ${t.rank}. ${t.teamName}: ${Math.round(t.actualPts)} pts${players ? ` — ${players}` : ''}`);
+        }
+      }
+      lines.push('');
+    }
+
+    // Moves
+    const adds = analytics.rosterMoves.filter(m => m.acquisitionType === 'ADD');
+    const trades = analytics.rosterMoves.filter(m => m.acquisitionType === 'TRADE');
+    if (adds.length || trades.length) {
+      lines.push('--- ROSTER MOVES ---');
+      if (adds.length) {
+        lines.push('FA Adds:');
+        for (const mv of adds) lines.push(`  ${mv.teamName} added ${mv.playerName} — ${Math.round(mv.erospRaw)} projected pts [${mv.impact}]`);
+      }
+      if (trades.length) {
+        lines.push('Trades:');
+        for (const mv of trades) lines.push(`  ${mv.teamName} acquired ${mv.playerName} — ${Math.round(mv.erospRaw)} projected pts`);
+      }
+      lines.push('');
+    }
+
+    lines.push('=== END OF DATA ===');
+    lines.push('Please write weekly power rankings covering all 10 teams with analysis, rankings (1-10), and compelling narrative using the above data.');
+    return lines.join('\n');
+  }
+
   const tabs: { id: Tab; label: string }[] = [
     { id: 'bullets', label: 'Bullets' },
     { id: 'teams', label: 'Teams' },
@@ -709,6 +820,7 @@ export default function AdminDashboardClient({ analytics, adminNotes }: Props) {
     { id: 'moves', label: 'Moves' },
     { id: 'storylines', label: 'Storylines' },
     { id: 'notes', label: 'Notes' },
+    { id: 'export', label: '🤖 AI Export' },
   ];
 
   return (
@@ -778,7 +890,41 @@ export default function AdminDashboardClient({ analytics, adminNotes }: Props) {
             onCopyAll={copyToClipboard}
           />
         )}
+        {activeTab === 'export' && (
+          <AiExportTab exportText={buildAiExport()} onCopy={copyToClipboard} />
+        )}
       </div>
+    </div>
+  );
+}
+
+// ── AI Export tab ─────────────────────────────────────────────────────────────
+
+function AiExportTab({ exportText, onCopy }: { exportText: string; onCopy: (text: string) => void }) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-base font-semibold text-gray-800">AI Export</h2>
+          <p className="text-xs text-gray-400 mt-0.5">
+            All data from Bullets, Teams, Players, Positions, Units, and Moves — formatted for pasting into Claude or ChatGPT.
+          </p>
+        </div>
+        <button
+          onClick={() => onCopy(exportText)}
+          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg transition flex-shrink-0"
+        >
+          📋 Copy All to Clipboard
+        </button>
+      </div>
+      <textarea
+        readOnly
+        value={exportText}
+        rows={30}
+        className="w-full font-mono text-xs text-gray-700 border border-gray-200 rounded-xl px-4 py-3 bg-gray-50 focus:outline-none resize-none"
+        onClick={e => (e.target as HTMLTextAreaElement).select()}
+      />
+      <p className="text-xs text-gray-400">Click the text area to select all, or use the Copy button above.</p>
     </div>
   );
 }

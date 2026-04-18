@@ -246,6 +246,12 @@ function classifyPositionGroup(player: EROSPPlayer): PosGroup | null {
   return null;
 }
 
+function ordinalStr(n: number): string {
+  const s = ['th', 'st', 'nd', 'rd'];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
 function teamDisplayName(teamId: number, meta: TeamMetaEntry[]): string {
   const m = meta.find(t => t.id === teamId);
   return m?.displayName || m?.name || `Team ${teamId}`;
@@ -954,6 +960,149 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
     }
   }
 
+  // ── PER-TEAM COVERAGE: at least 1 positive + 1 negative per team ─────────────
+
+  // For each team, figure out what we can say positive/negative based on available data.
+  // Priority: player signal > weekly score vs league median > EROSP pace > position group rank.
+  const priorWeekScores = priorWeek > 0
+    ? matchups
+        .filter(m => m.week === priorWeek)
+        .flatMap(m => [
+          { teamId: m.home.teamId, pts: m.home.totalPoints },
+          { teamId: m.away.teamId, pts: m.away.totalPoints },
+        ])
+    : [];
+  const priorWeekMedian = (() => {
+    const sorted = [...priorWeekScores].map(s => s.pts).sort((a, b) => a - b);
+    if (sorted.length === 0) return 0;
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+  })();
+
+  for (const tid of teamIds) {
+    const tName = teamDisplayName(tid, teamMetadata);
+    const trend = teamTrends.find(t => t.teamId === tid);
+    const priorPts = priorWeekScores.find(s => s.teamId === tid)?.pts ?? 0;
+
+    // ── POSITIVE bullet for this team ──
+    const hasPositive = bullets.some(b => b.teamIds.includes(tid) &&
+      (b.category === 'player_over' || b.category === 'roster' ||
+       (b.category === 'trend' && (b.emoji === '📈' || b.emoji === '🔥' || b.emoji === '🏆' || b.emoji === '📊'))));
+
+    if (!hasPositive) {
+      // Try: player overperformer for this team
+      const overSig = playerSignals.find(s => s.teamId === tid && s.signalType === 'overperforming');
+      if (overSig) {
+        bullets.push({
+          priority: 42,
+          category: 'player_over',
+          emoji: '⭐',
+          headline: `**${overSig.playerName}** (${tName}) is outperforming EROSP pace — ${overSig.totalPoints.toFixed(1)} pts vs ${overSig.erospPace.toFixed(1)} projected`,
+          teamIds: [tid],
+          playerName: overSig.playerName,
+        });
+      } else if (priorPts > 0 && priorWeekMedian > 0 && priorPts >= priorWeekMedian) {
+        // Beat the median this week
+        const delta = priorPts - priorWeekMedian;
+        bullets.push({
+          priority: 38,
+          category: 'trend',
+          emoji: '📊',
+          headline: `**${tName}** scored ${priorPts.toFixed(1)} pts in Week ${priorWeek} — ${delta.toFixed(1)} above the league median`,
+          teamIds: [tid],
+        });
+      } else if (trend && trend.vsErospPacePct > 0) {
+        // Ahead of EROSP pace
+        bullets.push({
+          priority: 35,
+          category: 'trend',
+          emoji: '🔥',
+          headline: `**${tName}** is scoring ahead of their EROSP projection (${Math.round(trend.actualPointsFor)} actual vs ${Math.round(trend.erospPace)} expected pace)`,
+          teamIds: [tid],
+        });
+      } else {
+        // Best position group
+        const bestGroup = positionGroups
+          .map(pg => ({ pg, entry: pg.teams.find(t => t.teamId === tid) }))
+          .filter(x => x.entry && x.entry.rank <= 3)
+          .sort((a, b) => (b.entry?.zScore ?? 0) - (a.entry?.zScore ?? 0))[0];
+        if (bestGroup?.entry) {
+          bullets.push({
+            priority: 32,
+            category: 'position',
+            emoji: '💪',
+            headline: `**${tName}** ranks ${ordinalStr(bestGroup.entry.rank)} in the league in projected ${bestGroup.pg.group} strength (${Math.round(bestGroup.entry.erospTotal)} EROSP pts)`,
+            teamIds: [tid],
+          });
+        }
+      }
+    }
+
+    // ── NEGATIVE bullet for this team ──
+    const hasNegative = bullets.some(b => b.teamIds.includes(tid) &&
+      (b.category === 'player_under' || b.category === 'injury' ||
+       (b.category === 'trend' && (b.emoji === '📉' || b.emoji === '⚠️' || b.emoji === '💀'))));
+
+    if (!hasNegative) {
+      // Try: player underperformer
+      const underSig = playerSignals.find(s => s.teamId === tid && s.signalType === 'underperforming');
+      const injSig = playerSignals.find(s => s.teamId === tid && s.signalType === 'injury_watch');
+      if (injSig) {
+        const daysStr = injSig.ilDaysRemaining ? `~${injSig.ilDaysRemaining}d` : 'timeline unknown';
+        bullets.push({
+          priority: 44,
+          category: 'injury',
+          emoji: '🚨',
+          headline: `**${injSig.playerName}** (${tName}) is on the ${injSig.ilType} IL (${daysStr}) — ${Math.round(injSig.erospRaw)} projected season pts at stake`,
+          detail: injSig.injuryNote || undefined,
+          teamIds: [tid],
+          playerName: injSig.playerName,
+        });
+      } else if (underSig) {
+        bullets.push({
+          priority: 40,
+          category: 'player_under',
+          emoji: '🧊',
+          headline: `**${underSig.playerName}** (${tName}) is underperforming EROSP pace — ${underSig.totalPoints.toFixed(1)} pts vs ${underSig.erospPace.toFixed(1)} projected`,
+          teamIds: [tid],
+          playerName: underSig.playerName,
+        });
+      } else if (priorPts > 0 && priorWeekMedian > 0 && priorPts < priorWeekMedian) {
+        const delta = priorWeekMedian - priorPts;
+        bullets.push({
+          priority: 36,
+          category: 'trend',
+          emoji: '⚠️',
+          headline: `**${tName}** scored ${priorPts.toFixed(1)} pts in Week ${priorWeek} — ${delta.toFixed(1)} below the league median`,
+          teamIds: [tid],
+        });
+      } else if (trend && trend.vsErospPacePct < 0) {
+        bullets.push({
+          priority: 33,
+          category: 'trend',
+          emoji: '⚠️',
+          headline: `**${tName}** is scoring below their EROSP projection (${Math.round(trend.actualPointsFor)} actual vs ${Math.round(trend.erospPace)} expected pace)`,
+          teamIds: [tid],
+        });
+      } else {
+        // Weakest position group
+        const worstGroup = positionGroups
+          .map(pg => ({ pg, entry: pg.teams.find(t => t.teamId === tid) }))
+          .filter(x => x.entry && x.entry.rank >= positionGroups[0]?.teams.length - 2)
+          .sort((a, b) => (a.entry?.zScore ?? 0) - (b.entry?.zScore ?? 0))[0];
+        if (worstGroup?.entry) {
+          bullets.push({
+            priority: 30,
+            category: 'position',
+            emoji: '⚠️',
+            headline: `**${tName}** ranks ${ordinalStr(worstGroup.entry.rank)} in projected ${worstGroup.pg.group} strength — a potential weak spot going forward`,
+            teamIds: [tid],
+          });
+        }
+      }
+    }
+  }
+
   // Deduplicate by headline and sort by priority
   const seen = new Set<string>();
   const dedupedBullets = bullets
@@ -962,17 +1111,7 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
       seen.add(b.headline);
       return true;
     })
-    .sort((a, b) => b.priority - a.priority)
-    .slice(0, 12);
-
-  // Ensure at least 1 per category if data allows
-  const categorySeen = new Set(dedupedBullets.map(b => b.category));
-  const missingCategoryBullets = bullets
-    .filter(b => !categorySeen.has(b.category) && !seen.has(b.headline))
-    .filter((b, i, arr) => arr.findIndex(x => x.category === b.category) === i)
-    .slice(0, 3);
-  dedupedBullets.push(...missingCategoryBullets);
-  dedupedBullets.sort((a, b) => b.priority - a.priority);
+    .sort((a, b) => b.priority - a.priority);
 
   return {
     currentWeek,

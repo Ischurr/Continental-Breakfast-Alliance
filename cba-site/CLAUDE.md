@@ -2758,3 +2758,20 @@ Wired up live MLB-derived scores (ESPN base + today's delta) and re-simulated wi
 - **Storage**: HTML content read from `ref.current.innerHTML` and passed to `postRanking()` unchanged — `renderContent()` already handles HTML via `looksLikeHtml()` / `dangerouslySetInnerHTML`
 - **Empty guard**: `rankEditorEmpty` state (updated via `onInput`) drives the submit button's `disabled` prop — replaces the old `!rankContent.trim()` check
 - **`RANK_COLORS`** constant defined at module level (matches the palette in `RankingsClient.tsx`)
+
+## Session Work (April 17, 2026 — Editorial Per-Team Coverage + AI Export)
+
+### Per-team bullet coverage guarantee (`lib/admin-analytics.ts`)
+- After all existing bullet-generation passes, a new per-team loop ensures every team gets **at least 1 positive and 1 negative bullet** each week.
+- **Positive fallback chain** (first match wins): player overperformer → scored above league median this week → ahead of EROSP pace → best position group (top 3).
+- **Negative fallback chain**: injury watch player → player underperformer → scored below league median this week → behind EROSP pace → worst position group (bottom 3).
+- `priorWeekMedian` computed from `priorWeek` matchup scores for the week-score comparisons.
+- `ordinalStr()` helper added (mirrors the `ordinal()` helper in the client).
+- Old hard cap of `.slice(0, 12)` bullets removed — list now grows to ~20+ with per-team coverage, then deduplicated by headline.
+
+### AI Export tab (`app/admin/AdminDashboardClient.tsx`)
+- New **"🤖 AI Export"** tab (last in the tab row) produces a single plain-text block containing all data from Bullets, Teams, Players, Positions (EROSP), Units (Actual), and Moves tabs.
+- `buildAiExport()` function assembles labeled sections with week results, signals, per-team scores + trends, position group rankings, unit breakdowns, and roster moves.
+- Output ends with a prompt telling the AI to write weekly power rankings covering all 10 teams.
+- `AiExportTab` component shows a monospace read-only textarea (click-to-select) + a "📋 Copy All to Clipboard" button.
+- `Tab` type extended with `'export'`.
