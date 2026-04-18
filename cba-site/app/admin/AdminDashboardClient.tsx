@@ -702,113 +702,84 @@ export default function AdminDashboardClient({ analytics, adminNotes }: Props) {
 
   function buildAiExport(): string {
     const week = analytics.priorWeek || analytics.currentWeek;
-    const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-    const lines: string[] = [];
+    const bullets: string[] = [];
 
-    lines.push(`=== CBA FANTASY LEAGUE — WEEK ${week} EDITORIAL DATA ===`);
-    lines.push(`Generated: ${today}`);
-    lines.push(`Context: 10-team keeper fantasy baseball league (ESPN). Use this data to write weekly power rankings.`);
-    lines.push('');
+    const b = (text: string) => bullets.push(`• ${text}`);
 
     // Prior week results
     if (analytics.priorWeek > 0 && analytics.priorWeekMatchupResults.length > 0) {
-      lines.push(`--- WEEK ${analytics.priorWeek} MATCHUP RESULTS ---`);
       for (const m of [...analytics.priorWeekMatchupResults].sort((a, b) =>
         Math.max(b.homePoints, b.awayPoints) - Math.max(a.homePoints, a.awayPoints)
       )) {
-        const homeWon = m.winnerId === m.homeTeamId;
-        lines.push(`${homeWon ? '[W]' : '   '} ${m.homeTeamName} ${m.homePoints.toFixed(1)} — ${m.awayPoints.toFixed(1)} ${m.awayTeamName} ${homeWon ? '' : '[W]'}`);
+        const winner = m.winnerId === m.homeTeamId ? m.homeTeamName : m.awayTeamName;
+        const loser = m.winnerId === m.homeTeamId ? m.awayTeamName : m.homeTeamName;
+        const winPts = m.winnerId === m.homeTeamId ? m.homePoints : m.awayPoints;
+        const losePts = m.winnerId === m.homeTeamId ? m.awayPoints : m.homePoints;
+        b(`Week ${week} result: ${winner} defeated ${loser} ${winPts.toFixed(1)}–${losePts.toFixed(1)}`);
       }
-      lines.push('');
     }
 
-    // Bullets
-    lines.push('--- AUTO-GENERATED SIGNALS ---');
-    for (const b of analytics.bullets) {
-      const plain = b.headline.replace(/\*\*(.+?)\*\*/g, '$1');
-      lines.push(`${b.emoji} [${b.category}] ${plain}`);
-      if (b.detail) lines.push(`   ${b.detail}`);
+    // Signal bullets (already generated, strip markdown bold)
+    for (const sig of analytics.bullets) {
+      const plain = sig.headline.replace(/\*\*(.+?)\*\*/g, '$1');
+      b(plain + (sig.detail ? ` — ${sig.detail}` : ''));
     }
-    lines.push('');
 
     // Teams
-    lines.push('--- TEAMS (sorted by total points) ---');
     const sortedTeams = [...analytics.teamTrends].sort((a, b) => b.actualPointsFor - a.actualPointsFor);
     for (const t of sortedTeams) {
-      const weekScores = t.weeklyScores.map(w => `W${w.week}:${w.points.toFixed(0)}`).join(' ');
-      const pace = `${t.vsErospPacePct > 0 ? '+' : ''}${t.vsErospPacePct.toFixed(1)}% vs EROSP`;
-      lines.push(`${t.teamName} (${t.owner}) | ${t.record} | ${t.actualPointsFor.toFixed(1)} pts | trend:${t.trendDirection} | ${pace}`);
-      if (weekScores) lines.push(`  Weekly: ${weekScores}`);
+      b(`${t.teamName} (${t.owner}): ${t.record}, ${t.actualPointsFor.toFixed(1)} total pts, trend ${t.trendDirection}, ${t.vsErospPacePct > 0 ? '+' : ''}${t.vsErospPacePct.toFixed(1)}% vs EROSP pace`);
+      if (t.weeklyScores.length > 0) {
+        b(`${t.teamName} weekly scores: ${t.weeklyScores.map(w => `Week ${w.week}: ${w.points.toFixed(1)}`).join(', ')}`);
+      }
+      if (t.allTimeRecord) {
+        b(`${t.teamName} all-time franchise high: ${Math.round(t.allTimeRecord.highPoints)} pts (${t.allTimeRecord.highYear} Week ${t.allTimeRecord.highWeek}), all-time low: ${Math.round(t.allTimeRecord.lowPoints)} pts (${t.allTimeRecord.lowYear} Week ${t.allTimeRecord.lowWeek})`);
+      }
     }
-    lines.push('');
 
-    // Players
-    lines.push('--- PLAYER SIGNALS ---');
-    const over = analytics.playerSignals.filter(s => s.signalType === 'overperforming');
-    const under = analytics.playerSignals.filter(s => s.signalType === 'underperforming');
-    const inj = analytics.playerSignals.filter(s => s.signalType === 'injury_watch');
-    if (over.length) {
-      lines.push('Overperforming:');
-      for (const s of over) lines.push(`  ${s.playerName} (${s.teamName}, ${s.position}) — ${s.totalPoints.toFixed(1)} actual vs ${s.erospPace.toFixed(1)} pace (${Math.round(s.erospRaw)} EROSP)`);
+    // Player signals
+    for (const s of analytics.playerSignals) {
+      if (s.signalType === 'overperforming') {
+        b(`${s.playerName} (${s.teamName}, ${s.position}) is outperforming his EROSP pace: ${s.totalPoints.toFixed(1)} actual pts vs ${s.erospPace.toFixed(1)} projected pace (full-season EROSP: ${Math.round(s.erospRaw)})`);
+      } else if (s.signalType === 'underperforming') {
+        b(`${s.playerName} (${s.teamName}, ${s.position}) is underperforming his EROSP pace: ${s.totalPoints.toFixed(1)} actual pts vs ${s.erospPace.toFixed(1)} projected pace (full-season EROSP: ${Math.round(s.erospRaw)})`);
+      } else if (s.signalType === 'injury_watch') {
+        b(`${s.playerName} (${s.teamName}) is on the ${s.ilType} IL with ${s.ilDaysRemaining ?? 'unknown'} days remaining — ${Math.round(s.erospRaw)} projected season pts at stake${s.injuryNote ? `: ${s.injuryNote}` : ''}`);
+      }
     }
-    if (under.length) {
-      lines.push('Underperforming:');
-      for (const s of under) lines.push(`  ${s.playerName} (${s.teamName}, ${s.position}) — ${s.totalPoints.toFixed(1)} actual vs ${s.erospPace.toFixed(1)} pace (${Math.round(s.erospRaw)} EROSP)`);
-    }
-    if (inj.length) {
-      lines.push('Injury Watch:');
-      for (const s of inj) lines.push(`  ${s.playerName} (${s.teamName}) — ${s.ilType} IL, ${s.ilDaysRemaining ?? '?'}d remaining, ${Math.round(s.erospRaw)} EROSP${s.injuryNote ? `: ${s.injuryNote}` : ''}`);
-    }
-    lines.push('');
 
-    // Positions (EROSP)
-    lines.push('--- POSITION GROUP STRENGTH (EROSP projected pts) ---');
+    // Position groups (EROSP)
     for (const pg of analytics.positionGroups) {
-      lines.push(`${pg.group} — league avg: ${Math.round(pg.leagueAvg)} pts`);
+      const top = pg.teams[0];
+      const bot = pg.teams[pg.teams.length - 1];
+      b(`${pg.group} projected strength (EROSP): league avg ${Math.round(pg.leagueAvg)} pts — best: ${top.teamName} ${Math.round(top.erospTotal)} pts (z${top.zScore > 0 ? '+' : ''}${top.zScore.toFixed(1)}), worst: ${bot.teamName} ${Math.round(bot.erospTotal)} pts (z${bot.zScore > 0 ? '+' : ''}${bot.zScore.toFixed(1)})`);
       for (const t of pg.teams) {
-        const z = t.zScore !== 0 ? ` (z${t.zScore > 0 ? '+' : ''}${t.zScore.toFixed(1)})` : '';
         const players = t.players.slice(0, 3).map(p => p.name).join(', ');
-        lines.push(`  ${t.rank}. ${t.teamName}: ${Math.round(t.erospTotal)} pts${z}${players ? ` — ${players}` : ''}`);
+        b(`${pg.group} rank ${t.rank}: ${t.teamName} — ${Math.round(t.erospTotal)} pts${players ? ` (${players})` : ''}`);
       }
     }
-    lines.push('');
 
-    // Units (Actual)
-    const hasUnits = analytics.unitStats.some(u => u.teams.some(t => t.actualPts > 0));
-    if (hasUnits) {
-      lines.push('--- UNIT STATS (actual 2026 pts scored) ---');
-      for (const ug of analytics.unitStats) {
-        const teamsWithData = ug.teams.filter(t => t.actualPts > 0);
-        if (teamsWithData.length === 0) continue;
-        lines.push(`${ug.group} (${ug.label}) — avg: ${Math.round(ug.leagueAvg)} pts`);
-        for (const t of ug.teams) {
-          if (t.actualPts === 0) continue;
-          const players = t.players.slice(0, 3).map(p => `${p.name.split(' ').slice(-1)[0]} ${p.pts.toFixed(0)}`).join(', ');
-          lines.push(`  ${t.rank}. ${t.teamName}: ${Math.round(t.actualPts)} pts${players ? ` — ${players}` : ''}`);
-        }
+    // Unit stats (actual)
+    for (const ug of analytics.unitStats) {
+      const teamsWithData = ug.teams.filter(t => t.actualPts > 0);
+      if (teamsWithData.length === 0) continue;
+      b(`${ug.group} (${ug.label}) actual pts scored this season — league avg: ${Math.round(ug.leagueAvg)} pts`);
+      for (const t of teamsWithData) {
+        const players = t.players.slice(0, 3).map(p => `${p.name} ${p.pts.toFixed(0)}`).join(', ');
+        b(`${ug.group} rank ${t.rank}: ${t.teamName} — ${Math.round(t.actualPts)} pts${players ? ` (${players})` : ''}`);
       }
-      lines.push('');
     }
 
-    // Moves
-    const adds = analytics.rosterMoves.filter(m => m.acquisitionType === 'ADD');
-    const trades = analytics.rosterMoves.filter(m => m.acquisitionType === 'TRADE');
-    if (adds.length || trades.length) {
-      lines.push('--- ROSTER MOVES ---');
-      if (adds.length) {
-        lines.push('FA Adds:');
-        for (const mv of adds) lines.push(`  ${mv.teamName} added ${mv.playerName} — ${Math.round(mv.erospRaw)} projected pts [${mv.impact}]`);
+    // Roster moves
+    for (const mv of analytics.rosterMoves) {
+      if (mv.acquisitionType === 'ADD') {
+        b(`${mv.teamName} added ${mv.playerName} off waivers — ${Math.round(mv.erospRaw)} projected season pts remaining`);
+      } else {
+        b(`${mv.teamName} acquired ${mv.playerName} via trade — ${Math.round(mv.erospRaw)} projected season pts remaining`);
       }
-      if (trades.length) {
-        lines.push('Trades:');
-        for (const mv of trades) lines.push(`  ${mv.teamName} acquired ${mv.playerName} — ${Math.round(mv.erospRaw)} projected pts`);
-      }
-      lines.push('');
     }
 
-    lines.push('=== END OF DATA ===');
-    lines.push('Please write weekly power rankings covering all 10 teams with analysis, rankings (1-10), and compelling narrative using the above data.');
-    return lines.join('\n');
+    return bullets.join('\n');
   }
 
   const tabs: { id: Tab; label: string }[] = [
