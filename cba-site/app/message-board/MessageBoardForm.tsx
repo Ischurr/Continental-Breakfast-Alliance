@@ -1,10 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { postMessage, postTrade, postRanking, postAnnouncement } from './actions';
 import { useAdminMode } from '@/hooks/useAdminMode';
 import { Poll } from '@/lib/types';
 import PollAdminForm from '../polls/PollAdminForm';
+
+const RANK_COLORS = [
+  { label: 'Red',    value: '#dc2626' },
+  { label: 'Orange', value: '#ea580c' },
+  { label: 'Amber',  value: '#d97706' },
+  { label: 'Green',  value: '#16a34a' },
+  { label: 'Teal',   value: '#0d9488' },
+  { label: 'Blue',   value: '#2563eb' },
+  { label: 'Indigo', value: '#4f46e5' },
+  { label: 'Purple', value: '#9333ea' },
+  { label: 'Pink',   value: '#db2777' },
+  { label: 'Gray',   value: '#6b7280' },
+];
 
 interface Team {
   id: number;
@@ -44,9 +57,10 @@ export default function MessageBoardForm({ teams, polls }: Props) {
 
   // Rankings-specific
   const [rankTitle, setRankTitle] = useState('');
-  const [rankContent, setRankContent] = useState('');
   const [rankPass, setRankPass] = useState('');
   const [rankEmailLeague, setRankEmailLeague] = useState(true);
+  const rankEditorRef = useRef<HTMLDivElement>(null);
+  const [rankEditorEmpty, setRankEditorEmpty] = useState(true);
 
   // Commissioner announcement-specific
   const [annSubject, setAnnSubject] = useState('');
@@ -118,13 +132,15 @@ export default function MessageBoardForm({ teams, polls }: Props) {
 
   async function handleSubmitRanking(e: React.FormEvent) {
     e.preventDefault();
-    if (!isAdmin || !rankTitle.trim() || !rankContent.trim() || !rankPass) return;
+    const html = rankEditorRef.current?.innerHTML ?? '';
+    if (!isAdmin || !rankTitle.trim() || !html.trim() || !rankPass) return;
     setSubmitting(true);
     try {
-      await postRanking(rankTitle, rankContent, rankPass, rankEmailLeague);
+      await postRanking(rankTitle, html, rankPass, rankEmailLeague);
       setRankTitle('');
-      setRankContent('');
       setRankPass('');
+      if (rankEditorRef.current) rankEditorRef.current.innerHTML = '';
+      setRankEditorEmpty(true);
       setSubmitted(true);
       setTimeout(() => setSubmitted(false), 3000);
     } catch (err: any) {
@@ -132,6 +148,11 @@ export default function MessageBoardForm({ teams, polls }: Props) {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  function rankExec(cmd: string, value?: string) {
+    rankEditorRef.current?.focus();
+    document.execCommand(cmd, false, value);
   }
 
   return (
@@ -426,13 +447,57 @@ export default function MessageBoardForm({ teams, polls }: Props) {
             <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
               Content
             </label>
-            <textarea
-              value={rankContent}
-              onChange={e => setRankContent(e.target.value)}
-              required
-              rows={5}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 resize-none"
+            {/* Toolbar */}
+            <div className="flex gap-1.5 flex-wrap items-center p-2 bg-gray-50 border border-gray-200 rounded-t-lg border-b-0">
+              <button type="button" title="Bold" onMouseDown={e => { e.preventDefault(); rankExec('bold'); }}
+                className="px-2 py-1 text-xs rounded border border-gray-300 bg-white hover:bg-gray-100 text-gray-700 select-none">
+                <strong>B</strong>
+              </button>
+              <button type="button" title="Italic" onMouseDown={e => { e.preventDefault(); rankExec('italic'); }}
+                className="px-2 py-1 text-xs rounded border border-gray-300 bg-white hover:bg-gray-100 text-gray-700 select-none">
+                <em>I</em>
+              </button>
+              <button type="button" title="Toggle center alignment"
+                onMouseDown={e => {
+                  e.preventDefault();
+                  const sel = window.getSelection();
+                  const block = sel?.anchorNode?.parentElement?.closest('p, div, h1, h2, h3');
+                  const isCentered = block
+                    ? getComputedStyle(block).textAlign === 'center' || (block as HTMLElement).style.textAlign === 'center'
+                    : false;
+                  rankExec(isCentered ? 'justifyLeft' : 'justifyCenter');
+                }}
+                className="px-2 py-1 text-xs rounded border border-gray-300 bg-white hover:bg-gray-100 text-gray-700 select-none">
+                ⊕ Center
+              </button>
+              <span className="w-px h-5 bg-gray-300 mx-0.5" />
+              <span className="text-xs text-gray-400">Color:</span>
+              {RANK_COLORS.map(c => (
+                <button key={c.value} type="button" title={c.label}
+                  onMouseDown={e => { e.preventDefault(); rankExec('foreColor', c.value); }}
+                  className="w-5 h-5 rounded-full border-2 border-white ring-1 ring-gray-300 hover:ring-gray-500 flex-shrink-0 select-none"
+                  style={{ backgroundColor: c.value }} />
+              ))}
+              <button type="button" title="Remove formatting"
+                onMouseDown={e => { e.preventDefault(); rankExec('removeFormat'); }}
+                className="w-5 h-5 rounded-full border border-gray-300 bg-white hover:border-gray-500 text-gray-400 text-[9px] flex items-center justify-center select-none">
+                ✕
+              </button>
+            </div>
+            {/* WYSIWYG editor */}
+            <div
+              ref={rankEditorRef}
+              contentEditable
+              suppressContentEditableWarning
+              className="prose max-w-none text-gray-800 border border-gray-200 rounded-b-lg px-4 py-3 min-h-[8rem] focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white"
+              style={{ lineHeight: '1.75' }}
+              onInput={() => setRankEditorEmpty(!(rankEditorRef.current?.innerHTML ?? '').replace(/<[^>]*>/g, '').trim())}
+              onKeyDown={e => {
+                if ((e.metaKey || e.ctrlKey) && e.key === 'b') { e.preventDefault(); rankExec('bold'); }
+                if ((e.metaKey || e.ctrlKey) && e.key === 'i') { e.preventDefault(); rankExec('italic'); }
+              }}
             />
+            <p className="text-xs text-gray-400 mt-1">Paste rich text · Cmd+B bold · Cmd+I italic · select text then click a color</p>
           </div>
           <div className="mb-4">
             <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
@@ -461,7 +526,7 @@ export default function MessageBoardForm({ teams, polls }: Props) {
           <div className="flex items-center gap-3">
             <button
               type="submit"
-              disabled={submitting || !rankTitle.trim() || !rankContent.trim() || !rankPass}
+              disabled={submitting || !rankTitle.trim() || rankEditorEmpty || !rankPass}
               className="px-5 py-2 bg-purple-700 text-white text-sm font-semibold rounded-lg hover:bg-purple-800 transition disabled:opacity-40 disabled:cursor-not-allowed"
             >
               {submitting ? 'Posting…' : 'Post Rankings'}

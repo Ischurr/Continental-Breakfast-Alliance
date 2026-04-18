@@ -2748,3 +2748,13 @@ Wired up live MLB-derived scores (ESPN base + today's delta) and re-simulated wi
 
 ### `data-processor.ts` winner check fix
 - Changed `m.winner !== 'HOME' && m.winner !== 'AWAY'` → `m.winner === undefined` in `calculateAllTimeStandings()` — `Matchup.winner` is typed as `number | undefined` (the winning teamId), not a string.
+
+## Session Work (April 17, 2026 — Rankings Post Box WYSIWYG Editor)
+
+### Rankings form in message board — WYSIWYG editor (`app/message-board/MessageBoardForm.tsx`)
+- **Problem**: the Rankings post form used a plain `<textarea>`, stripping all formatting on paste. Users couldn't paste rich text (colors, italics, bold) from other sources.
+- **Fix**: replaced textarea with a `contenteditable` div (same pattern as `RankingsClient.tsx` edit form) — browsers preserve rich formatting on paste natively.
+- **Toolbar**: Bold (Cmd+B), Italic (Cmd+I), Center alignment toggle, 10-color palette, ✕ Remove formatting
+- **Storage**: HTML content read from `ref.current.innerHTML` and passed to `postRanking()` unchanged — `renderContent()` already handles HTML via `looksLikeHtml()` / `dangerouslySetInnerHTML`
+- **Empty guard**: `rankEditorEmpty` state (updated via `onInput`) drives the submit button's `disabled` prop — replaces the old `!rankContent.trim()` check
+- **`RANK_COLORS`** constant defined at module level (matches the palette in `RankingsClient.tsx`)
