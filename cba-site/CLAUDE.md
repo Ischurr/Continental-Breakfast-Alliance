@@ -2771,7 +2771,6 @@ Wired up live MLB-derived scores (ESPN base + today's delta) and re-simulated wi
 
 ### AI Export tab (`app/admin/AdminDashboardClient.tsx`)
 - New **"🤖 AI Export"** tab (last in the tab row) produces a single plain-text block containing all data from Bullets, Teams, Players, Positions (EROSP), Units (Actual), and Moves tabs.
-- `buildAiExport()` function assembles labeled sections with week results, signals, per-team scores + trends, position group rankings, unit breakdowns, and roster moves.
-- Output ends with a prompt telling the AI to write weekly power rankings covering all 10 teams.
+- `buildAiExport()` produces a **flat `•` bullet list** — no section headers, no labels, no closing prompt. Each bullet is self-contained data (matchup results, player signals, team scores/trends, position group rankings, unit breakdowns, roster moves). Paste-ready for any AI to organize freely.
 - `AiExportTab` component shows a monospace read-only textarea (click-to-select) + a "📋 Copy All to Clipboard" button.
 - `Tab` type extended with `'export'`.
