@@ -2805,3 +2805,28 @@ Added two narrative paragraphs to every player popup across the site. Previously
 - Script only regenerates `recentAnalysis` when older than 6 days; background cached indefinitely unless `--force-background` flag used
 
 **Cost:** ~$0.17/week if using automated script (Claude Haiku, 400 players)
+
+## Session Work (April 19, 2026 — Tonight's Games Collapsible + Sitewide Player Popups)
+
+### Tonight's Games collapsed into matchup tracker (`components/TeamMatchupTracker.tsx`, `app/teams/[teamId]/page.tsx`)
+- Removed standalone `<TonightGamesWidget teamId={id} />` section that appeared above the team header
+- Added a "🗓 Tonight's games ▾" toggle button inside `TeamMatchupTracker` (below the score card, outside the Link so clicking it doesn't navigate to `/matchups`)
+- Clicking the toggle expands/collapses `TonightGamesWidget` inline below the matchup tracker
+- Arrow indicator flips ▼/▲ based on open state
+
+### PlayerName now accepts `displayName` prop (`components/PlayerName.tsx`)
+- New optional `displayName?: string` prop — renders instead of `name` in the UI while still using `name` for the API lookup
+- Useful for chips/thumbnails where you want to show only the last name but still open the full player popup on click
+
+### PlayerName added to TonightGamesWidget player chips (`components/TonightGamesWidget.tsx`)
+- `PlayerChip` now uses `<PlayerName>` with `displayName={lastName}` — clicking any player chip in the games section opens their bio popup
+
+### PlayerName added to team page player listings (`app/teams/[teamId]/page.tsx`)
+- **Top Players All-Time**: player names are now clickable
+- **Keeper cards** (suggested / confirmed / 2026 actual): all three lists now use `<PlayerName>`
+- **Season History top player**: name in the season card is clickable
+- **Season History keeper thumbnails**: last-name labels under keeper photos now clickable (use `displayName` for last name, full name for lookup)
+
+### PlayerName added to landing page (`app/page.tsx`)
+- "Top Available Players" FA list now uses `<PlayerName>` (mlbamId included for fast lookup)
+- Added `mlbamId` field to the `topFAsByEROSP` mapped objects so the popup can show the right player
