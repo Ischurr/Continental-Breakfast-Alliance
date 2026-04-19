@@ -13,9 +13,11 @@ interface Props {
   espnId?: string;
   /** Optional CSS classes on the clickable span */
   className?: string;
+  /** Optional display text — shows instead of name (name is still used for API lookup) */
+  displayName?: string;
 }
 
-export default function PlayerName({ name, mlbamId, espnId, className = '' }: Props) {
+export default function PlayerName({ name, mlbamId, espnId, className = '', displayName }: Props) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<PlayerCardData | null>(null);
@@ -54,7 +56,7 @@ export default function PlayerName({ name, mlbamId, espnId, className = '' }: Pr
         className={`cursor-pointer hover:text-teal-600 hover:underline underline-offset-2 transition-colors ${className}`}
         title="Click for player stats"
       >
-        {name}
+        {displayName ?? name}
       </span>
 
       {open && typeof document !== 'undefined' && createPortal(

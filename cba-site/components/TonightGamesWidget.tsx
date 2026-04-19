@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { GameSlot } from '@/app/api/tonight-games/route';
+import PlayerName from './PlayerName';
 
 interface Props {
   teamId: number;
@@ -60,6 +61,7 @@ function StatusBadge({ status }: { status: GameSlot['gameStatus'] }) {
 
 function PlayerChip({ slot }: { slot: GameSlot }) {
   const roleLabel = slot.role === 'SP' ? 'SP' : slot.role === 'RP' ? 'RP' : 'H';
+  const lastName = slot.playerName.split(' ').pop() ?? slot.playerName;
   return (
     <span className="inline-flex items-center gap-1 text-xs text-gray-700">
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -71,7 +73,12 @@ function PlayerChip({ slot }: { slot: GameSlot }) {
         className="rounded-full object-cover bg-gray-200 flex-shrink-0"
         style={{ width: 20, height: 20 }}
       />
-      <span className="font-medium">{slot.playerName.split(' ').pop()}</span>
+      <PlayerName
+        name={slot.playerName}
+        mlbamId={slot.mlbamId}
+        displayName={lastName}
+        className="font-medium"
+      />
       <span className="text-gray-400 text-[10px]">{roleLabel}</span>
     </span>
   );

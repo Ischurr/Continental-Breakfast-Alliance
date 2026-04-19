@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import TonightGamesWidget from './TonightGamesWidget';
 
 // Border geometry constants
 const R_OUTER = 12;            // outer wrapper border-radius in px (= 0.75rem)
@@ -58,6 +59,7 @@ export default function TeamMatchupTracker({
   const [myWon, setMyWon] = useState(initialMyWon);
   const [inProgress, setInProgress] = useState(initialInProgress);
   const [myWinPct, setMyWinPct] = useState<number | undefined>(undefined);
+  const [showGames, setShowGames] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [dims, setDims] = useState<{ w: number; h: number } | null>(null);
@@ -266,6 +268,18 @@ export default function TeamMatchupTracker({
           </div>
         </div>
       </Link>
+
+      {/* Tonight's games toggle */}
+      <button
+        onClick={e => { e.stopPropagation(); setShowGames(v => !v); }}
+        className="mt-1.5 w-full flex items-center justify-center gap-1.5 text-xs text-gray-400 hover:text-teal-600 transition-colors py-1"
+      >
+        <span>🗓 Tonight&apos;s games</span>
+        <span className="text-[10px]">{showGames ? '▲' : '▼'}</span>
+      </button>
+
+      {showGames && <TonightGamesWidget teamId={teamId} />}
+
       {inProgress && (
         <p className="text-xs text-gray-400 text-center mt-1">
           Scores updated as of morning of {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}

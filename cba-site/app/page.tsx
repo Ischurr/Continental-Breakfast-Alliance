@@ -12,6 +12,7 @@ import erospJson from '@/data/erosp/latest.json';
 import faJson from '@/data/current/free-agents.json';
 import PollCard from './polls/PollCard';
 import HomepageMatchupCard from '@/components/HomepageMatchupCard';
+import PlayerName from '@/components/PlayerName';
 
 function getPollWinner(poll: Poll) {
   const total = poll.options.reduce((s, o) => s + o.votes, 0);
@@ -58,6 +59,7 @@ export default async function Home() {
     .slice(0, 5)
     .map(p => ({
       playerName: p.name,
+      mlbamId: p.mlbam_id,
       position: p.position,
       erospRaw: p.erosp_raw,
       photoUrl: p.mlbam_id ? `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_213,q_auto:best/v1/people/${p.mlbam_id}/headshot/67/current` : undefined,
@@ -235,7 +237,7 @@ export default async function Home() {
                       />
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-800 truncate">{p.playerName}</p>
+                      <PlayerName name={p.playerName} mlbamId={p.mlbamId || undefined} className="text-sm font-semibold text-gray-800 truncate block" />
                       <p className="text-xs text-gray-400">{p.position}</p>
                     </div>
                     <span className="text-sm font-bold text-teal-600 flex-shrink-0">

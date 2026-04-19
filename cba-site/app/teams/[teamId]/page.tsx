@@ -13,8 +13,8 @@ import TeamBaseballField from '@/components/TeamBaseballField';
 import EROSPTable, { type EROSPPlayer, type EROSPMeta } from '@/components/EROSPTable';
 import SuggestedMoves from '@/components/SuggestedMoves';
 import TeamMatchupTracker from '@/components/TeamMatchupTracker';
-import TonightGamesWidget from '@/components/TonightGamesWidget';
 import ProspectStatusChecker from '@/components/ProspectStatusChecker';
+import PlayerName from '@/components/PlayerName';
 import { getSuggestedMoves, normalizeName } from '@/lib/suggested-moves';
 import { KEEPER_DEADLINE, SEASON_END } from '@/lib/calendar';
 import fs from 'fs';
@@ -340,9 +340,6 @@ export default async function TeamPage({ params }: Props) {
             inProgress={cwInProgress}
           />
         )}
-
-        {/* Tonight's games for this team's rostered players */}
-        <TonightGamesWidget teamId={id} />
 
         {/* Team header */}
         <div
@@ -679,7 +676,7 @@ export default async function TeamPage({ params }: Props) {
                         />
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-800 text-sm">{p.playerName}</p>
+                        <PlayerName name={p.playerName} className="font-semibold text-gray-800 text-sm" />
                         <p className="text-xs text-gray-400">{p.position}</p>
                       </div>
                       <span className="text-sm font-bold text-teal-600 flex-shrink-0">
@@ -713,7 +710,7 @@ export default async function TeamPage({ params }: Props) {
                         />
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-800 text-sm">{p.playerName}</p>
+                        <PlayerName name={p.playerName} espnId={p.playerId} className="font-semibold text-gray-800 text-sm" />
                         <p className="text-xs text-gray-400">
                           {p.position}
                           {p.age !== null && <span> · Age {p.age.toFixed(0)}</span>}
@@ -755,7 +752,7 @@ export default async function TeamPage({ params }: Props) {
                         />
                       )}
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-800 text-sm">{p.playerName}</p>
+                        <PlayerName name={p.playerName} espnId={p.playerId} className="font-semibold text-gray-800 text-sm" />
                         <p className="text-xs text-gray-400">
                           {p.position}
                           {(p.keeperValue ?? 0) > 0 && (
@@ -907,7 +904,7 @@ export default async function TeamPage({ params }: Props) {
                           />
                         )}
                         <div>
-                          <div className="font-semibold text-gray-800">{topPlayer.playerName}</div>
+                          <PlayerName name={topPlayer.playerName} espnId={topPlayer.playerId} className="font-semibold text-gray-800" />
                           <div className="text-xs text-gray-400">{topPlayer.position} &bull; {topPlayer.totalPoints.toFixed(1)} pts</div>
                         </div>
                       </div>
@@ -937,9 +934,12 @@ export default async function TeamPage({ params }: Props) {
                               className="rounded-full object-cover bg-gray-200 flex-shrink-0"
                               unoptimized
                             />
-                            <span className="text-[10px] text-gray-600 text-center leading-tight break-words w-full">
-                              {k.playerName.trim().split(' ').slice(1).join(' ') || k.playerName}
-                            </span>
+                            <PlayerName
+                              name={k.playerName}
+                              espnId={k.playerId}
+                              displayName={k.playerName.trim().split(' ').slice(1).join(' ') || k.playerName}
+                              className="text-[10px] text-gray-600 text-center leading-tight break-words w-full"
+                            />
                           </div>
                         ))}
                       </div>
