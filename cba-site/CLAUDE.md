@@ -177,6 +177,7 @@ npm run build            # Production build
 - `espn-api.ts` `getHeaders()` sanitizes SWID/S2 with regex `[^\x20-\x7E]` to strip invalid HTTP header chars
 - **`getTopMatchupOfWeek()` active-week logic**: uses `Math.max` over weeks with `totalPoints > 0` or `winner` set — NOT `Math.max` over all weeks (that returns week 21, the last scheduled week, all season long)
 - **Homepage matchup card**: shows in-progress scores (sky blue) when `totalPoints > 0`, not just final scores; label shows "In progress" vs "Final" vs team records pre-game
+- **Early rankings post trick**: if ESPN hasn't added `winner` to week N matchups yet (Sunday night), manually add `winner: <winnerId>` to each week N matchup in `data/current/2026.json` — dashboard `priorWeek` will pick it up immediately. Tomorrow's `fetch-current` cron overwrites with ESPN's official data safely.
 
 ## Environment Variables (`.env.local`)
 ```
