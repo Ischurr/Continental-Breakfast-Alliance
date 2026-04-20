@@ -189,6 +189,7 @@ function TeamsTab({ analytics }: { analytics: AdminAnalytics }) {
               <th className="text-center px-3 py-3 font-semibold text-gray-700">Trend</th>
               <th className="text-right px-3 py-3 font-semibold text-gray-700">vs EROSP</th>
               <th className="text-right px-3 py-3 font-semibold text-gray-700">Season Hi/Lo</th>
+              <th className="text-center px-3 py-3 font-semibold text-gray-700">xW-L</th>
               <th className="text-right px-3 py-3 font-semibold text-gray-700">All-Time Hi</th>
             </tr>
           </thead>
@@ -235,6 +236,22 @@ function TeamsTab({ analytics }: { analytics: AdminAnalytics }) {
                         <div className="text-red-500">↓ {Math.round(shl.lowPoints)} <span className="text-gray-400">W{shl.lowWeek}</span></div>
                       </div>
                     ) : '—'}
+                  </td>
+                  <td className="px-3 py-3 text-center font-mono text-xs">
+                    {(() => {
+                      const xW = t.expectedWins;
+                      const xL = t.expectedLosses;
+                      if (xW === 0 && xL === 0) return <span className="text-gray-300">—</span>;
+                      const actualW = parseInt(t.record.split('-')[0], 10);
+                      const luckDiff = actualW - xW;
+                      const color = luckDiff > 0 ? 'text-amber-600' : luckDiff < 0 ? 'text-blue-600' : 'text-gray-700';
+                      const title = luckDiff > 0
+                        ? `+${luckDiff} lucky`
+                        : luckDiff < 0
+                        ? `${luckDiff} unlucky`
+                        : 'On pace';
+                      return <span className={color} title={title}>{xW}-{xL}</span>;
+                    })()}
                   </td>
                   <td className="px-3 py-3 text-right font-mono text-xs text-gray-500">
                     {atr ? (

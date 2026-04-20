@@ -86,6 +86,8 @@ export interface TeamTrend {
   isAllTimeLow: boolean;
   isSeasonHigh: boolean;
   isSeasonLow: boolean;
+  expectedWins: number;
+  expectedLosses: number;
 }
 
 export interface PlayerSignal {
@@ -376,6 +378,32 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
     }
   }
 
+  // Compute xW-L: each completed week, normalize scores to 7-day equivalent, compare to median
+  const xWins = new Map<number, number>();
+  const xLosses = new Map<number, number>();
+  const completedMatchupsByWeek: Record<number, typeof matchups> = {};
+  for (const m of matchups) {
+    if (m.winner !== undefined) {
+      if (!completedMatchupsByWeek[m.week]) completedMatchupsByWeek[m.week] = [];
+      completedMatchupsByWeek[m.week].push(m);
+    }
+  }
+  for (const weekMatchups of Object.values(completedMatchupsByWeek)) {
+    const scores = weekMatchups.flatMap(m => [m.home.totalPoints, m.away.totalPoints]);
+    const sorted = [...scores].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    const median = sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+    for (const m of weekMatchups) {
+      for (const side of [m.home, m.away]) {
+        if (side.totalPoints >= median) {
+          xWins.set(side.teamId, (xWins.get(side.teamId) ?? 0) + 1);
+        } else {
+          xLosses.set(side.teamId, (xLosses.get(side.teamId) ?? 0) + 1);
+        }
+      }
+    }
+  }
+
   const teamTrends: TeamTrend[] = teamIds.map(teamId => {
     const standingEntry = standings.find(s => s.teamId === teamId);
     const wins = standingEntry?.wins ?? 0;
@@ -440,6 +468,8 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
       isAllTimeLow,
       isSeasonHigh,
       isSeasonLow,
+      expectedWins: xWins.get(teamId) ?? 0,
+      expectedLosses: xLosses.get(teamId) ?? 0,
     };
   });
 
