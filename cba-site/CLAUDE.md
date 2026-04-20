@@ -2831,3 +2831,13 @@ Added two narrative paragraphs to every player popup across the site. Previously
 ### PlayerName added to landing page (`app/page.tsx`)
 - "Top Available Players" FA list now uses `<PlayerName>` (mlbamId included for fast lookup)
 - Added `mlbamId` field to the `topFAsByEROSP` mapped objects so the popup can show the right player
+
+## Session Work (April 19, 2026 — Editorial Dashboard xW-L Column)
+
+### xW-L column added to Teams tab (`app/admin/AdminDashboardClient.tsx`, `lib/admin-analytics.ts`)
+- New **xW-L** column in the editorial intelligence dashboard Teams tab, placed between Season Hi/Lo and All-Time Hi
+- **Algorithm**: for each fully completed week (`m.winner !== undefined`), compute the league median score across all 10 teams that week; teams at/above median get xW, below get xL
+- **Color coding**: amber = lucky (actual W > xW), blue = unlucky (actual W < xW), gray = on pace; hover shows luck delta
+- `expectedWins` + `expectedLosses` added to `TeamTrend` interface in `lib/admin-analytics.ts`
+- xW-L computation block runs before `teamTrends.map()` and uses `completedMatchupsByWeek` (weeks where every matchup has `winner !== undefined`)
+- Shows `—` before any weeks are complete
