@@ -286,6 +286,34 @@ function ArticleEditForm({
   );
 }
 
+// ── Intro paragraph extraction ────────────────────────────────────────────────
+
+function extractIntroParagraph(content: string): React.ReactNode {
+  if (looksLikeHtml(content)) {
+    const match = content.match(/<p[^>]*>[\s\S]*?<\/p>/i);
+    if (match) {
+      return <div dangerouslySetInnerHTML={{ __html: match[0] }} />;
+    }
+    const stripped = content.replace(/<[^>]+>/g, '').trim();
+    return <p>{stripped.slice(0, 300)}{stripped.length > 300 ? '…' : ''}</p>;
+  }
+  const firstPara = content.split(/\n\n+/)[0];
+  return renderParagraph(firstPara, 0);
+}
+
+function extractRestContent(content: string): React.ReactNode | null {
+  if (looksLikeHtml(content)) {
+    const firstMatch = content.match(/<p[^>]*>[\s\S]*?<\/p>/i);
+    if (!firstMatch) return <div dangerouslySetInnerHTML={{ __html: content }} />;
+    const rest = content.slice(firstMatch.index! + firstMatch[0].length).trim();
+    if (!rest) return null;
+    return <div dangerouslySetInnerHTML={{ __html: rest }} />;
+  }
+  const paras = content.split(/\n\n+/);
+  if (paras.length <= 1) return null;
+  return paras.slice(1).map((para, i) => renderParagraph(para, i + 1));
+}
+
 // ── Main client component ─────────────────────────────────────────────────────
 
 interface Article {
@@ -301,6 +329,16 @@ export default function RankingsClient({ articles }: { articles: Article[] }) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deletePin, setDeletePin] = useState('');
   const [deleteError, setDeleteError] = useState('');
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
+  function toggleExpanded(id: string) {
+    setExpandedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
 
   function refresh() { window.location.reload(); }
 
@@ -397,9 +435,33 @@ export default function RankingsClient({ articles }: { articles: Article[] }) {
                 </div>
               )}
 
+              {/* Intro paragraph always visible */}
               <div className="prose max-w-none text-gray-800">
-                {renderContent(article.content)}
+                {extractIntroParagraph(article.content)}
               </div>
+
+              {/* Expanded content (rest after intro paragraph) */}
+              {expandedIds.has(article.id) && (() => {
+                const rest = extractRestContent(article.content);
+                return rest ? (
+                  <div className="prose max-w-none text-gray-800 mt-3 pt-3 border-t border-gray-100">
+                    {rest}
+                  </div>
+                ) : null;
+              })()}
+
+              {/* Toggle button — only shown when there's more content beyond the intro */}
+              {extractRestContent(article.content) !== null && (
+                <button
+                  onClick={() => toggleExpanded(article.id)}
+                  className="mt-4 flex items-center gap-1.5 text-sm font-medium text-teal-700 hover:text-teal-900 transition-colors"
+                >
+                  <span className="text-lg leading-none font-bold">
+                    {expandedIds.has(article.id) ? '−' : '+'}
+                  </span>
+                  {expandedIds.has(article.id) ? 'See less' : 'See more'}
+                </button>
+              )}
             </>
           )}
         </article>
