@@ -7,6 +7,7 @@ Estimates for each player:
   - Relievers: p_appear_per_game, ip_per_app
 """
 
+import datetime
 from typing import Dict, Optional
 import numpy as np
 import pandas as pd
@@ -192,6 +193,44 @@ def estimate_sp_playing_time(
                 result.at[mlbam_id, "ip_per_start"] = round(
                     float(np.clip(ip_per_start, 3.0, 9.0)), 2
                 )
+
+    # Fix H: In-season YTD pace anchor.
+    # If a pitcher has ≥3 GS so far this season, their actual start pace is strong
+    # evidence of rotation membership — use it as a p_start_per_day floor.  This
+    # prevents healthy starters from being under-projected early in the season when
+    # Fix C/G (which require 10+/28+ GS in the prior completed season) can't fire.
+    # Also updates ip_per_start from YTD data when ≥5 starts are available.
+    _today     = datetime.date.today()
+    _open_year = _today.year if _today.month >= 4 else _today.year - 1
+    _opening_day = datetime.date(_open_year, 3, 25)
+    _days_elapsed = max((_today - _opening_day).days, 1)
+    if current_season_year in pitching_by_year:
+        ytd_sp_df = pitching_by_year[current_season_year]
+        ytd_anchor_count = 0
+        for mlbam_id, row in sp_df.iterrows():
+            fgid = int(row.get("fgid", 0))
+            if not fgid:
+                continue
+            ytd_match = ytd_sp_df[ytd_sp_df["IDfg"] == fgid]
+            if ytd_match.empty:
+                continue
+            ytd_gs = float(ytd_match.iloc[0].get("GS", 0))
+            if ytd_gs >= 3:
+                pace_floor = round(min(ytd_gs / _days_elapsed, 1.0 / ROTATION_DAYS), 4)
+                if result.at[mlbam_id, "p_start_per_day"] < pace_floor:
+                    result.at[mlbam_id, "p_start_per_day"] = pace_floor
+                    ytd_anchor_count += 1
+                # Update ip_per_start from YTD data when sample is large enough
+                if ytd_gs >= 5:
+                    ytd_ip = float(ytd_match.iloc[0].get("IP", 0))
+                    if ytd_ip > 0:
+                        ytd_ip_per_start = ytd_ip / ytd_gs
+                        result.at[mlbam_id, "ip_per_start"] = round(
+                            float(np.clip(ytd_ip_per_start, 3.0, 9.0)), 2
+                        )
+        if ytd_anchor_count:
+            print(f"    Fix H: {ytd_anchor_count} SP(s) got YTD-pace floor "
+                  f"(≥3 GS in {current_season_year}, floored at actual start pace).")
 
     # Fix C: Floor for known starters — any SP with 10+ GS in the most recently
     # completed season (y0 = current_season_year) gets at least a 6th-starter slot

@@ -201,6 +201,7 @@ hitter_talent_df = estimate_hitter_talent(
     target_season      = TARGET_SEASON,
     fg_to_mlbam        = fg_to_mlbam,
     name_to_mlbam      = name_to_mlbam,
+    in_season_year     = TARGET_SEASON if SEASON_STARTED else None,  # Fix I
 )
 
 print("  Pitchers:")
@@ -212,6 +213,7 @@ pitcher_talent_df = estimate_pitcher_talent(
     fg_to_mlbam      = fg_to_mlbam,
     name_to_mlbam    = name_to_mlbam,
     extra_years      = PITCHER_EXTRA_YEARS,   # Fix 2: 5yr lookback for TJ returnees
+    in_season_year   = TARGET_SEASON if SEASON_STARTED else None,  # Fix I
 )
 print()
 

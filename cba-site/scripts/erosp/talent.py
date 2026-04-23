@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 
 from .config import (
-    BLEND_WEIGHTS_3YR, BLEND_WEIGHTS_2YR, BLEND_WEIGHTS_5YR, MEAN_REGRESSION,
+    BLEND_WEIGHTS_3YR, BLEND_WEIGHTS_2YR, BLEND_WEIGHTS_5YR, BLEND_WEIGHT_YTD, MEAN_REGRESSION,
     AGE_PEAK, AGE_GROWTH_RATE, AGE_DECLINE_EARLY, AGE_DECLINE_LATE,
     AGE_DECLINE_FAST_THRESHOLD, AGE_PITCHER_DECLINE_MULT,
     AGE_MOD_MIN, AGE_MOD_MAX,
@@ -132,22 +132,25 @@ RATE_COLS = [
 def _blend_hitter_rates(
     year_dfs: List[Optional[pd.DataFrame]],
     year_pas: Optional[List[Optional[float]]] = None,
+    weights: Optional[List[float]] = None,
 ) -> pd.Series:
     """
-    Blend per-PA rates across up to 3 years with PA-based sample-size weighting.
+    Blend per-PA rates across up to N years with PA-based sample-size weighting.
 
-    year_dfs: [y1_rates (or None), y2_rates (or None), y3_rates (or None)]
+    year_dfs: [y0_rates (or None), y1_rates (or None), ...] most-recent first
     year_pas: actual PA for each year; used to scale base weights.
               At PA_FULL_SEASON (600 PA) the year gets its full base weight.
               At 300 PA it gets half the base weight; other years renormalize up.
               Single-year samples also get more mean regression when PA is low.
+    weights:  base blend weights (defaults to BLEND_WEIGHTS_3YR for 3-year inputs).
     """
     if year_pas is None:
         year_pas = [None] * len(year_dfs)
+    base_weights = weights if weights is not None else BLEND_WEIGHTS_3YR
 
     # Scale base weights by PA coverage (partial season = partial trust)
     scaled = []
-    for df, base_w, pa in zip(year_dfs, BLEND_WEIGHTS_3YR, year_pas):
+    for df, base_w, pa in zip(year_dfs, base_weights, year_pas):
         if df is None:
             continue
         pa_scale = min(float(pa) / PA_FULL_SEASON, 1.0) if (pa and pa > 0) else 1.0
@@ -191,6 +194,7 @@ def estimate_hitter_talent(
     target_season: int,
     fg_to_mlbam: Dict[int, int],
     name_to_mlbam: Optional[Dict[str, int]] = None,
+    in_season_year: Optional[int] = None,  # Fix I: current season YTD for in-season blend
 ) -> pd.DataFrame:
     """
     Returns DataFrame indexed by MLBAM ID with talent rate columns.
@@ -301,7 +305,22 @@ def estimate_hitter_talent(
         # Collect per-PA rates and actual PA for each available year
         yr_rates: list = []
         yr_pas:   list = []
-        for year in [y1, y2, y3]:
+        hitter_blend_years  = [y1, y2, y3]
+        hitter_blend_weights: List[float] = list(BLEND_WEIGHTS_3YR)
+
+        # Fix I: prepend current-season YTD data when in_season_year is provided.
+        # PA-based sample-size weighting discounts it heavily early in the season.
+        if (in_season_year and in_season_year in batting_by_year
+                and in_season_year not in hitter_blend_years):
+            ytd_bat   = batting_by_year[in_season_year]
+            ytd_match = ytd_bat[ytd_bat["IDfg"] == fgid]
+            if not ytd_match.empty:
+                ytd_pa = float(ytd_match.iloc[0].get("PA", 0))
+                if ytd_pa >= 10:  # minimum threshold
+                    hitter_blend_years   = [in_season_year] + hitter_blend_years
+                    hitter_blend_weights = [BLEND_WEIGHT_YTD] + hitter_blend_weights
+
+        for year in hitter_blend_years:
             if not year or year not in batting_by_year:
                 yr_rates.append(None)
                 yr_pas.append(None)
@@ -321,6 +340,7 @@ def estimate_hitter_talent(
         blended = _blend_hitter_rates(
             [pd.Series(r) if r is not None else None for r in yr_rates],
             year_pas=yr_pas,
+            weights=hitter_blend_weights,
         )
 
         # Age modifier
@@ -464,6 +484,7 @@ def estimate_pitcher_talent(
     fg_to_mlbam: Dict[int, int],
     name_to_mlbam: Optional[Dict[str, int]] = None,
     extra_years: Optional[List[int]] = None,   # Fix 2: y4/y5 for extended lookback
+    in_season_year: Optional[int] = None,      # Fix I: current season YTD for in-season blend
 ) -> pd.DataFrame:
     """
     Returns DataFrame indexed by MLBAM ID with pitcher talent rate columns.
@@ -471,6 +492,8 @@ def estimate_pitcher_talent(
     extra_years: additional historical years (y4, y5) fetched at low weight.
                  Only used for pitchers absent from y1 AND y2 (TJ returnees, etc.)
                  to avoid polluting healthy pitchers with stale data.
+    in_season_year: when provided, the current season's YTD stats are blended in as y0
+                    with BLEND_WEIGHT_YTD base weight (heavily discounted by IP sample size).
     """
     y1, y2, y3 = (historical_years + [None, None, None])[:3]
     y4, y5 = ((extra_years or []) + [None, None])[:2]   # Fix 2
@@ -551,10 +574,23 @@ def estimate_pitcher_talent(
         )
         if has_recent_data or not (y4 or y5):
             years_for_blend  = [y1, y2, y3]
-            blend_weights    = BLEND_WEIGHTS_3YR
+            blend_weights    = list(BLEND_WEIGHTS_3YR)
         else:
             years_for_blend  = [y1, y2, y3, y4, y5]
-            blend_weights    = BLEND_WEIGHTS_5YR
+            blend_weights    = list(BLEND_WEIGHTS_5YR)
+
+        # Fix I: prepend current-season YTD data when in_season_year is provided.
+        # The existing IP-based sample-size weighting automatically discounts small samples
+        # (e.g. 20 IP early in season → eff_w = 0.45 * 20/150 = 0.06 before normalization).
+        if (in_season_year and in_season_year in pitching_by_year
+                and in_season_year not in years_for_blend):
+            ytd_df    = pitching_by_year[in_season_year]
+            ytd_match = ytd_df[ytd_df["IDfg"] == fgid]
+            if not ytd_match.empty:
+                ytd_ip = float(ytd_match.iloc[0].get("IP", 0))
+                if ytd_ip >= 5:  # minimum threshold — noise below this
+                    years_for_blend = [in_season_year] + years_for_blend
+                    blend_weights   = [BLEND_WEIGHT_YTD] + blend_weights
 
         yr_rates: list = []
         yr_ips:   list = []

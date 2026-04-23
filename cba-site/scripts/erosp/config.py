@@ -104,6 +104,9 @@ REPLACEMENT_POOL_MULTIPLIER = 1.4
 BLEND_WEIGHTS_3YR = [0.60, 0.25, 0.15]
 BLEND_WEIGHTS_2YR = [0.60, 0.40]
 BLEND_WEIGHTS_5YR = [0.50, 0.30, 0.20, 0.05, 0.05]   # Fix 2: extended lookback (y4/y5 low-weight)
+# Fix I: when current-season YTD data is included as y0, it gets this base weight before
+# PA/IP sample-size scaling (which will discount it heavily early in the season).
+BLEND_WEIGHT_YTD  = 0.45
 MEAN_REGRESSION   = 0.15   # pull 1-year samples 15% toward league mean
 
 # ---------------------------------------------------------------------------

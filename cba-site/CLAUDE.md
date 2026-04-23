@@ -1676,6 +1676,24 @@ Added a full Commissioner Bulletin system to the message board — admin-only po
 ### Key insight documented
 Startable ≠ "points this player will score." It's value-above-replacement. A rostered player below replacement level will still score their Raw EROSP — you just could theoretically do better by dropping them. For keeper league team projection purposes, always use Raw.
 
+### Fix H: In-season SP YTD pace anchor (`scripts/erosp/playing_time.py`)
+**Root cause**: Fix C/G both require 10+/28+ GS in the *prior completed* season. Pitchers returning from multi-year injuries (e.g. Robby Ray) have 0 GS in 2025 so neither floor fires — they get the minimum 6th-starter slot (~12-13 projected starts → ~130 EROSP) even when they're clearly a regular starter 4 weeks into 2026.
+
+**Fix**: After Steamer overrides and before Fix C, check 2026 YTD GS. If a pitcher has ≥3 GS in the current season, floor `p_start_per_day` at their actual YTD pace (`ytd_gs / days_elapsed_since_opening_day`), capped at 1/ROTATION_DAYS (full 5-man slot). Also updates `ip_per_start` from YTD when ≥5 starts available.
+
+**Effect (Ray example)**: 4 GS in 24 days → pace = 4/24 = 0.167 starts/day vs Fix-C floor of 0.093. Projected starts: ~13 → ~23. Estimated EROSP: ~130 → ~250+.
+
+### Fix I: Current-season YTD in talent blend (`scripts/erosp/talent.py`, `scripts/erosp/config.py`)
+**Root cause**: The talent blend uses `historical_years = [2025, 2024, 2023]` — the 2026 YTD stats (already fetched in Steps 2-3) were never incorporated into per-IP/per-PA rate estimates.
+
+**Fix**: Added `in_season_year: Optional[int]` parameter to both `estimate_hitter_talent` and `estimate_pitcher_talent`. When `SEASON_STARTED=True`, `compute_erosp.py` passes `in_season_year=TARGET_SEASON`. The current season is prepended to the blend as y0 with `BLEND_WEIGHT_YTD=0.45` base weight. The existing IP/PA sample-size scaling auto-discounts it: at 20 IP effective weight ≈ 6%; at 60 IP ≈ 18%. Minimum threshold: ≥5 IP for pitchers, ≥10 PA for hitters.
+
+`_blend_hitter_rates()` updated to accept optional `weights` parameter (was hardcoded to `BLEND_WEIGHTS_3YR`).
+
+`BLEND_WEIGHT_YTD = 0.45` added to `config.py`.
+
+**Note**: Fix I is NOT applied in `backtest_erosp.py` (pure pre-season simulation) — no changes needed there.
+
 ## Session Work (March 25, 2026 — Message Board Layout + Suggested Moves Improvements)
 
 ### Message board page layout (`app/message-board/page.tsx`)
