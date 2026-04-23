@@ -14,7 +14,8 @@
     "fetch-rosters": "tsx scripts/fetch-rosters-current.ts",
     "seed-kv": "tsx scripts/seed-kv.ts",
     "fetch-schedule-config": "tsx scripts/fetch-schedule-config.ts",
-    "generate-descriptions": "tsx scripts/generate-player-descriptions.ts"
+    "generate-descriptions": "tsx scripts/generate-player-descriptions.ts",
+    "fetch-weekly-scores": "tsx scripts/fetch-weekly-player-scores.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",

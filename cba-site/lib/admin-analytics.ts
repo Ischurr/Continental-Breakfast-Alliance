@@ -3,7 +3,7 @@
  * No async, no server/client directives. Takes pre-loaded data, returns insights.
  */
 
-import type { SeasonData, StandingEntry, PlayerSeason } from './types';
+import type { SeasonData, StandingEntry, PlayerSeason, WeeklyScoresData, WeeklyPlayerEntry } from './types';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -47,6 +47,7 @@ export interface AdminAnalyticsInput {
   rankingsArticles: RankingsArticle[];
   TOTAL_WEEKS: number;
   historicalSeasons?: SeasonData[];
+  weeklyScores?: WeeklyScoresData;
 }
 
 // ── Output types ──────────────────────────────────────────────────────────────
@@ -179,6 +180,55 @@ export interface RankingsTheme {
   currentStatus: 'new' | 'continuing' | 'fading';
 }
 
+// ── Weekly Detail Types ───────────────────────────────────────────────────────
+
+export interface WeekTopPerformer {
+  playerName: string;
+  teamId: number;
+  teamName: string;
+  slot: string;
+  weekPoints: number;
+  photoUrl?: string;
+}
+
+export interface BenchBoom {
+  playerName: string;
+  teamId: number;
+  teamName: string;
+  slot: string;          // slot they WOULD have been in if active
+  benchPoints: number;   // points scored while benched
+  photoUrl?: string;
+}
+
+export interface SlotUnitWeekEntry {
+  teamId: number;
+  teamName: string;
+  activePoints: number;   // points scored in this slot this week
+  players: { name: string; points: number; slot: string }[];
+}
+
+export interface SlotUnitWeekStats {
+  slot: string;           // 'SP', 'DH', 'OF', 'C', etc.
+  label: string;
+  leagueAvg: number;
+  teams: SlotUnitWeekEntry[];
+}
+
+export interface WeekDetailStats {
+  week: number;
+  topPerformers: WeekTopPerformer[];   // top 10 individual performances
+  benchBooms: BenchBoom[];             // top bench-point wasters
+  slotUnits: SlotUnitWeekStats[];      // per-slot scoring across all teams
+  teamBreakdowns: {
+    teamId: number;
+    teamName: string;
+    totalPoints: number;
+    benchTotal: number;
+    activePlayers: WeeklyPlayerEntry[];
+    benchPlayers: WeeklyPlayerEntry[];
+  }[];
+}
+
 export interface PriorWeekMatchupResult {
   homeTeamId: number;
   homeTeamName: string;
@@ -211,6 +261,7 @@ export interface AdminAnalytics {
     biggestSingleWeekWeek: number;
     totalLeaguePoints: number;
   };
+  weekDetail: WeekDetailStats | null;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -270,7 +321,8 @@ function teamJoinYear(teamId: number): number {
   return TEAM_JOIN_YEAR[teamId] ?? 2022;
 }
 
-// Classify a roster player into a unit group using EROSP role when available
+// Classify a roster player into a unit group using EROSP role when available.
+// Used for season-aggregate unit stats (position-based, fallback).
 function classifyUnit(position: string, erospRole?: 'H' | 'SP' | 'RP'): UnitGroup | null {
   if (erospRole === 'SP') return 'SP';
   if (erospRole === 'RP') return 'RP';
@@ -284,10 +336,43 @@ function classifyUnit(position: string, erospRole?: 'H' | 'SP' | 'RP'): UnitGrou
   return null;
 }
 
+// Classify by actual ESPN lineup slot ID — used for slot-based unit tracking.
+// This correctly attributes DH points to whoever was in the DH slot, not just DH-primary players.
+const SLOT_TO_UNIT: Record<number, UnitGroup> = {
+  0: 'C',
+  1: 'CIF',   // 1B
+  2: 'MIF',   // 2B
+  3: 'CIF',   // 3B
+  4: 'MIF',   // SS
+  5: 'OF',    // UTIL-OF flex
+  6: 'MIF',   // MI flex
+  7: 'CIF',   // CI flex
+  8: 'OF', 9: 'OF', 10: 'OF',
+  12: 'DH',
+  13: 'SP', 14: 'SP',
+  15: 'RP',
+  19: 'DH',   // INF/UTIL flex — treat like DH for aggregation
+};
+
+function classifySlotUnit(slotId: number): UnitGroup | null {
+  return SLOT_TO_UNIT[slotId] ?? null;
+}
+
+const SLOT_DISPLAY: Record<string, string> = {
+  C: 'Catcher', '1B': '1B', '2B': '2B', '3B': '3B', SS: 'SS',
+  MIF: 'Middle IF', CIF: 'Corner IF', OF: 'Outfield', DH: 'DH / Utility',
+  SP: 'Starting Pitching', RP: 'Relief Pitching',
+};
+
+// Human-readable display labels for slots (used in week detail view)
+export function slotDisplayLabel(slot: string): string {
+  return SLOT_DISPLAY[slot] ?? slot;
+}
+
 // ── Main function ─────────────────────────────────────────────────────────────
 
 export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytics {
-  const { currentSeason, erospPlayers, teamMetadata, rankingsArticles, TOTAL_WEEKS, historicalSeasons } = input;
+  const { currentSeason, erospPlayers, teamMetadata, rankingsArticles, TOTAL_WEEKS, historicalSeasons, weeklyScores } = input;
   const { matchups, standings, rosters } = currentSeason;
 
   // -- Current week (in-progress or latest active) --
@@ -600,8 +685,9 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
   });
 
   // ── UNIT STATS (actual scored points by position group) ───────────────────────
+  // When weekly slot data is available, use slot-based unit attribution (fixes DH = 0).
+  // Falls back to position-based classification when weekly data isn't present.
 
-  // Build EROSP role lookup by normalized name
   const erospRoleByName: Record<string, 'H' | 'SP' | 'RP'> = {};
   for (const ep of erospPlayers) {
     erospRoleByName[normalizeName(ep.name)] = ep.role;
@@ -609,11 +695,37 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
 
   const unitGroups: UnitGroup[] = ['SP', 'RP', 'C', 'MIF', 'CIF', 'OF', 'DH'];
 
-  // Collect actual pts per team per unit from current rosters
   const unitByTeam: Record<number, Partial<Record<UnitGroup, { total: number; players: { name: string; pts: number; position: string }[] }>>> = {};
   for (const tid of teamIds) unitByTeam[tid] = {};
 
-  if (rosters && rosters.length > 0) {
+  const hasSlotData = !!weeklyScores && Object.keys(weeklyScores.weeks).length > 0;
+
+  if (hasSlotData && weeklyScores) {
+    // Slot-based: sum activePoints per player across all weeks, grouped by their primarySlot
+    for (const weekTeams of Object.values(weeklyScores.weeks)) {
+      for (const teamBreakdown of weekTeams) {
+        const teamId = teamBreakdown.teamId;
+        if (!unitByTeam[teamId]) unitByTeam[teamId] = {};
+        for (const player of teamBreakdown.players) {
+          if (player.activePoints <= 0) continue;
+          const grp = classifySlotUnit(player.primarySlotId);
+          if (!grp) continue;
+          if (!unitByTeam[teamId][grp]) unitByTeam[teamId][grp] = { total: 0, players: [] };
+          unitByTeam[teamId][grp]!.total += player.activePoints;
+          // Accumulate across weeks for the same player
+          const existing = unitByTeam[teamId][grp]!.players.find(p => p.name === player.playerName);
+          if (existing) {
+            existing.pts += player.activePoints;
+          } else {
+            unitByTeam[teamId][grp]!.players.push({
+              name: player.playerName, pts: player.activePoints, position: player.position,
+            });
+          }
+        }
+      }
+    }
+  } else if (rosters && rosters.length > 0) {
+    // Fallback: position-based classification from season roster totals
     for (const roster of rosters) {
       const { teamId, players } = roster;
       if (!unitByTeam[teamId]) unitByTeam[teamId] = {};
@@ -1143,6 +1255,97 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
     })
     .sort((a, b) => b.priority - a.priority);
 
+  // ── WEEK DETAIL ──────────────────────────────────────────────────────────────
+  // Uses priorWeek (the most recently finalized week) for editorial relevance.
+
+  let weekDetail: WeekDetailStats | null = null;
+
+  const detailWeek = priorWeek > 0 ? priorWeek : currentWeek;
+  const weekBreakdowns = weeklyScores?.weeks[String(detailWeek)];
+
+  if (weekBreakdowns && weekBreakdowns.length > 0) {
+    // Top individual performers (active only, sorted by weekPoints)
+    const allActivePlayers = weekBreakdowns.flatMap(t =>
+      t.players
+        .filter(p => p.activeDays > 0)
+        .map(p => ({ ...p, teamId: t.teamId, teamName: teamDisplayName(t.teamId, teamMetadata) }))
+    );
+    const topPerformers: WeekTopPerformer[] = allActivePlayers
+      .sort((a, b) => b.weekPoints - a.weekPoints)
+      .slice(0, 10)
+      .map(p => ({
+        playerName: p.playerName,
+        teamId: p.teamId,
+        teamName: p.teamName,
+        slot: p.primarySlot,
+        weekPoints: p.weekPoints,
+        photoUrl: p.photoUrl,
+      }));
+
+    // Bench booms: players who scored big while mostly on bench
+    const benchCandidates = weekBreakdowns.flatMap(t =>
+      t.players
+        .filter(p => p.benchPoints >= 5)
+        .map(p => ({ ...p, teamId: t.teamId, teamName: teamDisplayName(t.teamId, teamMetadata) }))
+    );
+    const benchBooms: BenchBoom[] = benchCandidates
+      .sort((a, b) => b.benchPoints - a.benchPoints)
+      .slice(0, 8)
+      .map(p => ({
+        playerName: p.playerName,
+        teamId: p.teamId,
+        teamName: p.teamName,
+        slot: p.primarySlot,
+        benchPoints: p.benchPoints,
+        photoUrl: p.photoUrl,
+      }));
+
+    // Slot unit breakdown for this week across all teams
+    const weekSlotByTeam: Record<number, Record<string, { pts: number; players: { name: string; points: number; slot: string }[] }>> = {};
+    for (const tb of weekBreakdowns) {
+      weekSlotByTeam[tb.teamId] = {};
+      for (const p of tb.players) {
+        if (p.activeDays === 0) continue;
+        const slot = p.primarySlot;
+        if (!weekSlotByTeam[tb.teamId][slot]) weekSlotByTeam[tb.teamId][slot] = { pts: 0, players: [] };
+        weekSlotByTeam[tb.teamId][slot].pts += p.activePoints;
+        weekSlotByTeam[tb.teamId][slot].players.push({ name: p.playerName, points: p.activePoints, slot });
+      }
+    }
+
+    const allSlots = [...new Set(weekBreakdowns.flatMap(t =>
+      t.players.filter(p => p.activeDays > 0).map(p => p.primarySlot)
+    ))].sort();
+
+    const slotUnits: SlotUnitWeekStats[] = allSlots.map(slot => {
+      const teamEntries: SlotUnitWeekEntry[] = weekBreakdowns.map(tb => ({
+        teamId: tb.teamId,
+        teamName: teamDisplayName(tb.teamId, teamMetadata),
+        activePoints: weekSlotByTeam[tb.teamId]?.[slot]?.pts ?? 0,
+        players: (weekSlotByTeam[tb.teamId]?.[slot]?.players ?? []).sort((a, b) => b.points - a.points),
+      }));
+      const avg = mean(teamEntries.map(t => t.activePoints));
+      return {
+        slot,
+        label: slotDisplayLabel(slot),
+        leagueAvg: avg,
+        teams: teamEntries.sort((a, b) => b.activePoints - a.activePoints),
+      };
+    });
+
+    // Per-team breakdowns
+    const teamBreakdowns = weekBreakdowns.map(tb => ({
+      teamId: tb.teamId,
+      teamName: teamDisplayName(tb.teamId, teamMetadata),
+      totalPoints: tb.totalPoints,
+      benchTotal: tb.benchTotal,
+      activePlayers: tb.players.filter(p => p.activeDays > 0).sort((a, b) => b.activePoints - a.activePoints),
+      benchPlayers: tb.players.filter(p => p.benchDays > 0 && p.activeDays === 0).sort((a, b) => b.benchPoints - a.benchPoints),
+    }));
+
+    weekDetail = { week: detailWeek, topPerformers, benchBooms, slotUnits, teamBreakdowns };
+  }
+
   return {
     currentWeek,
     priorWeek,
@@ -1156,5 +1359,6 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
     bullets: dedupedBullets,
     rankingsThemes,
     seasonStats,
+    weekDetail,
   };
 }

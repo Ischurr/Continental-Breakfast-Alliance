@@ -2860,3 +2860,63 @@ Added two narrative paragraphs to every player popup across the site. Previously
 - `expectedWins` + `expectedLosses` added to `TeamTrend` interface in `lib/admin-analytics.ts`
 - xW-L computation block runs before `teamTrends.map()` and uses `completedMatchupsByWeek` (weeks where every matchup has `winner !== undefined`)
 - Shows `—` before any weeks are complete
+
+## Session Work (April 22, 2026 — Per-Player Weekly Scoring + Slot Tracking)
+
+### Overview
+Built a full per-player weekly scoring system that tracks what each player scored, in which lineup slot, and whether they were active or benched. Powers both an editorial "Week Detail" tab on the admin dashboard and a public "Weekly Scorecard" on every team page.
+
+### New script: `scripts/fetch-weekly-player-scores.ts`
+- Fetches all ESPN scoring periods 1..N using `mRoster&scoringPeriodId=N` (same pattern as `fetch-historical.ts`)
+- For each period: captures each player's `lineupSlotId` + season cumulative total per team (using `statSplitTypeId=0`)
+- Per-day points computed by diffing consecutive season totals: `dayPts = seasonTotal[period N] - seasonTotal[period N-1]`
+- If `slotId ∈ {16,17}` on a given day → bench points; slotId=11 → IL (skipped); else → active points
+- Primary slot = most common active slot across the week; used for unit attribution
+- Outputs to `data/current/weekly-player-scores-{season}.json`
+- Added to `package.json` as `"fetch-weekly-scores": "tsx scripts/fetch-weekly-player-scores.ts"`
+- Run: `npm run fetch-weekly-scores` (~2 min, ~200 API requests)
+
+### New types in `lib/types.ts`
+- `WeeklyPlayerEntry` — per-player: `playerId, playerName, position, primarySlot, primarySlotId, weekPoints, activePoints, benchPoints, activeDays, benchDays, photoUrl`
+- `WeeklyTeamBreakdown` — per-team per-week: `teamId, week, totalPoints, benchTotal, players: WeeklyPlayerEntry[]`
+- `WeeklyScoresData` — root: `season, lastUpdated, weeks: Record<string, WeeklyTeamBreakdown[]>`
+
+### DH unit bug fixed (`lib/admin-analytics.ts`)
+- **Root cause**: admin Units tab was showing DH = 0 because `classifyUnit()` used `position === 'DH'` (player's primary MLB position). Teams fill the DH slot (ESPN slot 12) with any eligible hitter — e.g. a 1B in slot 12 contributes DH unit points, not 1B unit points.
+- **Fix**: added `SLOT_TO_UNIT` map and `classifySlotUnit(slotId)` — maps ESPN lineup slot IDs directly to `UnitGroup`. When `weeklyScores` data is available, unit stats use slot-based attribution (whoever is IN the DH slot gets DH credit). Falls back to position-based when data isn't present.
+- `SLOT_TO_UNIT`: `0→C, 1→CIF(1B), 2→MIF(2B), 3→CIF(3B), 4→MIF(SS), 5/8/9/10→OF, 6→MIF, 7→CIF, 12→DH, 13/14→SP, 15→RP, 19→DH`
+
+### `WeekDetailStats` added to `AdminAnalytics` (`lib/admin-analytics.ts`)
+- New `weekDetail: WeekDetailStats | null` field computed from `weeklyScores.weeks[priorWeek]`
+- **`topPerformers`**: top 10 active players sorted by weekPoints (player name, team, slot, pts, photo)
+- **`benchBooms`**: players with ≥5 bench points sorted by benchPoints — "points left on the table"
+- **`slotUnits`**: per-slot scoring across all teams for the week (SP, RP, DH, OF, etc.) + league avg
+- **`teamBreakdowns`**: per-team active + bench player lists sorted by points
+
+### New admin tab: "📅 Week Detail" (`app/admin/AdminDashboardClient.tsx`)
+- Added after "Moves", before "Storylines" in the tab bar
+- **Top Performers**: photo cards, player name, team, slot badge, weekly pts
+- **Bench Booms**: amber cards showing pts scored while benched (the "wasted" points)
+- **Unit Scoring table**: all slots as rows, all 10 teams as columns, league avg column; highest scorer bolded teal; bench total row in amber
+- **Per-team collapsible breakdowns**: sorted by active pts descending; expand any team to see full active + bench lineup with slot badges, pts, days played
+
+### New public component: `components/WeeklyScorecard.tsx`
+- `'use client'` component showing a team's weekly lineup breakdown
+- Active players sorted by pts descending, with slot badge (color-coded by position group) + photo
+- Expandable bench section (🛋️ toggle) showing bench players + their pts
+- Shows "X active pts · Y left on bench" in header
+
+### Team pages: Weekly Scorecard section (`app/teams/[teamId]/page.tsx`)
+- Loads `data/current/weekly-player-scores-{season}.json`; finds most recent finalized week for this team
+- Renders `<WeeklyScorecard>` between Suggested Moves and Season History sections
+- Gracefully hidden when data file doesn't exist yet
+
+### GitHub Actions: `update-stats.yml`
+- Added `npm run fetch-weekly-scores` step after `fetch-rosters`
+- Added `data/current/weekly-player-scores-2026.json` to the commit step
+- Runs daily at 5:30 AM EST as part of the regular stats update
+
+### ESPN slot ID reference (for this feature)
+- Bench: 16, 17 — IL: 11 — C:0, 1B:1, 2B:2, 3B:3, SS:4, OF:8/9/10, DH:12, SP:13/14, RP:15
+- Flex slots (5=OF-UTIL, 6=MI, 7=CI, 19=UTIL-INF) — included in active, mapped to appropriate unit group
+- `lineupSlotId` on each roster entry changes per scoring period when fetched with `scoringPeriodId=N`

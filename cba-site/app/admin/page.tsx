@@ -3,7 +3,7 @@ import path from 'path';
 import { getRankings, getAdminNotes } from '@/lib/store';
 import { computeAdminAnalytics } from '@/lib/admin-analytics';
 import type { AdminAnalyticsInput } from '@/lib/admin-analytics';
-import type { SeasonData } from '@/lib/types';
+import type { SeasonData, WeeklyScoresData } from '@/lib/types';
 import AdminDashboardClient from './AdminDashboardClient';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
@@ -87,6 +87,16 @@ export default async function AdminPage() {
   // -- Load admin notes --
   const adminNotes = await getAdminNotes();
 
+  // -- Load weekly player scores (may not exist yet) --
+  let weeklyScores: WeeklyScoresData | undefined;
+  try {
+    weeklyScores = JSON.parse(
+      readFileSync(path.join(DATA_DIR, 'current', `weekly-player-scores-${currentSeason.year}.json`), 'utf-8')
+    ) as WeeklyScoresData;
+  } catch {
+    weeklyScores = undefined;
+  }
+
   // -- Compute analytics --
   const TOTAL_WEEKS = Math.max(...currentSeason.matchups.map((m: { week: number }) => m.week), 21);
 
@@ -97,6 +107,7 @@ export default async function AdminPage() {
     rankingsArticles,
     TOTAL_WEEKS,
     historicalSeasons,
+    weeklyScores,
   });
 
   return <AdminDashboardClient analytics={analytics} adminNotes={adminNotes} />;

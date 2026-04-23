@@ -6,7 +6,7 @@ import keeperOverrides from '@/data/keeper-overrides.json';
 import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import { TrashTalkData } from '@/lib/types';
+import { TrashTalkData, WeeklyTeamBreakdown, WeeklyScoresData } from '@/lib/types';
 import { getTrashTalk, getTeamContent } from '@/lib/store';
 import { TeamBioEditor, TeamStrengthsEditor } from './TeamContentEditor';
 import TeamBaseballField from '@/components/TeamBaseballField';
@@ -15,6 +15,7 @@ import SuggestedMoves from '@/components/SuggestedMoves';
 import TeamMatchupTracker from '@/components/TeamMatchupTracker';
 import ProspectStatusChecker from '@/components/ProspectStatusChecker';
 import PlayerName from '@/components/PlayerName';
+import WeeklyScorecard from '@/components/WeeklyScorecard';
 import { getSuggestedMoves, normalizeName } from '@/lib/suggested-moves';
 import { KEEPER_DEADLINE, SEASON_END } from '@/lib/calendar';
 import fs from 'fs';
@@ -264,6 +265,21 @@ export default async function TeamPage({ params }: Props) {
   // Protected prospect for this team
   const prospectEntry = (prospectProtections as Record<string, ProspectEntry>)[String(id)];
   const prospect = prospectEntry?.prospect;
+
+  // Load weekly player scores (for public scorecard)
+  let weeklyScorecard: WeeklyTeamBreakdown | null = null;
+  let weeklyScoreWeek = 0;
+  try {
+    const wps = JSON.parse(
+      fs.readFileSync(path.join(process.cwd(), 'data', 'current', `weekly-player-scores-${currentSeason.year}.json`), 'utf-8')
+    ) as WeeklyScoresData;
+    // Find the most recently finalized week that has data for this team
+    const weekNums = Object.keys(wps.weeks).map(Number).sort((a, b) => b - a);
+    for (const wk of weekNums) {
+      const tb = (wps.weeks[String(wk)] ?? []).find((t: WeeklyTeamBreakdown) => t.teamId === id);
+      if (tb) { weeklyScorecard = tb; weeklyScoreWeek = wk; break; }
+    }
+  } catch { /* weekly data not yet generated */ }
 
   const bgFull  = (meta?.bgPlayers as { bgFull?: string })?.bgFull;
   const bgLeft  = bgFull ? undefined : meta?.bgPlayers?.left;
@@ -847,6 +863,15 @@ export default async function TeamPage({ params }: Props) {
         {suggestedMovesResult && (
           <div className="mb-10">
             <SuggestedMoves result={suggestedMovesResult} />
+          </div>
+        )}
+
+        {/* Weekly Scorecard */}
+        {weeklyScorecard && (
+          <div className="mb-10">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Week {weeklyScoreWeek} Scorecard</h2>
+            <p className="text-sm text-gray-600 mb-4">Active lineup vs. bench — who scored, who sat, and what was left on the table.</p>
+            <WeeklyScorecard breakdown={weeklyScorecard} week={weeklyScoreWeek} />
           </div>
         )}
 

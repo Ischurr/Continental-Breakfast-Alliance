@@ -13,7 +13,7 @@ interface Props {
   adminNotes: AdminNotes;
 }
 
-type Tab = 'bullets' | 'teams' | 'players' | 'positions' | 'units' | 'moves' | 'storylines' | 'notes' | 'export';
+type Tab = 'bullets' | 'teams' | 'players' | 'positions' | 'units' | 'moves' | 'week' | 'storylines' | 'notes' | 'export';
 
 const CATEGORY_COLORS: Record<string, string> = {
   trend: 'border-blue-400',
@@ -806,6 +806,7 @@ export default function AdminDashboardClient({ analytics, adminNotes }: Props) {
     { id: 'positions', label: 'Positions (EROSP)' },
     { id: 'units', label: 'Units (Actual)' },
     { id: 'moves', label: 'Moves' },
+    { id: 'week', label: '📅 Week Detail' },
     { id: 'storylines', label: 'Storylines' },
     { id: 'notes', label: 'Notes' },
     { id: 'export', label: '🤖 AI Export' },
@@ -870,6 +871,7 @@ export default function AdminDashboardClient({ analytics, adminNotes }: Props) {
         {activeTab === 'positions' && <PositionsTab analytics={analytics} />}
         {activeTab === 'units' && <UnitsTab analytics={analytics} />}
         {activeTab === 'moves' && <MovesTab analytics={analytics} />}
+        {activeTab === 'week' && <WeekDetailTab analytics={analytics} />}
         {activeTab === 'storylines' && <StorylinesTab analytics={analytics} />}
         {activeTab === 'notes' && (
           <NotesTab
@@ -882,6 +884,189 @@ export default function AdminDashboardClient({ analytics, adminNotes }: Props) {
           <AiExportTab exportText={buildAiExport()} onCopy={copyToClipboard} />
         )}
       </div>
+    </div>
+  );
+}
+
+// ── Week Detail tab ───────────────────────────────────────────────────────────
+
+function WeekDetailTab({ analytics }: { analytics: AdminAnalytics }) {
+  const { weekDetail } = analytics;
+  const [expandedTeam, setExpandedTeam] = useState<number | null>(null);
+
+  if (!weekDetail) {
+    return (
+      <div className="text-center py-16 text-gray-400">
+        <p className="text-4xl mb-3">📅</p>
+        <p className="text-lg font-medium text-gray-500">No per-player weekly data yet</p>
+        <p className="text-sm mt-1">Run <code className="bg-gray-100 px-1 rounded">npm run fetch-weekly-scores</code> to populate this tab.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-base font-semibold text-gray-800">Week {weekDetail.week} — Player Breakdown</h2>
+        <p className="text-xs text-gray-400 mt-0.5">Slot-based points: active vs. bench. Who carried, who bombed, and what was left on the field.</p>
+      </div>
+
+      {/* Top Performers */}
+      <section>
+        <h3 className="text-sm font-semibold text-gray-700 mb-2">⭐ Top Active Performers</h3>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+          {weekDetail.topPerformers.slice(0, 10).map((p, i) => (
+            <div key={`${p.playerName}-${i}`} className="bg-white rounded-lg border border-gray-200 p-2 flex items-center gap-2">
+              {p.photoUrl && (
+                <img src={p.photoUrl} alt={p.playerName} width={32} height={32} className="rounded-full object-cover flex-shrink-0 w-8 h-8" />
+              )}
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-gray-800 truncate">{p.playerName}</p>
+                <p className="text-[11px] text-gray-500 truncate">{p.teamName} · {p.slot}</p>
+                <p className="text-sm font-bold text-teal-600">{p.weekPoints.toFixed(1)}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Bench Booms */}
+      {weekDetail.benchBooms.length > 0 && (
+        <section>
+          <h3 className="text-sm font-semibold text-gray-700 mb-2">🛋️ Bench Booms (Left on Table)</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {weekDetail.benchBooms.map((p, i) => (
+              <div key={`${p.playerName}-${i}`} className="bg-amber-50 rounded-lg border border-amber-200 p-2 flex items-center gap-2">
+                {p.photoUrl && (
+                  <img src={p.photoUrl} alt={p.playerName} width={32} height={32} className="rounded-full object-cover flex-shrink-0 w-8 h-8" />
+                )}
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-gray-800 truncate">{p.playerName}</p>
+                  <p className="text-[11px] text-gray-500 truncate">{p.teamName}</p>
+                  <p className="text-sm font-bold text-amber-600">{p.benchPoints.toFixed(1)} bench pts</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Slot Unit Comparison */}
+      <section>
+        <h3 className="text-sm font-semibold text-gray-700 mb-2">📊 Unit Scoring This Week</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs bg-white rounded-lg border border-gray-200">
+            <thead>
+              <tr className="bg-gray-50 text-gray-600">
+                <th className="text-left px-3 py-2 font-semibold w-20">Slot</th>
+                {weekDetail.teamBreakdowns.map(tb => (
+                  <th key={tb.teamId} className="text-center px-2 py-2 font-medium text-gray-500 max-w-[80px] truncate">
+                    {tb.teamName.split(' ').slice(-1)[0]}
+                  </th>
+                ))}
+                <th className="text-center px-2 py-2 font-semibold text-gray-600">Avg</th>
+              </tr>
+            </thead>
+            <tbody>
+              {weekDetail.slotUnits.map(su => {
+                const byTeam = Object.fromEntries(su.teams.map(t => [t.teamId, t.activePoints]));
+                const max = Math.max(...su.teams.map(t => t.activePoints));
+                return (
+                  <tr key={su.slot} className="border-t border-gray-100 hover:bg-gray-50">
+                    <td className="px-3 py-1.5 font-semibold text-gray-700">{su.slot}</td>
+                    {weekDetail.teamBreakdowns.map(tb => {
+                      const pts = byTeam[tb.teamId] ?? 0;
+                      const isTop = pts > 0 && pts === max;
+                      return (
+                        <td key={tb.teamId} className={`text-center px-2 py-1.5 tabular-nums ${isTop ? 'font-bold text-teal-700' : pts === 0 ? 'text-gray-300' : 'text-gray-700'}`}>
+                          {pts > 0 ? pts.toFixed(1) : '—'}
+                        </td>
+                      );
+                    })}
+                    <td className="text-center px-2 py-1.5 text-gray-500 tabular-nums">{su.leagueAvg.toFixed(1)}</td>
+                  </tr>
+                );
+              })}
+              {/* Bench row */}
+              <tr className="border-t-2 border-gray-200 bg-amber-50">
+                <td className="px-3 py-1.5 font-semibold text-amber-700">Bench</td>
+                {weekDetail.teamBreakdowns.map(tb => (
+                  <td key={tb.teamId} className="text-center px-2 py-1.5 tabular-nums text-amber-600 font-medium">
+                    {tb.benchTotal > 0 ? tb.benchTotal.toFixed(1) : '—'}
+                  </td>
+                ))}
+                <td className="text-center px-2 py-1.5 text-amber-600 tabular-nums">
+                  {(weekDetail.teamBreakdowns.reduce((s, t) => s + t.benchTotal, 0) / Math.max(weekDetail.teamBreakdowns.length, 1)).toFixed(1)}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* Per-team breakdowns */}
+      <section>
+        <h3 className="text-sm font-semibold text-gray-700 mb-2">🗂 Per-Team Lineup Breakdown</h3>
+        <div className="space-y-2">
+          {[...weekDetail.teamBreakdowns].sort((a, b) => b.totalPoints - a.totalPoints).map(tb => (
+            <div key={tb.teamId} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+              <button
+                className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 transition text-left"
+                onClick={() => setExpandedTeam(expandedTeam === tb.teamId ? null : tb.teamId)}
+              >
+                <span className="font-semibold text-gray-800 text-sm">{tb.teamName}</span>
+                <div className="flex items-center gap-3 text-sm">
+                  <span className="text-teal-600 font-bold">{tb.totalPoints.toFixed(1)} active</span>
+                  {tb.benchTotal > 0 && (
+                    <span className="text-amber-600 font-medium">{tb.benchTotal.toFixed(1)} bench</span>
+                  )}
+                  <span className="text-gray-400 text-xs">{expandedTeam === tb.teamId ? '▲' : '▼'}</span>
+                </div>
+              </button>
+              {expandedTeam === tb.teamId && (
+                <div className="border-t border-gray-100 px-4 pb-3">
+                  {/* Active players */}
+                  <div className="mt-2">
+                    <p className="text-xs font-semibold text-teal-600 uppercase tracking-wide mb-1">Active</p>
+                    <div className="space-y-1">
+                      {tb.activePlayers.map((p, i) => (
+                        <div key={`${p.playerId}-${i}`} className="flex items-center gap-2 text-xs">
+                          {p.photoUrl && (
+                            <img src={p.photoUrl} alt={p.playerName} width={24} height={24} className="rounded-full object-cover w-6 h-6 flex-shrink-0" />
+                          )}
+                          <span className="text-gray-500 w-8 font-mono">{p.primarySlot}</span>
+                          <span className="text-gray-800 flex-1">{p.playerName}</span>
+                          <span className="font-semibold text-gray-900 tabular-nums w-14 text-right">{p.activePoints.toFixed(1)} pts</span>
+                          <span className="text-gray-400 tabular-nums w-8 text-right">{p.activeDays}d</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Bench players */}
+                  {tb.benchPlayers.length > 0 && (
+                    <div className="mt-2">
+                      <p className="text-xs font-semibold text-amber-600 uppercase tracking-wide mb-1">Bench</p>
+                      <div className="space-y-1">
+                        {tb.benchPlayers.map((p, i) => (
+                          <div key={`${p.playerId}-${i}`} className="flex items-center gap-2 text-xs text-gray-500">
+                            {p.photoUrl && (
+                              <img src={p.photoUrl} alt={p.playerName} width={24} height={24} className="rounded-full object-cover w-6 h-6 flex-shrink-0 opacity-60" />
+                            )}
+                            <span className="text-gray-400 w-8 font-mono">BN</span>
+                            <span className="flex-1">{p.playerName}</span>
+                            <span className="font-medium text-amber-600 tabular-nums w-14 text-right">{p.benchPoints.toFixed(1)} pts</span>
+                            <span className="text-gray-400 tabular-nums w-8 text-right">{p.benchDays}d</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

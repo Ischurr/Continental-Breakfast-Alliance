@@ -164,6 +164,37 @@ export interface DinosContent {
   legacyText?: string;
 }
 
+// ── Weekly Player Scores (ESPN per-period slot tracking) ─────────────────────
+
+export interface WeeklyPlayerEntry {
+  playerId: string;
+  playerName: string;
+  position: string;       // primary MLB position
+  primarySlot: string;    // slot they played in during active days ('SP', 'DH', 'OF', etc.)
+  primarySlotId: number;  // numeric slot ID (0=C, 1=1B, 2=2B, 3=3B, 4=SS, 8/9/10=OF, 12=DH, 13/14=SP, 15=RP)
+  weekPoints: number;     // total points scored this week (active + bench)
+  activePoints: number;   // points scored while in an active lineup slot
+  benchPoints: number;    // points scored while sitting on the bench
+  activeDays: number;
+  benchDays: number;
+  photoUrl?: string;
+}
+
+export interface WeeklyTeamBreakdown {
+  teamId: number;
+  week: number;
+  totalPoints: number;    // ESPN team total (active only)
+  benchTotal: number;     // points left on bench
+  players: WeeklyPlayerEntry[];
+}
+
+export interface WeeklyScoresData {
+  season: number;
+  lastUpdated: string;
+  // week number (string key) → array of team breakdowns
+  weeks: Record<string, WeeklyTeamBreakdown[]>;
+}
+
 // ── Live Player Points (MLB Stats API) ────────────────────────────────────────
 
 export interface LiveStatLine {
