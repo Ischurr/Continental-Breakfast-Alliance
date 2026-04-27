@@ -178,6 +178,8 @@ export interface WeeklyPlayerEntry {
   activeDays: number;
   benchDays: number;
   photoUrl?: string;
+  /** ESPN stat ID → cumulative value for this matchup week (from statSplitTypeId=5) */
+  weeklyStats?: Record<string, number>;
 }
 
 export interface WeeklyTeamBreakdown {

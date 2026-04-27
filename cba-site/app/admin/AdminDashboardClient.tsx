@@ -13,7 +13,7 @@ interface Props {
   adminNotes: AdminNotes;
 }
 
-type Tab = 'bullets' | 'teams' | 'players' | 'positions' | 'units' | 'moves' | 'week' | 'storylines' | 'notes' | 'export';
+type Tab = 'bullets' | 'teams' | 'players' | 'positions' | 'units' | 'moves' | 'week' | 'categories' | 'storylines' | 'notes' | 'export';
 
 const CATEGORY_COLORS: Record<string, string> = {
   trend: 'border-blue-400',
@@ -91,11 +91,61 @@ function LockScreen({ unlock }: { unlock: () => void }) {
 
 // ── Bullets tab ───────────────────────────────────────────────────────────────
 
+const MARGIN_BADGE: Record<string, string> = {
+  Dominant: 'bg-red-100 text-red-700',
+  Clear: 'bg-orange-100 text-orange-700',
+  Close: 'bg-yellow-100 text-yellow-700',
+  'Nail-biter': 'bg-green-100 text-green-700',
+};
+
 function BulletsTab({ analytics, onCopy }: { analytics: AdminAnalytics; onCopy: () => void }) {
-  const { bullets, priorWeek, priorWeekMatchupResults } = analytics;
+  const { bullets, priorWeek, priorWeekMatchupResults, weekStats } = analytics;
 
   return (
     <div className="space-y-4">
+      {/* Week at a Glance */}
+      {weekStats && (
+        <div className="rounded-xl border border-teal-200 bg-teal-50 p-4">
+          <h3 className="text-sm font-bold text-teal-800 mb-3">📊 Week {priorWeek} at a Glance</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3 text-xs">
+            <div className="bg-white rounded-lg p-2 text-center border border-teal-100">
+              <div className="text-lg font-bold text-teal-700">{weekStats.leagueAvg.toFixed(1)}</div>
+              <div className="text-gray-500">League avg</div>
+            </div>
+            <div className="bg-white rounded-lg p-2 text-center border border-teal-100">
+              <div className={`text-lg font-bold ${weekStats.vsSeasonAvg >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                {weekStats.vsSeasonAvg >= 0 ? '+' : ''}{weekStats.vsSeasonAvg.toFixed(1)}
+              </div>
+              <div className="text-gray-500">vs season avg ({weekStats.seasonAvgToDate.toFixed(1)})</div>
+            </div>
+            <div className="bg-white rounded-lg p-2 text-center border border-teal-100">
+              <div className="text-lg font-bold text-gray-700">{weekStats.leagueHigh.toFixed(1)}</div>
+              <div className="text-gray-500">High</div>
+            </div>
+            <div className="bg-white rounded-lg p-2 text-center border border-teal-100">
+              <div className="text-lg font-bold text-gray-700">{weekStats.leagueLow.toFixed(1)}</div>
+              <div className="text-gray-500">Low</div>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {weekStats.teamVsSeasonAvg.map(t => (
+              <span
+                key={t.teamId}
+                className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                  t.delta >= 15 ? 'bg-green-100 text-green-800' :
+                  t.delta >= 0 ? 'bg-gray-100 text-gray-700' :
+                  t.delta >= -15 ? 'bg-gray-100 text-gray-500' :
+                  'bg-red-100 text-red-700'
+                }`}
+                title={`${t.weekPoints.toFixed(1)} pts (${t.delta >= 0 ? '+' : ''}${t.delta.toFixed(1)} vs season avg)`}
+              >
+                {t.teamName.split(' ').pop()} {t.delta >= 0 ? '+' : ''}{t.delta.toFixed(0)}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Prior week matchup results */}
       {priorWeek > 0 && priorWeekMatchupResults.length > 0 && (
         <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-4">
@@ -121,6 +171,11 @@ function BulletsTab({ analytics, onCopy }: { analytics: AdminAnalytics; onCopy: 
                     <span className={`font-semibold ${awayWon ? 'text-gray-900' : 'text-gray-400'} truncate flex-1 text-right`}>
                       {awayWon ? '✓ ' : ''}{m.awayTeamName}
                     </span>
+                    {m.winnerId !== undefined && (
+                      <span className={`ml-1 px-1.5 py-0.5 rounded text-[10px] font-semibold ${MARGIN_BADGE[m.marginLabel] ?? 'bg-gray-100 text-gray-600'}`}>
+                        {m.marginLabel}
+                      </span>
+                    )}
                   </div>
                 );
               })}
@@ -691,6 +746,100 @@ function NotesTab({
   );
 }
 
+// ── Categories tab ────────────────────────────────────────────────────────────
+
+function CategoriesTab({ analytics }: { analytics: AdminAnalytics }) {
+  const wc = analytics.weekCategories;
+  if (!wc) {
+    return (
+      <div className="text-center py-16 text-gray-400">
+        No stat category data available yet — run <code>npm run fetch-weekly-scores</code> to populate weekly stats.
+      </div>
+    );
+  }
+
+  const hitterCats = wc.categories.filter(c => c.type === 'hitter');
+  const pitcherCats = wc.categories.filter(c => c.type === 'pitcher');
+
+  const CatCard = ({ cat }: { cat: import('@/lib/admin-analytics').StatCategoryStats }) => (
+    <div className="bg-white rounded-xl border border-gray-200 p-4">
+      <div className="flex items-center justify-between mb-2">
+        <span className="font-bold text-gray-800 text-sm">{cat.label}</span>
+        <span className="text-xs text-gray-400">
+          Total: {cat.catId === '34' ? cat.leagueTotal.toFixed(1) : Math.round(cat.leagueTotal)}
+        </span>
+      </div>
+      <div className="space-y-1">
+        {cat.top3.map((p, i) => (
+          <div key={i} className="flex items-center gap-2 text-xs">
+            <span className={`w-4 font-bold ${i === 0 ? 'text-teal-600' : 'text-gray-400'}`}>{i + 1}</span>
+            <span className="font-medium text-gray-700 truncate flex-1">{p.playerName}</span>
+            <span className="text-xs text-gray-400 truncate">{p.teamName.split(' ').pop()}</span>
+            <span className={`font-bold tabular-nums ml-1 ${i === 0 ? 'text-teal-700' : 'text-gray-600'}`}>
+              {cat.catId === '34' ? p.value.toFixed(1) : p.value}
+            </span>
+          </div>
+        ))}
+        {!cat.higherIsBetter && cat.bottom3.length > 0 && (
+          <div className="mt-2 pt-2 border-t border-gray-100">
+            <div className="text-[10px] text-gray-400 mb-1">Most (bad)</div>
+            {cat.bottom3.map((p, i) => (
+              <div key={i} className="flex items-center gap-2 text-xs">
+                <span className="text-red-400 font-bold">▲</span>
+                <span className="font-medium text-gray-700 truncate flex-1">{p.playerName}</span>
+                <span className="text-xs text-gray-400 truncate">{p.teamName.split(' ').pop()}</span>
+                <span className="font-bold tabular-nums text-red-500 ml-1">
+                  {cat.catId === '34' ? p.value.toFixed(1) : p.value}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-2">
+        <h3 className="font-semibold text-gray-700">Week {wc.week} Stat Category Leaders</h3>
+        {wc.oddityBullets.length > 0 && (
+          <span className="px-2 py-0.5 bg-teal-100 text-teal-700 text-xs rounded-full font-medium">
+            {wc.oddityBullets.length} standout{wc.oddityBullets.length > 1 ? 's' : ''}
+          </span>
+        )}
+      </div>
+
+      {wc.oddityBullets.length > 0 && (
+        <div className="space-y-2">
+          {wc.oddityBullets.map((b, i) => (
+            <div key={i} className="flex gap-2 rounded-xl border-l-4 border-teal-400 bg-teal-50 p-3">
+              <span>{b.emoji}</span>
+              <p className="text-sm text-gray-800"
+                dangerouslySetInnerHTML={{ __html: b.headline.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>') }}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div>
+        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Hitting</h4>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          {hitterCats.map(c => <CatCard key={c.catId} cat={c} />)}
+        </div>
+      </div>
+
+      <div>
+        <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Pitching</h4>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          {pitcherCats.map(c => <CatCard key={c.catId} cat={c} />)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main Dashboard ────────────────────────────────────────────────────────────
 
 export default function AdminDashboardClient({ analytics, adminNotes }: Props) {
@@ -807,6 +956,7 @@ export default function AdminDashboardClient({ analytics, adminNotes }: Props) {
     { id: 'units', label: 'Units (Actual)' },
     { id: 'moves', label: 'Moves' },
     { id: 'week', label: '📅 Week Detail' },
+    { id: 'categories', label: '📈 Categories' },
     { id: 'storylines', label: 'Storylines' },
     { id: 'notes', label: 'Notes' },
     { id: 'export', label: '🤖 AI Export' },
@@ -872,6 +1022,7 @@ export default function AdminDashboardClient({ analytics, adminNotes }: Props) {
         {activeTab === 'units' && <UnitsTab analytics={analytics} />}
         {activeTab === 'moves' && <MovesTab analytics={analytics} />}
         {activeTab === 'week' && <WeekDetailTab analytics={analytics} />}
+        {activeTab === 'categories' && <CategoriesTab analytics={analytics} />}
         {activeTab === 'storylines' && <StorylinesTab analytics={analytics} />}
         {activeTab === 'notes' && (
           <NotesTab

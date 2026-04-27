@@ -2919,4 +2919,37 @@ Built a full per-player weekly scoring system that tracks what each player score
 ### ESPN slot ID reference (for this feature)
 - Bench: 16, 17 — IL: 11 — C:0, 1B:1, 2B:2, 3B:3, SS:4, OF:8/9/10, DH:12, SP:13/14, RP:15
 - Flex slots (5=OF-UTIL, 6=MI, 7=CI, 19=UTIL-INF) — included in active, mapped to appropriate unit group
+
+## Session Work (April 26, 2026 — Admin Dashboard Editorial Intelligence Round 2)
+
+### Three new admin dashboard features
+
+#### Feature 1: Matchup Margin Analysis
+- `PriorWeekMatchupResult` extended: `margin`, `marginLabel` ('Dominant' ≥80, 'Clear' ≥40, 'Close' ≥15, else 'Nail-biter'), `winnerName`, `loserName`
+- New bullets: blowout (priority 78), closest matchup (priority 75), extra bullet if margin >100pts (priority 85)
+- `BulletsTab` "📋 Week N Results" card: colored margin badge on each matchup row (`Dominant=red, Clear=orange, Close=yellow, Nail-biter=green`)
+
+#### Feature 2: League-Week Context Stats
+- New types: `WeekTeamDelta`, `WeekStats` — `{ priorWeek, leagueAvg, leagueMedian, leagueHigh, leagueLow, leagueStdDev, seasonAvgToDate, vsSeasonAvg, teamVsSeasonAvg[] }`
+- `weekStats: WeekStats | null` added to `AdminAnalytics`; `seasonAvgToDate` computed from all fully-completed weeks
+- New bullets: vsSeasonAvg > 30 → "High-scoring week" (priority 70), < -30 → "Low-scoring week" (priority 70); top 2 outperformers (priority 65), bottom 2 underperformers (priority 62)
+- `BulletsTab` "📊 Week at a Glance" card: league avg, season avg, delta (green/red), high/low, 10 team delta pills
+
+#### Feature 3A: ESPN Stat Category Leaders (data capture)
+- `weeklyStats?: Record<string, number>` added to `WeeklyPlayerEntry` in `lib/types.ts`
+- `scripts/fetch-weekly-player-scores.ts`: captures `statSplitTypeId=5` `appliedStats` per player per period; last period's value is the full-week cumulative total (no diffing needed)
+- Stored as `weeklyStats` on each `WeeklyPlayerEntry` in the output JSON
+
+#### Feature 3B: ESPN Stat Category Leaders (display)
+- New types in `lib/admin-analytics.ts`: `CategoryPlayerEntry`, `StatCategoryStats`, `WeekCategoryStats`
+- `weekCategories: WeekCategoryStats | null` added to `AdminAnalytics`
+- ESPN hitter stat IDs: 5=R, 6=H, 10=2B, 11=3B, 12=HR, 13=RBI, 16=BB, 17=HBP, 23=SB
+- ESPN pitcher stat IDs: 34=IP (outs÷3 for display), 48=K, 53=W, 57=SV, 63=HD, 64=QS
+- Oddity bullets: HR≥3 (priority 72), SB≥3 (priority 68), QS≥2 (priority 65)
+- New **"📈 Categories"** tab in admin dashboard — hitting and pitching stat leader grids with `CatCard` inner component
+- Tab added between "📅 Week Detail" and "Storylines"
+
+### Variable shadow / scoping notes (for future edits to `lib/admin-analytics.ts`)
+- `weekStats` computation placed BEFORE `teamTrends.map()` to avoid shadowing the outer `weeklyScores: WeeklyScoresData` input param (which `teamTrends.map()` uses via inner `const weeklyScores = ...`)
+- `detailWeek` and `weekBreakdowns` hoisted to before the bullets section so both `weekCategories` (pre-dedup) and `weekDetail` (post-dedup) can share the same values
 - `lineupSlotId` on each roster entry changes per scoring period when fetched with `scoringPeriodId=N`

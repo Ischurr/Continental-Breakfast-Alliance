@@ -237,6 +237,54 @@ export interface PriorWeekMatchupResult {
   awayTeamName: string;
   awayPoints: number;
   winnerId: number | undefined;
+  margin: number;
+  marginLabel: 'Dominant' | 'Clear' | 'Close' | 'Nail-biter';
+  winnerName: string;
+  loserName: string;
+}
+
+export interface WeekTeamDelta {
+  teamId: number;
+  teamName: string;
+  weekPoints: number;
+  delta: number;
+  deltaPct: number;
+}
+
+export interface WeekStats {
+  priorWeek: number;
+  leagueAvg: number;
+  leagueMedian: number;
+  leagueHigh: number;
+  leagueLow: number;
+  leagueStdDev: number;
+  seasonAvgToDate: number;
+  vsSeasonAvg: number;
+  teamVsSeasonAvg: WeekTeamDelta[];
+}
+
+export interface CategoryPlayerEntry {
+  playerName: string;
+  teamId: number;
+  teamName: string;
+  value: number;
+  photoUrl?: string;
+}
+
+export interface StatCategoryStats {
+  catId: string;
+  label: string;
+  type: 'hitter' | 'pitcher';
+  higherIsBetter: boolean;
+  leagueTotal: number;
+  top3: CategoryPlayerEntry[];
+  bottom3: CategoryPlayerEntry[];
+}
+
+export interface WeekCategoryStats {
+  week: number;
+  categories: StatCategoryStats[];
+  oddityBullets: StorylineBullet[];
 }
 
 export interface AdminAnalytics {
@@ -262,6 +310,8 @@ export interface AdminAnalytics {
     totalLeaguePoints: number;
   };
   weekDetail: WeekDetailStats | null;
+  weekStats: WeekStats | null;
+  weekCategories: WeekCategoryStats | null;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -394,15 +444,33 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
 
   // Prior week matchup results (for editorial display)
   const priorWeekMatchupResults: PriorWeekMatchupResult[] = priorWeek > 0
-    ? (weeksByNum[priorWeek] ?? []).map(m => ({
-        homeTeamId: m.home.teamId,
-        homeTeamName: teamDisplayName(m.home.teamId, teamMetadata),
-        homePoints: m.home.totalPoints,
-        awayTeamId: m.away.teamId,
-        awayTeamName: teamDisplayName(m.away.teamId, teamMetadata),
-        awayPoints: m.away.totalPoints,
-        winnerId: m.winner,
-      }))
+    ? (weeksByNum[priorWeek] ?? []).map(m => {
+        const homeWon = m.winner === m.home.teamId;
+        const winnerPts = homeWon ? m.home.totalPoints : m.away.totalPoints;
+        const loserPts = homeWon ? m.away.totalPoints : m.home.totalPoints;
+        const margin = Math.round((winnerPts - loserPts) * 10) / 10;
+        const marginLabel: PriorWeekMatchupResult['marginLabel'] =
+          margin >= 80 ? 'Dominant' : margin >= 40 ? 'Clear' : margin >= 15 ? 'Close' : 'Nail-biter';
+        const winnerName = homeWon
+          ? teamDisplayName(m.home.teamId, teamMetadata)
+          : teamDisplayName(m.away.teamId, teamMetadata);
+        const loserName = homeWon
+          ? teamDisplayName(m.away.teamId, teamMetadata)
+          : teamDisplayName(m.home.teamId, teamMetadata);
+        return {
+          homeTeamId: m.home.teamId,
+          homeTeamName: teamDisplayName(m.home.teamId, teamMetadata),
+          homePoints: m.home.totalPoints,
+          awayTeamId: m.away.teamId,
+          awayTeamName: teamDisplayName(m.away.teamId, teamMetadata),
+          awayPoints: m.away.totalPoints,
+          winnerId: m.winner,
+          margin,
+          marginLabel,
+          winnerName,
+          loserName,
+        };
+      })
     : [];
 
   // Completion fraction based on prior completed week (for pace analysis)
@@ -486,6 +554,49 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
           xLosses.set(side.teamId, (xLosses.get(side.teamId) ?? 0) + 1);
         }
       }
+    }
+  }
+
+  // ── WEEK STATS (league-wide context for the prior week) ─────────────────────
+
+  let weekStats: WeekStats | null = null;
+  if (priorWeek > 0) {
+    const priorMatchups = weeksByNum[priorWeek] ?? [];
+    const priorScores = priorMatchups.flatMap(m => [
+      { teamId: m.home.teamId, pts: m.home.totalPoints },
+      { teamId: m.away.teamId, pts: m.away.totalPoints },
+    ]);
+    if (priorScores.length > 0) {
+      const pts = priorScores.map(s => s.pts);
+      const leagueAvg = mean(pts);
+      const sortedPts = [...pts].sort((a, b) => a - b);
+      const mid = Math.floor(sortedPts.length / 2);
+      const leagueMedian = sortedPts.length % 2 !== 0
+        ? sortedPts[mid]
+        : (sortedPts[mid - 1] + sortedPts[mid]) / 2;
+      const leagueHigh = Math.max(...pts);
+      const leagueLow = Math.min(...pts);
+      const leagueStdDev = stdDev(pts);
+
+      // Season avg across all fully finalized weeks
+      const allFinalizedPts: number[] = [];
+      for (const wk of finalizedWeeks) {
+        for (const m of (weeksByNum[wk] ?? [])) {
+          allFinalizedPts.push(m.home.totalPoints, m.away.totalPoints);
+        }
+      }
+      const seasonAvgToDate = allFinalizedPts.length > 0 ? mean(allFinalizedPts) : leagueAvg;
+      const vsSeasonAvg = leagueAvg - seasonAvgToDate;
+
+      const teamVsSeasonAvg: WeekTeamDelta[] = priorScores.map(s => ({
+        teamId: s.teamId,
+        teamName: teamDisplayName(s.teamId, teamMetadata),
+        weekPoints: s.pts,
+        delta: s.pts - seasonAvgToDate,
+        deltaPct: seasonAvgToDate > 0 ? ((s.pts - seasonAvgToDate) / seasonAvgToDate) * 100 : 0,
+      })).sort((a, b) => b.delta - a.delta);
+
+      weekStats = { priorWeek, leagueAvg, leagueMedian, leagueHigh, leagueLow, leagueStdDev, seasonAvgToDate, vsSeasonAvg, teamVsSeasonAvg };
     }
   }
 
@@ -914,6 +1025,10 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
 
   // ── STORYLINE BULLETS ─────────────────────────────────────────────────────────
 
+  // Hoisted here so both bullets and weekCategories can use them
+  const detailWeek = priorWeek > 0 ? priorWeek : currentWeek;
+  const weekBreakdowns = weeklyScores?.weeks[String(detailWeek)];
+
   const bullets: StorylineBullet[] = [];
 
   // Team trend bullets
@@ -1245,6 +1360,204 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
     }
   }
 
+  // Margin analysis bullets
+  if (priorWeekMatchupResults.length > 0) {
+    const byMargin = [...priorWeekMatchupResults]
+      .filter(m => m.winnerId !== undefined)
+      .sort((a, b) => b.margin - a.margin);
+    const biggest = byMargin[0];
+    const closest = byMargin[byMargin.length - 1];
+
+    if (biggest) {
+      const winPts = Math.max(biggest.homePoints, biggest.awayPoints);
+      const losePts = Math.min(biggest.homePoints, biggest.awayPoints);
+      if (biggest.margin >= 100) {
+        bullets.push({
+          priority: 85,
+          category: 'trend',
+          emoji: '💥',
+          headline: `**${biggest.winnerName}** dominated Week ${priorWeek} — won by ${biggest.margin.toFixed(1)} points`,
+          detail: `${biggest.winnerName} ${winPts.toFixed(1)} – ${losePts.toFixed(1)} ${biggest.loserName}`,
+          teamIds: [biggest.winnerId as number],
+        });
+      } else {
+        bullets.push({
+          priority: 78,
+          category: 'trend',
+          emoji: '🔨',
+          headline: `**${biggest.winnerName}** had the biggest blowout of Week ${priorWeek} — won by ${biggest.margin.toFixed(1)} pts (${biggest.marginLabel})`,
+          detail: `${biggest.winnerName} ${winPts.toFixed(1)} – ${losePts.toFixed(1)} ${biggest.loserName}`,
+          teamIds: [biggest.winnerId as number],
+        });
+      }
+    }
+
+    if (closest && byMargin.length > 1) {
+      const winPts = Math.max(closest.homePoints, closest.awayPoints);
+      const losePts = Math.min(closest.homePoints, closest.awayPoints);
+      bullets.push({
+        priority: 75,
+        category: 'trend',
+        emoji: '⚔️',
+        headline: `Closest matchup of Week ${priorWeek}: **${closest.winnerName}** edged **${closest.loserName}** by just ${closest.margin.toFixed(1)} pts`,
+        detail: `${closest.winnerName} ${winPts.toFixed(1)} – ${losePts.toFixed(1)} ${closest.loserName}`,
+        teamIds: [closest.winnerId as number],
+      });
+    }
+  }
+
+  // Week context bullets
+  if (weekStats) {
+    if (weekStats.vsSeasonAvg > 30) {
+      bullets.push({
+        priority: 70,
+        category: 'trend',
+        emoji: '🔥',
+        headline: `High-scoring week — Week ${priorWeek} averaged ${weekStats.leagueAvg.toFixed(1)} pts/team, ${weekStats.vsSeasonAvg.toFixed(1)} above the season average`,
+        detail: `High: ${weekStats.leagueHigh.toFixed(1)} · Low: ${weekStats.leagueLow.toFixed(1)} · Season avg: ${weekStats.seasonAvgToDate.toFixed(1)}`,
+        teamIds: [],
+      });
+    } else if (weekStats.vsSeasonAvg < -30) {
+      bullets.push({
+        priority: 70,
+        category: 'trend',
+        emoji: '🧊',
+        headline: `Low-scoring week — Week ${priorWeek} averaged ${weekStats.leagueAvg.toFixed(1)} pts/team, ${Math.abs(weekStats.vsSeasonAvg).toFixed(1)} below the season average`,
+        detail: `High: ${weekStats.leagueHigh.toFixed(1)} · Low: ${weekStats.leagueLow.toFixed(1)} · Season avg: ${weekStats.seasonAvgToDate.toFixed(1)}`,
+        teamIds: [],
+      });
+    }
+    const topOut = weekStats.teamVsSeasonAvg.filter(t => t.delta >= 15).slice(0, 2);
+    const bottomOut = [...weekStats.teamVsSeasonAvg].reverse().filter(t => t.delta <= -15).slice(0, 2);
+    for (const t of topOut) {
+      bullets.push({
+        priority: 65,
+        category: 'trend',
+        emoji: '⬆️',
+        headline: `**${t.teamName}** scored ${t.weekPoints.toFixed(1)} pts in Week ${priorWeek} — ${t.delta.toFixed(1)} above the season average`,
+        teamIds: [t.teamId],
+      });
+    }
+    for (const t of bottomOut) {
+      bullets.push({
+        priority: 62,
+        category: 'trend',
+        emoji: '⬇️',
+        headline: `**${t.teamName}** scored only ${t.weekPoints.toFixed(1)} pts in Week ${priorWeek} — ${Math.abs(t.delta).toFixed(1)} below the season average`,
+        teamIds: [t.teamId],
+      });
+    }
+  }
+
+  // ── WEEK CATEGORIES ──────────────────────────────────────────────────────────
+
+  let weekCategories: WeekCategoryStats | null = null;
+
+  if (weekBreakdowns && weekBreakdowns.length > 0) {
+    const HITTER_CATS: { catId: string; label: string; higherIsBetter: boolean }[] = [
+      { catId: '12', label: 'HR', higherIsBetter: true },
+      { catId: '13', label: 'RBI', higherIsBetter: true },
+      { catId: '5', label: 'R', higherIsBetter: true },
+      { catId: '23', label: 'SB', higherIsBetter: true },
+      { catId: '6', label: 'H', higherIsBetter: true },
+      { catId: '27', label: 'GIDP', higherIsBetter: false },
+      { catId: '24', label: 'CS', higherIsBetter: false },
+    ];
+    const PITCHER_CATS: { catId: string; label: string; higherIsBetter: boolean }[] = [
+      { catId: '48', label: 'K', higherIsBetter: true },
+      { catId: '34', label: 'IP', higherIsBetter: true },
+      { catId: '64', label: 'QS', higherIsBetter: true },
+      { catId: '57', label: 'SV', higherIsBetter: true },
+      { catId: '63', label: 'HD', higherIsBetter: true },
+      { catId: '41', label: 'ER', higherIsBetter: false },
+      { catId: '42', label: 'BB', higherIsBetter: false },
+    ];
+
+    const isPitcherSlot = (p: WeeklyPlayerEntry) => p.primarySlot === 'SP' || p.primarySlot === 'RP';
+
+    const buildCatStats = (
+      catId: string,
+      label: string,
+      type: 'hitter' | 'pitcher',
+      higherIsBetter: boolean,
+    ): StatCategoryStats | null => {
+      const entries: CategoryPlayerEntry[] = [];
+      for (const tb of weekBreakdowns!) {
+        for (const p of tb.players) {
+          if (!p.weeklyStats) continue;
+          const isP = isPitcherSlot(p);
+          if (type === 'pitcher' && !isP) continue;
+          if (type === 'hitter' && isP) continue;
+          let raw = p.weeklyStats[catId] ?? 0;
+          if (catId === '34') raw = raw / 3; // IP: outs → innings
+          if (raw === 0) continue;
+          entries.push({
+            playerName: p.playerName,
+            teamId: tb.teamId,
+            teamName: teamDisplayName(tb.teamId, teamMetadata),
+            value: raw,
+            photoUrl: p.photoUrl,
+          });
+        }
+      }
+      if (entries.length === 0) return null;
+      const rawLeagueTotal = entries.reduce((s, e) => s + e.value, 0);
+      if (rawLeagueTotal === 0) return null;
+      const sorted = [...entries].sort((a, b) => b.value - a.value);
+      return {
+        catId, label, type, higherIsBetter,
+        leagueTotal: rawLeagueTotal,
+        top3: sorted.slice(0, 3),
+        bottom3: higherIsBetter ? [] : sorted.slice(-3).reverse(),
+      };
+    };
+
+    const catStats: StatCategoryStats[] = [];
+    for (const c of HITTER_CATS) {
+      const s = buildCatStats(c.catId, c.label, 'hitter', c.higherIsBetter);
+      if (s) catStats.push(s);
+    }
+    for (const c of PITCHER_CATS) {
+      const s = buildCatStats(c.catId, c.label, 'pitcher', c.higherIsBetter);
+      if (s) catStats.push(s);
+    }
+
+    const oddityBullets: StorylineBullet[] = [];
+
+    const hrCat = catStats.find(c => c.catId === '12');
+    if (hrCat && hrCat.top3[0] && hrCat.top3[0].value >= 3) {
+      const ldr = hrCat.top3[0];
+      oddityBullets.push({
+        priority: 72, category: 'player_over', emoji: '💣',
+        headline: `**${ldr.playerName}** (${ldr.teamName}) hit ${ldr.value} HRs in Week ${detailWeek}`,
+        teamIds: [ldr.teamId], playerName: ldr.playerName,
+      });
+    }
+
+    const sbCat = catStats.find(c => c.catId === '23');
+    if (sbCat && sbCat.top3[0] && sbCat.top3[0].value >= 3) {
+      const ldr = sbCat.top3[0];
+      oddityBullets.push({
+        priority: 68, category: 'player_over', emoji: '💨',
+        headline: `**${ldr.playerName}** (${ldr.teamName}) stole ${ldr.value} bases in Week ${detailWeek}`,
+        teamIds: [ldr.teamId], playerName: ldr.playerName,
+      });
+    }
+
+    const qsCat = catStats.find(c => c.catId === '64');
+    if (qsCat && qsCat.top3[0] && qsCat.top3[0].value >= 2) {
+      const ldr = qsCat.top3[0];
+      oddityBullets.push({
+        priority: 65, category: 'player_over', emoji: '⚾',
+        headline: `**${ldr.playerName}** (${ldr.teamName}) had ${ldr.value} quality starts in Week ${detailWeek}`,
+        teamIds: [ldr.teamId], playerName: ldr.playerName,
+      });
+    }
+
+    weekCategories = { week: detailWeek, categories: catStats, oddityBullets };
+    for (const ob of oddityBullets) bullets.push(ob);
+  }
+
   // Deduplicate by headline and sort by priority
   const seen = new Set<string>();
   const dedupedBullets = bullets
@@ -1257,11 +1570,9 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
 
   // ── WEEK DETAIL ──────────────────────────────────────────────────────────────
   // Uses priorWeek (the most recently finalized week) for editorial relevance.
+  // detailWeek and weekBreakdowns are defined above (before bullets section).
 
   let weekDetail: WeekDetailStats | null = null;
-
-  const detailWeek = priorWeek > 0 ? priorWeek : currentWeek;
-  const weekBreakdowns = weeklyScores?.weeks[String(detailWeek)];
 
   if (weekBreakdowns && weekBreakdowns.length > 0) {
     // Top individual performers (active only, sorted by weekPoints)
@@ -1360,5 +1671,7 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
     rankingsThemes,
     seasonStats,
     weekDetail,
+    weekStats,
+    weekCategories,
   };
 }

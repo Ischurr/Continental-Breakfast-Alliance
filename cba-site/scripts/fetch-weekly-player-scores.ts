@@ -49,6 +49,7 @@ interface PerPeriodPlayerSnapshot {
   playerName: string;
   position: string;      // primary MLB position
   photoUrl: string;
+  matchupRawStats?: Record<string, number>; // statSplitTypeId=5 appliedStats (cumulative within matchup week)
 }
 
 // period → teamId → playerId → snapshot
@@ -79,12 +80,18 @@ function parsePeriodSnapshot(
         ?.find(s => s.statSourceId === 0 && s.statSplitTypeId === 0 && s.seasonId === season);
       const seasonTotal = (seasonStat?.appliedTotal as number) ?? 0;
 
+      // Matchup-period cumulative stats (statSplitTypeId=5) — resets each week boundary
+      const matchupStat = (player.stats as AnyRecord[] | undefined)
+        ?.find(s => s.statSourceId === 0 && s.statSplitTypeId === 5 && s.seasonId === season);
+      const matchupRawStats = matchupStat?.appliedStats as Record<string, number> | undefined;
+
       result[teamId][playerId] = {
         slotId: lineupSlotId,
         seasonTotal,
         playerName: (player.fullName as string) ?? 'Unknown',
         position,
         photoUrl: `https://a.espncdn.com/i/headshots/mlb/players/full/${playerId}.png`,
+        matchupRawStats,
       };
     }
   }
@@ -182,6 +189,16 @@ function computeWeekBreakdowns(
       // Only include players who had any activity (saw at least one period in the roster)
       if (weekPoints === 0 && activeDays === 0 && benchDays === 0) continue;
 
+      // Weekly stat totals: use last period's matchupRawStats (statSplitTypeId=5 is cumulative within the week)
+      let weeklyStats: Record<string, number> | undefined;
+      for (let i = weekPeriods.length - 1; i >= 0; i--) {
+        const snap = periodCache[weekPeriods[i]]?.[teamId]?.[playerId];
+        if (snap?.matchupRawStats && Object.keys(snap.matchupRawStats).length > 0) {
+          weeklyStats = { ...snap.matchupRawStats };
+          break;
+        }
+      }
+
       playerEntries.push({
         playerId,
         playerName: meta.playerName,
@@ -194,6 +211,7 @@ function computeWeekBreakdowns(
         activeDays,
         benchDays,
         photoUrl: meta.photoUrl,
+        weeklyStats,
       });
     }
 
