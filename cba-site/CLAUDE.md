@@ -2285,7 +2285,7 @@ Runs 2× daily (11 AM + 5 PM EST). Commits any call-up updates → triggers Verc
 | 4 | Manhattan Mega Rats | Noah Schultz | 702273 | SP | CWS |
 | 6 | Delmarva Emus | Leo De Vries | 815888 | SS | ATH |
 | 7 | Syracuse Sky Chiefs | Kevin McGonigle | 805808 | SS | DET |
-| 8 | Ghent Whistlepigs | Carlos Lagrange | 801739 | SP | NYY |
+| 8 | Warren Whistlepigs | Carlos Lagrange | 801739 | SP | NYY |
 | 9 | North Georgia Fuzzy Bottoms | Max Clark | 703601 | OF | DET |
 | 10 | Bristol Banshees | Connelly Early | 813349 | SP | BOS |
 | 11 | Fort Meade Folksy Ferrets | Aidan Miller | 805795 | SS | PHI |

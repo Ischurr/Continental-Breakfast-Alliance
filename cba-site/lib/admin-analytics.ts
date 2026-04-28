@@ -164,7 +164,7 @@ export interface RosterMoveSignal {
 
 export interface StorylineBullet {
   priority: number;
-  category: 'trend' | 'player_over' | 'player_under' | 'position' | 'roster' | 'injury';
+  category: 'trend' | 'player_over' | 'player_under' | 'position' | 'roster' | 'injury' | 'season_stats';
   emoji: string;
   headline: string;
   detail?: string;
@@ -325,6 +325,7 @@ export interface AdminAnalytics {
   weekDetail: WeekDetailStats | null;
   weekStats: WeekStats | null;
   weekCategories: WeekCategoryStats | null;
+  seasonCatStats: TeamSeasonStats | null;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -431,6 +432,28 @@ const SLOT_DISPLAY: Record<string, string> = {
 export function slotDisplayLabel(slot: string): string {
   return SLOT_DISPLAY[slot] ?? slot;
 }
+
+// ── Season-to-date stat categories (shared by weekCategories + seasonCatStats) ─
+
+const SEASON_HITTER_CATS: { catId: string; label: string; higherIsBetter: boolean }[] = [
+  { catId: '12', label: 'HR', higherIsBetter: true },
+  { catId: '13', label: 'RBI', higherIsBetter: true },
+  { catId: '5',  label: 'R',   higherIsBetter: true },
+  { catId: '23', label: 'SB',  higherIsBetter: true },
+  { catId: '6',  label: 'H',   higherIsBetter: true },
+  { catId: '48', label: 'K',   higherIsBetter: false }, // batting Ks
+  { catId: '24', label: 'CS',  higherIsBetter: false },
+];
+
+const SEASON_PITCHER_CATS: { catId: string; label: string; higherIsBetter: boolean }[] = [
+  { catId: '48', label: 'K',   higherIsBetter: true },  // pitcher Ks
+  { catId: '34', label: 'IP',  higherIsBetter: true },
+  { catId: '64', label: 'QS',  higherIsBetter: true },
+  { catId: '57', label: 'SV',  higherIsBetter: true },
+  { catId: '63', label: 'HD',  higherIsBetter: true },
+  { catId: '41', label: 'ER',  higherIsBetter: false },
+  { catId: '61', label: 'BS',  higherIsBetter: false },
+];
 
 // ── Main function ─────────────────────────────────────────────────────────────
 
@@ -1035,6 +1058,64 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
     biggestSingleWeekWeek: biggestWeekWeek,
     totalLeaguePoints,
   };
+
+  // ── SEASON CAT STATS ──────────────────────────────────────────────────────────
+
+  let seasonCatStats: TeamSeasonStats | null = null;
+
+  if (weeklyScores && Object.keys(weeklyScores.weeks).length > 0) {
+    const isPitcherEntry = (p: WeeklyPlayerEntry) => p.primarySlot === 'SP' || p.primarySlot === 'RP';
+    const hitterTotals: Record<number, Record<string, number>> = {};
+    const pitcherTotals: Record<number, Record<string, number>> = {};
+    for (const tid of teamIds) { hitterTotals[tid] = {}; pitcherTotals[tid] = {}; }
+
+    for (const [weekKey, weekTeams] of Object.entries(weeklyScores.weeks)) {
+      if (!finalizedWeeks.includes(Number(weekKey))) continue;
+      for (const teamBreakdown of weekTeams) {
+        const tid = teamBreakdown.teamId;
+        if (!hitterTotals[tid]) { hitterTotals[tid] = {}; pitcherTotals[tid] = {}; }
+        for (const player of teamBreakdown.players) {
+          if (!player.weeklyStats) continue;
+          const isP = isPitcherEntry(player);
+          if (isP) {
+            if (player.benchDays > 0 && player.activeDays === 0) continue;
+            for (const c of SEASON_PITCHER_CATS) {
+              let val = player.weeklyStats[c.catId] ?? 0;
+              if (c.catId === '34') val = val / 3; // outs → innings
+              pitcherTotals[tid][c.catId] = (pitcherTotals[tid][c.catId] ?? 0) + val;
+            }
+          } else {
+            for (const c of SEASON_HITTER_CATS) {
+              const val = player.weeklyStats[c.catId] ?? 0;
+              hitterTotals[tid][c.catId] = (hitterTotals[tid][c.catId] ?? 0) + val;
+            }
+          }
+        }
+      }
+    }
+
+    const buildSeasonCat = (catId: string, label: string, type: 'hitter' | 'pitcher', higherIsBetter: boolean): TeamSeasonCatStat => {
+      const totals = type === 'hitter' ? hitterTotals : pitcherTotals;
+      const teamValues = teamIds.map(tid => ({
+        teamId: tid,
+        teamName: teamDisplayName(tid, teamMetadata),
+        value: Math.round((totals[tid]?.[catId] ?? 0) * 10) / 10,
+      }));
+      const leagueTotal = teamValues.reduce((s, t) => s + t.value, 0);
+      const leagueAvg = teamIds.length > 0 ? leagueTotal / teamIds.length : 0;
+      const sorted = [...teamValues].sort((a, b) => higherIsBetter ? b.value - a.value : a.value - b.value);
+      return {
+        catId, label, type, higherIsBetter, leagueTotal,
+        leagueAvg: Math.round(leagueAvg * 10) / 10,
+        teams: sorted.map((t, i) => ({ ...t, rank: i + 1 })),
+      };
+    };
+
+    const categories: TeamSeasonCatStat[] = [];
+    for (const c of SEASON_HITTER_CATS) categories.push(buildSeasonCat(c.catId, c.label, 'hitter', c.higherIsBetter));
+    for (const c of SEASON_PITCHER_CATS) categories.push(buildSeasonCat(c.catId, c.label, 'pitcher', c.higherIsBetter));
+    seasonCatStats = { categories };
+  }
 
   // ── STORYLINE BULLETS ─────────────────────────────────────────────────────────
 

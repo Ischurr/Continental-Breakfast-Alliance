@@ -1,7 +1,7 @@
 /**
  * Generates two narrative paragraphs per player using Claude API:
  *   1. background   — career context, style, fantasy relevance (cached until force-refresh)
- *   2. recentAnalysis — 1-2 sentences on recent weeks/month of performance (refreshed weekly)
+ *   2. recentAnalysis — 1-2 sentences on last 7 and 14 day trends (refreshed daily)
  *
  * Reads: data/erosp/latest.json (player list + injury info)
  * Writes: data/player-descriptions.json
@@ -22,7 +22,7 @@ import Anthropic from '@anthropic-ai/sdk';
 dotenvConfig({ path: path.join(path.dirname(new URL(import.meta.url).pathname), '..', '.env.local') });
 
 const MLB_BASE = 'https://statsapi.mlb.com/api/v1';
-const FRESH_DAYS = 6; // Regenerate recentAnalysis if older than this many days
+const FRESH_DAYS = 0; // Regenerate recentAnalysis every run (daily cron)
 const DEFAULT_TOP = 400;
 
 const args = process.argv.slice(2);
@@ -86,12 +86,13 @@ async function fetchStatSummary(mlbamId: number, role: 'H' | 'SP' | 'RP'): Promi
     }
   }
 
-  const [seasonStat, l30Stat] = await Promise.all([
+  const [seasonStat, l14Stat, l7Stat] = await Promise.all([
     fetchSplit('season'),
-    fetchSplit('lastXDays&days=30'),
+    fetchSplit('lastXDays&days=14'),
+    fetchSplit('lastXDays&days=7'),
   ]);
 
-  if (!seasonStat && !l30Stat) return '(No 2026 MLB stats yet — may be on IL or pre-debut)';
+  if (!seasonStat && !l14Stat && !l7Stat) return '(No 2026 MLB stats yet — may be on IL or pre-debut)';
 
   if (role === 'H') {
     const fmtHitter = (s: Record<string, unknown> | null, label: string) => {
@@ -102,7 +103,11 @@ async function fetchStatSummary(mlbamId: number, role: 'H' | 'SP' | 'RP'): Promi
       const pa = s.plateAppearances ?? 0;
       return `${label}: .${String(avg).replace('0.', '').replace('.', '')} AVG / ${ops} OPS / ${hr} HR / ${rbi} RBI / ${sb} SB / ${k} K in ${pa} PA`;
     };
-    return [fmtHitter(seasonStat, '2026 season'), fmtHitter(l30Stat, 'Last 30 days')].join('\n');
+    return [
+      fmtHitter(seasonStat, '2026 season'),
+      fmtHitter(l14Stat, 'Last 14 days'),
+      fmtHitter(l7Stat, 'Last 7 days'),
+    ].join('\n');
   } else {
     const fmtPitcher = (s: Record<string, unknown> | null, label: string) => {
       if (!s) return `${label}: no data`;
@@ -112,7 +117,11 @@ async function fetchStatSummary(mlbamId: number, role: 'H' | 'SP' | 'RP'): Promi
       const qs = s.qualityStarts ?? 0;
       return `${label}: ${era} ERA / ${whip} WHIP / ${k} K / ${ip} IP${w ? ` / ${w}W` : ''}${sv ? ` / ${sv} SV` : ''}${qs ? ` / ${qs} QS` : ''}`;
     };
-    return [fmtPitcher(seasonStat, '2026 season'), fmtPitcher(l30Stat, 'Last 30 days')].join('\n');
+    return [
+      fmtPitcher(seasonStat, '2026 season'),
+      fmtPitcher(l14Stat, 'Last 14 days'),
+      fmtPitcher(l7Stat, 'Last 7 days'),
+    ].join('\n');
   }
 }
 
