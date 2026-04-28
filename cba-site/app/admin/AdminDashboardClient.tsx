@@ -22,6 +22,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   position: 'border-purple-400',
   roster: 'border-teal-400',
   injury: 'border-red-400',
+  season_stats: 'border-cyan-400',
 };
 
 const CATEGORY_BG: Record<string, string> = {
@@ -31,6 +32,7 @@ const CATEGORY_BG: Record<string, string> = {
   position: 'bg-purple-50',
   roster: 'bg-teal-50',
   injury: 'bg-red-50',
+  season_stats: 'bg-cyan-50',
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -99,7 +101,7 @@ const MARGIN_BADGE: Record<string, string> = {
 };
 
 function BulletsTab({ analytics, onCopy }: { analytics: AdminAnalytics; onCopy: () => void }) {
-  const { bullets, priorWeek, priorWeekMatchupResults, weekStats } = analytics;
+  const { bullets, priorWeek, priorWeekMatchupResults, weekStats, seasonCatStats } = analytics;
 
   return (
     <div className="space-y-4">
@@ -145,6 +147,60 @@ function BulletsTab({ analytics, onCopy }: { analytics: AdminAnalytics; onCopy: 
           </div>
         </div>
       )}
+
+      {/* Season Stats card */}
+      {seasonCatStats && seasonCatStats.categories.length > 0 && (() => {
+        const SHOW_CATS = ['HR', 'RBI', 'SB', 'K', 'QS', 'SV', 'IP', 'ER'];
+        const hitterCats = seasonCatStats.categories.filter(c => c.type === 'hitter' && SHOW_CATS.includes(c.label)).slice(0, 4);
+        const pitcherCats = seasonCatStats.categories.filter(c => c.type === 'pitcher' && SHOW_CATS.includes(c.label)).slice(0, 4);
+        return (
+          <div className="rounded-xl border border-cyan-200 bg-cyan-50 p-4">
+            <h3 className="text-sm font-bold text-cyan-800 mb-3">📊 Season Stats — Through Week {priorWeek > 0 ? priorWeek : '?'}</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Hitter stats */}
+              <div>
+                <div className="text-xs font-semibold text-cyan-700 uppercase tracking-wide mb-2">Hitting</div>
+                <div className="space-y-1.5">
+                  {hitterCats.map(cat => {
+                    const leader = cat.teams[0];
+                    return (
+                      <div key={cat.catId} className="flex items-center gap-2 text-xs">
+                        <span className="w-7 text-right font-bold text-gray-500">{cat.label}</span>
+                        <span className="font-semibold text-teal-700 truncate max-w-[90px]">{leader.teamName.split(' ').pop()}</span>
+                        <span className="font-bold text-teal-800 tabular-nums">{leader.value}</span>
+                        <span className="text-gray-400 text-[10px] truncate flex-1">
+                          {cat.teams.slice(0, 4).map((t, i) => `${i + 1}.${t.teamName.split(' ').pop()} ${t.value}`).join(' · ')}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              {/* Pitcher stats */}
+              <div>
+                <div className="text-xs font-semibold text-cyan-700 uppercase tracking-wide mb-2">Pitching</div>
+                <div className="space-y-1.5">
+                  {pitcherCats.map(cat => {
+                    const leader = cat.teams[0];
+                    return (
+                      <div key={`p-${cat.catId}`} className="flex items-center gap-2 text-xs">
+                        <span className="w-7 text-right font-bold text-gray-500">{cat.label}</span>
+                        <span className="font-semibold text-teal-700 truncate max-w-[90px]">{leader.teamName.split(' ').pop()}</span>
+                        <span className="font-bold text-teal-800 tabular-nums">
+                          {cat.catId === '34' ? leader.value.toFixed(1) : leader.value}
+                        </span>
+                        <span className="text-gray-400 text-[10px] truncate flex-1">
+                          {cat.teams.slice(0, 4).map((t, i) => `${i + 1}.${t.teamName.split(' ').pop()} ${cat.catId === '34' ? t.value.toFixed(1) : t.value}`).join(' · ')}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Prior week matchup results */}
       {priorWeek > 0 && priorWeekMatchupResults.length > 0 && (

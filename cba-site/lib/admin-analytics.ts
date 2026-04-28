@@ -1543,6 +1543,132 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
     }
   }
 
+  // ── SEASON STAT BULLETS ───────────────────────────────────────────────────────
+
+  if (seasonCatStats && finalizedWeeks.length >= 3) {
+    const weeksWithData = finalizedWeeks.length;
+
+    const getCat = (catId: string, type: 'hitter' | 'pitcher') =>
+      seasonCatStats!.categories.find(c => c.catId === catId && c.type === type);
+
+    // Simple leader bullets (need gap ≥ 2 over #2)
+    const simpleLeader = (catId: string, type: 'hitter' | 'pitcher', emoji: string, label: string, priority: number) => {
+      const cat = getCat(catId, type);
+      if (!cat || cat.teams.length < 2) return;
+      const leader = cat.teams[0];
+      const second = cat.teams[1];
+      if (leader.value - second.value >= 2 && leader.value > 0) {
+        bullets.push({
+          priority,
+          category: 'season_stats',
+          emoji,
+          headline: `**${leader.teamName}** leads the league in ${label} with ${leader.value} (${weeksWithData} weeks) — ${(leader.value - second.value).toFixed(0)} ahead of 2nd`,
+          teamIds: [leader.teamId],
+        });
+      }
+    };
+
+    simpleLeader('12', 'hitter',  '💣', 'HR',       58);
+    simpleLeader('23', 'hitter',  '💨', 'SB',       60);
+    simpleLeader('48', 'pitcher', '🔥', 'pitcher K', 59);
+    simpleLeader('64', 'pitcher', '⚾', 'QS',        57);
+
+    // Batting K rate (high-risk offense — #1 in batting strikeouts)
+    const bkCat = getCat('48', 'hitter');
+    if (bkCat && bkCat.teams[0].value > 0) {
+      const ldr = bkCat.teams[0];
+      bullets.push({
+        priority: 56,
+        category: 'season_stats',
+        emoji: '😬',
+        headline: `**${ldr.teamName}** leads the league in batting strikeouts (${ldr.value} K over ${weeksWithData} weeks) — high-risk offense`,
+        teamIds: [ldr.teamId],
+      });
+    }
+
+    // Cross-stat narratives (≥3 finalized weeks)
+    // SB/CS ratio: getting caught a lot
+    const sbCat2 = getCat('23', 'hitter');
+    const csCat  = getCat('24', 'hitter');
+    if (sbCat2 && csCat) {
+      for (const t of teamIds) {
+        const sbTeam = sbCat2.teams.find(x => x.teamId === t);
+        const csTeam = csCat.teams.find(x => x.teamId === t);
+        if (!sbTeam || !csTeam) continue;
+        const total = sbTeam.value + csTeam.value;
+        if (total >= 5 && csTeam.value / total > 0.30) {
+          bullets.push({
+            priority: 63,
+            category: 'season_stats',
+            emoji: '🛑',
+            headline: `**${teamDisplayName(t, teamMetadata)}** is aggressive on the bases but getting caught — ${csTeam.value} CS vs ${sbTeam.value} SB (${Math.round(csTeam.value / total * 100)}% caught)`,
+            teamIds: [t],
+          });
+          break; // one bullet max
+        }
+      }
+    }
+
+    // HR/R gap: power without production
+    const hrCat2 = getCat('12', 'hitter');
+    const rCat   = getCat('5',  'hitter');
+    if (hrCat2 && rCat) {
+      const hrTop3  = new Set(hrCat2.teams.slice(0, 3).map(x => x.teamId));
+      const rBot3   = new Set(rCat.teams.slice(-3).map(x => x.teamId));
+      const overlap = [...hrTop3].filter(id => rBot3.has(id));
+      if (overlap.length > 0) {
+        const name = teamDisplayName(overlap[0], teamMetadata);
+        const hrRank = hrCat2.teams.findIndex(x => x.teamId === overlap[0]) + 1;
+        const rRank  = rCat.teams.findIndex(x => x.teamId === overlap[0]) + 1;
+        bullets.push({
+          priority: 66,
+          category: 'season_stats',
+          emoji: '💡',
+          headline: `**${name}** is hitting for power but not producing runs — top ${hrRank} in HR, bottom ${11 - rRank} in R`,
+          teamIds: [overlap[0]],
+        });
+      }
+    }
+
+    // SV/HD gap: closer depth but no setup
+    const svCat = getCat('57', 'pitcher');
+    const hdCat = getCat('63', 'pitcher');
+    if (svCat && hdCat) {
+      const svTop3 = new Set(svCat.teams.slice(0, 3).map(x => x.teamId));
+      const hdBot3 = new Set(hdCat.teams.slice(-3).map(x => x.teamId));
+      const overlap = [...svTop3].filter(id => hdBot3.has(id));
+      if (overlap.length > 0) {
+        const name = teamDisplayName(overlap[0], teamMetadata);
+        bullets.push({
+          priority: 65,
+          category: 'season_stats',
+          emoji: '🔒',
+          headline: `**${name}** has elite closer production but no setup depth — top 3 in SV, bottom 3 in HD`,
+          teamIds: [overlap[0]],
+        });
+      }
+    }
+
+    // K/QS gap: Ks without length
+    const kCat2  = getCat('48', 'pitcher');
+    const qsCat2 = getCat('64', 'pitcher');
+    if (kCat2 && qsCat2) {
+      const kTop3  = new Set(kCat2.teams.slice(0, 3).map(x => x.teamId));
+      const qsBot3 = new Set(qsCat2.teams.slice(-3).map(x => x.teamId));
+      const overlap = [...kTop3].filter(id => qsBot3.has(id));
+      if (overlap.length > 0) {
+        const name = teamDisplayName(overlap[0], teamMetadata);
+        bullets.push({
+          priority: 67,
+          category: 'season_stats',
+          emoji: '🎯',
+          headline: `**${name}** is starter-dependent on strikeouts but not length — top 3 in pitcher K, bottom 3 in QS`,
+          teamIds: [overlap[0]],
+        });
+      }
+    }
+  }
+
   // ── WEEK CATEGORIES ──────────────────────────────────────────────────────────
 
   let weekCategories: WeekCategoryStats | null = null;
@@ -1767,5 +1893,6 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
     weekDetail,
     weekStats,
     weekCategories,
+    seasonCatStats,
   };
 }

@@ -2972,3 +2972,44 @@ Built a full per-player weekly scoring system that tracks what each player score
 - `TeamSeasonCatStat` interface: per-category season stats across all teams (catId, label, type, higherIsBetter, leagueTotal, leagueAvg, teams[])
 - `TeamSeasonStats` interface: wrapper with `categories: TeamSeasonCatStat[]`
 - These support a future "Season Categories" tab in the admin dashboard showing cumulative stat leader tables by team
+
+## Session Work (April 28, 2026 — Admin Dashboard Season Stats Rankings)
+
+### Season-to-date cumulative stat rankings in admin editorial dashboard (`/admin`)
+
+**Files changed:** `lib/admin-analytics.ts`, `app/admin/AdminDashboardClient.tsx`
+
+#### New types (already added last session — now fully wired)
+- `TeamSeasonCatStat` — per-category team-level season totals with rank
+- `TeamSeasonStats` — wrapper with `categories: TeamSeasonCatStat[]`
+- `seasonCatStats: TeamSeasonStats | null` added to `AdminAnalytics` interface
+
+#### Data source
+- `weeklyScores.weeks[N].players[].weeklyStats` — ESPN `appliedStats` cumulative within each matchup week (`statSplitTypeId=5`)
+- Summed across all **finalized** weeks only (weeks where every matchup has `winner !== undefined`)
+- Pitchers identified by `primarySlot === 'SP' || primarySlot === 'RP'`; bench-only pitchers (`benchDays > 0 && activeDays === 0`) excluded from pitcher totals
+
+#### Module-level constants added (DRY with weekCategories)
+- `SEASON_HITTER_CATS` — HR, RBI, R, SB, H, batting K, CS
+- `SEASON_PITCHER_CATS` — pitcher K, IP (outs÷3), QS, SV, HD, ER, BS
+- ESPN stat IDs: "5"=R, "6"=H, "12"=HR, "13"=RBI, "23"=SB, "24"=CS, "34"=IP(outs), "41"=ER, "48"=K(dual-use), "57"=SV, "61"=BS, "63"=HD, "64"=QS
+
+#### `seasonCatStats` computation (before `// ── STORYLINE BULLETS`)
+- Loops finalized weeks only; accumulates per-team hitter/pitcher totals in separate maps
+- `buildSeasonCat()` helper: sorts teams by value, assigns ranks 1–10, rounds to 1 decimal place
+
+#### Season stat bullets (after week context bullets, `category: 'season_stats'`, `border-cyan-400`)
+- **Priority 56–60**: HR leader, SB leader, pitcher K leader, QS leader (each ≥2-unit gap over #2); batting K leader ("high-risk offense")
+- **Priority 63**: SB/CS ratio > 30% with ≥5 steal attempts → "getting caught on bases"
+- **Priority 65**: SV top-3 + HD bottom-3 → "elite closer, no setup depth"
+- **Priority 66**: HR top-3 + R bottom-3 → "hitting for power but not producing runs"
+- **Priority 67**: pitcher K top-3 + QS bottom-3 → "starter-dependent on Ks but not length"
+- Cross-stat narratives only fire when `finalizedWeeks.length >= 3`
+
+#### "📊 Season Stats" card in `BulletsTab` (`AdminDashboardClient.tsx`)
+- Placed between "Week at a Glance" and "Prior Week Results" cards
+- 2-column grid: 4 hitter stats (HR, RBI, SB, K leaders) / 4 pitcher stats (K, QS, SV, IP leaders)
+- Each row: stat label, league leader (team last name + value in teal), abbreviated rank list for top 4 teams
+- IP displayed with 1 decimal; hidden when `seasonCatStats` is null (no weeklyScores data yet)
+
+#### `tsc --noEmit` exits 0 (clean compilation)
