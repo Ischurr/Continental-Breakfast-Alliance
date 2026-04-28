@@ -287,6 +287,19 @@ export interface WeekCategoryStats {
   oddityBullets: StorylineBullet[];
 }
 
+export interface TeamSeasonCatStat {
+  catId: string;
+  label: string;
+  type: 'hitter' | 'pitcher';
+  higherIsBetter: boolean;
+  leagueTotal: number;
+  leagueAvg: number;
+  teams: { teamId: number; teamName: string; value: number; rank: number }[];
+}
+export interface TeamSeasonStats {
+  categories: TeamSeasonCatStat[];
+}
+
 export interface AdminAnalytics {
   currentWeek: number;
   priorWeek: number;

@@ -2953,3 +2953,22 @@ Built a full per-player weekly scoring system that tracks what each player score
 - `weekStats` computation placed BEFORE `teamTrends.map()` to avoid shadowing the outer `weeklyScores: WeeklyScoresData` input param (which `teamTrends.map()` uses via inner `const weeklyScores = ...`)
 - `detailWeek` and `weekBreakdowns` hoisted to before the bullets section so both `weekCategories` (pre-dedup) and `weekDetail` (post-dedup) can share the same values
 - `lineupSlotId` on each roster entry changes per scoring period when fetched with `scoringPeriodId=N`
+
+## Session Work (April 27, 2026 — Player Descriptions Completed + Whistlepigs Rename)
+
+### Player descriptions filled in for all top 400 EROSP players
+- **`data/player-descriptions.json`** now has 527 entries, covering all top 400 players by EROSP
+- Previously had 437 entries; 90 missing descriptions (ranks 171–400) were written this session
+- All descriptions include `background` (career context, style, fantasy relevance) and `recentAnalysis` (1-2 sentences on 2026 performance based on MLB Stats API stats)
+- Stats fetched via MLB Stats API with SSL bypass (`ssl.create_default_context()` + `check_hostname=False`) to avoid local cert issues
+- Notable players covered: Josh Jung, Brooks Lee, Marcelo Mayer, Coby Mayo, Anthony Volpe, Cole Young, Jose Caballero, Dominic Smith, Eury Perez, Sean Burke, Jack Kochanowicz, and ~80 others
+- Weekly cron (`update-player-descriptions.yml`, Monday 7 AM EST) will continue refreshing `recentAnalysis` going forward
+
+### Ghent → Warren Whistlepigs team rename
+- `data/teams.json`: `displayName` updated from "Ghent Whistlepigs" → "Warren Whistlepigs"
+- `data/prospect-protections.json`: `teamName` updated to match
+
+### `lib/admin-analytics.ts` — new types for season category stats
+- `TeamSeasonCatStat` interface: per-category season stats across all teams (catId, label, type, higherIsBetter, leagueTotal, leagueAvg, teams[])
+- `TeamSeasonStats` interface: wrapper with `categories: TeamSeasonCatStat[]`
+- These support a future "Season Categories" tab in the admin dashboard showing cumulative stat leader tables by team
