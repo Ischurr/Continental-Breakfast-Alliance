@@ -369,6 +369,71 @@ print()
 
 
 # ---------------------------------------------------------------------------
+# STEP 9b-DTD: Supplement injury_map with day-to-day estimates from injury news
+# ---------------------------------------------------------------------------
+# Reads the most recent cached injury news (written by patch_injury_status.py).
+# For players NOT already on the IL, parses DTD/week-to-week keywords and adds
+# a small games_missed_est so games_remaining is discounted for nagging injuries.
+if SEASON_STARTED and injury_map is not None:
+    import re as _re
+    import unicodedata as _ud
+
+    def _norm_name(name: str) -> str:
+        n = _ud.normalize("NFKD", name).encode("ascii", "ignore").decode("ascii")
+        n = _re.sub(r"\s+(jr\.?|sr\.?|ii|iii|iv)\.?\s*$", "", n, flags=_re.IGNORECASE)
+        return _re.sub(r"[^a-z0-9]", "", n.lower()).strip()
+
+    # Build normalized name → mlbam_id from talent DataFrames
+    _name_to_id: dict = {}
+    for _df in [hitter_talent_df, pitcher_talent_df]:
+        if _df.empty:
+            continue
+        for _mid, _row in _df.iterrows():
+            _n = _norm_name(str(_row.get("name", "")))
+            if _n:
+                _name_to_id[_n] = int(_mid)
+
+    # Find most recent injury news cache
+    _cache_files = sorted(
+        (SCRIPT_DIR / "erosp_cache").glob(f"injury_news_{TARGET_SEASON}_*.json"),
+        reverse=True,
+    )
+    if _cache_files:
+        with open(_cache_files[0]) as _f:
+            _news_map: dict = json.load(_f)
+
+        _dtd_count = 0
+        for _norm_key, _entry in _news_map.items():
+            _mid = _name_to_id.get(_norm_key)
+            if not _mid or _mid in injury_map:
+                continue  # already on IL — don't double-count
+            _text = _entry.get("text", "").lower()
+            _games_est = 0
+            if "day-to-day" in _text or "day to day" in _text:
+                _games_est = 5
+            elif "week-to-week" in _text or "week to week" in _text:
+                _games_est = 12
+            else:
+                _wm = _re.search(r"out\s+(?:approximately\s+)?(\d+)\s+week", _text)
+                if _wm:
+                    _weeks = int(_wm.group(1))
+                    if _weeks <= 3:  # >3 weeks → assume already on IL or about to be
+                        _games_est = _weeks * 7
+            if _games_est > 0:
+                injury_map[_mid] = {"il_type": "DTD", "games_missed_est": _games_est}
+                _dtd_count += 1
+
+        if _dtd_count:
+            print(f"  DTD supplement: {_dtd_count} non-IL players discounted from injury news "
+                  f"({_cache_files[0].name}).")
+        else:
+            print(f"  DTD supplement: no DTD players found in {_cache_files[0].name}.")
+    else:
+        print("  DTD supplement: no injury news cache found — skipping.")
+print()
+
+
+# ---------------------------------------------------------------------------
 # STEP 9c: Active 40-man roster filter — exclude released/non-rostered players
 # ---------------------------------------------------------------------------
 print("─── Step 9c: Active roster filter ───────────────────────────────")

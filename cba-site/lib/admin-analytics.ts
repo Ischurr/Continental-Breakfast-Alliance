@@ -423,6 +423,14 @@ function classifySlotUnit(slotId: number): UnitGroup | null {
   return SLOT_TO_UNIT[slotId] ?? null;
 }
 
+// slotId → display label for week detail breakdown (more granular than UnitGroup)
+const SLOT_ID_LABEL: Record<number, string> = {
+  0: 'C', 1: '1B', 2: '2B', 3: '3B', 4: 'SS',
+  5: 'OF', 6: 'MIF', 7: 'CIF',
+  8: 'OF', 9: 'OF', 10: 'OF',
+  12: 'DH', 13: 'SP', 14: 'SP', 15: 'RP', 19: 'UTIL',
+};
+
 const SLOT_DISPLAY: Record<string, string> = {
   C: 'Catcher', '1B': '1B', '2B': '2B', '3B': '3B', SS: 'SS',
   MIF: 'Middle IF', CIF: 'Corner IF', OF: 'Outfield', DH: 'DH / Utility',
@@ -849,25 +857,31 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
   const hasSlotData = !!weeklyScores && Object.keys(weeklyScores.weeks).length > 0;
 
   if (hasSlotData && weeklyScores) {
-    // Slot-based: sum activePoints per player across all weeks, grouped by their primarySlot
+    // Slot-based: distribute each player's points to the exact slot(s) they were in each day.
+    // Uses pointsBySlot when available; falls back to primarySlotId → all activePoints.
     for (const weekTeams of Object.values(weeklyScores.weeks)) {
       for (const teamBreakdown of weekTeams) {
         const teamId = teamBreakdown.teamId;
         if (!unitByTeam[teamId]) unitByTeam[teamId] = {};
         for (const player of teamBreakdown.players) {
           if (player.activePoints <= 0) continue;
-          const grp = classifySlotUnit(player.primarySlotId);
-          if (!grp) continue;
-          if (!unitByTeam[teamId][grp]) unitByTeam[teamId][grp] = { total: 0, players: [] };
-          unitByTeam[teamId][grp]!.total += player.activePoints;
-          // Accumulate across weeks for the same player
-          const existing = unitByTeam[teamId][grp]!.players.find(p => p.name === player.playerName);
-          if (existing) {
-            existing.pts += player.activePoints;
-          } else {
-            unitByTeam[teamId][grp]!.players.push({
-              name: player.playerName, pts: player.activePoints, position: player.position,
-            });
+          // pointsBySlot maps slotId → points earned in that slot (may span multiple slots)
+          const slotPts: Record<number, number> = player.pointsBySlot ?? { [player.primarySlotId]: player.activePoints };
+          for (const [slotIdStr, pts] of Object.entries(slotPts)) {
+            if (pts <= 0) continue;
+            const grp = classifySlotUnit(Number(slotIdStr));
+            if (!grp) continue;
+            if (!unitByTeam[teamId][grp]) unitByTeam[teamId][grp] = { total: 0, players: [] };
+            unitByTeam[teamId][grp]!.total += pts;
+            // Accumulate across weeks and slots for the same player
+            const existing = unitByTeam[teamId][grp]!.players.find(p => p.name === player.playerName);
+            if (existing) {
+              existing.pts += pts;
+            } else {
+              unitByTeam[teamId][grp]!.players.push({
+                name: player.playerName, pts, position: player.position,
+              });
+            }
           }
         }
       }
@@ -1832,22 +1846,27 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
         photoUrl: p.photoUrl,
       }));
 
-    // Slot unit breakdown for this week across all teams
+    // Slot unit breakdown for this week across all teams.
+    // Uses pointsBySlot to credit each day's points to the actual slot played that day.
     const weekSlotByTeam: Record<number, Record<string, { pts: number; players: { name: string; points: number; slot: string }[] }>> = {};
     for (const tb of weekBreakdowns) {
       weekSlotByTeam[tb.teamId] = {};
       for (const p of tb.players) {
         if (p.activeDays === 0) continue;
-        const slot = p.primarySlot;
-        if (!weekSlotByTeam[tb.teamId][slot]) weekSlotByTeam[tb.teamId][slot] = { pts: 0, players: [] };
-        weekSlotByTeam[tb.teamId][slot].pts += p.activePoints;
-        weekSlotByTeam[tb.teamId][slot].players.push({ name: p.playerName, points: p.activePoints, slot });
+        const slotPts: Record<number, number> = p.pointsBySlot ?? { [p.primarySlotId]: p.activePoints };
+        for (const [slotIdStr, pts] of Object.entries(slotPts)) {
+          if (pts <= 0) continue;
+          const slot = SLOT_ID_LABEL[Number(slotIdStr)] ?? p.primarySlot;
+          if (!weekSlotByTeam[tb.teamId][slot]) weekSlotByTeam[tb.teamId][slot] = { pts: 0, players: [] };
+          weekSlotByTeam[tb.teamId][slot].pts += pts;
+          weekSlotByTeam[tb.teamId][slot].players.push({ name: p.playerName, points: pts, slot });
+        }
       }
     }
 
-    const allSlots = [...new Set(weekBreakdowns.flatMap(t =>
-      t.players.filter(p => p.activeDays > 0).map(p => p.primarySlot)
-    ))].sort();
+    const allSlots = [...new Set(
+      Object.values(weekSlotByTeam).flatMap(teamSlots => Object.keys(teamSlots))
+    )].sort();
 
     const slotUnits: SlotUnitWeekStats[] = allSlots.map(slot => {
       const teamEntries: SlotUnitWeekEntry[] = weekBreakdowns.map(tb => ({

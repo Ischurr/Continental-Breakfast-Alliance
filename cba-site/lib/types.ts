@@ -180,6 +180,8 @@ export interface WeeklyPlayerEntry {
   photoUrl?: string;
   /** ESPN stat ID → cumulative value for this matchup week (from statSplitTypeId=5) */
   weeklyStats?: Record<string, number>;
+  /** slotId → points earned while in that slot (e.g. {1: 20, 19: 30} = 20pts at 1B + 30pts at UTIL) */
+  pointsBySlot?: Record<number, number>;
 }
 
 export interface WeeklyTeamBreakdown {

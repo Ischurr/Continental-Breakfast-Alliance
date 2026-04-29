@@ -149,6 +149,7 @@ function computeWeekBreakdowns(
       let activeDays = 0;
       let benchDays = 0;
       const slotCountsActive: Record<number, number> = {};
+      const pointsBySlotId: Record<number, number> = {};
 
       for (const period of weekPeriods) {
         const snap = periodCache[period]?.[teamId]?.[playerId];
@@ -170,6 +171,7 @@ function computeWeekBreakdowns(
           activePoints += dayDelta;
           activeDays++;
           slotCountsActive[slotId] = (slotCountsActive[slotId] ?? 0) + 1;
+          pointsBySlotId[slotId] = (pointsBySlotId[slotId] ?? 0) + dayDelta;
         }
       }
 
@@ -199,6 +201,12 @@ function computeWeekBreakdowns(
         }
       }
 
+      // Round each slot's points to 1 decimal
+      const pointsBySlot: Record<number, number> = {};
+      for (const [slotId, pts] of Object.entries(pointsBySlotId)) {
+        pointsBySlot[Number(slotId)] = Math.round(pts * 10) / 10;
+      }
+
       playerEntries.push({
         playerId,
         playerName: meta.playerName,
@@ -212,6 +220,7 @@ function computeWeekBreakdowns(
         benchDays,
         photoUrl: meta.photoUrl,
         weeklyStats,
+        pointsBySlot: Object.keys(pointsBySlot).length > 0 ? pointsBySlot : undefined,
       });
     }
 

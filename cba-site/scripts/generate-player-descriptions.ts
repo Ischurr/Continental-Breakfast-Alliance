@@ -39,6 +39,8 @@ const singlePlayer = (() => {
 const ROOT = path.join(path.dirname(new URL(import.meta.url).pathname), '..');
 const EROSP_PATH = path.join(ROOT, 'data', 'erosp', 'latest.json');
 const DESC_PATH = path.join(ROOT, 'data', 'player-descriptions.json');
+const KEEPERS_PATH = path.join(ROOT, 'data', 'keeper-overrides.json');
+const TEAMS_PATH = path.join(ROOT, 'data', 'teams.json');
 
 interface EROSPPlayer {
   mlbam_id: number;
@@ -48,6 +50,7 @@ interface EROSPPlayer {
   role: 'H' | 'SP' | 'RP';
   erosp_raw: number;
   erosp_per_game?: number;
+  fantasy_team_id?: number;
   il_type?: string;
   injury_note?: string;
 }
@@ -62,13 +65,36 @@ interface PlayerDescription {
 
 type DescriptionCache = Record<string, PlayerDescription>;
 
-function isStale(desc: PlayerDescription | undefined, forceBack: boolean): { needsBackground: boolean; needsRecent: boolean } {
+// Auto-detect name mismatch: if the stored description is for a different player,
+// force-regenerate background regardless of other flags.
+function isStale(
+  desc: PlayerDescription | undefined,
+  playerName: string,
+  forceBack: boolean,
+): { needsBackground: boolean; needsRecent: boolean } {
   if (!desc) return { needsBackground: true, needsRecent: true };
+  const nameMismatch = desc.name.toLowerCase() !== playerName.toLowerCase();
   const daysSinceRecent = (Date.now() - new Date(desc.recentAnalysisUpdatedAt).getTime()) / 86_400_000;
   return {
-    needsBackground: forceBack || !desc.background,
+    needsBackground: forceBack || !desc.background || nameMismatch,
     needsRecent: daysSinceRecent > FRESH_DAYS,
   };
+}
+
+function buildFantasyContext(
+  player: EROSPPlayer,
+  keeperByName: Map<string, string>,
+  teamNameById: Map<string, string>,
+): string {
+  const teamId = player.fantasy_team_id ? String(player.fantasy_team_id) : '0';
+  if (teamId === '0') {
+    return 'This player is currently a free agent in the CBA fantasy league, available to any team.';
+  }
+  const teamName = teamNameById.get(teamId) ?? `Team ${teamId}`;
+  if (keeperByName.has(player.name.toLowerCase())) {
+    return `This player is a KEEPER for the ${teamName} in the CBA fantasy league — the team retained them from last season.`;
+  }
+  return `This player was drafted by the ${teamName} in the 2026 CBA fantasy draft.`;
 }
 
 interface StatSplits {
@@ -163,6 +189,7 @@ async function generateDescriptions(
   client: Anthropic | null,
   needsBackground: boolean,
   needsRecent: boolean,
+  fantasyContext: string,
 ): Promise<{ background: string; recentAnalysis: string }> {
   const roleLabel = player.role === 'SP' ? 'starting pitcher' : player.role === 'RP' ? 'relief pitcher' : 'hitter';
   const ilNote = player.il_type ? `(currently on ${player.il_type} IL${player.injury_note ? `: ${player.injury_note}` : ''})` : '';
@@ -180,9 +207,10 @@ async function generateDescriptions(
     const prompt = `You are a fantasy baseball analyst writing concise player profiles for a fantasy baseball league website. The audience is serious fantasy baseball managers who want quick, useful insight.
 
 Player: ${player.name}
-Position: ${player.position} | Team: ${player.mlb_team} | Role: ${roleLabel}${ilNote ? ` ${ilNote}` : ''}
+Position: ${player.position} | MLB Team: ${player.mlb_team} | Role: ${roleLabel}${ilNote ? ` ${ilNote}` : ''}
+CBA Fantasy League Status: ${fantasyContext}
 
-BACKGROUND (2-3 sentences): Write about ${player.name}'s career history, playing style, key strengths or weaknesses, and why they matter in fantasy baseball. Be specific. Present tense for active aspects.
+BACKGROUND (2-3 sentences): Write about ${player.name}'s career history, playing style, key strengths or weaknesses, and why they matter in fantasy baseball. Weave in their CBA fantasy league status naturally — e.g. mention which team owns them and how they were acquired (keeper/draft pick/free agent). Be specific. Present tense for active aspects.
 
 Respond with ONLY a valid JSON object, no markdown, no explanation, no code block:
 {"background": "..."}`;
@@ -215,6 +243,21 @@ async function main() {
     console.error('❌ data/erosp/latest.json not found — run compute_erosp.py first');
     process.exit(1);
   }
+
+  // Load keeper and team data for acquisition context
+  const keepersRaw = fs.existsSync(KEEPERS_PATH)
+    ? JSON.parse(fs.readFileSync(KEEPERS_PATH, 'utf-8')) as Record<string, string[]>
+    : {};
+  const teamsRaw = fs.existsSync(TEAMS_PATH)
+    ? JSON.parse(fs.readFileSync(TEAMS_PATH, 'utf-8')) as { teams: Array<{ id: number; displayName: string }> }
+    : { teams: [] };
+
+  const keeperByName = new Map<string, string>();
+  for (const [teamId, names] of Object.entries(keepersRaw)) {
+    for (const name of names) keeperByName.set(name.toLowerCase(), teamId);
+  }
+  const teamNameById = new Map<string, string>();
+  for (const team of teamsRaw.teams) teamNameById.set(String(team.id), team.displayName);
 
   const erospRaw = JSON.parse(fs.readFileSync(EROSP_PATH, 'utf-8')) as { players?: EROSPPlayer[] };
   let players = (erospRaw.players ?? []).filter(p => p.mlbam_id);
@@ -252,7 +295,7 @@ async function main() {
     const player = players[i]!;
     const key = String(player.mlbam_id);
     const existing = cache[key];
-    const stale = isStale(existing, forceBackground);
+    const stale = isStale(existing, player.name, forceBackground);
     const needsBackground = stale.needsBackground && !!client;
     const needsRecent = stale.needsRecent;
 
@@ -261,11 +304,17 @@ async function main() {
       continue;
     }
 
-    const whatNeeds = [needsBackground && 'background', needsRecent && 'recent'].filter(Boolean).join('+');
+    const nameMismatch = existing && existing.name.toLowerCase() !== player.name.toLowerCase();
+    const whatNeeds = [
+      needsBackground && (nameMismatch ? 'background(NAME-MISMATCH)' : 'background'),
+      needsRecent && 'recent',
+    ].filter(Boolean).join('+');
     process.stdout.write(`[${i + 1}/${players.length}] ${player.name} (${player.mlb_team}) — ${whatNeeds}... `);
 
+    const fantasyContext = buildFantasyContext(player, keeperByName, teamNameById);
+
     try {
-      const result = await generateDescriptions(player, existing, client, needsBackground, needsRecent);
+      const result = await generateDescriptions(player, existing, client, needsBackground, needsRecent, fantasyContext);
 
       cache[key] = {
         name: player.name,

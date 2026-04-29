@@ -45,26 +45,6 @@ def estimate_hitter_playing_time(
         result.loc[catcher_mask, "p_play"]      = DEFAULT_P_PLAY_CATCHER
         result.loc[catcher_mask, "pa_per_game"] = DEFAULT_PA_PER_GAME_CATCHER
 
-    # If current-season data available, use last-14-day start rate
-    if current_season_year in batting_by_year:
-        cur_df = batting_by_year[current_season_year]
-        # Infer start rate from G / team_games (approximate)
-        for mlbam_id, row in talent_df.iterrows():
-            fgid = int(row.get("fgid", 0))
-            match = cur_df[cur_df["IDfg"] == fgid] if fgid else pd.DataFrame()
-            if match.empty:
-                continue
-            p = match.iloc[0]
-            games = float(p.get("G", 0))
-            pa    = float(p.get("PA", 0))
-            # If player has played at least 14 games this season, use actual rate
-            if games >= 14:
-                team_games = games / DEFAULT_P_PLAY_HITTER  # rough estimate
-                p_play = min(games / max(team_games, 1), 1.0)
-                pa_per_g = pa / max(games, 1)
-                result.at[mlbam_id, "p_play"]      = round(float(p_play), 4)
-                result.at[mlbam_id, "pa_per_game"] = round(float(pa_per_g), 2)
-
     # Use Steamer projected PA to infer playing time if available
     if steamer_pa_map:
         for mlbam_id, row in talent_df.iterrows():
@@ -103,6 +83,40 @@ def estimate_hitter_playing_time(
         if healthy_hitter_count:
             print(f"    Fix G: {healthy_hitter_count} hitter(s) got healthy-returnee PA floor "
                   f"(≥480 PA in {y0_year}, floored at 80%).")
+
+    # Fix J: In-season YTD playing time anchor — runs last, overrides Steamer + Fix G.
+    # The prior code estimated team_games as player_games / DEFAULT_P_PLAY_HITTER, which
+    # is circular and always returned DEFAULT_P_PLAY_HITTER (0.92) regardless of actual role.
+    # Now uses actual team games played (max G among all players on the same team in YTD data).
+    if current_season_year in batting_by_year:
+        cur_df = batting_by_year[current_season_year]
+        # Pre-compute actual team games played per MLB team (team_norm matches mlb_team)
+        team_max_games: Dict[str, float] = {}
+        if "team_norm" in cur_df.columns:
+            team_max_games = cur_df.groupby("team_norm")["G"].max().to_dict()
+        ytd_anchor_count = 0
+        for mlbam_id, row in talent_df.iterrows():
+            fgid = int(row.get("fgid", 0))
+            match = cur_df[cur_df["IDfg"] == fgid] if fgid else pd.DataFrame()
+            if match.empty:
+                continue
+            p = match.iloc[0]
+            games = float(p.get("G", 0))
+            pa    = float(p.get("PA", 0))
+            if games < 14:
+                continue
+            player_team = str(row.get("mlb_team", ""))
+            team_games  = float(team_max_games.get(player_team, 0))
+            if team_games < games:  # fallback for traded players or missing team
+                team_games = games / DEFAULT_P_PLAY_HITTER
+            p_play   = min(games / max(team_games, 1), 1.0)
+            pa_per_g = pa / max(games, 1)
+            result.at[mlbam_id, "p_play"]      = round(float(p_play), 4)
+            result.at[mlbam_id, "pa_per_game"] = round(float(pa_per_g), 2)
+            ytd_anchor_count += 1
+        if ytd_anchor_count:
+            print(f"    Fix J: {ytd_anchor_count} hitter(s) got YTD playing time anchor "
+                  f"(≥14 G in {current_season_year}, actual G/team_games rate).")
 
     return result
 
@@ -353,6 +367,70 @@ def estimate_rp_playing_time(
                 confirmed_closer_count += 1
         if confirmed_closer_count:
             print(f"    Fix F: {confirmed_closer_count} confirmed multi-year closers (sv/g≥0.30 in y1+y2).")
+
+    # Fix K: In-season YTD RP anchor — runs last, overrides historical role.
+    # Role detection (closer/setup) uses ≥5 G — enough saves to confirm a new closer.
+    # Pace anchoring + ip_per_app update requires ≥10 G for a stable rate estimate.
+    if current_season_year in pitching_by_year:
+        ytd_pit_df = pitching_by_year[current_season_year]
+        # Pre-compute actual team games played per MLB team
+        team_max_g: Dict[str, float] = {}
+        if "team_norm" in ytd_pit_df.columns:
+            team_max_g = ytd_pit_df.groupby("team_norm")["G"].max().to_dict()
+        ytd_rp_count = 0
+        ytd_role_count = 0
+        for mlbam_id, row in rp_df.iterrows():
+            fgid = int(row.get("fgid", 0))
+            if not fgid:
+                continue
+            ytd_match = ytd_pit_df[ytd_pit_df["IDfg"] == fgid]
+            if ytd_match.empty:
+                continue
+            ytd_g = float(ytd_match.iloc[0].get("G", 0))
+            if ytd_g < 5:
+                continue
+
+            # Role detection from YTD SV/HLD rates — fires at ≥5 G
+            ytd_sv  = float(ytd_match.iloc[0].get("SV",  0) or 0)
+            ytd_hld = float(ytd_match.iloc[0].get("HLD", 0) or 0)
+            ytd_sv_rate  = ytd_sv  / max(ytd_g, 1)
+            ytd_hld_rate = ytd_hld / max(ytd_g, 1)
+            if ytd_sv_rate >= 0.20:
+                result.at[mlbam_id, "rp_role"]           = "closer"
+                result.at[mlbam_id, "p_appear_per_game"] = max(
+                    result.at[mlbam_id, "p_appear_per_game"], 0.40
+                )
+                ytd_role_count += 1
+            elif ytd_hld_rate >= 0.20 or ytd_sv_rate >= 0.08:
+                if result.at[mlbam_id, "rp_role"] == "middle":
+                    result.at[mlbam_id, "rp_role"]           = "setup"
+                    result.at[mlbam_id, "p_appear_per_game"] = max(
+                        result.at[mlbam_id, "p_appear_per_game"], 0.38
+                    )
+                    ytd_role_count += 1
+
+            # Pace anchoring + ip_per_app — requires ≥10 G for a stable rate
+            if ytd_g < 10:
+                continue
+            player_team = str(row.get("mlb_team", ""))
+            team_games  = float(team_max_g.get(player_team, 0))
+            if team_games < ytd_g:  # fallback for traded players or missing team
+                team_games = ytd_g / DEFAULT_P_APPEAR_RP
+            pace = round(min(ytd_g / max(team_games, 1), 0.65), 4)
+            if result.at[mlbam_id, "p_appear_per_game"] < pace:
+                result.at[mlbam_id, "p_appear_per_game"] = pace
+                ytd_rp_count += 1
+            ytd_ip = float(ytd_match.iloc[0].get("IP", 0))
+            if ytd_ip > 0:
+                result.at[mlbam_id, "ip_per_app"] = round(
+                    float(np.clip(ytd_ip / ytd_g, 0.2, 1.5)), 2
+                )
+        if ytd_role_count:
+            print(f"    Fix K: {ytd_role_count} RP(s) got YTD role update "
+                  f"(≥5 G in {current_season_year}, SV/HLD rate detection).")
+        if ytd_rp_count:
+            print(f"    Fix K: {ytd_rp_count} RP(s) got YTD appearance rate anchor "
+                  f"(≥10 G in {current_season_year}, actual G/team_games rate).")
 
     return result
 

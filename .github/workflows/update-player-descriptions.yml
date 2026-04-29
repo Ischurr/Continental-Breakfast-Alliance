@@ -33,7 +33,7 @@ jobs:
       - name: Generate player descriptions
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: npm run generate-descriptions -- --top 400
+        run: npm run generate-descriptions -- --top 800
 
       - name: Commit updated descriptions
         run: |
