@@ -96,7 +96,18 @@ function formatStatLine(stat: Record<string, number | string>, isPitcher: boolea
   }
 }
 
-type RawSplit = { stat: Record<string, number | string>; gamesPlayed?: number; game?: { officialDate?: string }; opponent?: { abbreviation?: string } };
+// MLB team ID → abbreviation (30 teams)
+const MLB_TEAM_ABBREV: Record<number, string> = {
+  108: 'LAA', 109: 'ARI', 110: 'BAL', 111: 'BOS', 112: 'CHC',
+  113: 'CIN', 114: 'CLE', 115: 'COL', 116: 'DET', 117: 'HOU',
+  118: 'KC',  119: 'LAD', 120: 'WSH', 121: 'NYM', 133: 'OAK',
+  134: 'PIT', 135: 'SD',  136: 'SEA', 137: 'SF',  138: 'STL',
+  139: 'TB',  140: 'TEX', 141: 'TOR', 142: 'MIN', 143: 'PHI',
+  144: 'ATL', 145: 'CWS', 146: 'MIA', 147: 'NYY', 158: 'MIL',
+  159: 'ATH',
+};
+
+type RawSplit = { stat: Record<string, number | string>; gamesPlayed?: number; date?: string; game?: { officialDate?: string }; opponent?: { id?: number; abbreviation?: string } };
 
 async function fetchMlbSplits(mlbamId: number, group: string, statsType: string, extra = ''): Promise<RawSplit[] | null> {
   try {
@@ -250,8 +261,8 @@ export async function GET(request: Request) {
   if (mlbamId) {
     const [seasonSplits, last14Splits, last7Splits, gameLogSplits] = await Promise.all([
       fetchMlbSplits(mlbamId, group, 'season'),
-      fetchMlbSplits(mlbamId, group, 'lastXDays', '&days=14'),
-      fetchMlbSplits(mlbamId, group, 'lastXDays', '&days=7'),
+      fetchMlbSplits(mlbamId, group, 'lastXGames', '&limit=14'),
+      fetchMlbSplits(mlbamId, group, 'lastXGames', '&limit=7'),
       fetchMlbSplits(mlbamId, group, 'gameLog'),
     ]);
 
@@ -266,14 +277,16 @@ export async function GET(request: Request) {
         .map(split => {
           const stat = split.stat;
           const fp = isPitcher ? calcPitcherFP(stat) : calcHitterFP(stat);
-          const rawDate = split.game?.officialDate ?? '';
+          const rawDate = split.date ?? split.game?.officialDate ?? '';
           const dateDisplay = rawDate
             ? new Date(rawDate + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
             : '—';
           const isQS = isPitcher && parseIP(stat.inningsPitched ?? 0) >= 6 && Number(stat.earnedRuns ?? 0) <= 3;
+          const oppId = split.opponent?.id;
+          const oppAbbrev = split.opponent?.abbreviation ?? (oppId ? MLB_TEAM_ABBREV[oppId] : undefined);
           return {
             date: dateDisplay,
-            opponent: split.opponent?.abbreviation,
+            opponent: oppAbbrev,
             fantasyPoints: Math.round(fp * 10) / 10,
             statLine: formatStatLine(stat, isPitcher),
             isQS,
