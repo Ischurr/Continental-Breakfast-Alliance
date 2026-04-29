@@ -273,12 +273,13 @@ export default function BaseballFieldLeaders({ rosteredPlayers, freeAgents, rpNa
       .filter(p => (p.position === 'SP' || p.position === 'RP') && p.totalPoints > 0)
       .sort((a, b) => b.totalPoints - a.totalPoints);
 
-    const trueSPs = rpNames
-      ? allPitchers.filter(p => !rpNames.has(p.playerName))
-      : allPitchers.filter(p => p.position === 'SP').slice(0, 4);
-    const trueRPs = rpNames
-      ? allPitchers.filter(p => rpNames.has(p.playerName))
-      : allPitchers.filter(p => p.position === 'RP').slice(0, 5);
+    // Use ESPN position as primary truth; rpNames supplements for any SP-labeled player EROSP classifies as RP
+    const trueSPs = allPitchers.filter(p =>
+      p.position !== 'RP' && !(rpNames?.has(p.playerName))
+    );
+    const trueRPs = allPitchers.filter(p =>
+      p.position === 'RP' || rpNames?.has(p.playerName)
+    );
 
     sp1      = trueSPs[0] ?? null;
     rotation = trueSPs.slice(1, 5);

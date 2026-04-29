@@ -326,6 +326,7 @@ export interface AdminAnalytics {
   weekStats: WeekStats | null;
   weekCategories: WeekCategoryStats | null;
   seasonCatStats: TeamSeasonStats | null;
+  allWeekMatchups: Record<number, PriorWeekMatchupResult[]>;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -1877,6 +1878,40 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
     weekDetail = { week: detailWeek, topPerformers, benchBooms, slotUnits, teamBreakdowns };
   }
 
+  // Build matchup results for every week that has completed matchups
+  const allWeekMatchups: Record<number, PriorWeekMatchupResult[]> = {};
+  for (const [wkStr, wkMatchups] of Object.entries(weeksByNum)) {
+    const wk = Number(wkStr);
+    const results: PriorWeekMatchupResult[] = wkMatchups
+      .filter(m => m.home.totalPoints > 0 || m.away.totalPoints > 0)
+      .map(m => {
+        const homeWon = m.winner === m.home.teamId;
+        const winnerPts = homeWon ? m.home.totalPoints : m.away.totalPoints;
+        const loserPts = homeWon ? m.away.totalPoints : m.home.totalPoints;
+        const margin = Math.round((winnerPts - loserPts) * 10) / 10;
+        const marginLabel: PriorWeekMatchupResult['marginLabel'] =
+          margin >= 80 ? 'Dominant' : margin >= 40 ? 'Clear' : margin >= 15 ? 'Close' : 'Nail-biter';
+        return {
+          homeTeamId: m.home.teamId,
+          homeTeamName: teamDisplayName(m.home.teamId, teamMetadata),
+          homePoints: m.home.totalPoints,
+          awayTeamId: m.away.teamId,
+          awayTeamName: teamDisplayName(m.away.teamId, teamMetadata),
+          awayPoints: m.away.totalPoints,
+          winnerId: m.winner,
+          margin,
+          marginLabel,
+          winnerName: homeWon
+            ? teamDisplayName(m.home.teamId, teamMetadata)
+            : teamDisplayName(m.away.teamId, teamMetadata),
+          loserName: homeWon
+            ? teamDisplayName(m.away.teamId, teamMetadata)
+            : teamDisplayName(m.home.teamId, teamMetadata),
+        };
+      });
+    if (results.length > 0) allWeekMatchups[wk] = results;
+  }
+
   return {
     currentWeek,
     priorWeek,
@@ -1894,5 +1929,6 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
     weekStats,
     weekCategories,
     seasonCatStats,
+    allWeekMatchups,
   };
 }

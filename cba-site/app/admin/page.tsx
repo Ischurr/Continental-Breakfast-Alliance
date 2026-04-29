@@ -110,5 +110,5 @@ export default async function AdminPage() {
     weeklyScores,
   });
 
-  return <AdminDashboardClient analytics={analytics} adminNotes={adminNotes} />;
+  return <AdminDashboardClient analytics={analytics} adminNotes={adminNotes} weeklyScores={weeklyScores} />;
 }

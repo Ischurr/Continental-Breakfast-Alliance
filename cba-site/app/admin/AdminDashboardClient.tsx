@@ -3,14 +3,16 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useAdminMode } from '@/hooks/useAdminMode';
-import type { AdminAnalytics } from '@/lib/admin-analytics';
+import type { AdminAnalytics, PriorWeekMatchupResult } from '@/lib/admin-analytics';
 import type { AdminNotes } from '@/lib/store';
+import type { WeeklyScoresData, WeeklyTeamBreakdown } from '@/lib/types';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface Props {
   analytics: AdminAnalytics;
   adminNotes: AdminNotes;
+  weeklyScores?: WeeklyScoresData;
 }
 
 type Tab = 'bullets' | 'teams' | 'players' | 'positions' | 'units' | 'moves' | 'week' | 'categories' | 'storylines' | 'notes' | 'export';
@@ -898,7 +900,7 @@ function CategoriesTab({ analytics }: { analytics: AdminAnalytics }) {
 
 // ── Main Dashboard ────────────────────────────────────────────────────────────
 
-export default function AdminDashboardClient({ analytics, adminNotes }: Props) {
+export default function AdminDashboardClient({ analytics, adminNotes, weeklyScores }: Props) {
   const { isAdmin, unlock } = useAdminMode();
   const [activeTab, setActiveTab] = useState<Tab>('bullets');
   const [copyMsg, setCopyMsg] = useState('');
@@ -1077,7 +1079,7 @@ export default function AdminDashboardClient({ analytics, adminNotes }: Props) {
         {activeTab === 'positions' && <PositionsTab analytics={analytics} />}
         {activeTab === 'units' && <UnitsTab analytics={analytics} />}
         {activeTab === 'moves' && <MovesTab analytics={analytics} />}
-        {activeTab === 'week' && <WeekDetailTab analytics={analytics} />}
+        {activeTab === 'week' && <WeekDetailTab analytics={analytics} weeklyScores={weeklyScores} />}
         {activeTab === 'categories' && <CategoriesTab analytics={analytics} />}
         {activeTab === 'storylines' && <StorylinesTab analytics={analytics} />}
         {activeTab === 'notes' && (
@@ -1097,11 +1099,102 @@ export default function AdminDashboardClient({ analytics, adminNotes }: Props) {
 
 // ── Week Detail tab ───────────────────────────────────────────────────────────
 
-function WeekDetailTab({ analytics }: { analytics: AdminAnalytics }) {
-  const { weekDetail } = analytics;
-  const [expandedTeam, setExpandedTeam] = useState<number | null>(null);
+// Renders one side of a matchup (one team's lineup)
+function MatchupTeamCard({
+  teamBreakdown,
+  isWinner,
+}: {
+  teamBreakdown: WeeklyTeamBreakdown & { teamName: string };
+  isWinner: boolean;
+}) {
+  const [expanded, setExpanded] = useState(false);
 
-  if (!weekDetail) {
+  const activePlayers = [...teamBreakdown.players]
+    .filter(p => p.activeDays > 0)
+    .sort((a, b) => b.activePoints - a.activePoints);
+  const benchPlayers = [...teamBreakdown.players]
+    .filter(p => p.benchDays > 0 && p.activeDays === 0)
+    .sort((a, b) => b.benchPoints - a.benchPoints);
+
+  return (
+    <div className={`flex-1 min-w-0 rounded-xl border overflow-hidden ${isWinner ? 'border-teal-300 bg-teal-50/30' : 'border-gray-200 bg-white'}`}>
+      {/* Team header */}
+      <div className={`px-4 py-2 flex items-center justify-between ${isWinner ? 'bg-teal-700 text-white' : 'bg-gray-700 text-white'}`}>
+        <span className="font-semibold text-sm truncate">{teamBreakdown.teamName}</span>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {isWinner && <span className="text-[10px] bg-white/20 rounded-full px-1.5 py-0.5 font-semibold">WIN</span>}
+          <span className="font-bold text-base tabular-nums">{teamBreakdown.totalPoints.toFixed(1)}</span>
+        </div>
+      </div>
+      {/* Active lineup — always visible top 8 */}
+      <div className="px-3 py-2 space-y-1">
+        {activePlayers.slice(0, expanded ? undefined : 8).map((p, i) => (
+          <div key={`${p.playerId}-${i}`} className="flex items-center gap-2 text-xs">
+            {p.photoUrl ? (
+              <img src={p.photoUrl} alt={p.playerName} width={20} height={20}
+                className="w-5 h-5 rounded-full object-cover flex-shrink-0" />
+            ) : (
+              <div className="w-5 h-5 rounded-full bg-gray-100 flex-shrink-0" />
+            )}
+            <span className="text-gray-400 w-7 font-mono text-[10px] flex-shrink-0">{p.primarySlot}</span>
+            <span className="text-gray-800 flex-1 truncate">{p.playerName}</span>
+            <span className={`font-bold tabular-nums flex-shrink-0 ${p.activePoints >= 30 ? 'text-teal-700' : p.activePoints === 0 ? 'text-gray-300' : 'text-gray-700'}`}>
+              {p.activePoints > 0 ? p.activePoints.toFixed(1) : '—'}
+            </span>
+          </div>
+        ))}
+        {!expanded && activePlayers.length > 8 && (
+          <button onClick={() => setExpanded(true)} className="text-[10px] text-teal-600 hover:underline mt-1">
+            +{activePlayers.length - 8} more active…
+          </button>
+        )}
+        {expanded && activePlayers.length > 8 && (
+          <button onClick={() => setExpanded(false)} className="text-[10px] text-gray-400 hover:underline mt-1">
+            show less
+          </button>
+        )}
+      </div>
+      {/* Bench */}
+      {benchPlayers.length > 0 && (
+        <div className="border-t border-dashed border-amber-200 px-3 py-2 space-y-1 bg-amber-50/50">
+          <p className="text-[10px] font-semibold text-amber-600 uppercase tracking-wide">Bench</p>
+          {benchPlayers.slice(0, 4).map((p, i) => (
+            <div key={`bn-${p.playerId}-${i}`} className="flex items-center gap-2 text-xs opacity-75">
+              {p.photoUrl ? (
+                <img src={p.photoUrl} alt={p.playerName} width={16} height={16}
+                  className="w-4 h-4 rounded-full object-cover flex-shrink-0" />
+              ) : (
+                <div className="w-4 h-4 rounded-full bg-gray-100 flex-shrink-0" />
+              )}
+              <span className="text-gray-500 flex-1 truncate">{p.playerName}</span>
+              <span className="text-amber-600 font-medium tabular-nums flex-shrink-0">
+                {p.benchPoints > 0 ? p.benchPoints.toFixed(1) : '—'}
+              </span>
+            </div>
+          ))}
+          {teamBreakdown.benchTotal > 0 && (
+            <div className="text-[10px] text-amber-600 font-semibold pt-0.5">
+              Bench total: {teamBreakdown.benchTotal.toFixed(1)} pts left on table
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function WeekDetailTab({ analytics, weeklyScores }: { analytics: AdminAnalytics; weeklyScores?: WeeklyScoresData }) {
+  const availableWeeks = weeklyScores
+    ? Object.keys(weeklyScores.weeks).map(Number).sort((a, b) => a - b)
+    : [];
+
+  const defaultWeek = analytics.priorWeek > 0
+    ? analytics.priorWeek
+    : analytics.currentWeek;
+
+  const [selectedWeek, setSelectedWeek] = useState<number>(defaultWeek);
+
+  if (!weeklyScores || availableWeeks.length === 0) {
     return (
       <div className="text-center py-16 text-gray-400">
         <p className="text-4xl mb-3">📅</p>
@@ -1111,38 +1204,143 @@ function WeekDetailTab({ analytics }: { analytics: AdminAnalytics }) {
     );
   }
 
+  const weekTeams: WeeklyTeamBreakdown[] = weeklyScores.weeks[String(selectedWeek)] ?? [];
+  const weekMatchups: PriorWeekMatchupResult[] = analytics.allWeekMatchups[selectedWeek] ?? [];
+
+  // Build teamId → teamBreakdown map
+  const teamBreakdownById: Record<number, WeeklyTeamBreakdown> = {};
+  for (const tb of weekTeams) teamBreakdownById[tb.teamId] = tb;
+
+  // Get teamName from analytics
+  const teamNameById: Record<number, string> = {};
+  for (const t of analytics.teamTrends) teamNameById[t.teamId] = t.teamName;
+
+  // League-wide top performers for the selected week
+  const allActive = weekTeams.flatMap(t =>
+    t.players.filter(p => p.activeDays > 0).map(p => ({ ...p, teamName: teamNameById[t.teamId] ?? String(t.teamId) }))
+  ).sort((a, b) => b.activePoints - a.activePoints);
+
+  // Bench booms
+  const benchBooms = weekTeams.flatMap(t =>
+    t.players.filter(p => p.benchPoints >= 15).map(p => ({ ...p, teamName: teamNameById[t.teamId] ?? String(t.teamId) }))
+  ).sort((a, b) => b.benchPoints - a.benchPoints).slice(0, 6);
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-base font-semibold text-gray-800">Week {weekDetail.week} — Player Breakdown</h2>
-        <p className="text-xs text-gray-400 mt-0.5">Slot-based points: active vs. bench. Who carried, who bombed, and what was left on the field.</p>
+    <div className="space-y-5">
+      {/* Week selector */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <span className="text-sm font-semibold text-gray-600">Week:</span>
+        {availableWeeks.map(wk => (
+          <button
+            key={wk}
+            onClick={() => setSelectedWeek(wk)}
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition ${
+              selectedWeek === wk
+                ? 'bg-teal-700 text-white border-teal-700'
+                : 'bg-white text-gray-600 border-gray-200 hover:border-teal-400 hover:text-teal-600'
+            }`}
+          >
+            Week {wk}
+            {wk === analytics.currentWeek && wk !== analytics.priorWeek && (
+              <span className="ml-1 text-[9px] opacity-75">live</span>
+            )}
+          </button>
+        ))}
       </div>
 
-      {/* Top Performers */}
-      <section>
-        <h3 className="text-sm font-semibold text-gray-700 mb-2">⭐ Top Active Performers</h3>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-          {weekDetail.topPerformers.slice(0, 10).map((p, i) => (
-            <div key={`${p.playerName}-${i}`} className="bg-white rounded-lg border border-gray-200 p-2 flex items-center gap-2">
-              {p.photoUrl && (
-                <img src={p.photoUrl} alt={p.playerName} width={32} height={32} className="rounded-full object-cover flex-shrink-0 w-8 h-8" />
-              )}
-              <div className="min-w-0">
-                <p className="text-xs font-semibold text-gray-800 truncate">{p.playerName}</p>
-                <p className="text-[11px] text-gray-500 truncate">{p.teamName} · {p.slot}</p>
-                <p className="text-sm font-bold text-teal-600">{p.weekPoints.toFixed(1)}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Bench Booms */}
-      {weekDetail.benchBooms.length > 0 && (
+      {/* Matchup scorecards */}
+      {weekMatchups.length > 0 && (
         <section>
-          <h3 className="text-sm font-semibold text-gray-700 mb-2">🛋️ Bench Booms (Left on Table)</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            {weekDetail.benchBooms.map((p, i) => (
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">Week {selectedWeek} Matchups</h3>
+          <div className="space-y-4">
+            {[...weekMatchups]
+              .sort((a, b) => Math.max(b.homePoints, b.awayPoints) - Math.max(a.homePoints, a.awayPoints))
+              .map((m, i) => {
+                const homeWon = m.winnerId === m.homeTeamId;
+                const awayWon = m.winnerId === m.awayTeamId;
+                const homeTB = teamBreakdownById[m.homeTeamId];
+                const awayTB = teamBreakdownById[m.awayTeamId];
+
+                return (
+                  <div key={i} className="rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                    {/* Score banner */}
+                    <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-gray-200 text-xs">
+                      <span className={`font-bold truncate flex-1 ${homeWon ? 'text-teal-700' : 'text-gray-500'}`}>
+                        {homeWon ? '✓ ' : ''}{m.homeTeamName}
+                      </span>
+                      <div className="flex items-center gap-2 flex-shrink-0 mx-3">
+                        <span className={`text-lg font-bold tabular-nums ${homeWon ? 'text-teal-700' : 'text-gray-500'}`}>
+                          {m.homePoints.toFixed(1)}
+                        </span>
+                        <span className="text-gray-300 text-sm">–</span>
+                        <span className={`text-lg font-bold tabular-nums ${awayWon ? 'text-teal-700' : 'text-gray-500'}`}>
+                          {m.awayPoints.toFixed(1)}
+                        </span>
+                        {m.winnerId !== undefined && (
+                          <span className={`ml-1 px-1.5 py-0.5 rounded text-[10px] font-semibold ${MARGIN_BADGE[m.marginLabel] ?? 'bg-gray-100 text-gray-600'}`}>
+                            {m.marginLabel}
+                          </span>
+                        )}
+                      </div>
+                      <span className={`font-bold truncate flex-1 text-right ${awayWon ? 'text-teal-700' : 'text-gray-500'}`}>
+                        {awayWon ? '✓ ' : ''}{m.awayTeamName}
+                      </span>
+                    </div>
+                    {/* Side-by-side lineups */}
+                    {(homeTB || awayTB) && (
+                      <div className="flex gap-0 divide-x divide-gray-200">
+                        {homeTB ? (
+                          <MatchupTeamCard
+                            teamBreakdown={{ ...homeTB, teamName: m.homeTeamName }}
+                            isWinner={homeWon}
+                          />
+                        ) : (
+                          <div className="flex-1 p-4 text-xs text-gray-400 italic text-center">No lineup data</div>
+                        )}
+                        {awayTB ? (
+                          <MatchupTeamCard
+                            teamBreakdown={{ ...awayTB, teamName: m.awayTeamName }}
+                            isWinner={awayWon}
+                          />
+                        ) : (
+                          <div className="flex-1 p-4 text-xs text-gray-400 italic text-center">No lineup data</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+          </div>
+        </section>
+      )}
+
+      {/* Top performers for the selected week */}
+      {allActive.length > 0 && (
+        <section>
+          <h3 className="text-sm font-semibold text-gray-700 mb-2">⭐ Top Active Performers — Week {selectedWeek}</h3>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+            {allActive.slice(0, 10).map((p, i) => (
+              <div key={`${p.playerName}-${i}`} className="bg-white rounded-lg border border-gray-200 p-2 flex items-center gap-2">
+                {p.photoUrl && (
+                  <img src={p.photoUrl} alt={p.playerName} width={32} height={32} className="rounded-full object-cover flex-shrink-0 w-8 h-8" />
+                )}
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold text-gray-800 truncate">{p.playerName}</p>
+                  <p className="text-[11px] text-gray-500 truncate">{p.teamName} · {p.primarySlot}</p>
+                  <p className="text-sm font-bold text-teal-600">{p.activePoints.toFixed(1)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Bench booms */}
+      {benchBooms.length > 0 && (
+        <section>
+          <h3 className="text-sm font-semibold text-gray-700 mb-2">🛋️ Bench Booms — Left on Table</h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {benchBooms.map((p, i) => (
               <div key={`${p.playerName}-${i}`} className="bg-amber-50 rounded-lg border border-amber-200 p-2 flex items-center gap-2">
                 {p.photoUrl && (
                   <img src={p.photoUrl} alt={p.playerName} width={32} height={32} className="rounded-full object-cover flex-shrink-0 w-8 h-8" />
@@ -1158,122 +1356,59 @@ function WeekDetailTab({ analytics }: { analytics: AdminAnalytics }) {
         </section>
       )}
 
-      {/* Slot Unit Comparison */}
-      <section>
-        <h3 className="text-sm font-semibold text-gray-700 mb-2">📊 Unit Scoring This Week</h3>
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs bg-white rounded-lg border border-gray-200">
-            <thead>
-              <tr className="bg-gray-50 text-gray-600">
-                <th className="text-left px-3 py-2 font-semibold w-20">Slot</th>
-                {weekDetail.teamBreakdowns.map(tb => (
-                  <th key={tb.teamId} className="text-center px-2 py-2 font-medium text-gray-500 max-w-[80px] truncate">
-                    {tb.teamName.split(' ').slice(-1)[0]}
-                  </th>
-                ))}
-                <th className="text-center px-2 py-2 font-semibold text-gray-600">Avg</th>
-              </tr>
-            </thead>
-            <tbody>
-              {weekDetail.slotUnits.map(su => {
-                const byTeam = Object.fromEntries(su.teams.map(t => [t.teamId, t.activePoints]));
-                const max = Math.max(...su.teams.map(t => t.activePoints));
-                return (
-                  <tr key={su.slot} className="border-t border-gray-100 hover:bg-gray-50">
-                    <td className="px-3 py-1.5 font-semibold text-gray-700">{su.slot}</td>
-                    {weekDetail.teamBreakdowns.map(tb => {
-                      const pts = byTeam[tb.teamId] ?? 0;
-                      const isTop = pts > 0 && pts === max;
-                      return (
-                        <td key={tb.teamId} className={`text-center px-2 py-1.5 tabular-nums ${isTop ? 'font-bold text-teal-700' : pts === 0 ? 'text-gray-300' : 'text-gray-700'}`}>
-                          {pts > 0 ? pts.toFixed(1) : '—'}
-                        </td>
-                      );
-                    })}
-                    <td className="text-center px-2 py-1.5 text-gray-500 tabular-nums">{su.leagueAvg.toFixed(1)}</td>
-                  </tr>
-                );
-              })}
-              {/* Bench row */}
-              <tr className="border-t-2 border-gray-200 bg-amber-50">
-                <td className="px-3 py-1.5 font-semibold text-amber-700">Bench</td>
-                {weekDetail.teamBreakdowns.map(tb => (
-                  <td key={tb.teamId} className="text-center px-2 py-1.5 tabular-nums text-amber-600 font-medium">
-                    {tb.benchTotal > 0 ? tb.benchTotal.toFixed(1) : '—'}
+      {/* Slot unit breakdown for selected week */}
+      {analytics.weekDetail && analytics.weekDetail.week === selectedWeek && analytics.weekDetail.slotUnits.length > 0 && (
+        <section>
+          <h3 className="text-sm font-semibold text-gray-700 mb-2">📊 Unit Scoring — Week {selectedWeek}</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs bg-white rounded-lg border border-gray-200">
+              <thead>
+                <tr className="bg-gray-50 text-gray-600">
+                  <th className="text-left px-3 py-2 font-semibold w-20">Slot</th>
+                  {analytics.weekDetail.teamBreakdowns.map(tb => (
+                    <th key={tb.teamId} className="text-center px-2 py-2 font-medium text-gray-500 max-w-[80px] truncate">
+                      {tb.teamName.split(' ').slice(-1)[0]}
+                    </th>
+                  ))}
+                  <th className="text-center px-2 py-2 font-semibold text-gray-600">Avg</th>
+                </tr>
+              </thead>
+              <tbody>
+                {analytics.weekDetail.slotUnits.map(su => {
+                  const byTeam = Object.fromEntries(su.teams.map(t => [t.teamId, t.activePoints]));
+                  const max = Math.max(...su.teams.map(t => t.activePoints));
+                  return (
+                    <tr key={su.slot} className="border-t border-gray-100 hover:bg-gray-50">
+                      <td className="px-3 py-1.5 font-semibold text-gray-700">{su.slot}</td>
+                      {analytics.weekDetail!.teamBreakdowns.map(tb => {
+                        const pts = byTeam[tb.teamId] ?? 0;
+                        const isTop = pts > 0 && pts === max;
+                        return (
+                          <td key={tb.teamId} className={`text-center px-2 py-1.5 tabular-nums ${isTop ? 'font-bold text-teal-700' : pts === 0 ? 'text-gray-300' : 'text-gray-700'}`}>
+                            {pts > 0 ? pts.toFixed(1) : '—'}
+                          </td>
+                        );
+                      })}
+                      <td className="text-center px-2 py-1.5 text-gray-500 tabular-nums">{su.leagueAvg.toFixed(1)}</td>
+                    </tr>
+                  );
+                })}
+                <tr className="border-t-2 border-gray-200 bg-amber-50">
+                  <td className="px-3 py-1.5 font-semibold text-amber-700">Bench</td>
+                  {analytics.weekDetail.teamBreakdowns.map(tb => (
+                    <td key={tb.teamId} className="text-center px-2 py-1.5 tabular-nums text-amber-600 font-medium">
+                      {tb.benchTotal > 0 ? tb.benchTotal.toFixed(1) : '—'}
+                    </td>
+                  ))}
+                  <td className="text-center px-2 py-1.5 text-amber-600 tabular-nums">
+                    {(analytics.weekDetail.teamBreakdowns.reduce((s, t) => s + t.benchTotal, 0) / Math.max(analytics.weekDetail.teamBreakdowns.length, 1)).toFixed(1)}
                   </td>
-                ))}
-                <td className="text-center px-2 py-1.5 text-amber-600 tabular-nums">
-                  {(weekDetail.teamBreakdowns.reduce((s, t) => s + t.benchTotal, 0) / Math.max(weekDetail.teamBreakdowns.length, 1)).toFixed(1)}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      {/* Per-team breakdowns */}
-      <section>
-        <h3 className="text-sm font-semibold text-gray-700 mb-2">🗂 Per-Team Lineup Breakdown</h3>
-        <div className="space-y-2">
-          {[...weekDetail.teamBreakdowns].sort((a, b) => b.totalPoints - a.totalPoints).map(tb => (
-            <div key={tb.teamId} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-              <button
-                className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 transition text-left"
-                onClick={() => setExpandedTeam(expandedTeam === tb.teamId ? null : tb.teamId)}
-              >
-                <span className="font-semibold text-gray-800 text-sm">{tb.teamName}</span>
-                <div className="flex items-center gap-3 text-sm">
-                  <span className="text-teal-600 font-bold">{tb.totalPoints.toFixed(1)} active</span>
-                  {tb.benchTotal > 0 && (
-                    <span className="text-amber-600 font-medium">{tb.benchTotal.toFixed(1)} bench</span>
-                  )}
-                  <span className="text-gray-400 text-xs">{expandedTeam === tb.teamId ? '▲' : '▼'}</span>
-                </div>
-              </button>
-              {expandedTeam === tb.teamId && (
-                <div className="border-t border-gray-100 px-4 pb-3">
-                  {/* Active players */}
-                  <div className="mt-2">
-                    <p className="text-xs font-semibold text-teal-600 uppercase tracking-wide mb-1">Active</p>
-                    <div className="space-y-1">
-                      {tb.activePlayers.map((p, i) => (
-                        <div key={`${p.playerId}-${i}`} className="flex items-center gap-2 text-xs">
-                          {p.photoUrl && (
-                            <img src={p.photoUrl} alt={p.playerName} width={24} height={24} className="rounded-full object-cover w-6 h-6 flex-shrink-0" />
-                          )}
-                          <span className="text-gray-500 w-8 font-mono">{p.primarySlot}</span>
-                          <span className="text-gray-800 flex-1">{p.playerName}</span>
-                          <span className="font-semibold text-gray-900 tabular-nums w-14 text-right">{p.activePoints.toFixed(1)} pts</span>
-                          <span className="text-gray-400 tabular-nums w-8 text-right">{p.activeDays}d</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  {/* Bench players */}
-                  {tb.benchPlayers.length > 0 && (
-                    <div className="mt-2">
-                      <p className="text-xs font-semibold text-amber-600 uppercase tracking-wide mb-1">Bench</p>
-                      <div className="space-y-1">
-                        {tb.benchPlayers.map((p, i) => (
-                          <div key={`${p.playerId}-${i}`} className="flex items-center gap-2 text-xs text-gray-500">
-                            {p.photoUrl && (
-                              <img src={p.photoUrl} alt={p.playerName} width={24} height={24} className="rounded-full object-cover w-6 h-6 flex-shrink-0 opacity-60" />
-                            )}
-                            <span className="text-gray-400 w-8 font-mono">BN</span>
-                            <span className="flex-1">{p.playerName}</span>
-                            <span className="font-medium text-amber-600 tabular-nums w-14 text-right">{p.benchPoints.toFixed(1)} pts</span>
-                            <span className="text-gray-400 tabular-nums w-8 text-right">{p.benchDays}d</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
     </div>
   );
 }
