@@ -1,7 +1,7 @@
 /**
  * Generates two narrative paragraphs per player using Claude API:
- *   1. background   — career context, style, fantasy relevance (cached until force-refresh)
- *   2. recentAnalysis — 1-2 sentences on last 7 and 14 day trends (refreshed daily)
+ *   1. background   — career context, style, fantasy relevance (Claude Haiku, cached until force-refresh)
+ *   2. recentAnalysis — L7/L14/season stats formatted as a stat line (MLB Stats API only, no AI cost, refreshed daily)
  *
  * Reads: data/erosp/latest.json (player list + injury info)
  * Writes: data/player-descriptions.json
@@ -71,7 +71,13 @@ function isStale(desc: PlayerDescription | undefined, forceBack: boolean): { nee
   };
 }
 
-async function fetchStatSummary(mlbamId: number, role: 'H' | 'SP' | 'RP'): Promise<string> {
+interface StatSplits {
+  season: Record<string, unknown> | null;
+  l14: Record<string, unknown> | null;
+  l7: Record<string, unknown> | null;
+}
+
+async function fetchStatSplits(mlbamId: number, role: 'H' | 'SP' | 'RP'): Promise<StatSplits> {
   const group = role === 'H' ? 'hitting' : 'pitching';
   const base = `${MLB_BASE}/people/${mlbamId}/stats?season=2026&group=${group}&sportId=1`;
 
@@ -86,108 +92,124 @@ async function fetchStatSummary(mlbamId: number, role: 'H' | 'SP' | 'RP'): Promi
     }
   }
 
-  const [seasonStat, l14Stat, l7Stat] = await Promise.all([
+  const [season, l14, l7] = await Promise.all([
     fetchSplit('season'),
     fetchSplit('lastXDays&days=14'),
     fetchSplit('lastXDays&days=7'),
   ]);
 
-  if (!seasonStat && !l14Stat && !l7Stat) return '(No 2026 MLB stats yet — may be on IL or pre-debut)';
+  return { season, l14, l7 };
+}
+
+function formatAvg(avg: unknown): string {
+  if (!avg || avg === '---') return '—';
+  const s = String(avg).replace('0.', '').replace('.', '');
+  return `.${s.padStart(3, '0')}`;
+}
+
+function buildRecentAnalysis(role: 'H' | 'SP' | 'RP', splits: StatSplits, ilNote: string): string {
+  const { season, l14, l7 } = splits;
+
+  if (!season && !l14 && !l7) {
+    return ilNote
+      ? `${ilNote.trim().replace(/^\(/, '').replace(/\)$/, '')} — no 2026 stats yet.`
+      : 'No 2026 MLB stats yet — may be pre-debut or recently acquired.';
+  }
 
   if (role === 'H') {
-    const fmtHitter = (s: Record<string, unknown> | null, label: string) => {
-      if (!s) return `${label}: no data`;
-      const avg = s.avg ?? '—'; const ops = s.ops ?? '—';
-      const hr = s.homeRuns ?? 0; const rbi = s.rbi ?? 0;
-      const sb = s.stolenBases ?? 0; const k = s.strikeOuts ?? 0;
-      const pa = s.plateAppearances ?? 0;
-      return `${label}: .${String(avg).replace('0.', '').replace('.', '')} AVG / ${ops} OPS / ${hr} HR / ${rbi} RBI / ${sb} SB / ${k} K in ${pa} PA`;
+    const fmtH = (s: Record<string, unknown> | null) => {
+      if (!s) return null;
+      const avg = formatAvg(s.avg);
+      const ops = s.ops ?? '—';
+      const hr = Number(s.homeRuns ?? 0);
+      const rbi = Number(s.rbi ?? 0);
+      const sb = Number(s.stolenBases ?? 0);
+      const pa = Number(s.plateAppearances ?? 0);
+      return { avg, ops: String(ops), hr, rbi, sb, pa };
     };
-    return [
-      fmtHitter(seasonStat, '2026 season'),
-      fmtHitter(l14Stat, 'Last 14 days'),
-      fmtHitter(l7Stat, 'Last 7 days'),
-    ].join('\n');
+    const s = fmtH(season); const f14 = fmtH(l14); const f7 = fmtH(l7);
+
+    const parts: string[] = [];
+    if (f7) parts.push(`L7: ${f7.avg}/${f7.ops} OPS, ${f7.hr} HR, ${f7.rbi} RBI${f7.sb ? `, ${f7.sb} SB` : ''} in ${f7.pa} PA`);
+    if (f14) parts.push(`L14: ${f14.avg}/${f14.ops} OPS, ${f14.hr} HR, ${f14.rbi} RBI${f14.sb ? `, ${f14.sb} SB` : ''} in ${f14.pa} PA`);
+    if (s) parts.push(`2026 season: ${s.avg}/${s.ops} OPS, ${s.hr} HR, ${s.rbi} RBI`);
+    if (ilNote) parts.push(ilNote.trim().replace(/^\(/, '').replace(/\)$/, ''));
+    return parts.join(' · ');
   } else {
-    const fmtPitcher = (s: Record<string, unknown> | null, label: string) => {
-      if (!s) return `${label}: no data`;
-      const era = s.era ?? '—'; const whip = s.whip ?? '—';
-      const k = s.strikeOuts ?? 0; const ip = s.inningsPitched ?? '0';
-      const w = s.wins ?? 0; const sv = s.saves ?? 0;
-      const qs = s.qualityStarts ?? 0;
-      return `${label}: ${era} ERA / ${whip} WHIP / ${k} K / ${ip} IP${w ? ` / ${w}W` : ''}${sv ? ` / ${sv} SV` : ''}${qs ? ` / ${qs} QS` : ''}`;
+    const fmtP = (s: Record<string, unknown> | null) => {
+      if (!s) return null;
+      const era = s.era ?? '—';
+      const whip = s.whip ?? '—';
+      const k = Number(s.strikeOuts ?? 0);
+      const ip = s.inningsPitched ?? '0';
+      const sv = Number(s.saves ?? 0);
+      const qs = Number(s.qualityStarts ?? 0);
+      return { era: String(era), whip: String(whip), k, ip: String(ip), sv, qs };
     };
-    return [
-      fmtPitcher(seasonStat, '2026 season'),
-      fmtPitcher(l14Stat, 'Last 14 days'),
-      fmtPitcher(l7Stat, 'Last 7 days'),
-    ].join('\n');
+    const s = fmtP(season); const f14 = fmtP(l14); const f7 = fmtP(l7);
+
+    const parts: string[] = [];
+    if (f7) parts.push(`L7: ${f7.era} ERA/${f7.whip} WHIP, ${f7.k} K in ${f7.ip} IP${f7.sv ? `, ${f7.sv} SV` : ''}${f7.qs ? `, ${f7.qs} QS` : ''}`);
+    if (f14) parts.push(`L14: ${f14.era} ERA/${f14.whip} WHIP, ${f14.k} K in ${f14.ip} IP`);
+    if (s) parts.push(`2026 season: ${s.era} ERA/${s.whip} WHIP, ${s.k} K`);
+    if (ilNote) parts.push(ilNote.trim().replace(/^\(/, '').replace(/\)$/, ''));
+    return parts.join(' · ');
   }
 }
 
 async function generateDescriptions(
   player: EROSPPlayer,
   existing: PlayerDescription | undefined,
-  client: Anthropic,
+  client: Anthropic | null,
   needsBackground: boolean,
   needsRecent: boolean,
 ): Promise<{ background: string; recentAnalysis: string }> {
   const roleLabel = player.role === 'SP' ? 'starting pitcher' : player.role === 'RP' ? 'relief pitcher' : 'hitter';
-  const ilNote = player.il_type ? ` (currently on ${player.il_type} IL${player.injury_note ? `: ${player.injury_note}` : ''})` : '';
+  const ilNote = player.il_type ? `(currently on ${player.il_type} IL${player.injury_note ? `: ${player.injury_note}` : ''})` : '';
 
-  let statsText = '';
+  // recentAnalysis is built directly from MLB Stats API — no Claude call needed.
+  let recentAnalysis = existing?.recentAnalysis ?? '';
   if (needsRecent) {
-    statsText = await fetchStatSummary(player.mlbam_id, player.role);
+    const splits = await fetchStatSplits(player.mlbam_id, player.role);
+    recentAnalysis = buildRecentAnalysis(player.role, splits, ilNote);
   }
 
-  const sections: string[] = [];
-  if (needsBackground) {
-    sections.push(`BACKGROUND (2-3 sentences): Write about ${player.name}'s career history, playing style, key strengths or weaknesses, and why they matter in fantasy baseball. Be specific. Present tense for active aspects.`);
-  }
-  if (needsRecent) {
-    sections.push(`RECENT_ANALYSIS (1-2 sentences): Analyze ${player.name}'s performance over the last few weeks/month based on these 2026 stats:\n${statsText}\n${ilNote ? `Note: ${ilNote}` : ''}\nBe concrete about trends — hot, cold, improving, declining. If no stats, note they haven't played yet.`);
-  }
-
-  const prompt = `You are a fantasy baseball analyst writing concise player profiles for a fantasy baseball league website. The audience is serious fantasy baseball managers who want quick, useful insight.
+  // background is the only field that uses Claude, and only when missing or force-refreshed.
+  let background = existing?.background ?? '';
+  if (needsBackground && client) {
+    const prompt = `You are a fantasy baseball analyst writing concise player profiles for a fantasy baseball league website. The audience is serious fantasy baseball managers who want quick, useful insight.
 
 Player: ${player.name}
-Position: ${player.position} | Team: ${player.mlb_team} | Role: ${roleLabel}${ilNote}
+Position: ${player.position} | Team: ${player.mlb_team} | Role: ${roleLabel}${ilNote ? ` ${ilNote}` : ''}
 
-${sections.join('\n\n')}
+BACKGROUND (2-3 sentences): Write about ${player.name}'s career history, playing style, key strengths or weaknesses, and why they matter in fantasy baseball. Be specific. Present tense for active aspects.
 
 Respond with ONLY a valid JSON object, no markdown, no explanation, no code block:
-{${needsBackground ? '"background": "..."' : ''}${needsBackground && needsRecent ? ', ' : ''}${needsRecent ? '"recentAnalysis": "..."' : ''}}`;
+{"background": "..."}`;
 
-  const response = await client.messages.create({
-    model: 'claude-haiku-4-5-20251001',
-    max_tokens: 400,
-    messages: [{ role: 'user', content: prompt }],
-  });
+    const response = await client.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 300,
+      messages: [{ role: 'user', content: prompt }],
+    });
 
-  const text = response.content[0]?.type === 'text' ? response.content[0].text.trim() : '{}';
-
-  let parsed: { background?: string; recentAnalysis?: string } = {};
-  try {
-    // Strip markdown code block if model added it anyway
-    const clean = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
-    parsed = JSON.parse(clean);
-  } catch {
-    console.warn(`  ⚠ JSON parse failed for ${player.name}, raw: ${text.slice(0, 100)}`);
+    const text = response.content[0]?.type === 'text' ? response.content[0].text.trim() : '{}';
+    try {
+      const clean = text.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '').trim();
+      const parsed = JSON.parse(clean) as { background?: string };
+      background = parsed.background ?? background;
+    } catch {
+      console.warn(`  ⚠ JSON parse failed for ${player.name}, raw: ${text.slice(0, 100)}`);
+    }
   }
 
-  return {
-    background: parsed.background ?? existing?.background ?? '',
-    recentAnalysis: parsed.recentAnalysis ?? existing?.recentAnalysis ?? '',
-  };
+  return { background, recentAnalysis };
 }
 
 async function main() {
   const apiKey = process.env['ANTHROPIC_API_KEY'];
-  if (!apiKey) {
-    console.error('❌ ANTHROPIC_API_KEY not set');
-    process.exit(1);
-  }
-  const client = new Anthropic({ apiKey });
+  // Claude is only needed for background generation; daily stats runs don't need it.
+  const client = apiKey ? new Anthropic({ apiKey }) : null;
 
   if (!fs.existsSync(EROSP_PATH)) {
     console.error('❌ data/erosp/latest.json not found — run compute_erosp.py first');
@@ -219,14 +241,20 @@ async function main() {
   let skipped = 0;
   let errors = 0;
 
+  if (!client) {
+    console.log('ℹ️  ANTHROPIC_API_KEY not set — background generation skipped; stats-only run.\n');
+  }
+
   console.log(`\n🚀 Generating player descriptions for top ${players.length} players`);
-  console.log(`   Force background: ${forceBackground} | Fresh threshold: ${FRESH_DAYS} days\n`);
+  console.log(`   Force background: ${forceBackground && !!client} | Stats: MLB Stats API (L7/L14/season, no AI cost) | Fresh threshold: ${FRESH_DAYS} days\n`);
 
   for (let i = 0; i < players.length; i++) {
     const player = players[i]!;
     const key = String(player.mlbam_id);
     const existing = cache[key];
-    const { needsBackground, needsRecent } = isStale(existing, forceBackground);
+    const stale = isStale(existing, forceBackground);
+    const needsBackground = stale.needsBackground && !!client;
+    const needsRecent = stale.needsRecent;
 
     if (!needsBackground && !needsRecent) {
       skipped++;

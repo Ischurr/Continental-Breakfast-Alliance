@@ -2,8 +2,8 @@ name: Update Player Descriptions
 
 on:
   schedule:
-    # 12 PM UTC = 7 AM EST / 8 AM EDT — runs Monday after stats + EROSP have updated
-    - cron: '0 12 * * 1'
+    # 12 PM UTC = 7 AM EST / 8 AM EDT — runs daily after stats + EROSP have updated
+    - cron: '0 12 * * *'
   workflow_dispatch:
 
 jobs:
