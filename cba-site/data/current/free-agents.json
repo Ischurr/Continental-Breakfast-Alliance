@@ -1,21 +1,8 @@
 {
-  "fetchedAt": "2026-05-01T11:37:30.272Z",
+  "fetchedAt": "2026-05-02T11:12:38.875Z",
   "scoringPeriodId": 7,
   "statSeason": 2026,
   "players": [
-    {
-      "playerId": "33372",
-      "playerName": "Nick Martinez",
-      "position": "SP",
-      "eligiblePositions": [
-        "SP",
-        "RP"
-      ],
-      "totalPoints": 99,
-      "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33372.png",
-      "percentOwned": 20.95
-    },
     {
       "playerId": "4872685",
       "playerName": "Colson Montgomery",
@@ -24,10 +11,10 @@
         "SS",
         "DH"
       ],
-      "totalPoints": 95.25,
+      "totalPoints": 104.25,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4872685.png",
-      "percentOwned": 22.45
+      "percentOwned": 22.79
     },
     {
       "playerId": "4719068",
@@ -40,7 +27,20 @@
       "totalPoints": 93,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4719068.png",
-      "percentOwned": 30.95
+      "percentOwned": 33.42
+    },
+    {
+      "playerId": "32558",
+      "playerName": "Jorge Soler",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH"
+      ],
+      "totalPoints": 93,
+      "statSeasonId": 2026,
+      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32558.png",
+      "percentOwned": 18.47
     },
     {
       "playerId": "4739755",
@@ -50,10 +50,10 @@
         "1B",
         "DH"
       ],
-      "totalPoints": 88.75,
+      "totalPoints": 91.25,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4739755.png",
-      "percentOwned": 7.08
+      "percentOwned": 7.03
     },
     {
       "playerId": "4629081",
@@ -65,10 +65,23 @@
         "SS",
         "DH"
       ],
-      "totalPoints": 85.75,
+      "totalPoints": 91,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4629081.png",
-      "percentOwned": 11.29
+      "percentOwned": 11.26
+    },
+    {
+      "playerId": "4683365",
+      "playerName": "Masyn Winn",
+      "position": "SS",
+      "eligiblePositions": [
+        "SS",
+        "DH"
+      ],
+      "totalPoints": 86.75,
+      "statSeasonId": 2026,
+      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4683365.png",
+      "percentOwned": 7.92
     },
     {
       "playerId": "3107919",
@@ -80,59 +93,7 @@
       "totalPoints": 85,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/3107919.png",
-      "percentOwned": 25.94
-    },
-    {
-      "playerId": "32558",
-      "playerName": "Jorge Soler",
-      "position": "OF",
-      "eligiblePositions": [
-        "OF",
-        "DH"
-      ],
-      "totalPoints": 85,
-      "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32558.png",
-      "percentOwned": 18.22
-    },
-    {
-      "playerId": "33857",
-      "playerName": "Matt Chapman",
-      "position": "3B",
-      "eligiblePositions": [
-        "3B",
-        "DH"
-      ],
-      "totalPoints": 83,
-      "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33857.png",
-      "percentOwned": 74.8
-    },
-    {
-      "playerId": "4683365",
-      "playerName": "Masyn Winn",
-      "position": "SS",
-      "eligiblePositions": [
-        "SS",
-        "DH"
-      ],
-      "totalPoints": 82.75,
-      "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4683365.png",
-      "percentOwned": 8.02
-    },
-    {
-      "playerId": "5080766",
-      "playerName": "Cam Smith",
-      "position": "OF",
-      "eligiblePositions": [
-        "OF",
-        "DH"
-      ],
-      "totalPoints": 81.5,
-      "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5080766.png",
-      "percentOwned": 16.58
+      "percentOwned": 24.78
     },
     {
       "playerId": "5010500",
@@ -142,10 +103,63 @@
         "SS",
         "DH"
       ],
-      "totalPoints": 79.75,
+      "totalPoints": 82.75,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5010500.png",
-      "percentOwned": 7.19
+      "percentOwned": 7.14
+    },
+    {
+      "playerId": "33900",
+      "playerName": "Jeff McNeil",
+      "position": "2B",
+      "eligiblePositions": [
+        "2B",
+        "OF",
+        "DH"
+      ],
+      "totalPoints": 82,
+      "statSeasonId": 2026,
+      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33900.png",
+      "percentOwned": 7.09
+    },
+    {
+      "playerId": "33857",
+      "playerName": "Matt Chapman",
+      "position": "3B",
+      "eligiblePositions": [
+        "3B",
+        "DH"
+      ],
+      "totalPoints": 81,
+      "statSeasonId": 2026,
+      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33857.png",
+      "percentOwned": 74.28
+    },
+    {
+      "playerId": "5134636",
+      "playerName": "Kazuma Okamoto",
+      "position": "3B",
+      "eligiblePositions": [
+        "3B",
+        "DH"
+      ],
+      "totalPoints": 80.5,
+      "statSeasonId": 2026,
+      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5134636.png",
+      "percentOwned": 37.04
+    },
+    {
+      "playerId": "5080766",
+      "playerName": "Cam Smith",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH"
+      ],
+      "totalPoints": 79.25,
+      "statSeasonId": 2026,
+      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5080766.png",
+      "percentOwned": 16.19
     },
     {
       "playerId": "4758873",
@@ -157,7 +171,7 @@
       "totalPoints": 78,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4758873.png",
-      "percentOwned": 16.87
+      "percentOwned": 19.2
     },
     {
       "playerId": "4917819",
@@ -169,21 +183,20 @@
       "totalPoints": 78,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4917819.png",
-      "percentOwned": 11.8
+      "percentOwned": 12.2
     },
     {
-      "playerId": "33900",
-      "playerName": "Jeff McNeil",
-      "position": "2B",
+      "playerId": "34995",
+      "playerName": "Trent Grisham",
+      "position": "OF",
       "eligiblePositions": [
-        "2B",
         "OF",
         "DH"
       ],
-      "totalPoints": 76.75,
+      "totalPoints": 75.5,
       "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33900.png",
-      "percentOwned": 7.09
+      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/34995.png",
+      "percentOwned": 13.74
     },
     {
       "playerId": "4424141",
@@ -195,7 +208,7 @@
       "totalPoints": 75,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4424141.png",
-      "percentOwned": 7.85
+      "percentOwned": 8.44
     },
     {
       "playerId": "35537",
@@ -205,10 +218,23 @@
         "OF",
         "DH"
       ],
-      "totalPoints": 73.75,
+      "totalPoints": 74.75,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35537.png",
-      "percentOwned": 13.46
+      "percentOwned": 13.4
+    },
+    {
+      "playerId": "4313442",
+      "playerName": "Garrett Mitchell",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH"
+      ],
+      "totalPoints": 74,
+      "statSeasonId": 2026,
+      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4313442.png",
+      "percentOwned": 6.9
     },
     {
       "playerId": "4326697",
@@ -221,20 +247,21 @@
       "totalPoints": 73,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4326697.png",
-      "percentOwned": 23.79
+      "percentOwned": 25.7
     },
     {
-      "playerId": "4313442",
-      "playerName": "Garrett Mitchell",
-      "position": "OF",
+      "playerId": "4722857",
+      "playerName": "Spencer Steer",
+      "position": "1B",
       "eligiblePositions": [
-        "OF",
-        "DH"
+        "1B",
+        "DH",
+        "OF"
       ],
       "totalPoints": 73,
       "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4313442.png",
-      "percentOwned": 6.92
+      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4722857.png",
+      "percentOwned": 7.06
     },
     {
       "playerId": "31258",
@@ -246,7 +273,7 @@
       "totalPoints": 73,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31258.png",
-      "percentOwned": 6.66
+      "percentOwned": 6.59
     },
     {
       "playerId": "33263",
@@ -258,7 +285,7 @@
       "totalPoints": 72,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33263.png",
-      "percentOwned": 6.27
+      "percentOwned": 6.33
     },
     {
       "playerId": "33106",
@@ -271,33 +298,32 @@
       "totalPoints": 71,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33106.png",
-      "percentOwned": 14.48
+      "percentOwned": 14.99
     },
     {
-      "playerId": "4722857",
-      "playerName": "Spencer Steer",
+      "playerId": "39882",
+      "playerName": "Jake Burger",
       "position": "1B",
       "eligiblePositions": [
         "1B",
-        "DH",
-        "OF"
+        "DH"
       ],
-      "totalPoints": 71,
+      "totalPoints": 70,
       "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4722857.png",
-      "percentOwned": 6.83
+      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39882.png",
+      "percentOwned": 9.12
     },
     {
-      "playerId": "33840",
-      "playerName": "Grant Holmes",
+      "playerId": "33950",
+      "playerName": "Colin Rea",
       "position": "SP",
       "eligiblePositions": [
         "SP"
       ],
-      "totalPoints": 69,
+      "totalPoints": 70,
       "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33840.png",
-      "percentOwned": 16.71
+      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33950.png",
+      "percentOwned": 8.61
     },
     {
       "playerId": "39636",
@@ -306,23 +332,22 @@
       "eligiblePositions": [
         "SP"
       ],
-      "totalPoints": 68,
+      "totalPoints": 69,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39636.png",
-      "percentOwned": 80.84
+      "percentOwned": 78.88
     },
     {
-      "playerId": "42488",
-      "playerName": "Joey Cantillo",
-      "position": "RP",
+      "playerId": "33840",
+      "playerName": "Grant Holmes",
+      "position": "SP",
       "eligiblePositions": [
-        "SP",
-        "RP"
+        "SP"
       ],
       "totalPoints": 68,
       "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42488.png",
-      "percentOwned": 28.73
+      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33840.png",
+      "percentOwned": 15.59
     },
     {
       "playerId": "4345164",
@@ -334,7 +359,7 @@
       "totalPoints": 68,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4345164.png",
-      "percentOwned": 10.83
+      "percentOwned": 12.73
     },
     {
       "playerId": "42714",
@@ -344,27 +369,53 @@
         "OF",
         "DH"
       ],
-      "totalPoints": 65,
+      "totalPoints": 67,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42714.png",
-      "percentOwned": 15.11
+      "percentOwned": 15.01
     },
     {
-      "playerId": "39882",
-      "playerName": "Jake Burger",
-      "position": "1B",
+      "playerId": "36020",
+      "playerName": "TJ Friedl",
+      "position": "OF",
       "eligiblePositions": [
-        "1B",
+        "OF",
         "DH"
+      ],
+      "totalPoints": 67,
+      "statSeasonId": 2026,
+      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36020.png",
+      "percentOwned": 13.7
+    },
+    {
+      "playerId": "42488",
+      "playerName": "Joey Cantillo",
+      "position": "RP",
+      "eligiblePositions": [
+        "SP",
+        "RP"
+      ],
+      "totalPoints": 66,
+      "statSeasonId": 2026,
+      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42488.png",
+      "percentOwned": 28.14
+    },
+    {
+      "playerId": "36056",
+      "playerName": "Jakob Junis",
+      "position": "RP",
+      "eligiblePositions": [
+        "SP",
+        "RP"
       ],
       "totalPoints": 65,
       "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39882.png",
-      "percentOwned": 9.4
+      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36056.png",
+      "percentOwned": 11.72
     },
     {
-      "playerId": "4987924",
-      "playerName": "Cade Smith",
+      "playerId": "34026",
+      "playerName": "Tyler Rogers",
       "position": "RP",
       "eligiblePositions": [
         "SP",
@@ -372,8 +423,8 @@
       ],
       "totalPoints": 64,
       "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4987924.png",
-      "percentOwned": 93.9
+      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/34026.png",
+      "percentOwned": 16.12
     },
     {
       "playerId": "32675",
@@ -385,7 +436,7 @@
       "totalPoints": 64,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32675.png",
-      "percentOwned": 15.33
+      "percentOwned": 14.41
     },
     {
       "playerId": "4084179",
@@ -398,7 +449,7 @@
       "totalPoints": 64,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4084179.png",
-      "percentOwned": 6.53
+      "percentOwned": 6.32
     },
     {
       "playerId": "39631",
@@ -411,59 +462,7 @@
       "totalPoints": 63.5,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39631.png",
-      "percentOwned": 30.38
-    },
-    {
-      "playerId": "5134636",
-      "playerName": "Kazuma Okamoto",
-      "position": "3B",
-      "eligiblePositions": [
-        "3B",
-        "DH"
-      ],
-      "totalPoints": 62.5,
-      "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5134636.png",
-      "percentOwned": 36.77
-    },
-    {
-      "playerId": "4417134",
-      "playerName": "Joey Wiemer",
-      "position": "OF",
-      "eligiblePositions": [
-        "OF",
-        "DH"
-      ],
-      "totalPoints": 62.5,
-      "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4417134.png",
-      "percentOwned": 7.87
-    },
-    {
-      "playerId": "40884",
-      "playerName": "Bryan Baker",
-      "position": "RP",
-      "eligiblePositions": [
-        "SP",
-        "RP"
-      ],
-      "totalPoints": 61,
-      "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40884.png",
-      "percentOwned": 22.9
-    },
-    {
-      "playerId": "36020",
-      "playerName": "TJ Friedl",
-      "position": "OF",
-      "eligiblePositions": [
-        "OF",
-        "DH"
-      ],
-      "totalPoints": 61,
-      "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36020.png",
-      "percentOwned": 13.69
+      "percentOwned": 29.3
     },
     {
       "playerId": "5007615",
@@ -473,36 +472,61 @@
         "3B",
         "DH"
       ],
-      "totalPoints": 60.25,
+      "totalPoints": 63.25,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5007615.png",
-      "percentOwned": 32.3
+      "percentOwned": 32.14
     },
     {
-      "playerId": "34026",
-      "playerName": "Tyler Rogers",
-      "position": "RP",
+      "playerId": "42417",
+      "playerName": "Bryson Stott",
+      "position": "2B",
       "eligiblePositions": [
-        "SP",
-        "RP"
+        "2B",
+        "DH"
       ],
-      "totalPoints": 59,
+      "totalPoints": 62,
       "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/34026.png",
-      "percentOwned": 15.88
+      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42417.png",
+      "percentOwned": 36.25
     },
     {
-      "playerId": "36056",
-      "playerName": "Jakob Junis",
-      "position": "RP",
+      "playerId": "4417134",
+      "playerName": "Joey Wiemer",
+      "position": "OF",
       "eligiblePositions": [
-        "SP",
-        "RP"
+        "OF",
+        "DH"
       ],
-      "totalPoints": 59,
+      "totalPoints": 61.5,
       "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36056.png",
-      "percentOwned": 12.01
+      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4417134.png",
+      "percentOwned": 7.72
+    },
+    {
+      "playerId": "4417806",
+      "playerName": "Emmet Sheehan",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP"
+      ],
+      "totalPoints": 61,
+      "statSeasonId": 2026,
+      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4417806.png",
+      "percentOwned": 62.49
+    },
+    {
+      "playerId": "32150",
+      "playerName": "Trevor Story",
+      "position": "SS",
+      "eligiblePositions": [
+        "SS",
+        "DH"
+      ],
+      "totalPoints": 59.25,
+      "statSeasonId": 2026,
+      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32150.png",
+      "percentOwned": 20.06
     },
     {
       "playerId": "4917919",
@@ -515,31 +539,7 @@
       "totalPoints": 58.25,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4917919.png",
-      "percentOwned": 16.27
-    },
-    {
-      "playerId": "4417806",
-      "playerName": "Emmet Sheehan",
-      "position": "SP",
-      "eligiblePositions": [
-        "SP"
-      ],
-      "totalPoints": 58,
-      "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4417806.png",
-      "percentOwned": 63.64
-    },
-    {
-      "playerId": "33950",
-      "playerName": "Colin Rea",
-      "position": "SP",
-      "eligiblePositions": [
-        "SP"
-      ],
-      "totalPoints": 57,
-      "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33950.png",
-      "percentOwned": 8.49
+      "percentOwned": 16.14
     },
     {
       "playerId": "40422",
@@ -553,20 +553,20 @@
       "totalPoints": 56,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40422.png",
-      "percentOwned": 8.13
+      "percentOwned": 7.77
     },
     {
-      "playerId": "32150",
-      "playerName": "Trevor Story",
-      "position": "SS",
+      "playerId": "4418686",
+      "playerName": "Jack Perkins",
+      "position": "RP",
       "eligiblePositions": [
-        "SS",
-        "DH"
+        "SP",
+        "RP"
       ],
-      "totalPoints": 55,
+      "totalPoints": 56,
       "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32150.png",
-      "percentOwned": 20.31
+      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4418686.png",
+      "percentOwned": 6.02
     },
     {
       "playerId": "5131708",
@@ -578,7 +578,7 @@
       "totalPoints": 55,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5131708.png",
-      "percentOwned": 7.94
+      "percentOwned": 8.19
     },
     {
       "playerId": "4872686",
@@ -592,7 +592,7 @@
       "totalPoints": 53.5,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4872686.png",
-      "percentOwned": 7.39
+      "percentOwned": 7.11
     },
     {
       "playerId": "41253",
@@ -602,10 +602,10 @@
         "C",
         "DH"
       ],
-      "totalPoints": 52.5,
+      "totalPoints": 53.25,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41253.png",
-      "percentOwned": 21.12
+      "percentOwned": 20.53
     },
     {
       "playerId": "4683349",
@@ -615,10 +615,23 @@
         "C",
         "DH"
       ],
-      "totalPoints": 50.25,
+      "totalPoints": 52.25,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4683349.png",
-      "percentOwned": 10.19
+      "percentOwned": 10.17
+    },
+    {
+      "playerId": "41169",
+      "playerName": "Alec Bohm",
+      "position": "3B",
+      "eligiblePositions": [
+        "3B",
+        "DH"
+      ],
+      "totalPoints": 52,
+      "statSeasonId": 2026,
+      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41169.png",
+      "percentOwned": 16.69
     },
     {
       "playerId": "34230",
@@ -630,10 +643,10 @@
         "OF",
         "DH"
       ],
-      "totalPoints": 50.25,
+      "totalPoints": 51.25,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/34230.png",
-      "percentOwned": 6.41
+      "percentOwned": 6.37
     },
     {
       "playerId": "33860",
@@ -645,7 +658,20 @@
       "totalPoints": 50,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33860.png",
-      "percentOwned": 9.26
+      "percentOwned": 8.96
+    },
+    {
+      "playerId": "42462",
+      "playerName": "Brenton Doyle",
+      "position": "OF",
+      "eligiblePositions": [
+        "OF",
+        "DH"
+      ],
+      "totalPoints": 50,
+      "statSeasonId": 2026,
+      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42462.png",
+      "percentOwned": 7.86
     },
     {
       "playerId": "4925604",
@@ -658,20 +684,7 @@
       "totalPoints": 49.75,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4925604.png",
-      "percentOwned": 6.12
-    },
-    {
-      "playerId": "42417",
-      "playerName": "Bryson Stott",
-      "position": "2B",
-      "eligiblePositions": [
-        "2B",
-        "DH"
-      ],
-      "totalPoints": 49,
-      "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42417.png",
-      "percentOwned": 36.44
+      "percentOwned": 6.02
     },
     {
       "playerId": "39640",
@@ -683,33 +696,7 @@
       "totalPoints": 48,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39640.png",
-      "percentOwned": 51.34
-    },
-    {
-      "playerId": "42462",
-      "playerName": "Brenton Doyle",
-      "position": "OF",
-      "eligiblePositions": [
-        "OF",
-        "DH"
-      ],
-      "totalPoints": 48,
-      "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42462.png",
-      "percentOwned": 7.94
-    },
-    {
-      "playerId": "41169",
-      "playerName": "Alec Bohm",
-      "position": "3B",
-      "eligiblePositions": [
-        "3B",
-        "DH"
-      ],
-      "totalPoints": 47,
-      "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41169.png",
-      "percentOwned": 16.85
+      "percentOwned": 50.1
     },
     {
       "playerId": "32764",
@@ -721,7 +708,7 @@
       "totalPoints": 45,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32764.png",
-      "percentOwned": 6.98
+      "percentOwned": 6.71
     },
     {
       "playerId": "39639",
@@ -733,20 +720,32 @@
       "totalPoints": 43,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39639.png",
-      "percentOwned": 26.25
+      "percentOwned": 26.15
     },
     {
-      "playerId": "40635",
-      "playerName": "Royce Lewis",
-      "position": "3B",
+      "playerId": "40855",
+      "playerName": "Joel Kuhnel",
+      "position": "RP",
       "eligiblePositions": [
-        "3B",
+        "SP",
+        "RP"
+      ],
+      "totalPoints": 41,
+      "statSeasonId": 2026,
+      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40855.png",
+      "percentOwned": 6.54
+    },
+    {
+      "playerId": "31668",
+      "playerName": "Marcell Ozuna",
+      "position": "DH",
+      "eligiblePositions": [
         "DH"
       ],
-      "totalPoints": 40.75,
+      "totalPoints": 40.25,
       "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40635.png",
-      "percentOwned": 8.75
+      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31668.png",
+      "percentOwned": 6.02
     },
     {
       "playerId": "32145",
@@ -759,20 +758,20 @@
       "totalPoints": 40,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32145.png",
-      "percentOwned": 14.67
+      "percentOwned": 14.74
     },
     {
-      "playerId": "33841",
-      "playerName": "Jeff Hoffman",
+      "playerId": "4669425",
+      "playerName": "Ian Seymour",
       "position": "RP",
       "eligiblePositions": [
         "SP",
         "RP"
       ],
-      "totalPoints": 39,
+      "totalPoints": 40,
       "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33841.png",
-      "percentOwned": 53.56
+      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4669425.png",
+      "percentOwned": 9.62
     },
     {
       "playerId": "39801",
@@ -785,7 +784,7 @@
       "totalPoints": 39,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39801.png",
-      "percentOwned": 21.1
+      "percentOwned": 20.7
     },
     {
       "playerId": "40917",
@@ -798,7 +797,45 @@
       "totalPoints": 39,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40917.png",
-      "percentOwned": 8.35
+      "percentOwned": 8.33
+    },
+    {
+      "playerId": "40635",
+      "playerName": "Royce Lewis",
+      "position": "3B",
+      "eligiblePositions": [
+        "3B",
+        "DH"
+      ],
+      "totalPoints": 38.75,
+      "statSeasonId": 2026,
+      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40635.png",
+      "percentOwned": 8.59
+    },
+    {
+      "playerId": "4311625",
+      "playerName": "Kyle Bradish",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP"
+      ],
+      "totalPoints": 38,
+      "statSeasonId": 2026,
+      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4311625.png",
+      "percentOwned": 67.73
+    },
+    {
+      "playerId": "33841",
+      "playerName": "Jeff Hoffman",
+      "position": "RP",
+      "eligiblePositions": [
+        "SP",
+        "RP"
+      ],
+      "totalPoints": 38,
+      "statSeasonId": 2026,
+      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33841.png",
+      "percentOwned": 53.13
     },
     {
       "playerId": "33709",
@@ -810,7 +847,7 @@
       "totalPoints": 38,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33709.png",
-      "percentOwned": 48.07
+      "percentOwned": 48.23
     },
     {
       "playerId": "4417208",
@@ -822,7 +859,7 @@
       "totalPoints": 37,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4417208.png",
-      "percentOwned": 13.86
+      "percentOwned": 12.85
     },
     {
       "playerId": "4718970",
@@ -834,7 +871,7 @@
       "totalPoints": 37,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4718970.png",
-      "percentOwned": 6.13
+      "percentOwned": 6.09
     },
     {
       "playerId": "41171",
@@ -849,83 +886,7 @@
       "totalPoints": 36.25,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41171.png",
-      "percentOwned": 9.57
-    },
-    {
-      "playerId": "41172",
-      "playerName": "Brady Singer",
-      "position": "SP",
-      "eligiblePositions": [
-        "SP"
-      ],
-      "totalPoints": 36,
-      "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41172.png",
-      "percentOwned": 9.89
-    },
-    {
-      "playerId": "40855",
-      "playerName": "Joel Kuhnel",
-      "position": "RP",
-      "eligiblePositions": [
-        "SP",
-        "RP"
-      ],
-      "totalPoints": 36,
-      "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40855.png",
-      "percentOwned": 6.83
-    },
-    {
-      "playerId": "4669425",
-      "playerName": "Ian Seymour",
-      "position": "RP",
-      "eligiblePositions": [
-        "SP",
-        "RP"
-      ],
-      "totalPoints": 35,
-      "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4669425.png",
-      "percentOwned": 9.57
-    },
-    {
-      "playerId": "39898",
-      "playerName": "Peter Lambert",
-      "position": "RP",
-      "eligiblePositions": [
-        "SP",
-        "RP"
-      ],
-      "totalPoints": 34,
-      "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39898.png",
-      "percentOwned": 6.22
-    },
-    {
-      "playerId": "31668",
-      "playerName": "Marcell Ozuna",
-      "position": "DH",
-      "eligiblePositions": [
-        "DH"
-      ],
-      "totalPoints": 32.25,
-      "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31668.png",
-      "percentOwned": 6.09
-    },
-    {
-      "playerId": "42464",
-      "playerName": "Gabriel Moreno",
-      "position": "C",
-      "eligiblePositions": [
-        "C",
-        "DH"
-      ],
-      "totalPoints": 32,
-      "statSeasonId": 2026,
-      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42464.png",
-      "percentOwned": 23.31
+      "percentOwned": 9.26
     },
     {
       "playerId": "32177",
@@ -938,7 +899,7 @@
       "totalPoints": 31.75,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32177.png",
-      "percentOwned": 14.95
+      "percentOwned": 14.87
     },
     {
       "playerId": "5080757",
@@ -950,7 +911,32 @@
       "totalPoints": 30,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5080757.png",
-      "percentOwned": 18.02
+      "percentOwned": 16.21
+    },
+    {
+      "playerId": "42464",
+      "playerName": "Gabriel Moreno",
+      "position": "C",
+      "eligiblePositions": [
+        "C",
+        "DH"
+      ],
+      "totalPoints": 29,
+      "statSeasonId": 2026,
+      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42464.png",
+      "percentOwned": 22.96
+    },
+    {
+      "playerId": "41172",
+      "playerName": "Brady Singer",
+      "position": "SP",
+      "eligiblePositions": [
+        "SP"
+      ],
+      "totalPoints": 27,
+      "statSeasonId": 2026,
+      "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41172.png",
+      "percentOwned": 9.52
     },
     {
       "playerId": "33837",
@@ -959,10 +945,10 @@
       "eligiblePositions": [
         "SP"
       ],
-      "totalPoints": 27,
+      "totalPoints": 26,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33837.png",
-      "percentOwned": 44.42
+      "percentOwned": 43.62
     },
     {
       "playerId": "4872683",
@@ -974,7 +960,7 @@
       "totalPoints": 26,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4872683.png",
-      "percentOwned": 19.03
+      "percentOwned": 18.75
     },
     {
       "playerId": "32525",
@@ -987,7 +973,7 @@
       "totalPoints": 25,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32525.png",
-      "percentOwned": 11.47
+      "percentOwned": 11.37
     },
     {
       "playerId": "4692526",
@@ -999,7 +985,7 @@
       "totalPoints": 22,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4692526.png",
-      "percentOwned": 11.44
+      "percentOwned": 11.3
     },
     {
       "playerId": "35394",
@@ -1012,7 +998,7 @@
       "totalPoints": 21,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35394.png",
-      "percentOwned": 79.22
+      "percentOwned": 78.86
     },
     {
       "playerId": "41606",
@@ -1025,7 +1011,7 @@
       "totalPoints": 19,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41606.png",
-      "percentOwned": 6.45
+      "percentOwned": 6.3
     },
     {
       "playerId": "41014",
@@ -1038,7 +1024,7 @@
       "totalPoints": 18,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41014.png",
-      "percentOwned": 11.23
+      "percentOwned": 11.07
     },
     {
       "playerId": "4916269",
@@ -1051,7 +1037,7 @@
       "totalPoints": 15,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4916269.png",
-      "percentOwned": 6.58
+      "percentOwned": 6.7
     },
     {
       "playerId": "5134638",
@@ -1063,7 +1049,7 @@
       "totalPoints": 14,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5134638.png",
-      "percentOwned": 18.03
+      "percentOwned": 18.8
     },
     {
       "playerId": "5125167",
@@ -1076,7 +1062,7 @@
       "totalPoints": 13,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5125167.png",
-      "percentOwned": 6.71
+      "percentOwned": 6.63
     },
     {
       "playerId": "36380",
@@ -1089,7 +1075,7 @@
       "totalPoints": 11,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36380.png",
-      "percentOwned": 8.43
+      "percentOwned": 7.94
     },
     {
       "playerId": "42604",
@@ -1102,7 +1088,7 @@
       "totalPoints": 10,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42604.png",
-      "percentOwned": 31.87
+      "percentOwned": 31.88
     },
     {
       "playerId": "41307",
@@ -1116,7 +1102,7 @@
       "totalPoints": 3,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41307.png",
-      "percentOwned": 6.92
+      "percentOwned": 6.88
     },
     {
       "playerId": "4997589",
@@ -1130,7 +1116,7 @@
       "totalPoints": 2.75,
       "statSeasonId": 2026,
       "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4997589.png",
-      "percentOwned": 8.85
+      "percentOwned": 8.8
     }
   ]
 }
