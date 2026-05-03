@@ -346,11 +346,11 @@ export default async function TeamPage({ params }: Props) {
             teamId={id}
             weekNum={currentWeekNum}
             myName={team.name}
-            myLogo={team.logoUrl}
+            myLogo={meta?.logoUrl ?? team.logoUrl}
             myScore={cwMyScore ?? 0}
             myWon={cwIsFinal ? (cwMyWon ?? false) : null}
             oppName={cwOppTeam?.name ?? `Team ${cwOppId}`}
-            oppLogo={cwOppTeam?.logoUrl}
+            oppLogo={teamsMetadata.teams.find(t => t.id === cwOppId)?.logoUrl ?? cwOppTeam?.logoUrl}
             oppScore={cwOppScore ?? 0}
             isFinal={cwIsFinal}
             inProgress={cwInProgress}
@@ -366,10 +366,10 @@ export default async function TeamPage({ params }: Props) {
             ← All Teams
           </Link>
           <div className="flex items-center gap-6">
-            {team.logoUrl && (
+            {(meta?.logoUrl ?? team.logoUrl) && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={team.logoUrl}
+                src={meta?.logoUrl ?? team.logoUrl}
                 alt={`${team.name} logo`}
                 className="w-20 h-20 object-cover rounded-full bg-white/10 flex-shrink-0"
               />
