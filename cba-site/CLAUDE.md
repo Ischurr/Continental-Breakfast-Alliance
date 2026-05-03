@@ -76,6 +76,7 @@ npm run build            # Production build
 - If set → reads/writes Redis; if not → reads/writes local JSON files (dev only)
 - KV keys: `trash-talk`, `polls`, `rankings`, `team-content`, `dinos-content`, `admin-notes`, `win-probability-{year}`, `win-probability-history-{year}`
 - **`data/polls.json` is NOT production state** — production data lives in KV; the JSON file is only used when `KV_REST_API_URL` is absent
+- **`team-content` KV key overrides `teams.json`** — if you edit `data/teams.json` bio/strengths/weaknesses but the site shows old content, KV has a stale override. Clear it: `curl -s "$KV_REST_API_URL/del/team-content" -H "Authorization: Bearer $KV_REST_API_TOKEN"`
 
 ### GitHub Actions (at repo root: `Continental-Breakfast-Alliance/.github/workflows/`)
 | Workflow | Schedule | Purpose |
