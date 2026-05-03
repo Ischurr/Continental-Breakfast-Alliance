@@ -86,14 +86,17 @@ function buildFantasyContext(
   keeperByName: Map<string, string>,
   teamNameById: Map<string, string>,
 ): string {
+  // keeper-overrides is authoritative — some keepers have fantasy_team_id=0 in EROSP due to is_fa unreliability
+  const keeperTeamId = keeperByName.get(player.name.toLowerCase());
+  if (keeperTeamId) {
+    const keeperTeamName = teamNameById.get(keeperTeamId) ?? `Team ${keeperTeamId}`;
+    return `This player is a KEEPER for the ${keeperTeamName} in the CBA fantasy league — the team retained them from last season.`;
+  }
   const teamId = player.fantasy_team_id ? String(player.fantasy_team_id) : '0';
   if (teamId === '0') {
     return 'This player is currently a free agent in the CBA fantasy league, available to any team.';
   }
   const teamName = teamNameById.get(teamId) ?? `Team ${teamId}`;
-  if (keeperByName.has(player.name.toLowerCase())) {
-    return `This player is a KEEPER for the ${teamName} in the CBA fantasy league — the team retained them from last season.`;
-  }
   return `This player was drafted by the ${teamName} in the 2026 CBA fantasy draft.`;
 }
 
