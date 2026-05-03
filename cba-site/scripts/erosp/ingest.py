@@ -358,6 +358,86 @@ def fetch_pitching_stats(years: List[int], min_ip: int = 20) -> Dict[int, pd.Dat
     return result
 
 
+def _parse_baseball_ip(ip_str) -> float:
+    """Convert baseball IP notation ('47.1' = 47⅓ IP) to decimal innings."""
+    try:
+        s = str(ip_str)
+        if "." in s:
+            whole, frac = s.split(".", 1)
+            return float(whole) + int(frac) / 3.0
+        return float(s)
+    except (ValueError, TypeError):
+        return 0.0
+
+
+def fetch_mlb_ytd_pitcher_gs(season: int, mlbam_to_fg: Dict[int, int]) -> pd.DataFrame:
+    """Fallback: fetch pitcher YTD stats from MLB Stats API when FanGraphs 403s.
+
+    Returns a DataFrame with IDfg, GS, G, IP, and rate columns compatible with
+    the pitching_by_year dict used by Fix H (start pace anchor) and Fix K (RP anchor).
+    """
+    import requests
+    url = (
+        f"https://statsapi.mlb.com/api/v1/stats?stats=season&group=pitching"
+        f"&season={season}&sportId=1&gameType=R&playerPool=All&limit=2000"
+    )
+    try:
+        resp = requests.get(url, timeout=15)
+        resp.raise_for_status()
+        splits = resp.json().get("stats", [{}])[0].get("splits", [])
+    except Exception as exc:
+        print(f"    WARNING: MLB Stats API pitcher GS fallback failed: {exc}")
+        return pd.DataFrame()
+
+    rows = []
+    for s in splits:
+        mlbam_id = s.get("player", {}).get("id")
+        fgid = mlbam_to_fg.get(mlbam_id)
+        if not fgid:
+            continue
+        stat = s.get("stat", {})
+        g   = int(stat.get("gamesPlayed", 0))
+        gs  = int(stat.get("gamesStarted", 0))
+        ip  = _parse_baseball_ip(stat.get("inningsPitched", "0"))
+        k   = int(stat.get("strikeOuts", 0))
+        bb  = int(stat.get("baseOnBalls", 0))
+        h   = int(stat.get("hits", 0))
+        er  = int(stat.get("earnedRuns", 0))
+        sv  = int(stat.get("saves", 0))
+        hld = int(stat.get("holds", 0))
+        w   = int(stat.get("wins", 0))
+        ip_safe = max(ip, 0.01)
+        g_safe  = max(g, 1)
+        gs_safe = max(gs, 1)
+        rows.append({
+            "IDfg":       fgid,
+            "G":          g,
+            "GS":         gs,
+            "IP":         round(ip, 2),
+            "k_per_ip":   round(k / ip_safe, 4),
+            "bb_per_ip":  round(bb / ip_safe, 4),
+            "h_per_ip":   round(h / ip_safe, 4),
+            "er_per_ip":  round(er / ip_safe, 4),
+            "sv_per_g":   round(sv / g_safe, 4),
+            "hd_per_g":   round(hld / g_safe, 4),
+            "sp_ratio":   round(gs / g_safe, 4),
+            "role":       "SP" if gs / g_safe >= 0.5 else "RP",
+            "ip_per_gs":  round(ip / gs_safe, 4) if gs > 0 else 0.0,
+            "w_per_gs":   round(w / gs_safe, 4) if gs > 0 else 0.0,
+            "qs_per_gs":  0.0,
+            "year":       season,
+            "team_norm":  "",
+        })
+
+    if not rows:
+        print(f"    WARNING: MLB Stats API returned no pitcher data for {season}.")
+        return pd.DataFrame()
+
+    df = pd.DataFrame(rows)
+    print(f"    Fix L: MLB Stats API fallback — {len(df):,} pitchers with {season} YTD data.")
+    return df
+
+
 # ---------------------------------------------------------------------------
 # Statcast xwOBA
 # ---------------------------------------------------------------------------

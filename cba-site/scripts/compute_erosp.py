@@ -54,6 +54,7 @@ from erosp.ingest import (
     fetch_schedule_summary,
     fetch_injured_players,
     fetch_active_40man_mlbam_ids,
+    fetch_mlb_ytd_pitcher_gs,
     load_espn_data,
     build_name_to_mlbam, build_name_to_mlbam_from_chadwick,
     build_fangraphs_to_mlbam, espn_name_to_mlbam,
@@ -135,6 +136,13 @@ pitching_by_year = fetch_pitching_stats(HISTORICAL_YEARS, min_ip=20)
 if SEASON_STARTED:
     cur_pit = fetch_pitching_stats([TARGET_SEASON], min_ip=5)
     pitching_by_year.update(cur_pit)
+    # Fix L: MLB Stats API fallback when FanGraphs is unavailable (403).
+    # Provides GS/IP/rate stats so Fix H (YTD start-pace anchor) and Fix K (RP anchor) can fire.
+    if TARGET_SEASON not in pitching_by_year:
+        mlbam_to_fg = {v: k for k, v in fg_to_mlbam.items()}
+        mlb_ytd_df = fetch_mlb_ytd_pitcher_gs(TARGET_SEASON, mlbam_to_fg)
+        if not mlb_ytd_df.empty:
+            pitching_by_year[TARGET_SEASON] = mlb_ytd_df
 # Fix 2: fetch extra years (y4, y5) for extended pitcher lookback
 pitcher_extra = fetch_pitching_stats(PITCHER_EXTRA_YEARS, min_ip=20)
 pitching_by_year.update(pitcher_extra)
@@ -574,6 +582,39 @@ projection_df["games_remaining"] = projection_df["games_remaining"].fillna(FULL_
 projection_df["erosp_per_game"] = (
     projection_df["erosp_startable"] / projection_df["games_remaining"].clip(lower=1)
 ).round(3)
+
+# YTD floor: erosp_raw must not be lower than current season points already earned.
+# If the model has a near-zero start_probability for an active player, this prevents
+# absurdly low projections for players who are clearly performing. Active rostered players
+# only (excludes genuinely injured players on D60/SUSP who can't play rest of season).
+if SEASON_STARTED:
+    mlbam_to_ytd_pts: dict = {}
+    for _p in rostered_players:
+        _name     = str(_p.get("playerName", ""))
+        _ytd      = float(_p.get("totalPoints", 0) or 0)
+        if _ytd > 0:
+            _mid = espn_name_to_mlbam(_name, name_to_mlbam)
+            if _mid:
+                mlbam_to_ytd_pts[_mid] = _ytd
+
+    ytd_floor_count = 0
+    for _mid in projection_df.index:
+        _ytd_pts = mlbam_to_ytd_pts.get(_mid, 0)
+        if _ytd_pts <= 0:
+            continue
+        # Skip players on long-term IL — their low EROSP is intentional
+        if injury_map and _mid in injury_map:
+            il = injury_map[_mid].get("il_type", "")
+            days = int(injury_map[_mid].get("games_missed_est", 0))
+            if il in ("D60", "SUSP") and days > 21:
+                continue
+        if projection_df.at[_mid, "erosp_raw"] < _ytd_pts:
+            projection_df.at[_mid, "erosp_raw"] = round(_ytd_pts, 1)
+            ytd_floor_count += 1
+
+    if ytd_floor_count:
+        print(f"  YTD floor: raised erosp_raw for {ytd_floor_count} player(s) to match "
+              f"season pts already earned.")
 
 
 # ---------------------------------------------------------------------------

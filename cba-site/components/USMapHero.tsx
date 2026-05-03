@@ -87,7 +87,7 @@ const TEAMS = [
     id: 8, name: 'Whistlepigs',
     logo: 'https://i.pinimg.com/564x/4e/2e/88/4e2e880d6aa675473a8d3eb73b2064f1.jpg',
     coordinates: [-80.82, 41.24] as [number, number],
-    dx: -65, dy: -15,
+    dx: -65, dy: -15, zoom: 1.8,
   },
   {
     id: 9, name: 'Fuzzy Bottoms',
@@ -137,8 +137,11 @@ export default function USMapHero() {
           }
         </Geographies>
 
-        {TEAMS.map(({ id, name, logo, coordinates, dx, dy }) => {
+        {TEAMS.map(({ id, name, logo, coordinates, dx, dy, zoom }) => {
           const clipId = `clip-team-${id}`;
+          const z = zoom ?? 1;
+          const w = R * 2 * z;
+          const h = R * 2 * z;
           return (
             <Marker key={id} coordinates={coordinates}>
               <defs>
@@ -171,10 +174,10 @@ export default function USMapHero() {
                 <title>{name}</title>
                 <image
                   href={logo}
-                  x={dx - R}
-                  y={dy - R}
-                  width={R * 2}
-                  height={R * 2}
+                  x={dx - w / 2}
+                  y={dy - h / 2}
+                  width={w}
+                  height={h}
                   clipPath={`url(#${clipId})`}
                   preserveAspectRatio="xMidYMid slice"
                 />
