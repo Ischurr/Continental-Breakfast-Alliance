@@ -12,6 +12,7 @@ import { TeamBioEditor, TeamStrengthsEditor } from './TeamContentEditor';
 import TeamBaseballField from '@/components/TeamBaseballField';
 import EROSPTable, { type EROSPPlayer, type EROSPMeta } from '@/components/EROSPTable';
 import SuggestedMoves from '@/components/SuggestedMoves';
+import TeamSectionTabs from '@/components/TeamSectionTabs';
 import TeamMatchupTracker from '@/components/TeamMatchupTracker';
 import ProspectStatusChecker from '@/components/ProspectStatusChecker';
 import PlayerName from '@/components/PlayerName';
@@ -787,52 +788,92 @@ export default async function TeamPage({ params }: Props) {
           </div>
         )}
 
-        {/* Current roster field diagram — falls back to keepers pre-draft */}
-        {(currentRoster.length > 0 || suggestedKeepers.length > 0) && (
-          <div className="mb-10">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              {currentRoster.length > 0 ? `${currentSeason.year} Roster` : '2026 Keepers'}
-            </h2>
-            <TeamBaseballField
-              players={currentRoster.length > 0 ? currentRoster : suggestedKeepers.map(k => ({
+        {/* Tabbed sections: Roster / EROSP / Suggested Moves / Scorecard */}
+        {(() => {
+          const rosterPlayers = currentRoster.length > 0
+            ? currentRoster
+            : suggestedKeepers.map(k => ({
                 playerId: k.playerId || k.playerName,
                 playerName: k.playerName,
                 position: k.position,
                 totalPoints: k.projectedFP2026 ?? 0,
                 photoUrl: k.photoUrl,
-              }))}
-              rpNames={rpNames.size > 0 ? rpNames : undefined}
-              fieldDimensions={id === 3 ? { lf: 325, lcf: 375, cf: 400, rcf: 375, rf: 325 } : undefined}
-              stadiumName={id === 3 ? 'Tim Elko Field at Montani Semper Liberi Park' : id === 10 ? 'Muzzy Field, Home of the Bristol Banshees' : undefined}
-              backgroundImageUrl={id === 3 ? '/wvu-kendrick-field.jpg' : id === 10 ? '/bristol-field.jpg' : undefined}
-            />
-          </div>
-        )}
+              }));
+          const hasRoster = rosterPlayers.length > 0;
 
-        {/* EROSP Projections */}
-        {erospMeta && (
-          <div className="mb-10">
-            <h2 className="text-2xl font-bold text-gray-900 mb-1">{erospMeta.season} EROSP Projections</h2>
-            <p className="text-sm text-gray-700 mb-4">
-              Expected Rest of Season Fantasy Points · {erospMeta.games_remaining} games remaining
-            </p>
-            {teamErospPlayers.length > 0 ? (
-              <EROSPTable
-                players={teamErospPlayers}
-                meta={erospMeta}
-                showTeamColumn={false}
-                faNames={faNames}
-              />
-            ) : (
-              <div className="bg-slate-200 rounded-xl border shadow-sm p-6 text-center text-gray-400 text-sm">
-                No EROSP data for this team's roster yet.
-                {!erospMeta.season_started && (
-                  <span> EROSP data becomes more accurate once the season starts.</span>
-                )}
-              </div>
-            )}
-          </div>
-        )}
+          const panels = [
+            ...(hasRoster ? [{
+              id: 'roster',
+              label: currentRoster.length > 0 ? `${currentSeason.year} Roster` : '2026 Keepers',
+              content: (
+                <TeamBaseballField
+                  players={rosterPlayers}
+                  rpNames={rpNames.size > 0 ? rpNames : undefined}
+                  fieldDimensions={id === 3 ? { lf: 325, lcf: 375, cf: 400, rcf: 375, rf: 325 } : undefined}
+                  stadiumName={id === 3 ? 'Tim Elko Field at Montani Semper Liberi Park' : id === 10 ? 'Muzzy Field, Home of the Bristol Banshees' : undefined}
+                  backgroundImageUrl={id === 3 ? '/wvu-kendrick-field.jpg' : id === 10 ? '/bristol-field.jpg' : undefined}
+                />
+              ),
+            }] : []),
+            ...(erospMeta ? [{
+              id: 'erosp',
+              label: 'Projections',
+              badge: `${erospMeta.games_remaining}G left`,
+              content: (
+                <div>
+                  <div className="mb-4">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-1">{erospMeta.season} EROSP Projections</h2>
+                    <p className="text-sm text-gray-700">Expected Rest of Season Fantasy Points · {erospMeta.games_remaining} games remaining</p>
+                  </div>
+                  {teamErospPlayers.length > 0 ? (
+                    <EROSPTable
+                      players={teamErospPlayers}
+                      meta={erospMeta}
+                      showTeamColumn={false}
+                      faNames={faNames}
+                    />
+                  ) : (
+                    <div className="bg-slate-200 rounded-xl border shadow-sm p-6 text-center text-gray-400 text-sm">
+                      No EROSP data for this team&apos;s roster yet.
+                      {!erospMeta.season_started && (
+                        <span> EROSP data becomes more accurate once the season starts.</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ),
+            }] : []),
+            ...(suggestedMovesResult ? [{
+              id: 'moves',
+              label: 'Suggested Moves',
+              badge: String(suggestedMovesResult.suggestedMoves.length),
+              content: <SuggestedMoves result={suggestedMovesResult} />,
+            }] : []),
+            ...(weeklyScorecard ? [{
+              id: 'scorecard',
+              label: `Week ${weeklyScoreWeek} Scorecard`,
+              content: (
+                <div>
+                  <div className="mb-4">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-1">Week {weeklyScoreWeek} Scorecard</h2>
+                    <p className="text-sm text-gray-600">Active lineup vs. bench — who scored, who sat, and what was left on the table.</p>
+                  </div>
+                  <WeeklyScorecard breakdown={weeklyScorecard} week={weeklyScoreWeek} />
+                </div>
+              ),
+            }] : []),
+          ];
+
+          if (panels.length === 0) return null;
+
+          return (
+            <TeamSectionTabs
+              panels={panels}
+              defaultTab={panels[0].id}
+              teamColor={meta?.primaryColor}
+            />
+          );
+        })()}
 
         {/* WVPR Farm System */}
         {id === 3 && (
@@ -856,22 +897,6 @@ export default async function TeamPage({ params }: Props) {
                 </div>
               ))}
             </div>
-          </div>
-        )}
-
-        {/* Suggested Moves */}
-        {suggestedMovesResult && (
-          <div className="mb-10">
-            <SuggestedMoves result={suggestedMovesResult} />
-          </div>
-        )}
-
-        {/* Weekly Scorecard */}
-        {weeklyScorecard && (
-          <div className="mb-10">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Week {weeklyScoreWeek} Scorecard</h2>
-            <p className="text-sm text-gray-600 mb-4">Active lineup vs. bench — who scored, who sat, and what was left on the table.</p>
-            <WeeklyScorecard breakdown={weeklyScorecard} week={weeklyScoreWeek} />
           </div>
         )}
 
