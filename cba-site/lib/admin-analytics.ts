@@ -445,23 +445,23 @@ export function slotDisplayLabel(slot: string): string {
 // ── Season-to-date stat categories (shared by weekCategories + seasonCatStats) ─
 
 const SEASON_HITTER_CATS: { catId: string; label: string; higherIsBetter: boolean }[] = [
-  { catId: '12', label: 'HR', higherIsBetter: true },
-  { catId: '13', label: 'RBI', higherIsBetter: true },
-  { catId: '5',  label: 'R',   higherIsBetter: true },
+  { catId: '8',  label: 'TB',  higherIsBetter: true },  // total bases (1B=1,2B=2,3B=3,HR=4 extra)
+  { catId: '21', label: 'RBI', higherIsBetter: true },
+  { catId: '20', label: 'R',   higherIsBetter: true },
   { catId: '23', label: 'SB',  higherIsBetter: true },
-  { catId: '6',  label: 'H',   higherIsBetter: true },
-  { catId: '48', label: 'K',   higherIsBetter: false }, // batting Ks
+  { catId: '1',  label: 'H',   higherIsBetter: true },
+  { catId: '27', label: 'K',   higherIsBetter: false }, // batting Ks
   { catId: '24', label: 'CS',  higherIsBetter: false },
 ];
 
 const SEASON_PITCHER_CATS: { catId: string; label: string; higherIsBetter: boolean }[] = [
   { catId: '48', label: 'K',   higherIsBetter: true },  // pitcher Ks
   { catId: '34', label: 'IP',  higherIsBetter: true },
-  { catId: '64', label: 'QS',  higherIsBetter: true },
+  { catId: '63', label: 'QS',  higherIsBetter: true },
   { catId: '57', label: 'SV',  higherIsBetter: true },
-  { catId: '63', label: 'HD',  higherIsBetter: true },
-  { catId: '41', label: 'ER',  higherIsBetter: false },
-  { catId: '61', label: 'BS',  higherIsBetter: false },
+  { catId: '60', label: 'HD',  higherIsBetter: true },
+  { catId: '45', label: 'ER',  higherIsBetter: false },
+  { catId: '58', label: 'BS',  higherIsBetter: false },
 ];
 
 // ── Main function ─────────────────────────────────────────────────────────────
@@ -1583,13 +1583,13 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
       }
     };
 
-    simpleLeader('12', 'hitter',  '💣', 'HR',       58);
+    simpleLeader('8',  'hitter',  '💣', 'TB',       58);
     simpleLeader('23', 'hitter',  '💨', 'SB',       60);
     simpleLeader('48', 'pitcher', '🔥', 'pitcher K', 59);
-    simpleLeader('64', 'pitcher', '⚾', 'QS',        57);
+    simpleLeader('63', 'pitcher', '⚾', 'QS',        57);
 
     // Batting K rate (high-risk offense — #1 in batting strikeouts)
-    const bkCat = getCat('48', 'hitter');
+    const bkCat = getCat('27', 'hitter');
     if (bkCat && bkCat.teams[0].value > 0) {
       const ldr = bkCat.teams[0];
       bullets.push({
@@ -1624,9 +1624,9 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
       }
     }
 
-    // HR/R gap: power without production
-    const hrCat2 = getCat('12', 'hitter');
-    const rCat   = getCat('5',  'hitter');
+    // TB/R gap: power without production
+    const hrCat2 = getCat('8',  'hitter');
+    const rCat   = getCat('20', 'hitter');
     if (hrCat2 && rCat) {
       const hrTop3  = new Set(hrCat2.teams.slice(0, 3).map(x => x.teamId));
       const rBot3   = new Set(rCat.teams.slice(-3).map(x => x.teamId));
@@ -1639,7 +1639,7 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
           priority: 66,
           category: 'season_stats',
           emoji: '💡',
-          headline: `**${name}** is hitting for power but not producing runs — top ${hrRank} in HR, bottom ${11 - rRank} in R`,
+          headline: `**${name}** is hitting for extra bases but not scoring runs — top ${hrRank} in TB, bottom ${11 - rRank} in R`,
           teamIds: [overlap[0]],
         });
       }
@@ -1647,7 +1647,7 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
 
     // SV/HD gap: closer depth but no setup
     const svCat = getCat('57', 'pitcher');
-    const hdCat = getCat('63', 'pitcher');
+    const hdCat = getCat('60', 'pitcher');
     if (svCat && hdCat) {
       const svTop3 = new Set(svCat.teams.slice(0, 3).map(x => x.teamId));
       const hdBot3 = new Set(hdCat.teams.slice(-3).map(x => x.teamId));
@@ -1666,7 +1666,7 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
 
     // K/QS gap: Ks without length
     const kCat2  = getCat('48', 'pitcher');
-    const qsCat2 = getCat('64', 'pitcher');
+    const qsCat2 = getCat('63', 'pitcher');
     if (kCat2 && qsCat2) {
       const kTop3  = new Set(kCat2.teams.slice(0, 3).map(x => x.teamId));
       const qsBot3 = new Set(qsCat2.teams.slice(-3).map(x => x.teamId));
@@ -1690,22 +1690,22 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
 
   if (weekBreakdowns && weekBreakdowns.length > 0) {
     const HITTER_CATS: { catId: string; label: string; higherIsBetter: boolean }[] = [
-      { catId: '12', label: 'HR', higherIsBetter: true },
-      { catId: '13', label: 'RBI', higherIsBetter: true },
-      { catId: '5', label: 'R', higherIsBetter: true },
-      { catId: '23', label: 'SB', higherIsBetter: true },
-      { catId: '6', label: 'H', higherIsBetter: true },
-      { catId: '27', label: 'GIDP', higherIsBetter: false },
-      { catId: '24', label: 'CS', higherIsBetter: false },
+      { catId: '8',  label: 'TB',  higherIsBetter: true },
+      { catId: '21', label: 'RBI', higherIsBetter: true },
+      { catId: '20', label: 'R',   higherIsBetter: true },
+      { catId: '23', label: 'SB',  higherIsBetter: true },
+      { catId: '1',  label: 'H',   higherIsBetter: true },
+      { catId: '27', label: 'K',   higherIsBetter: false }, // batting Ks
+      { catId: '24', label: 'CS',  higherIsBetter: false },
     ];
     const PITCHER_CATS: { catId: string; label: string; higherIsBetter: boolean }[] = [
-      { catId: '48', label: 'K', higherIsBetter: true },
-      { catId: '34', label: 'IP', higherIsBetter: true },
-      { catId: '64', label: 'QS', higherIsBetter: true },
-      { catId: '57', label: 'SV', higherIsBetter: true },
-      { catId: '63', label: 'HD', higherIsBetter: true },
-      { catId: '41', label: 'ER', higherIsBetter: false },
-      { catId: '42', label: 'BB', higherIsBetter: false },
+      { catId: '48', label: 'K',   higherIsBetter: true },
+      { catId: '34', label: 'IP',  higherIsBetter: true },
+      { catId: '63', label: 'QS',  higherIsBetter: true },
+      { catId: '57', label: 'SV',  higherIsBetter: true },
+      { catId: '60', label: 'HD',  higherIsBetter: true },
+      { catId: '45', label: 'ER',  higherIsBetter: false },
+      { catId: '39', label: 'BB',  higherIsBetter: false }, // walks allowed
     ];
 
     const isPitcherSlot = (p: WeeklyPlayerEntry) => p.primarySlot === 'SP' || p.primarySlot === 'RP';
@@ -1759,12 +1759,12 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
 
     const oddityBullets: StorylineBullet[] = [];
 
-    const hrCat = catStats.find(c => c.catId === '12');
-    if (hrCat && hrCat.top3[0] && hrCat.top3[0].value >= 3) {
+    const hrCat = catStats.find(c => c.catId === '8');
+    if (hrCat && hrCat.top3[0] && hrCat.top3[0].value >= 8) {
       const ldr = hrCat.top3[0];
       oddityBullets.push({
         priority: 72, category: 'player_over', emoji: '💣',
-        headline: `**${ldr.playerName}** (${ldr.teamName}) hit ${ldr.value} HRs in Week ${detailWeek}`,
+        headline: `**${ldr.playerName}** (${ldr.teamName}) had ${ldr.value} total bases in Week ${detailWeek}`,
         teamIds: [ldr.teamId], playerName: ldr.playerName,
       });
     }
@@ -1779,7 +1779,7 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
       });
     }
 
-    const qsCat = catStats.find(c => c.catId === '64');
+    const qsCat = catStats.find(c => c.catId === '63');
     if (qsCat && qsCat.top3[0] && qsCat.top3[0].value >= 2) {
       const ldr = qsCat.top3[0];
       oddityBullets.push({

@@ -45,7 +45,7 @@ const IL_SLOT_ID = 11;
 
 interface PerPeriodPlayerSnapshot {
   slotId: number;
-  seasonTotal: number;   // cumulative FP through this period
+  matchupTotal: number;  // cumulative FP for the current matchup week (statSplitTypeId=5) — resets each week
   playerName: string;
   position: string;      // primary MLB position
   photoUrl: string;
@@ -75,19 +75,17 @@ function parsePeriodSnapshot(
       const defaultPositionId = player.defaultPositionId as number | undefined;
       const position = (defaultPositionId !== undefined ? DEFAULT_POSITION_MAP[defaultPositionId] : undefined) ?? 'UTIL';
 
-      // Season cumulative total (statSplitTypeId=0)
-      const seasonStat = (player.stats as AnyRecord[] | undefined)
-        ?.find(s => s.statSourceId === 0 && s.statSplitTypeId === 0 && s.seasonId === season);
-      const seasonTotal = (seasonStat?.appliedTotal as number) ?? 0;
-
-      // Matchup-period cumulative stats (statSplitTypeId=5) — resets each week boundary
+      // Matchup-period cumulative stats (statSplitTypeId=5) — resets each week boundary.
+      // appliedTotal gives FP for this matchup week so far; appliedStats gives raw stat breakdown.
+      // ESPN correctly returns historical matchup-period data when a historical scoringPeriodId is requested.
       const matchupStat = (player.stats as AnyRecord[] | undefined)
         ?.find(s => s.statSourceId === 0 && s.statSplitTypeId === 5 && s.seasonId === season);
+      const matchupTotal = (matchupStat?.appliedTotal as number) ?? 0;
       const matchupRawStats = matchupStat?.appliedStats as Record<string, number> | undefined;
 
       result[teamId][playerId] = {
         slotId: lineupSlotId,
-        seasonTotal,
+        matchupTotal,
         playerName: (player.fullName as string) ?? 'Unknown',
         position,
         photoUrl: `https://a.espncdn.com/i/headshots/mlb/players/full/${playerId}.png`,
@@ -102,7 +100,6 @@ function parsePeriodSnapshot(
 function computeWeekBreakdowns(
   periodCache: PeriodCache,
   weekPeriods: number[],
-  prevPeriodTotal: Record<number, Record<string, number>>,  // teamId → playerId → baseline
 ): WeeklyTeamBreakdown[] {
   // Collect all team IDs
   const allTeamIds = new Set<number>();
@@ -111,7 +108,6 @@ function computeWeekBreakdowns(
   }
 
   const result: WeeklyTeamBreakdown[] = [];
-  const lastPeriod = weekPeriods[weekPeriods.length - 1];
 
   for (const teamId of allTeamIds) {
     // Collect all players seen this week across all periods
@@ -126,9 +122,6 @@ function computeWeekBreakdowns(
     const playerEntries: WeeklyPlayerEntry[] = [];
 
     for (const playerId of playerIds) {
-      // Baseline: last seen total from BEFORE the week started
-      const baseline = prevPeriodTotal[teamId]?.[playerId] ?? 0;
-
       // Get the last snapshot for this player to get name/position/photo
       let meta: PerPeriodPlayerSnapshot | undefined;
       for (let i = weekPeriods.length - 1; i >= 0; i--) {
@@ -137,13 +130,10 @@ function computeWeekBreakdowns(
       }
       if (!meta) continue;
 
-      // Total points scored this week = last seen total - baseline
-      const lastTotal = periodCache[lastPeriod]?.[teamId]?.[playerId]?.seasonTotal
-        ?? meta.seasonTotal;
-      const weekPoints = Math.max(0, lastTotal - baseline);
-
-      // Per-day slot + points calculation
-      let prevTotal = baseline;
+      // Per-day slot + points calculation using matchupTotal deltas.
+      // statSplitTypeId=5 resets each week boundary, so baseline is always 0 at week start.
+      // ESPN returns historical matchup-period data correctly when a historical period is requested.
+      let prevMatchupTotal = 0;
       let activePoints = 0;
       let benchPoints = 0;
       let activeDays = 0;
@@ -155,8 +145,8 @@ function computeWeekBreakdowns(
         const snap = periodCache[period]?.[teamId]?.[playerId];
         if (!snap) continue;  // player not on roster this period
 
-        const dayDelta = Math.max(0, snap.seasonTotal - prevTotal);
-        prevTotal = snap.seasonTotal;
+        const dayDelta = Math.max(0, snap.matchupTotal - prevMatchupTotal);
+        prevMatchupTotal = Math.max(prevMatchupTotal, snap.matchupTotal); // never go backwards
 
         const slotId = snap.slotId;
 
@@ -174,6 +164,8 @@ function computeWeekBreakdowns(
           pointsBySlotId[slotId] = (pointsBySlotId[slotId] ?? 0) + dayDelta;
         }
       }
+
+      const weekPoints = activePoints + benchPoints;
 
       // Primary slot = most common active slot; if never active, use last bench slot
       let primarySlotId = 16; // default bench
@@ -324,30 +316,7 @@ async function main() {
     const weekPeriods = matchupPeriods[String(week)];
     if (!weekPeriods || weekPeriods.length === 0) continue;
 
-    // Baseline: last seen season totals from period BEFORE this week's first period
-    const firstPeriod = weekPeriods[0];
-    const prevPeriodTotal: Record<number, Record<string, number>> = {};
-
-    if (firstPeriod > 1) {
-      // Use the last available period before this week
-      for (let p = firstPeriod - 1; p >= 1; p--) {
-        const snap = periodCache[p];
-        if (!snap) continue;
-        for (const [teamIdStr, players] of Object.entries(snap)) {
-          const teamId = Number(teamIdStr);
-          if (!prevPeriodTotal[teamId]) prevPeriodTotal[teamId] = {};
-          for (const [playerId, data] of Object.entries(players)) {
-            if (prevPeriodTotal[teamId][playerId] === undefined) {
-              prevPeriodTotal[teamId][playerId] = data.seasonTotal;
-            }
-          }
-        }
-        break; // just need the immediately prior period
-      }
-    }
-    // Week 1: prevPeriodTotal stays empty, so baseline = 0 for all players
-
-    const breakdowns = computeWeekBreakdowns(periodCache, weekPeriods, prevPeriodTotal);
+    const breakdowns = computeWeekBreakdowns(periodCache, weekPeriods);
     for (const b of breakdowns) b.week = week;
 
     weeksOutput[String(week)] = breakdowns;

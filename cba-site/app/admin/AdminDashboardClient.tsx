@@ -1225,6 +1225,34 @@ function WeekDetailTab({ analytics, weeklyScores }: { analytics: AdminAnalytics;
     t.players.filter(p => p.benchPoints >= 15).map(p => ({ ...p, teamName: teamNameById[t.teamId] ?? String(t.teamId) }))
   ).sort((a, b) => b.benchPoints - a.benchPoints).slice(0, 6);
 
+  // Slot unit breakdown — computed from weekTeams directly so it works for any selected week
+  const SLOT_ID_LABEL: Record<number, string> = {
+    0: 'C', 1: '1B', 2: '2B', 3: '3B', 4: 'SS',
+    5: 'OF', 6: 'MIF', 7: 'CIF',
+    8: 'OF', 9: 'OF', 10: 'OF',
+    12: 'DH', 13: 'SP', 14: 'SP', 15: 'RP', 19: 'UTIL',
+  };
+  const weekSlotByTeam: Record<number, Record<string, number>> = {};
+  for (const tb of weekTeams) {
+    weekSlotByTeam[tb.teamId] = {};
+    for (const p of tb.players) {
+      if (p.activeDays === 0) continue;
+      const slotPts: Record<number, number> = p.pointsBySlot ?? { [p.primarySlotId]: p.activePoints };
+      for (const [slotIdStr, pts] of Object.entries(slotPts)) {
+        if (pts <= 0) continue;
+        const slot = SLOT_ID_LABEL[Number(slotIdStr)] ?? p.primarySlot;
+        weekSlotByTeam[tb.teamId][slot] = (weekSlotByTeam[tb.teamId][slot] ?? 0) + pts;
+      }
+    }
+  }
+  const slotKeys = [...new Set(weekTeams.flatMap(tb => Object.keys(weekSlotByTeam[tb.teamId] ?? {})))].sort();
+  const slotUnits = slotKeys.map(slot => {
+    const byTeam = weekTeams.map(tb => ({ teamId: tb.teamId, pts: weekSlotByTeam[tb.teamId]?.[slot] ?? 0 }));
+    const avg = byTeam.reduce((s, t) => s + t.pts, 0) / Math.max(byTeam.length, 1);
+    return { slot, byTeam, avg };
+  });
+  const teamOrder = weekTeams.map(tb => tb.teamId);
+
   return (
     <div className="space-y-5">
       {/* Week selector */}
@@ -1357,7 +1385,7 @@ function WeekDetailTab({ analytics, weeklyScores }: { analytics: AdminAnalytics;
       )}
 
       {/* Slot unit breakdown for selected week */}
-      {analytics.weekDetail && analytics.weekDetail.week === selectedWeek && analytics.weekDetail.slotUnits.length > 0 && (
+      {slotUnits.length > 0 && (
         <section>
           <h3 className="text-sm font-semibold text-gray-700 mb-2">📊 Unit Scoring — Week {selectedWeek}</h3>
           <div className="overflow-x-auto">
@@ -1365,43 +1393,46 @@ function WeekDetailTab({ analytics, weeklyScores }: { analytics: AdminAnalytics;
               <thead>
                 <tr className="bg-gray-50 text-gray-600">
                   <th className="text-left px-3 py-2 font-semibold w-20">Slot</th>
-                  {analytics.weekDetail.teamBreakdowns.map(tb => (
-                    <th key={tb.teamId} className="text-center px-2 py-2 font-medium text-gray-500 max-w-[80px] truncate">
-                      {tb.teamName.split(' ').slice(-1)[0]}
+                  {teamOrder.map(teamId => (
+                    <th key={teamId} className="text-center px-2 py-2 font-medium text-gray-500 max-w-[80px] truncate">
+                      {(teamNameById[teamId] ?? String(teamId)).split(' ').slice(-1)[0]}
                     </th>
                   ))}
                   <th className="text-center px-2 py-2 font-semibold text-gray-600">Avg</th>
                 </tr>
               </thead>
               <tbody>
-                {analytics.weekDetail.slotUnits.map(su => {
-                  const byTeam = Object.fromEntries(su.teams.map(t => [t.teamId, t.activePoints]));
-                  const max = Math.max(...su.teams.map(t => t.activePoints));
+                {slotUnits.map(su => {
+                  const ptsByTeam = Object.fromEntries(su.byTeam.map(t => [t.teamId, t.pts]));
+                  const max = Math.max(...su.byTeam.map(t => t.pts));
                   return (
                     <tr key={su.slot} className="border-t border-gray-100 hover:bg-gray-50">
                       <td className="px-3 py-1.5 font-semibold text-gray-700">{su.slot}</td>
-                      {analytics.weekDetail!.teamBreakdowns.map(tb => {
-                        const pts = byTeam[tb.teamId] ?? 0;
+                      {teamOrder.map(teamId => {
+                        const pts = ptsByTeam[teamId] ?? 0;
                         const isTop = pts > 0 && pts === max;
                         return (
-                          <td key={tb.teamId} className={`text-center px-2 py-1.5 tabular-nums ${isTop ? 'font-bold text-teal-700' : pts === 0 ? 'text-gray-300' : 'text-gray-700'}`}>
+                          <td key={teamId} className={`text-center px-2 py-1.5 tabular-nums ${isTop ? 'font-bold text-teal-700' : pts === 0 ? 'text-gray-300' : 'text-gray-700'}`}>
                             {pts > 0 ? pts.toFixed(1) : '—'}
                           </td>
                         );
                       })}
-                      <td className="text-center px-2 py-1.5 text-gray-500 tabular-nums">{su.leagueAvg.toFixed(1)}</td>
+                      <td className="text-center px-2 py-1.5 text-gray-500 tabular-nums">{su.avg.toFixed(1)}</td>
                     </tr>
                   );
                 })}
                 <tr className="border-t-2 border-gray-200 bg-amber-50">
                   <td className="px-3 py-1.5 font-semibold text-amber-700">Bench</td>
-                  {analytics.weekDetail.teamBreakdowns.map(tb => (
-                    <td key={tb.teamId} className="text-center px-2 py-1.5 tabular-nums text-amber-600 font-medium">
-                      {tb.benchTotal > 0 ? tb.benchTotal.toFixed(1) : '—'}
-                    </td>
-                  ))}
+                  {teamOrder.map(teamId => {
+                    const bt = weekTeams.find(t => t.teamId === teamId)?.benchTotal ?? 0;
+                    return (
+                      <td key={teamId} className="text-center px-2 py-1.5 tabular-nums text-amber-600 font-medium">
+                        {bt > 0 ? bt.toFixed(1) : '—'}
+                      </td>
+                    );
+                  })}
                   <td className="text-center px-2 py-1.5 text-amber-600 tabular-nums">
-                    {(analytics.weekDetail.teamBreakdowns.reduce((s, t) => s + t.benchTotal, 0) / Math.max(analytics.weekDetail.teamBreakdowns.length, 1)).toFixed(1)}
+                    {(weekTeams.reduce((s, t) => s + t.benchTotal, 0) / Math.max(weekTeams.length, 1)).toFixed(1)}
                   </td>
                 </tr>
               </tbody>

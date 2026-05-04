@@ -218,6 +218,16 @@ def estimate_hitter_talent(
             base_df = pd.concat([base_df, new_players], ignore_index=True)
             seen_fgids |= set(new_players["IDfg"].dropna().astype(int).tolist())
 
+    # Fix J: add current-season debuts absent from all historical years
+    # (Japanese imports, true rookies — e.g. Kazuma Okamoto in 2026)
+    if in_season_year and in_season_year in batting_by_year and in_season_year not in [y1, y2, y3]:
+        cur_df = batting_by_year[in_season_year].copy()
+        new_players = cur_df[~cur_df["IDfg"].isin(seen_fgids)]
+        if not new_players.empty:
+            base_df = pd.concat([base_df, new_players], ignore_index=True)
+            seen_fgids |= set(new_players["IDfg"].dropna().astype(int).tolist())
+            print(f"    Fix J: added {len(new_players)} in-season debut(s) absent from historical data.")
+
     base_df["mlbam_id"] = base_df["IDfg"].map(fg_to_mlbam)
 
     # Fix 1: name-based fallback for newer players missing from Chadwick fg→mlbam mapping
@@ -518,6 +528,15 @@ def estimate_pitcher_talent(
                 print(f"    Added {len(new_players)} pitcher(s) from {fallback_year} not in {base_year}.")
             else:
                 print(f"    Added {len(new_players)} pitcher(s) from extra year {fallback_year} (TJ/injury fallback).")
+
+    # Fix J: add current-season debuts absent from all historical years (true rookies / imports)
+    if in_season_year and in_season_year in pitching_by_year and in_season_year not in all_years:
+        cur_df = pitching_by_year[in_season_year].copy()
+        new_players = cur_df[~cur_df["IDfg"].isin(seen_fgids)]
+        if not new_players.empty:
+            base_df = pd.concat([base_df, new_players], ignore_index=True)
+            seen_fgids |= set(new_players["IDfg"].dropna().astype(int).tolist())
+            print(f"    Fix J: added {len(new_players)} in-season pitcher debut(s) absent from historical data.")
 
     base_df["mlbam_id"] = base_df["IDfg"].map(fg_to_mlbam)
 
