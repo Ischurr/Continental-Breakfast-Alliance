@@ -1103,9 +1103,11 @@ export default function AdminDashboardClient({ analytics, adminNotes, weeklyScor
 function MatchupTeamCard({
   teamBreakdown,
   isWinner,
+  espnScore,
 }: {
   teamBreakdown: WeeklyTeamBreakdown & { teamName: string };
   isWinner: boolean;
+  espnScore?: number;
 }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -1123,7 +1125,9 @@ function MatchupTeamCard({
         <span className="font-semibold text-sm truncate">{teamBreakdown.teamName}</span>
         <div className="flex items-center gap-2 flex-shrink-0">
           {isWinner && <span className="text-[10px] bg-white/20 rounded-full px-1.5 py-0.5 font-semibold">WIN</span>}
-          <span className="font-bold text-base tabular-nums">{teamBreakdown.totalPoints.toFixed(1)}</span>
+          {espnScore !== undefined && (
+            <span className="font-bold text-base tabular-nums">{espnScore.toFixed(1)}</span>
+          )}
         </div>
       </div>
       {/* Active lineup — always visible top 8 */}
@@ -1321,6 +1325,7 @@ function WeekDetailTab({ analytics, weeklyScores }: { analytics: AdminAnalytics;
                           <MatchupTeamCard
                             teamBreakdown={{ ...homeTB, teamName: m.homeTeamName }}
                             isWinner={homeWon}
+                            espnScore={m.homePoints}
                           />
                         ) : (
                           <div className="flex-1 p-4 text-xs text-gray-400 italic text-center">No lineup data</div>
@@ -1329,6 +1334,7 @@ function WeekDetailTab({ analytics, weeklyScores }: { analytics: AdminAnalytics;
                           <MatchupTeamCard
                             teamBreakdown={{ ...awayTB, teamName: m.awayTeamName }}
                             isWinner={awayWon}
+                            espnScore={m.awayPoints}
                           />
                         ) : (
                           <div className="flex-1 p-4 text-xs text-gray-400 italic text-center">No lineup data</div>

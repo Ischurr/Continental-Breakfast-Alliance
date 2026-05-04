@@ -119,8 +119,7 @@ export function calculateAllTimeStandings(): AllTimeStandings[] {
       stats.totalWins += standing.wins;
       stats.totalLosses += standing.losses;
       stats.totalTies += standing.ties;
-      stats.totalPointsFor += standing.pointsFor;
-      stats.totalPointsAgainst += standing.pointsAgainst;
+      // PF/PA accumulated from matchups below (regular season only)
 
       const finish = index + 1;
       if (finish < stats.bestFinish) stats.bestFinish = finish;
@@ -152,12 +151,16 @@ export function calculateAllTimeStandings(): AllTimeStandings[] {
     stats.averageFinish = seasonCount > 0 ? totalFinish / seasonCount : 0;
   });
 
-  // Compute all-time expected W-L across all seasons
+  // Compute all-time PF/PA and expected W-L from regular-season matchups only
   seasons.forEach((season) => {
-    // Group completed matchups by week
+    // Regular season length = max W+L across standings (playoff weeks don't count toward W/L)
+    const regularSeasonWeeks = Math.max(...season.standings.map(s => s.wins + s.losses));
+
+    // Group completed matchups by week, excluding playoff weeks
     const byWeek = new Map<number, Matchup[]>();
     for (const m of season.matchups) {
       if (m.winner === undefined) continue;
+      if (m.week > regularSeasonWeeks) continue;
       const arr = byWeek.get(m.week) ?? [];
       arr.push(m);
       byWeek.set(m.week, arr);
@@ -172,14 +175,20 @@ export function calculateAllTimeStandings(): AllTimeStandings[] {
         : sorted[mid];
 
       for (const m of weekMatchups) {
-        for (const side of [m.home, m.away]) {
-          const stats = teamStats.get(side.teamId);
-          if (!stats) continue;
-          if (side.totalPoints >= median) {
-            stats.totalExpectedWins++;
-          } else {
-            stats.totalExpectedLosses++;
-          }
+        const homeStat = teamStats.get(m.home.teamId);
+        const awayStat = teamStats.get(m.away.teamId);
+
+        if (homeStat) {
+          homeStat.totalPointsFor += m.home.totalPoints;
+          homeStat.totalPointsAgainst += m.away.totalPoints;
+          if (m.home.totalPoints >= median) homeStat.totalExpectedWins++;
+          else homeStat.totalExpectedLosses++;
+        }
+        if (awayStat) {
+          awayStat.totalPointsFor += m.away.totalPoints;
+          awayStat.totalPointsAgainst += m.home.totalPoints;
+          if (m.away.totalPoints >= median) awayStat.totalExpectedWins++;
+          else awayStat.totalExpectedLosses++;
         }
       }
     });

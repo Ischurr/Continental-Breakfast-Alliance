@@ -122,68 +122,65 @@ function computeWeekBreakdowns(
     const playerEntries: WeeklyPlayerEntry[] = [];
 
     for (const playerId of playerIds) {
-      // Get the last snapshot for this player to get name/position/photo
-      let meta: PerPeriodPlayerSnapshot | undefined;
+      // Get the LAST snapshot for this player in the week.
+      // matchupTotal at the last period = the cumulative score for this matchup week.
+      // Note: the FIRST period of each week carries over the previous week's matchupTotal
+      // before ESPN's reset settles, so we use the last period to avoid that carryover.
+      let lastSnap: PerPeriodPlayerSnapshot | undefined;
       for (let i = weekPeriods.length - 1; i >= 0; i--) {
         const snap = periodCache[weekPeriods[i]]?.[teamId]?.[playerId];
-        if (snap) { meta = snap; break; }
+        if (snap) { lastSnap = snap; break; }
       }
-      if (!meta) continue;
+      if (!lastSnap) continue;
 
-      // Per-day slot + points calculation using matchupTotal deltas.
-      // statSplitTypeId=5 resets each week boundary, so baseline is always 0 at week start.
-      // ESPN returns historical matchup-period data correctly when a historical period is requested.
-      let prevMatchupTotal = 0;
-      let activePoints = 0;
-      let benchPoints = 0;
+      // Week total = matchupTotal at the last period (cumulative within this matchup week)
+      const weekPoints = Math.max(0, lastSnap.matchupTotal);
+
+      // Count active/bench/IL days from per-period slot data
       let activeDays = 0;
       let benchDays = 0;
       const slotCountsActive: Record<number, number> = {};
-      const pointsBySlotId: Record<number, number> = {};
 
       for (const period of weekPeriods) {
         const snap = periodCache[period]?.[teamId]?.[playerId];
-        if (!snap) continue;  // player not on roster this period
-
-        const dayDelta = Math.max(0, snap.matchupTotal - prevMatchupTotal);
-        prevMatchupTotal = Math.max(prevMatchupTotal, snap.matchupTotal); // never go backwards
+        if (!snap) continue;
 
         const slotId = snap.slotId;
-
         if (BENCH_SLOT_IDS.has(slotId)) {
-          // On bench this day
-          benchPoints += dayDelta;
           benchDays++;
         } else if (slotId === IL_SLOT_ID) {
-          // On IL — doesn't count for either (just skip)
+          // On IL — skip
         } else {
-          // Active slot
-          activePoints += dayDelta;
           activeDays++;
           slotCountsActive[slotId] = (slotCountsActive[slotId] ?? 0) + 1;
-          pointsBySlotId[slotId] = (pointsBySlotId[slotId] ?? 0) + dayDelta;
         }
       }
 
-      const weekPoints = activePoints + benchPoints;
+      // Distribute weekPoints proportionally between active and bench days.
+      // ESPN's historical mRoster API doesn't reliably give per-day deltas, so we
+      // approximate the active/bench split by day-count weights.
+      const totalDays = activeDays + benchDays;
+      const activePoints = totalDays > 0
+        ? Math.round(weekPoints * (activeDays / totalDays) * 10) / 10
+        : (activeDays > 0 ? weekPoints : 0);
+      const benchPoints = Math.round((weekPoints - activePoints) * 10) / 10;
 
-      // Primary slot = most common active slot; if never active, use last bench slot
+      // Primary slot = most common active slot; if never active, use last known slot
       let primarySlotId = 16; // default bench
       let maxCount = 0;
       for (const [sid, cnt] of Object.entries(slotCountsActive)) {
         if (cnt > maxCount) { maxCount = cnt; primarySlotId = Number(sid); }
       }
-      // If player was never active (injured/bench all week) use their last known slot
       if (maxCount === 0) {
-        primarySlotId = meta.slotId;
+        primarySlotId = lastSnap.slotId;
       }
 
-      const primarySlot = SLOT_LABEL_MAP[primarySlotId] ?? meta.position;
+      const primarySlot = SLOT_LABEL_MAP[primarySlotId] ?? lastSnap.position;
 
-      // Only include players who had any activity (saw at least one period in the roster)
+      // Only include players who appeared on the roster at some point this week
       if (weekPoints === 0 && activeDays === 0 && benchDays === 0) continue;
 
-      // Weekly stat totals: use last period's matchupRawStats (statSplitTypeId=5 is cumulative within the week)
+      // Weekly stat totals: use last period's matchupRawStats (cumulative within the week)
       let weeklyStats: Record<string, number> | undefined;
       for (let i = weekPeriods.length - 1; i >= 0; i--) {
         const snap = periodCache[weekPeriods[i]]?.[teamId]?.[playerId];
@@ -193,16 +190,10 @@ function computeWeekBreakdowns(
         }
       }
 
-      // Round each slot's points to 1 decimal
-      const pointsBySlot: Record<number, number> = {};
-      for (const [slotId, pts] of Object.entries(pointsBySlotId)) {
-        pointsBySlot[Number(slotId)] = Math.round(pts * 10) / 10;
-      }
-
       playerEntries.push({
         playerId,
-        playerName: meta.playerName,
-        position: meta.position,
+        playerName: lastSnap.playerName,
+        position: lastSnap.position,
         primarySlot,
         primarySlotId,
         weekPoints: Math.round(weekPoints * 10) / 10,
@@ -210,9 +201,8 @@ function computeWeekBreakdowns(
         benchPoints: Math.round(benchPoints * 10) / 10,
         activeDays,
         benchDays,
-        photoUrl: meta.photoUrl,
+        photoUrl: lastSnap.photoUrl,
         weeklyStats,
-        pointsBySlot: Object.keys(pointsBySlot).length > 0 ? pointsBySlot : undefined,
       });
     }
 

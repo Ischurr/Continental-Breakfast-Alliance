@@ -583,6 +583,12 @@ projection_df["erosp_per_game"] = (
     projection_df["erosp_startable"] / projection_df["games_remaining"].clip(lower=1)
 ).round(3)
 
+# Deduplicate index (duplicate mlbam_ids cause .at[] to return a Series)
+if projection_df.index.duplicated().any():
+    n_dups = projection_df.index.duplicated().sum()
+    print(f"  Warning: {n_dups} duplicate mlbam_id(s) in projection_df — dropping extras.")
+    projection_df = projection_df[~projection_df.index.duplicated(keep="first")]
+
 # YTD floor: erosp_raw must not be lower than current season points already earned.
 # If the model has a near-zero start_probability for an active player, this prevents
 # absurdly low projections for players who are clearly performing. Active rostered players
