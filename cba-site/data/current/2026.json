@@ -70,7 +70,7 @@
       "name": "Bristol Banshees",
       "owner": "{D33F8022-08B7-44B5-BF80-2208B7E4B513}",
       "abbrev": "BB",
-      "logoUrl": "https://mystique-api.fantasy.espn.com/apis/v1/domains/lm/images/b5302ed0-1b30-11f1-856f-67f9fe066da9",
+      "logoUrl": "/banshees-logo.png",
       "divisionId": 1
     },
     {
@@ -85,83 +85,83 @@
   "standings": [
     {
       "teamId": 1,
-      "wins": 4,
+      "wins": 5,
       "losses": 0,
       "ties": 0,
-      "pointsFor": 2422.75,
-      "pointsAgainst": 1973.75
+      "pointsFor": 2464.25,
+      "pointsAgainst": 1982.75
     },
     {
       "teamId": 2,
       "wins": 3,
-      "losses": 1,
+      "losses": 2,
       "ties": 0,
-      "pointsFor": 2299.5,
-      "pointsAgainst": 2154.75
+      "pointsFor": 2372.25,
+      "pointsAgainst": 2224.5
     },
     {
       "teamId": 3,
-      "wins": 1,
+      "wins": 2,
       "losses": 3,
       "ties": 0,
-      "pointsFor": 2042.25,
-      "pointsAgainst": 2052
+      "pointsFor": 2105,
+      "pointsAgainst": 2120.5
     },
     {
       "teamId": 4,
       "wins": 2,
-      "losses": 2,
+      "losses": 3,
       "ties": 0,
-      "pointsFor": 2112.5,
-      "pointsAgainst": 2171.25
+      "pointsFor": 2181,
+      "pointsAgainst": 2234
     },
     {
       "teamId": 6,
-      "wins": 4,
+      "wins": 5,
       "losses": 0,
       "ties": 0,
-      "pointsFor": 2197,
-      "pointsAgainst": 1907.5
+      "pointsFor": 2266.75,
+      "pointsAgainst": 1980.25
     },
     {
       "teamId": 7,
-      "wins": 3,
+      "wins": 4,
       "losses": 1,
       "ties": 0,
-      "pointsFor": 2234.25,
-      "pointsAgainst": 2168
+      "pointsFor": 2299.5,
+      "pointsAgainst": 2194
     },
     {
       "teamId": 8,
       "wins": 0,
-      "losses": 4,
+      "losses": 5,
       "ties": 0,
-      "pointsFor": 1940,
-      "pointsAgainst": 2290.25
+      "pointsFor": 1949,
+      "pointsAgainst": 2331.75
     },
     {
       "teamId": 9,
-      "wins": 2,
+      "wins": 3,
       "losses": 2,
       "ties": 0,
-      "pointsFor": 2237.75,
-      "pointsAgainst": 1979.25
+      "pointsFor": 2286,
+      "pointsAgainst": 2011.75
     },
     {
       "teamId": 10,
       "wins": 1,
-      "losses": 3,
+      "losses": 4,
       "ties": 0,
-      "pointsFor": 1870,
-      "pointsAgainst": 2263.75
+      "pointsFor": 1902.5,
+      "pointsAgainst": 2312
     },
     {
       "teamId": 11,
       "wins": 0,
-      "losses": 4,
+      "losses": 5,
       "ties": 0,
-      "pointsFor": 1818.75,
-      "pointsAgainst": 2214.25
+      "pointsFor": 1844.75,
+      "pointsAgainst": 2279.5
     }
   ],
   "matchups": [
@@ -430,60 +430,65 @@
       "week": 5,
       "home": {
         "teamId": 9,
-        "totalPoints": 424.75
+        "totalPoints": 473
       },
       "away": {
         "teamId": 10,
-        "totalPoints": 284.5
-      }
+        "totalPoints": 317
+      },
+      "winner": 9
     },
     {
       "id": "2026-21",
       "week": 5,
       "home": {
         "teamId": 2,
-        "totalPoints": 353.5
+        "totalPoints": 426.25
       },
       "away": {
         "teamId": 6,
-        "totalPoints": 366.75
-      }
+        "totalPoints": 436.5
+      },
+      "winner": 6
     },
     {
       "id": "2026-22",
       "week": 5,
       "home": {
         "teamId": 7,
-        "totalPoints": 341.25
+        "totalPoints": 406.5
       },
       "away": {
         "teamId": 11,
-        "totalPoints": 291
-      }
+        "totalPoints": 317
+      },
+      "winner": 7
     },
     {
       "id": "2026-23",
       "week": 5,
       "home": {
         "teamId": 1,
-        "totalPoints": 380
+        "totalPoints": 421.5
       },
       "away": {
         "teamId": 8,
-        "totalPoints": 311.5
-      }
+        "totalPoints": 320.5
+      },
+      "winner": 1
     },
     {
       "id": "2026-24",
       "week": 5,
       "home": {
         "teamId": 3,
-        "totalPoints": 363.75
+        "totalPoints": 426.5
       },
       "away": {
         "teamId": 4,
-        "totalPoints": 310.25
-      }
+        "totalPoints": 378.75
+      },
+      "winner": 3
     },
     {
       "id": "2026-25",
@@ -1466,7 +1471,7 @@
             "3B",
             "DH"
           ],
-          "totalPoints": 144.5,
+          "totalPoints": 146.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32801.png",
           "keeperValue": 2,
           "acquisitionType": "DRAFT"
@@ -1518,7 +1523,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 147.75,
+          "totalPoints": 146.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4918256.png",
           "keeperValue": 13,
           "acquisitionType": "DRAFT"
@@ -1531,7 +1536,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 88.5,
+          "totalPoints": 91.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4717833.png",
           "keeperValue": 21,
           "acquisitionType": "DRAFT"
@@ -1543,7 +1548,7 @@
           "eligiblePositions": [
             "SP"
           ],
-          "totalPoints": 150,
+          "totalPoints": 157,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32685.png",
           "keeperValue": 7,
           "acquisitionType": "DRAFT"
@@ -1570,7 +1575,7 @@
             "1B",
             "DH"
           ],
-          "totalPoints": 166.5,
+          "totalPoints": 177.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5016968.png",
           "acquisitionType": "DRAFT"
         },
@@ -1616,7 +1621,7 @@
             "SP",
             "RP"
           ],
-          "totalPoints": 61,
+          "totalPoints": 65,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/38303.png",
           "acquisitionType": "DRAFT"
         },
@@ -1627,7 +1632,7 @@
           "eligiblePositions": [
             "SP"
           ],
-          "totalPoints": 98,
+          "totalPoints": 125,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4927516.png",
           "acquisitionType": "DRAFT"
         },
@@ -1639,7 +1644,7 @@
             "2B",
             "DH"
           ],
-          "totalPoints": 72,
+          "totalPoints": 70.25,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32146.png",
           "acquisitionType": "DRAFT"
         },
@@ -1651,7 +1656,7 @@
             "SP",
             "RP"
           ],
-          "totalPoints": -3,
+          "totalPoints": 5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41208.png",
           "acquisitionType": "DRAFT"
         },
@@ -1674,7 +1679,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 137.75,
+          "totalPoints": 145.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39712.png",
           "keeperValue": 15,
           "acquisitionType": "DRAFT"
@@ -1700,7 +1705,7 @@
             "DH",
             "1B"
           ],
-          "totalPoints": 127.25,
+          "totalPoints": 125.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4872595.png",
           "acquisitionType": "DRAFT"
         },
@@ -1722,7 +1727,7 @@
           "eligiblePositions": [
             "SP"
           ],
-          "totalPoints": 18,
+          "totalPoints": 23,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4949041.png",
           "acquisitionType": "DRAFT"
         },
@@ -1757,7 +1762,7 @@
             "C",
             "DH"
           ],
-          "totalPoints": 67,
+          "totalPoints": 68,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4917646.png",
           "acquisitionType": "ADD"
         },
@@ -1769,21 +1774,8 @@
             "SS",
             "DH"
           ],
-          "totalPoints": 82.25,
+          "totalPoints": 85.25,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5218285.png",
-          "acquisitionType": "ADD"
-        },
-        {
-          "playerId": "40459",
-          "playerName": "Luis Garcia Jr.",
-          "position": "2B",
-          "eligiblePositions": [
-            "2B",
-            "DH",
-            "1B"
-          ],
-          "totalPoints": 81.25,
-          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40459.png",
           "acquisitionType": "ADD"
         },
         {
@@ -1804,7 +1796,7 @@
           "eligiblePositions": [
             "SP"
           ],
-          "totalPoints": 123,
+          "totalPoints": 127,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4619898.png",
           "acquisitionType": "ADD"
         },
@@ -1818,6 +1810,19 @@
           ],
           "totalPoints": 88,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4917888.png",
+          "acquisitionType": "ADD"
+        },
+        {
+          "playerId": "4311634",
+          "playerName": "Nick Gonzales",
+          "position": "2B",
+          "eligiblePositions": [
+            "2B",
+            "DH",
+            "3B"
+          ],
+          "totalPoints": 98.25,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4311634.png",
           "acquisitionType": "ADD"
         }
       ]
@@ -1833,7 +1838,7 @@
             "1B",
             "DH"
           ],
-          "totalPoints": 113.25,
+          "totalPoints": 117.25,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/30193.png",
           "keeperValue": 1,
           "acquisitionType": "DRAFT"
@@ -1871,7 +1876,7 @@
             "SS",
             "DH"
           ],
-          "totalPoints": 96.75,
+          "totalPoints": 99.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33710.png",
           "keeperValue": 6,
           "acquisitionType": "DRAFT"
@@ -1896,7 +1901,7 @@
             "1B",
             "DH"
           ],
-          "totalPoints": 178.25,
+          "totalPoints": 187.25,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32767.png",
           "keeperValue": 5,
           "acquisitionType": "DRAFT"
@@ -1932,7 +1937,7 @@
             "2B",
             "DH"
           ],
-          "totalPoints": 156,
+          "totalPoints": 166,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33783.png",
           "acquisitionType": "DRAFT"
         },
@@ -1944,7 +1949,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 124,
+          "totalPoints": 121.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36488.png",
           "keeperValue": 15,
           "acquisitionType": "DRAFT"
@@ -1957,7 +1962,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 78.5,
+          "totalPoints": 81.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4142424.png",
           "keeperValue": 9,
           "acquisitionType": "DRAFT"
@@ -1970,7 +1975,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 123.75,
+          "totalPoints": 124.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/34923.png",
           "acquisitionType": "DRAFT"
         },
@@ -1982,7 +1987,7 @@
             "C",
             "DH"
           ],
-          "totalPoints": 162,
+          "totalPoints": 165.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4810190.png",
           "acquisitionType": "DRAFT"
         },
@@ -2005,7 +2010,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 97.25,
+          "totalPoints": 98.25,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5134621.png",
           "keeperValue": 12,
           "acquisitionType": "DRAFT"
@@ -2018,7 +2023,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 119,
+          "totalPoints": 121,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32655.png",
           "acquisitionType": "DRAFT"
         },
@@ -2030,7 +2035,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 105.5,
+          "totalPoints": 104.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4917889.png",
           "acquisitionType": "DRAFT"
         },
@@ -2067,7 +2072,7 @@
             "SS",
             "DH"
           ],
-          "totalPoints": 112.75,
+          "totalPoints": 121.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31606.png",
           "keeperValue": 8,
           "acquisitionType": "ADD"
@@ -2080,7 +2085,7 @@
             "SP",
             "RP"
           ],
-          "totalPoints": 80,
+          "totalPoints": 106,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41282.png",
           "acquisitionType": "ADD"
         },
@@ -2092,7 +2097,7 @@
             "3B",
             "DH"
           ],
-          "totalPoints": 117.25,
+          "totalPoints": 119.25,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42437.png",
           "acquisitionType": "ADD"
         },
@@ -2104,21 +2109,8 @@
             "2B",
             "DH"
           ],
-          "totalPoints": 111,
+          "totalPoints": 110.25,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5080641.png",
-          "acquisitionType": "ADD"
-        },
-        {
-          "playerId": "4346111",
-          "playerName": "Troy Johnston",
-          "position": "OF",
-          "eligiblePositions": [
-            "1B",
-            "OF",
-            "DH"
-          ],
-          "totalPoints": 86.5,
-          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4346111.png",
           "acquisitionType": "ADD"
         },
         {
@@ -2140,7 +2132,7 @@
             "3B",
             "DH"
           ],
-          "totalPoints": 97,
+          "totalPoints": 99.25,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39706.png",
           "keeperValue": 11,
           "acquisitionType": "ADD"
@@ -2158,25 +2150,13 @@
           "acquisitionType": "ADD"
         },
         {
-          "playerId": "5000950",
-          "playerName": "Ryan Walker",
-          "position": "RP",
-          "eligiblePositions": [
-            "SP",
-            "RP"
-          ],
-          "totalPoints": 34,
-          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5000950.png",
-          "acquisitionType": "ADD"
-        },
-        {
           "playerId": "32827",
           "playerName": "Clay Holmes",
           "position": "SP",
           "eligiblePositions": [
             "SP"
           ],
-          "totalPoints": 96,
+          "totalPoints": 119,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32827.png",
           "acquisitionType": "ADD"
         },
@@ -2192,6 +2172,31 @@
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4987924.png",
           "keeperValue": 23,
           "acquisitionType": "ADD"
+        },
+        {
+          "playerId": "3210625",
+          "playerName": "Jacob Latz",
+          "position": "RP",
+          "eligiblePositions": [
+            "SP",
+            "RP"
+          ],
+          "totalPoints": 72,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/3210625.png",
+          "acquisitionType": "ADD"
+        },
+        {
+          "playerId": "4686066",
+          "playerName": "Tyler Soderstrom",
+          "position": "OF",
+          "eligiblePositions": [
+            "1B",
+            "OF",
+            "DH"
+          ],
+          "totalPoints": 109,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4686066.png",
+          "acquisitionType": "ADD"
         }
       ]
     },
@@ -2206,7 +2211,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 105.5,
+          "totalPoints": 108.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41044.png",
           "keeperValue": 1,
           "acquisitionType": "DRAFT"
@@ -2232,7 +2237,7 @@
             "SS",
             "DH"
           ],
-          "totalPoints": 148.75,
+          "totalPoints": 149.25,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4917694.png",
           "keeperValue": 6,
           "acquisitionType": "DRAFT"
@@ -2245,7 +2250,7 @@
             "1B",
             "DH"
           ],
-          "totalPoints": 100.75,
+          "totalPoints": 104.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/37498.png",
           "keeperValue": 3,
           "acquisitionType": "DRAFT"
@@ -2270,7 +2275,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 36.5,
+          "totalPoints": 37.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40926.png",
           "keeperValue": 12,
           "acquisitionType": "DRAFT"
@@ -2282,7 +2287,7 @@
           "eligiblePositions": [
             "SP"
           ],
-          "totalPoints": 61,
+          "totalPoints": 84,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39667.png",
           "keeperValue": 21,
           "acquisitionType": "DRAFT"
@@ -2306,7 +2311,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 115.25,
+          "totalPoints": 120.25,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/34945.png",
           "acquisitionType": "DRAFT"
         },
@@ -2331,7 +2336,7 @@
             "1B",
             "DH"
           ],
-          "totalPoints": 72.25,
+          "totalPoints": 73.25,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31127.png",
           "acquisitionType": "DRAFT"
         },
@@ -2380,7 +2385,7 @@
             "SS",
             "DH"
           ],
-          "totalPoints": 124.25,
+          "totalPoints": 127.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41917.png",
           "acquisitionType": "DRAFT"
         },
@@ -2404,7 +2409,7 @@
           "eligiblePositions": [
             "SP"
           ],
-          "totalPoints": 47,
+          "totalPoints": 58,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4622181.png",
           "acquisitionType": "DRAFT"
         },
@@ -2416,7 +2421,7 @@
             "1B",
             "DH"
           ],
-          "totalPoints": 158.25,
+          "totalPoints": 163.25,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32758.png",
           "acquisitionType": "DRAFT"
         },
@@ -2431,7 +2436,7 @@
             "DH",
             "2B"
           ],
-          "totalPoints": 46.75,
+          "totalPoints": 51.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42884.png",
           "acquisitionType": "DRAFT"
         },
@@ -2443,7 +2448,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 157.5,
+          "totalPoints": 158.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/30836.png",
           "keeperValue": 16,
           "acquisitionType": "DRAFT"
@@ -2469,7 +2474,7 @@
             "SS",
             "DH"
           ],
-          "totalPoints": 130.75,
+          "totalPoints": 133,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4941056.png",
           "acquisitionType": "DRAFT"
         },
@@ -2481,7 +2486,7 @@
             "SP",
             "RP"
           ],
-          "totalPoints": 44,
+          "totalPoints": 49,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39674.png",
           "acquisitionType": "DRAFT"
         },
@@ -2493,7 +2498,7 @@
             "SP",
             "RP"
           ],
-          "totalPoints": 79,
+          "totalPoints": 80,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4148749.png",
           "keeperValue": 13,
           "acquisitionType": "DRAFT"
@@ -2506,7 +2511,7 @@
             "C",
             "DH"
           ],
-          "totalPoints": 71.75,
+          "totalPoints": 73.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4917812.png",
           "acquisitionType": "ADD"
         },
@@ -2521,7 +2526,7 @@
             "OF",
             "1B"
           ],
-          "totalPoints": 50.25,
+          "totalPoints": 52.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42414.png",
           "acquisitionType": "ADD"
         },
@@ -2546,7 +2551,7 @@
             "DH",
             "2B"
           ],
-          "totalPoints": 85.5,
+          "totalPoints": 86,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41264.png",
           "acquisitionType": "ADD"
         },
@@ -2559,7 +2564,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 103.25,
+          "totalPoints": 104.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35013.png",
           "acquisitionType": "ADD"
         },
@@ -2587,7 +2592,7 @@
           "eligiblePositions": [
             "DH"
           ],
-          "totalPoints": 111.75,
+          "totalPoints": 117.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33712.png",
           "keeperValue": 10,
           "acquisitionType": "DRAFT"
@@ -2637,7 +2642,7 @@
             "3B",
             "DH"
           ],
-          "totalPoints": 102.25,
+          "totalPoints": 109.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4905921.png",
           "keeperValue": 13,
           "acquisitionType": "DRAFT"
@@ -2663,7 +2668,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 92,
+          "totalPoints": 95,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4872691.png",
           "keeperValue": 4,
           "acquisitionType": "DRAFT"
@@ -2724,7 +2729,7 @@
             "2B",
             "DH"
           ],
-          "totalPoints": 95.75,
+          "totalPoints": 104,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4977664.png",
           "acquisitionType": "DRAFT"
         },
@@ -2747,7 +2752,7 @@
           "eligiblePositions": [
             "SP"
           ],
-          "totalPoints": 86,
+          "totalPoints": 97,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39817.png",
           "keeperValue": 20,
           "acquisitionType": "DRAFT"
@@ -2760,7 +2765,7 @@
             "SS",
             "DH"
           ],
-          "totalPoints": 93.75,
+          "totalPoints": 95.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4666100.png",
           "acquisitionType": "DRAFT"
         },
@@ -2772,7 +2777,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 61.75,
+          "totalPoints": 65.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4926296.png",
           "acquisitionType": "DRAFT"
         },
@@ -2784,7 +2789,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 79.75,
+          "totalPoints": 82.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39642.png",
           "keeperValue": 24,
           "acquisitionType": "DRAFT"
@@ -2797,7 +2802,7 @@
             "1B",
             "DH"
           ],
-          "totalPoints": 103.5,
+          "totalPoints": 113.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40810.png",
           "acquisitionType": "DRAFT"
         },
@@ -2821,7 +2826,7 @@
             "2B",
             "DH"
           ],
-          "totalPoints": 73.75,
+          "totalPoints": 74,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4422899.png",
           "acquisitionType": "DRAFT"
         },
@@ -2868,7 +2873,7 @@
             "SS",
             "DH"
           ],
-          "totalPoints": 46,
+          "totalPoints": 49.25,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4905919.png",
           "acquisitionType": "ADD"
         },
@@ -2881,7 +2886,7 @@
             "3B",
             "DH"
           ],
-          "totalPoints": 162.5,
+          "totalPoints": 162,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5080771.png",
           "acquisitionType": "ADD"
         },
@@ -2910,18 +2915,6 @@
           "acquisitionType": "ADD"
         },
         {
-          "playerId": "29630",
-          "playerName": "Kenley Jansen",
-          "position": "RP",
-          "eligiblePositions": [
-            "SP",
-            "RP"
-          ],
-          "totalPoints": 27,
-          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/29630.png",
-          "acquisitionType": "ADD"
-        },
-        {
           "playerId": "35135",
           "playerName": "Tanner Scott",
           "position": "RP",
@@ -2929,7 +2922,7 @@
             "SP",
             "RP"
           ],
-          "totalPoints": 51,
+          "totalPoints": 61,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35135.png",
           "acquisitionType": "ADD"
         },
@@ -2942,6 +2935,18 @@
           ],
           "totalPoints": 104,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33773.png",
+          "acquisitionType": "ADD"
+        },
+        {
+          "playerId": "32558",
+          "playerName": "Jorge Soler",
+          "position": "OF",
+          "eligiblePositions": [
+            "OF",
+            "DH"
+          ],
+          "totalPoints": 98,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32558.png",
           "acquisitionType": "ADD"
         }
       ]
@@ -2957,7 +2962,7 @@
             "2B",
             "DH"
           ],
-          "totalPoints": 87.25,
+          "totalPoints": 84.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32512.png",
           "keeperValue": 1,
           "acquisitionType": "DRAFT"
@@ -2981,7 +2986,7 @@
             "1B",
             "DH"
           ],
-          "totalPoints": 54,
+          "totalPoints": 57,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33859.png",
           "keeperValue": 2,
           "acquisitionType": "DRAFT"
@@ -3006,7 +3011,7 @@
             "DH",
             "SP"
           ],
-          "totalPoints": 118.25,
+          "totalPoints": 119.25,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39832.png",
           "keeperValue": 5,
           "acquisitionType": "DRAFT"
@@ -3019,7 +3024,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 71,
+          "totalPoints": 83.25,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41610.png",
           "keeperValue": 7,
           "acquisitionType": "DRAFT"
@@ -3031,7 +3036,7 @@
           "eligiblePositions": [
             "SP"
           ],
-          "totalPoints": 90,
+          "totalPoints": 91,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42450.png",
           "keeperValue": 9,
           "acquisitionType": "DRAFT"
@@ -3044,7 +3049,7 @@
             "3B",
             "DH"
           ],
-          "totalPoints": 112.75,
+          "totalPoints": 116.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4905884.png",
           "keeperValue": 15,
           "acquisitionType": "DRAFT"
@@ -3057,7 +3062,7 @@
             "SS",
             "DH"
           ],
-          "totalPoints": 95.75,
+          "totalPoints": 95.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32691.png",
           "acquisitionType": "DRAFT"
         },
@@ -3094,7 +3099,7 @@
             "C",
             "DH"
           ],
-          "totalPoints": 77,
+          "totalPoints": 76.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5132014.png",
           "acquisitionType": "DRAFT"
         },
@@ -3106,7 +3111,7 @@
             "SS",
             "DH"
           ],
-          "totalPoints": 138.25,
+          "totalPoints": 145.25,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42402.png",
           "keeperValue": 11,
           "acquisitionType": "DRAFT"
@@ -3121,7 +3126,7 @@
             "SS",
             "DH"
           ],
-          "totalPoints": 112.25,
+          "totalPoints": 113.25,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41287.png",
           "acquisitionType": "DRAFT"
         },
@@ -3133,7 +3138,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 84.75,
+          "totalPoints": 87.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33377.png",
           "keeperValue": 13,
           "acquisitionType": "DRAFT"
@@ -3158,7 +3163,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 102,
+          "totalPoints": 102.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40854.png",
           "acquisitionType": "DRAFT"
         },
@@ -3171,7 +3176,7 @@
             "SS",
             "DH"
           ],
-          "totalPoints": 122.25,
+          "totalPoints": 123.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32653.png",
           "acquisitionType": "DRAFT"
         },
@@ -3206,7 +3211,7 @@
             "SP",
             "RP"
           ],
-          "totalPoints": 53,
+          "totalPoints": 57,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35009.png",
           "acquisitionType": "ADD"
         },
@@ -3218,7 +3223,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 155.5,
+          "totalPoints": 157.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4684778.png",
           "acquisitionType": "ADD"
         },
@@ -3253,7 +3258,7 @@
             "1B",
             "DH"
           ],
-          "totalPoints": 107.25,
+          "totalPoints": 116.25,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32532.png",
           "keeperValue": 12,
           "acquisitionType": "ADD"
@@ -3266,7 +3271,7 @@
             "3B",
             "DH"
           ],
-          "totalPoints": 119.75,
+          "totalPoints": 124,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33303.png",
           "acquisitionType": "ADD"
         },
@@ -3278,7 +3283,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 90.75,
+          "totalPoints": 91.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35142.png",
           "acquisitionType": "ADD"
         },
@@ -3290,7 +3295,7 @@
             "C",
             "DH"
           ],
-          "totalPoints": 76,
+          "totalPoints": 76.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4619839.png",
           "acquisitionType": "ADD"
         },
@@ -3302,7 +3307,7 @@
             "SP",
             "RP"
           ],
-          "totalPoints": 87,
+          "totalPoints": 104,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4417203.png",
           "acquisitionType": "ADD"
         },
@@ -3314,7 +3319,7 @@
             "SP",
             "RP"
           ],
-          "totalPoints": 70,
+          "totalPoints": 74,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40884.png",
           "acquisitionType": "ADD"
         }
@@ -3343,7 +3348,7 @@
             "1B",
             "DH"
           ],
-          "totalPoints": 124,
+          "totalPoints": 129.25,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/30951.png",
           "keeperValue": 4,
           "acquisitionType": "DRAFT"
@@ -3368,7 +3373,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 148.75,
+          "totalPoints": 161.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33192.png",
           "keeperValue": 5,
           "acquisitionType": "DRAFT"
@@ -3381,7 +3386,7 @@
             "SP",
             "RP"
           ],
-          "totalPoints": 115,
+          "totalPoints": 125,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4730225.png",
           "keeperValue": 7,
           "acquisitionType": "DRAFT"
@@ -3394,7 +3399,7 @@
             "SS",
             "DH"
           ],
-          "totalPoints": 93.5,
+          "totalPoints": 96.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41355.png",
           "acquisitionType": "DRAFT"
         },
@@ -3406,7 +3411,7 @@
             "3B",
             "DH"
           ],
-          "totalPoints": 95,
+          "totalPoints": 95.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/34886.png",
           "keeperValue": 6,
           "acquisitionType": "DRAFT"
@@ -3468,7 +3473,7 @@
             "SS",
             "DH"
           ],
-          "totalPoints": 121.25,
+          "totalPoints": 124.25,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4719300.png",
           "acquisitionType": "DRAFT"
         },
@@ -3480,7 +3485,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 83.5,
+          "totalPoints": 84.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4417795.png",
           "keeperValue": 18,
           "acquisitionType": "DRAFT"
@@ -3507,7 +3512,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 121,
+          "totalPoints": 120,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4679983.png",
           "acquisitionType": "DRAFT"
         },
@@ -3554,7 +3559,7 @@
             "3B",
             "DH"
           ],
-          "totalPoints": 80,
+          "totalPoints": 79,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4683384.png",
           "acquisitionType": "DRAFT"
         },
@@ -3567,7 +3572,7 @@
             "DH",
             "3B"
           ],
-          "totalPoints": 142.25,
+          "totalPoints": 147.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5149072.png",
           "acquisitionType": "ADD"
         },
@@ -3579,7 +3584,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 130.25,
+          "totalPoints": 138.25,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4619649.png",
           "acquisitionType": "ADD"
         },
@@ -3591,7 +3596,7 @@
             "C",
             "DH"
           ],
-          "totalPoints": 78.75,
+          "totalPoints": 84.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32797.png",
           "acquisitionType": "ADD"
         },
@@ -3630,7 +3635,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 96.75,
+          "totalPoints": 102.25,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42135.png",
           "acquisitionType": "ADD"
         },
@@ -3642,7 +3647,7 @@
             "SP",
             "RP"
           ],
-          "totalPoints": 55,
+          "totalPoints": 53,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40939.png",
           "keeperValue": 12,
           "acquisitionType": "ADD"
@@ -3655,7 +3660,7 @@
             "1B",
             "DH"
           ],
-          "totalPoints": 79.25,
+          "totalPoints": 91.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42415.png",
           "acquisitionType": "ADD"
         },
@@ -3667,7 +3672,7 @@
             "SP",
             "RP"
           ],
-          "totalPoints": 78,
+          "totalPoints": 79,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33750.png",
           "acquisitionType": "ADD"
         },
@@ -3679,7 +3684,7 @@
             "1B",
             "DH"
           ],
-          "totalPoints": 87,
+          "totalPoints": 93.25,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4424286.png",
           "acquisitionType": "ADD"
         },
@@ -3719,7 +3724,7 @@
             "2B",
             "DH"
           ],
-          "totalPoints": 159,
+          "totalPoints": 165.25,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41219.png",
           "keeperValue": 2,
           "acquisitionType": "DRAFT"
@@ -3818,7 +3823,7 @@
             "SS",
             "DH"
           ],
-          "totalPoints": 72.5,
+          "totalPoints": 72.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33210.png",
           "acquisitionType": "DRAFT"
         },
@@ -3866,7 +3871,7 @@
             "3B",
             "DH"
           ],
-          "totalPoints": 123.5,
+          "totalPoints": 124.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42453.png",
           "acquisitionType": "ADD"
         },
@@ -3890,7 +3895,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 112.5,
+          "totalPoints": 127.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36181.png",
           "acquisitionType": "ADD"
         },
@@ -3902,7 +3907,7 @@
             "DH",
             "C"
           ],
-          "totalPoints": 123.75,
+          "totalPoints": 124.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41889.png",
           "acquisitionType": "ADD"
         },
@@ -3950,7 +3955,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 82.75,
+          "totalPoints": 80.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42001.png",
           "acquisitionType": "ADD"
         },
@@ -3962,7 +3967,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 74.25,
+          "totalPoints": 73.25,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5005912.png",
           "acquisitionType": "ADD"
         },
@@ -4034,7 +4039,7 @@
             "3B",
             "DH"
           ],
-          "totalPoints": 93.75,
+          "totalPoints": 99.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4301949.png",
           "acquisitionType": "ADD"
         },
@@ -4058,7 +4063,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 80.25,
+          "totalPoints": 82.25,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41205.png",
           "acquisitionType": "ADD"
         }
@@ -4088,7 +4093,7 @@
             "SS",
             "DH"
           ],
-          "totalPoints": 136.5,
+          "totalPoints": 136.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42403.png",
           "keeperValue": 1,
           "acquisitionType": "DRAFT"
@@ -4101,7 +4106,7 @@
             "3B",
             "DH"
           ],
-          "totalPoints": 91.25,
+          "totalPoints": 99.25,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31097.png",
           "keeperValue": 4,
           "acquisitionType": "DRAFT"
@@ -4114,7 +4119,7 @@
             "1B",
             "DH"
           ],
-          "totalPoints": 92.75,
+          "totalPoints": 94.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35066.png",
           "keeperValue": 7,
           "acquisitionType": "DRAFT"
@@ -4165,7 +4170,7 @@
             "DH",
             "2B"
           ],
-          "totalPoints": 126.75,
+          "totalPoints": 126.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39572.png",
           "keeperValue": 3,
           "acquisitionType": "DRAFT"
@@ -4179,7 +4184,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 145.5,
+          "totalPoints": 149.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4345070.png",
           "keeperValue": 14,
           "acquisitionType": "DRAFT"
@@ -4203,7 +4208,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 132.75,
+          "totalPoints": 140.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42468.png",
           "acquisitionType": "DRAFT"
         },
@@ -4275,7 +4280,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 64,
+          "totalPoints": 69,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42641.png",
           "acquisitionType": "ADD"
         },
@@ -4313,7 +4318,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 95.5,
+          "totalPoints": 102.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40803.png",
           "acquisitionType": "ADD"
         },
@@ -4325,7 +4330,7 @@
             "SP",
             "RP"
           ],
-          "totalPoints": 72,
+          "totalPoints": 66,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40950.png",
           "acquisitionType": "ADD"
         },
@@ -4338,7 +4343,7 @@
             "DH",
             "1B"
           ],
-          "totalPoints": 100.25,
+          "totalPoints": 111.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5014349.png",
           "acquisitionType": "ADD"
         },
@@ -4350,20 +4355,8 @@
             "SP",
             "RP"
           ],
-          "totalPoints": 76,
+          "totalPoints": 80,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41382.png",
-          "acquisitionType": "ADD"
-        },
-        {
-          "playerId": "33218",
-          "playerName": "Dominic Smith",
-          "position": "1B",
-          "eligiblePositions": [
-            "1B",
-            "DH"
-          ],
-          "totalPoints": 81.75,
-          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33218.png",
           "acquisitionType": "ADD"
         },
         {
@@ -4374,7 +4367,7 @@
             "C",
             "DH"
           ],
-          "totalPoints": 69,
+          "totalPoints": 71,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31095.png",
           "acquisitionType": "ADD"
         },
@@ -4386,7 +4379,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 73,
+          "totalPoints": 76,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/34951.png",
           "acquisitionType": "ADD"
         },
@@ -4399,7 +4392,7 @@
             "2B",
             "DH"
           ],
-          "totalPoints": 138.25,
+          "totalPoints": 140.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32985.png",
           "acquisitionType": "ADD"
         },
@@ -4422,8 +4415,20 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 81.5,
+          "totalPoints": 84.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4843048.png",
+          "acquisitionType": "ADD"
+        },
+        {
+          "playerId": "40538",
+          "playerName": "Nathaniel Lowe",
+          "position": "1B",
+          "eligiblePositions": [
+            "1B",
+            "DH"
+          ],
+          "totalPoints": 72.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40538.png",
           "acquisitionType": "ADD"
         }
       ]
@@ -4439,7 +4444,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 68,
+          "totalPoints": 71,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5080767.png",
           "acquisitionType": "DRAFT"
         },
@@ -4476,7 +4481,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 77,
+          "totalPoints": 75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36969.png",
           "keeperValue": 3,
           "acquisitionType": "DRAFT"
@@ -4514,7 +4519,7 @@
             "1B",
             "DH"
           ],
-          "totalPoints": 78.75,
+          "totalPoints": 83,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4109109.png",
           "keeperValue": 3,
           "acquisitionType": "DRAFT"
@@ -4528,7 +4533,7 @@
             "DH",
             "3B"
           ],
-          "totalPoints": 86.25,
+          "totalPoints": 88.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/38904.png",
           "keeperValue": 19,
           "acquisitionType": "DRAFT"
@@ -4552,7 +4557,7 @@
           "eligiblePositions": [
             "SP"
           ],
-          "totalPoints": 0,
+          "totalPoints": 1,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4307825.png",
           "keeperValue": 19,
           "acquisitionType": "DRAFT"
@@ -4566,7 +4571,7 @@
             "SS",
             "DH"
           ],
-          "totalPoints": 143,
+          "totalPoints": 145.25,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41326.png",
           "acquisitionType": "DRAFT"
         },
@@ -4591,7 +4596,7 @@
             "SP",
             "RP"
           ],
-          "totalPoints": 56,
+          "totalPoints": 60,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/30442.png",
           "acquisitionType": "DRAFT"
         },
@@ -4614,7 +4619,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 20.25,
+          "totalPoints": 22.25,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42796.png",
           "acquisitionType": "DRAFT"
         },
@@ -4627,7 +4632,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 70,
+          "totalPoints": 68.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4987382.png",
           "acquisitionType": "DRAFT"
         },
@@ -4652,7 +4657,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 131.25,
+          "totalPoints": 129,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35183.png",
           "keeperValue": 24,
           "acquisitionType": "DRAFT"
@@ -4676,7 +4681,7 @@
           "eligiblePositions": [
             "SP"
           ],
-          "totalPoints": 84,
+          "totalPoints": 110,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41201.png",
           "acquisitionType": "DRAFT"
         },
@@ -4712,7 +4717,7 @@
             "DH",
             "SS"
           ],
-          "totalPoints": 91.75,
+          "totalPoints": 94,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/37729.png",
           "keeperValue": 13,
           "acquisitionType": "ADD"
@@ -4747,7 +4752,7 @@
             "SP",
             "RP"
           ],
-          "totalPoints": 77,
+          "totalPoints": 86,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39804.png",
           "acquisitionType": "ADD"
         },
@@ -4769,7 +4774,7 @@
           "eligiblePositions": [
             "DH"
           ],
-          "totalPoints": 90,
+          "totalPoints": 102,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4987418.png",
           "acquisitionType": "ADD"
         },
@@ -4781,7 +4786,7 @@
             "2B",
             "DH"
           ],
-          "totalPoints": 9,
+          "totalPoints": 16,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5007707.png",
           "acquisitionType": "ADD"
         },
@@ -4793,7 +4798,7 @@
             "SP",
             "RP"
           ],
-          "totalPoints": 71,
+          "totalPoints": 65,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41318.png",
           "acquisitionType": "ADD"
         }
@@ -4821,7 +4826,7 @@
           "eligiblePositions": [
             "SP"
           ],
-          "totalPoints": 21,
+          "totalPoints": 25,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35124.png",
           "keeperValue": 7,
           "acquisitionType": "DRAFT"
@@ -4847,7 +4852,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 112,
+          "totalPoints": 116,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/34967.png",
           "keeperValue": 3,
           "acquisitionType": "DRAFT"
@@ -4860,7 +4865,7 @@
             "1B",
             "DH"
           ],
-          "totalPoints": 136.75,
+          "totalPoints": 139.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35002.png",
           "keeperValue": 4,
           "acquisitionType": "DRAFT"
@@ -4874,7 +4879,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 99.75,
+          "totalPoints": 103.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31662.png",
           "keeperValue": 5,
           "acquisitionType": "DRAFT"
@@ -4887,7 +4892,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 139.5,
+          "totalPoints": 143.5,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33912.png",
           "keeperValue": 9,
           "acquisitionType": "DRAFT"
@@ -4913,7 +4918,7 @@
             "3B",
             "DH"
           ],
-          "totalPoints": 78.25,
+          "totalPoints": 84,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41433.png",
           "keeperValue": 11,
           "acquisitionType": "DRAFT"
@@ -4987,7 +4992,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 124.75,
+          "totalPoints": 123.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/38980.png",
           "acquisitionType": "DRAFT"
         },
@@ -5011,7 +5016,7 @@
             "C",
             "DH"
           ],
-          "totalPoints": 89.75,
+          "totalPoints": 86.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4416591.png",
           "acquisitionType": "DRAFT"
         },
@@ -5036,7 +5041,7 @@
             "2B",
             "DH"
           ],
-          "totalPoints": 119.25,
+          "totalPoints": 119.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39961.png",
           "acquisitionType": "DRAFT"
         },
@@ -5047,7 +5052,7 @@
           "eligiblePositions": [
             "SP"
           ],
-          "totalPoints": 28,
+          "totalPoints": 48,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/34401.png",
           "acquisitionType": "DRAFT"
         },
@@ -5059,7 +5064,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 116.75,
+          "totalPoints": 115.75,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4990055.png",
           "acquisitionType": "DRAFT"
         },
@@ -5071,7 +5076,7 @@
             "OF",
             "DH"
           ],
-          "totalPoints": 84,
+          "totalPoints": 91,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40963.png",
           "keeperValue": 26,
           "acquisitionType": "DRAFT"
@@ -5084,7 +5089,7 @@
             "3B",
             "DH"
           ],
-          "totalPoints": 87,
+          "totalPoints": 90,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31261.png",
           "keeperValue": 9,
           "acquisitionType": "DRAFT"
@@ -5146,6 +5151,30 @@
           ],
           "totalPoints": 54,
           "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40456.png",
+          "acquisitionType": "ADD"
+        },
+        {
+          "playerId": "4872685",
+          "playerName": "Colson Montgomery",
+          "position": "SS",
+          "eligiblePositions": [
+            "SS",
+            "DH"
+          ],
+          "totalPoints": 105.5,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4872685.png",
+          "acquisitionType": "ADD"
+        },
+        {
+          "playerId": "39636",
+          "playerName": "MacKenzie Gore",
+          "position": "SP",
+          "eligiblePositions": [
+            "SP"
+          ],
+          "totalPoints": 69,
+          "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39636.png",
+          "keeperValue": 20,
           "acquisitionType": "ADD"
         }
       ]
