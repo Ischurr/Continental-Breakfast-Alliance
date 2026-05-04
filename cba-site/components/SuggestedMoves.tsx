@@ -1,4 +1,4 @@
-import type { SuggestedMove, SuggestedMovesResult, UrgencyLevel } from '@/lib/suggested-moves';
+import type { SuggestedMove, SuggestedMovesResult, UrgencyLevel, StreamingSP, TradeTarget } from '@/lib/suggested-moves';
 
 interface Props {
   result: SuggestedMovesResult;
@@ -215,6 +215,238 @@ function MoveCard({ move }: { move: SuggestedMove }) {
   );
 }
 
+const STREAMING_URGENCY_CONFIG: Record<StreamingSP['urgency'], {
+  label: string;
+  bg: string;
+  border: string;
+  badge: string;
+}> = {
+  strong_streamer: {
+    label: '2-Start Week',
+    bg:    'bg-green-50',
+    border: 'border-green-200',
+    badge: 'bg-green-100 text-green-700 border border-green-200',
+  },
+  good_streamer: {
+    label: 'Quality Start',
+    bg:    'bg-teal-50',
+    border: 'border-teal-200',
+    badge: 'bg-teal-100 text-teal-700 border border-teal-200',
+  },
+  spot_start: {
+    label: 'Spot Start',
+    bg:    'bg-gray-50',
+    border: 'border-gray-200',
+    badge: 'bg-gray-100 text-gray-500 border border-gray-200',
+  },
+};
+
+function StreamingSPCard({ sp }: { sp: StreamingSP }) {
+  const cfg = STREAMING_URGENCY_CONFIG[sp.urgency];
+  return (
+    <div className={`rounded-xl border ${cfg.border} ${cfg.bg} p-4 flex flex-col gap-3 min-w-[180px] flex-1`}>
+      {/* Photo + name */}
+      <div className="flex items-center gap-2">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={sp.photoUrl ?? `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_213,q_auto:best/v1/people/${sp.mlbamId}/headshot/67/current`}
+          alt={sp.playerName}
+          className="w-10 h-10 rounded-full object-cover bg-gray-100 flex-shrink-0 border border-white shadow-sm"
+        />
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-gray-800 leading-tight truncate">{sp.playerName}</p>
+          <p className="text-xs text-gray-400">{sp.mlbTeam} · SP</p>
+        </div>
+      </div>
+
+      {/* Weekly value */}
+      <div>
+        <p className="text-lg font-bold text-gray-800 leading-none">~{sp.weeklyValue.toFixed(1)}</p>
+        <p className="text-xs text-gray-400">EROSP / 7-day period</p>
+      </div>
+
+      {/* Urgency badge */}
+      <div className="flex flex-wrap gap-1.5">
+        <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${cfg.badge}`}>
+          {cfg.label}
+        </span>
+        {sp.ilType && (
+          <span className="text-[11px] px-2 py-0.5 rounded-full bg-red-50 text-red-500 border border-red-100 font-medium">
+            {sp.ilType}
+          </span>
+        )}
+      </div>
+
+      {/* Injury note */}
+      {sp.injuryNote && (
+        <p className="text-[11px] text-red-500 leading-tight">{sp.injuryNote}</p>
+      )}
+    </div>
+  );
+}
+
+function StreamingSPSection({ sps }: { sps: StreamingSP[] }) {
+  if (sps.length === 0) return null;
+  return (
+    <div>
+      <div className="flex items-end justify-between mb-3 gap-4">
+        <div>
+          <h3 className="text-lg font-bold text-gray-900 mb-0.5">Streaming Pickups</h3>
+          <p className="text-sm text-gray-500">Available SPs ranked by expected 7-day contribution</p>
+        </div>
+        <span className="flex-shrink-0 text-xs text-gray-400 bg-white border border-gray-200 rounded-full px-3 py-1">
+          {sps.length} available
+        </span>
+      </div>
+      <div className="flex gap-3 flex-wrap">
+        {sps.map(sp => (
+          <StreamingSPCard key={sp.mlbamId} sp={sp} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TradeTargetCard({ target }: { target: TradeTarget }) {
+  const absGap = Math.abs(target.erospGap);
+  const balanceLabel = absGap < 30
+    ? 'Even trade'
+    : target.erospGap > 0
+    ? `Slight underpay (−${absGap.toFixed(0)} EROSP)`
+    : `Slight overpay (+${absGap.toFixed(0)} EROSP)`;
+  const balanceBg = absGap < 30
+    ? 'bg-green-50 text-green-700 border-green-200'
+    : target.erospGap > 0
+    ? 'bg-amber-50 text-amber-700 border-amber-200'
+    : 'bg-blue-50 text-blue-700 border-blue-200';
+
+  return (
+    <div className="rounded-xl border border-indigo-200 bg-indigo-50 p-5 flex flex-col gap-4">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <p className="text-[10px] font-semibold text-indigo-400 uppercase tracking-wide mb-0.5">Acquire from {target.targetTeamName}</p>
+          <div className="flex items-center gap-2 flex-wrap">
+            <p className="text-base font-bold text-gray-900">{target.targetPlayerName}</p>
+            <span className="text-xs font-mono bg-white border border-indigo-200 text-indigo-600 px-2 py-0.5 rounded-full">
+              {target.targetPosition}
+            </span>
+            {target.fillsTheirNeed && (
+              <span className="text-xs font-semibold bg-green-100 text-green-700 border border-green-200 px-2 py-0.5 rounded-full">
+                Fills their {target.theirWeakPosition} need
+              </span>
+            )}
+          </div>
+          <p className="text-sm text-indigo-600 font-semibold mt-0.5">+{target.erospUpgrade.toFixed(0)} EROSP vs your current {target.targetPosition}</p>
+        </div>
+        {/* Target player photo */}
+        {target.targetPlayerPhotoUrl && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={target.targetPlayerPhotoUrl}
+            alt={target.targetPlayerName}
+            className="w-12 h-12 rounded-full object-cover bg-gray-100 border border-white shadow-sm flex-shrink-0"
+          />
+        )}
+      </div>
+
+      {/* Two-column trade layout */}
+      <div className="grid grid-cols-2 gap-4">
+        {/* You give */}
+        <div>
+          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-2">You give</p>
+          <div className="flex items-center gap-2">
+            {target.offerPlayer.photoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={target.offerPlayer.photoUrl}
+                alt={target.offerPlayer.playerName}
+                className="w-9 h-9 rounded-full object-cover bg-gray-100 flex-shrink-0 border border-white shadow-sm"
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-full bg-gray-200 flex-shrink-0 flex items-center justify-center border border-white shadow-sm">
+                <span className="text-xs font-bold text-gray-400">{target.offerPlayer.playerName.charAt(0)}</span>
+              </div>
+            )}
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-gray-800 leading-tight truncate">{target.offerPlayer.playerName}</p>
+              <p className="text-xs text-gray-400">{target.offerPlayer.position} · {target.offerPlayer.erosp.toFixed(0)} EROSP</p>
+            </div>
+          </div>
+          {target.picksToAdd.length > 0 && target.picksToAdd.map((pick, i) => (
+            <div key={i} className="mt-2 flex items-center gap-2">
+              <div className="w-9 h-9 rounded-full bg-amber-100 flex-shrink-0 flex items-center justify-center border border-amber-200">
+                <span className="text-xs font-bold text-amber-700">Rd{pick.round}</span>
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-gray-700 leading-tight">Round {pick.round} Pick</p>
+                <p className="text-xs text-gray-400">~{Math.round(pick.currentEquivalent)} pts this season</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* You receive */}
+        <div>
+          <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-2">You receive</p>
+          <div className="flex items-center gap-2">
+            {target.targetPlayerPhotoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={target.targetPlayerPhotoUrl}
+                alt={target.targetPlayerName}
+                className="w-9 h-9 rounded-full object-cover bg-gray-100 flex-shrink-0 border border-white shadow-sm"
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-full bg-indigo-100 flex-shrink-0 flex items-center justify-center border border-indigo-200">
+                <span className="text-xs font-bold text-indigo-600">{target.targetPlayerName.charAt(0)}</span>
+              </div>
+            )}
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-gray-800 leading-tight truncate">{target.targetPlayerName}</p>
+              <p className="text-xs text-gray-400">{target.targetPosition} · {target.targetPlayerErosp.toFixed(0)} EROSP</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Balance chip + total offer */}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border ${balanceBg}`}>
+          {balanceLabel}
+        </span>
+        <span className="text-[11px] text-gray-500 bg-white border border-gray-200 px-2.5 py-1 rounded-full">
+          Offer value: {target.offerTotalValue.toFixed(0)} EROSP
+        </span>
+      </div>
+
+      {/* Explanation */}
+      <p className="text-sm text-gray-600 leading-relaxed border-t border-indigo-200/70 pt-3">
+        {target.explanation}
+      </p>
+    </div>
+  );
+}
+
+function TradeTargetsSection({ targets }: { targets: TradeTarget[] }) {
+  if (targets.length === 0) return null;
+  return (
+    <div>
+      <div className="flex items-end justify-between mb-3 gap-4">
+        <div>
+          <h3 className="text-lg font-bold text-gray-900 mb-0.5">Trade Targets</h3>
+          <p className="text-sm text-gray-500">Upgrades available via trade — with suggested packages</p>
+        </div>
+      </div>
+      <div className="flex flex-col gap-4">
+        {targets.map((t, i) => (
+          <TradeTargetCard key={`${t.targetPlayerMlbamId}-${i}`} target={t} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function NoMovesState({ isPreDraft }: { isPreDraft: boolean }) {
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-6 text-center">
@@ -232,33 +464,42 @@ function NoMovesState({ isPreDraft }: { isPreDraft: boolean }) {
 }
 
 export default function SuggestedMoves({ result }: Props) {
-  const { suggestedMoves, isPreDraft } = result;
+  const { suggestedMoves, isPreDraft, streamingSPs, tradeTargets } = result;
 
   return (
-    <div>
-      <div className="flex items-end justify-between mb-4 gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-0.5">Suggested Moves</h2>
-          <p className="text-sm text-gray-700">
-            {'Free agent upgrades ranked by EROSP improvement'}
-          </p>
+    <div className="flex flex-col gap-8">
+      {/* FA Upgrades section */}
+      <div>
+        <div className="flex items-end justify-between mb-4 gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-0.5">Suggested Moves</h2>
+            <p className="text-sm text-gray-700">
+              {'Free agent upgrades ranked by EROSP improvement'}
+            </p>
+          </div>
+          {suggestedMoves.length > 0 && (
+            <span className="flex-shrink-0 text-xs text-gray-400 bg-white border border-gray-200 rounded-full px-3 py-1">
+              {suggestedMoves.length} suggestion{suggestedMoves.length !== 1 ? 's' : ''}
+            </span>
+          )}
         </div>
-        {suggestedMoves.length > 0 && (
-          <span className="flex-shrink-0 text-xs text-gray-400 bg-white border border-gray-200 rounded-full px-3 py-1">
-            {suggestedMoves.length} suggestion{suggestedMoves.length !== 1 ? 's' : ''}
-          </span>
+
+        {suggestedMoves.length === 0 ? (
+          <NoMovesState isPreDraft={isPreDraft} />
+        ) : (
+          <div className="flex flex-col gap-4">
+            {suggestedMoves.map((move, i) => (
+              <MoveCard key={`${move.position}-${move.addPlayerName}-${i}`} move={move} />
+            ))}
+          </div>
         )}
       </div>
 
-      {suggestedMoves.length === 0 ? (
-        <NoMovesState isPreDraft={isPreDraft} />
-      ) : (
-        <div className="flex flex-col gap-4">
-          {suggestedMoves.map((move, i) => (
-            <MoveCard key={`${move.position}-${move.addPlayerName}-${i}`} move={move} />
-          ))}
-        </div>
-      )}
+      {/* Streaming SPs section */}
+      <StreamingSPSection sps={streamingSPs} />
+
+      {/* Trade Targets section */}
+      <TradeTargetsSection targets={tradeTargets} />
     </div>
   );
 }

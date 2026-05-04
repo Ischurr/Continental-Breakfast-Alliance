@@ -138,12 +138,69 @@ export interface PositionSummary {
   internalRank: number;
 }
 
+export interface StreamingSP {
+  playerName: string;
+  mlbamId: number;
+  mlbTeam: string;
+  photoUrl?: string;
+  erospRaw: number;
+  erospPerStart: number;    // erosp_raw / games_remaining * 5 (one start ≈ every 5 days)
+  weeklyValue: number;      // erosp_raw * 7 / gamesRemaining
+  urgency: 'strong_streamer' | 'good_streamer' | 'spot_start';
+  ilType?: string;
+  injuryNote?: string;
+  injuryNews?: string;
+  injuryNewsSource?: string;
+  injuryNewsDate?: string;
+}
+
+export interface DraftPickOffer {
+  round: number;
+  avgPointsHistorical: number;
+  currentEquivalent: number;    // avgPointsHistorical * (gamesRemaining / 162)
+}
+
+export interface TradeTarget {
+  // Player to acquire
+  targetPlayerName: string;
+  targetPlayerMlbamId: number;
+  targetPlayerPhotoUrl?: string;
+  targetPlayerErosp: number;
+  targetTeamId: number;
+  targetTeamName: string;
+  targetPosition: string;
+  erospUpgrade: number;      // targetPlayerErosp - your current weakest starter at this pos
+
+  // What you offer from your roster (your "depth" piece at a surplus position)
+  offerPlayer: {
+    playerName: string;
+    mlbamId: number;
+    photoUrl?: string;
+    erosp: number;
+    position: string;
+  };
+  // Whether your offer player directly fills one of their weak positions
+  fillsTheirNeed: boolean;
+  theirWeakPosition: string;   // their weakest position that your offer player fills
+
+  // Draft picks to help balance the deal (may be empty)
+  picksToAdd: DraftPickOffer[];
+
+  // Trade balance analysis
+  offerTotalValue: number;   // offerPlayer.erosp + sum(pick.currentEquivalent)
+  erospGap: number;          // targetPlayerErosp - offerTotalValue
+
+  explanation: string;
+}
+
 export interface SuggestedMovesResult {
   teamId: number;
   suggestedMoves: SuggestedMove[];
   positionSummary: Record<string, PositionSummary>;
   /** True when EROSP has no post-draft team assignments — analysis is keeper-only */
   isPreDraft: boolean;
+  streamingSPs: StreamingSP[];
+  tradeTargets: TradeTarget[];
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -169,11 +226,33 @@ function getPositionGroup(player: EROSPPlayer): string | null {
   if (pos === '3B') return '3B';
   if (pos === 'SS') return 'SS';
   if (['OF', 'LF', 'CF', 'RF'].includes(pos)) return 'OF';
-  // DH counts toward OF/UTIL group for FA comparison but skip in v1
+  // DH and IF — these get resolved via ESPN eligibility before strength calculation;
+  // after resolution the player will have a real position. If somehow they make it
+  // here with DH/IF still set, fall back to OF (UTIL-equivalent).
+  if (pos === 'DH' || pos === 'IF') return 'OF';
   // TWP (Ohtani) — count toward OF if we have non-trivial EROSP
   if (pos === 'TWP') return player.erosp_raw > 50 ? 'OF' : null;
 
   return null;
+}
+
+/**
+ * For EROSP players with position === 'DH' or 'IF', resolve to best non-DH
+ * position from ESPN eligibility data. Returns the resolved position string.
+ */
+function resolveAmbiguousPosition(
+  erospPosition: string,
+  espnEligiblePositions: string[],
+): string {
+  const pos = erospPosition.toUpperCase();
+  if (pos !== 'DH' && pos !== 'IF') return erospPosition;
+
+  for (const ep of espnEligiblePositions) {
+    const epUp = ep.toUpperCase();
+    if (['C', '1B', '2B', '3B', 'SS'].includes(epUp)) return epUp;
+    if (['OF', 'LF', 'CF', 'RF'].includes(epUp)) return 'OF';
+  }
+  return 'OF'; // default DH/IF to OF (UTIL-equivalent)
 }
 
 function mean(arr: number[]): number {
@@ -217,7 +296,7 @@ function posOrdinal(pos: string, slotIdx: number): string {
 function buildPlayerTeamMap(
   erospPlayers: EROSPPlayer[],
   keeperOverrides: Record<string, string[]>,
-  leagueRosters?: Array<{ teamId: number; players: Array<{ playerName: string }> }>,
+  leagueRosters?: Array<{ teamId: number; players: Array<{ playerName: string; photoUrl?: string; eligiblePositions?: string[]; totalPoints?: number; position?: string }> }>,
 ): { teamMap: Map<number, number>; isPreDraft: boolean } {
   const hasTeamAssignments = erospPlayers.some(p => p.fantasy_team_id !== 0);
 
@@ -715,6 +794,288 @@ function findSlotSwaps(
 }
 
 // ─────────────────────────────────────────────────────────────────
+// Stage 9 — Streaming SP recommendations
+// ─────────────────────────────────────────────────────────────────
+
+function computeStreamingSPs(
+  leagueFAs: EROSPPlayer[],
+  faPhotoLookup: Map<string, string>,
+  gamesRemaining: number,
+  daysInPeriod: number = 7,
+): StreamingSP[] {
+  const LONG_TERM_IL = new Set(['D60', 'SUSP', 'S']);
+  const IL_RETURN_WINDOW = 21;
+
+  const sps = leagueFAs.filter(p => {
+    if (p.role !== 'SP') return false;
+    // Exclude far-out long-term IL (same rule as main FA pool)
+    if (LONG_TERM_IL.has(p.il_type ?? '')) {
+      if ((p.il_days_remaining ?? Infinity) > IL_RETURN_WINDOW) return false;
+    }
+    return true;
+  });
+
+  const results: StreamingSP[] = [];
+
+  for (const sp of sps) {
+    const gr = Math.max(1, gamesRemaining);
+    const weeklyValue = sp.erosp_raw * daysInPeriod / gr;
+
+    // Minimum quality floor
+    if (weeklyValue < 8 || sp.erosp_raw < 100) continue;
+
+    let urgency: StreamingSP['urgency'];
+    if (weeklyValue >= 22) {
+      urgency = 'strong_streamer';
+    } else if (weeklyValue >= 15) {
+      urgency = 'good_streamer';
+    } else {
+      urgency = 'spot_start';
+    }
+
+    const erospPerStart = sp.erosp_raw / gr * 5;
+    const photoUrl = faPhotoLookup.get(normalizeName(sp.name))
+      ?? `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_213,q_auto:best/v1/people/${sp.mlbam_id}/headshot/67/current`;
+
+    results.push({
+      playerName:        sp.name,
+      mlbamId:           sp.mlbam_id,
+      mlbTeam:           sp.mlb_team,
+      photoUrl,
+      erospRaw:          Math.round(sp.erosp_raw * 10) / 10,
+      erospPerStart:     Math.round(erospPerStart * 10) / 10,
+      weeklyValue:       Math.round(weeklyValue * 10) / 10,
+      urgency,
+      ilType:            sp.il_type,
+      injuryNote:        sp.injury_note,
+      injuryNews:        sp.injury_news,
+      injuryNewsSource:  sp.injury_news_source,
+      injuryNewsDate:    sp.injury_news_date,
+    });
+  }
+
+  return results
+    .sort((a, b) => b.weeklyValue - a.weeklyValue)
+    .slice(0, 6);
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Stage 10 — Trade target recommendations
+// ─────────────────────────────────────────────────────────────────
+
+function findBalancingPick(
+  gapToCover: number,
+  draftRounds: Array<{ effectiveRound: number; avgPoints: number }>,
+  gamesRemaining: number,
+): DraftPickOffer | null {
+  if (gapToCover <= 30) return null;
+
+  const scaled: DraftPickOffer[] = draftRounds.map(r => ({
+    round: r.effectiveRound,
+    avgPointsHistorical: r.avgPoints,
+    currentEquivalent: r.avgPoints * (gamesRemaining / 162),
+  }));
+
+  // Prefer a pick that slightly overpays rather than underpays
+  const overCovering = scaled.filter(r => r.currentEquivalent >= gapToCover);
+  if (overCovering.length > 0) {
+    return overCovering.sort((a, b) => a.currentEquivalent - b.currentEquivalent)[0];
+  }
+  // If no single pick covers it, return the highest-value round available
+  return scaled.sort((a, b) => b.currentEquivalent - a.currentEquivalent)[0];
+}
+
+function computeTradeTargets(
+  targetTeamId: number,
+  weakPositions: WeakPosition[],
+  teamStrengths: Record<string, TeamPositionStrength>,
+  allTeamStrengths: Map<number, Record<string, TeamPositionStrength>>,
+  leagueStats: Record<string, PositionLeagueStats>,
+  patchedPlayers: EROSPPlayer[],
+  teamMap: Map<number, number>,
+  draftRounds: Array<{ effectiveRound: number; avgPoints: number }>,
+  teamNames: Record<number, string>,
+  gamesRemaining: number,
+  config: LeagueConfig,
+  rosterPhotoLookup: Map<string, string>,
+  faPhotoLookup: Map<string, string>,
+): TradeTarget[] {
+  const targets: TradeTarget[] = [];
+  const gr = Math.max(1, gamesRemaining);
+
+  // Step A — Find offer candidates (surplus depth pieces from target team)
+  const offerCandidates: Array<{ player: EROSPPlayer; position: string; photo?: string }> = [];
+
+  for (const pos of Object.keys(config.starterSlots)) {
+    const starterCount = config.starterSlots[pos];
+    const myPlayersAtPos = patchedPlayers
+      .filter(p => teamMap.get(p.mlbam_id) === targetTeamId && getPositionGroup(p) === pos)
+      .sort((a, b) => b.erosp_raw - a.erosp_raw);
+
+    // If we have more than the starter slots filled, the player at index [starterCount] is depth
+    if (myPlayersAtPos.length > starterCount) {
+      const depthPlayer = myPlayersAtPos[starterCount];
+      if (depthPlayer.erosp_raw >= 150) {
+        offerCandidates.push({
+          player: depthPlayer,
+          position: pos,
+          photo: rosterPhotoLookup.get(normalizeName(depthPlayer.name))
+            ?? (depthPlayer.mlbam_id > 0
+              ? `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_213,q_auto:best/v1/people/${depthPlayer.mlbam_id}/headshot/67/current`
+              : undefined),
+        });
+      }
+    }
+  }
+
+  if (offerCandidates.length === 0) return targets;
+
+  // Step B — For each of top 2 weakest positions
+  const top2Weak = weakPositions.slice(0, 2);
+
+  for (const weakPos of top2Weak) {
+    const { pos: weakPosKey } = weakPos;
+    const starterCount = config.starterSlots[weakPosKey];
+    const yourWeakestStarter = teamStrengths[weakPosKey]?.players[weakPos.targetSlotIndex] ?? null;
+    const yourCurrentErosp = yourWeakestStarter?.erosp_raw ?? 0;
+
+    // Find best tradeable player at this position from other teams
+    let bestCandidate: {
+      player: EROSPPlayer;
+      teamId: number;
+      upgradeAbsolute: number;
+      photo?: string;
+    } | null = null;
+
+    for (const [otherTeamId, otherStrengths] of allTeamStrengths) {
+      if (otherTeamId === targetTeamId) continue;
+
+      const theirPlayersAtPos = patchedPlayers
+        .filter(p => teamMap.get(p.mlbam_id) === otherTeamId && getPositionGroup(p) === weakPosKey)
+        .sort((a, b) => b.erosp_raw - a.erosp_raw);
+
+      // They must have surplus to trade (more than starter slots)
+      if (theirPlayersAtPos.length <= starterCount) continue;
+
+      // Target their surplus depth piece — the first player beyond their required starter count.
+      // This is realistic: they can afford to trade their depth, not their ace.
+      const surplusPlayer = theirPlayersAtPos[starterCount];
+      if (!surplusPlayer) continue;
+
+      const upgradeAbsolute = surplusPlayer.erosp_raw - yourCurrentErosp;
+      if (upgradeAbsolute < 50) continue;
+
+      if (!bestCandidate || upgradeAbsolute > bestCandidate.upgradeAbsolute) {
+        const mlbamId = surplusPlayer.mlbam_id;
+        const photo = mlbamId > 0
+          ? `https://img.mlbstatic.com/mlb-photos/image/upload/d_people:generic:headshot:67:current.png/w_213,q_auto:best/v1/people/${mlbamId}/headshot/67/current`
+          : undefined;
+        bestCandidate = { player: surplusPlayer, teamId: otherTeamId, upgradeAbsolute, photo };
+      }
+    }
+
+    if (!bestCandidate) continue;
+
+    const targetPlayer = bestCandidate.player;
+    const targetTeamIdForTrade = bestCandidate.teamId;
+    const targetTeamName = teamNames[targetTeamIdForTrade] ?? `Team ${targetTeamIdForTrade}`;
+
+    // Find their weak positions (to check mutual benefit)
+    const theirStrengths = allTeamStrengths.get(targetTeamIdForTrade);
+    const theirWeakPositions: string[] = [];
+    if (theirStrengths) {
+      for (const [p, posStats] of Object.entries(leagueStats)) {
+        const theirZ = zScore(theirStrengths[p]?.weightedStrength ?? 0, posStats.mean, posStats.std);
+        if (theirZ < -0.3) theirWeakPositions.push(p);
+      }
+    }
+
+    // Find best offer player — prefer one that fills their need
+    let chosenOffer = offerCandidates[0];
+    let fillsTheirNeed = false;
+    let theirWeakPosition = '';
+
+    for (const candidate of offerCandidates) {
+      if (theirWeakPositions.includes(candidate.position)) {
+        chosenOffer = candidate;
+        fillsTheirNeed = true;
+        theirWeakPosition = candidate.position;
+        break;
+      }
+    }
+
+    // If no mutual benefit, use the lowest-EROSP offer candidate (most expendable)
+    if (!fillsTheirNeed) {
+      chosenOffer = [...offerCandidates].sort((a, b) => a.player.erosp_raw - b.player.erosp_raw)[0];
+    }
+
+    // Pick calculation
+    const gapToCover = targetPlayer.erosp_raw - chosenOffer.player.erosp_raw;
+    const picksToAdd: DraftPickOffer[] = [];
+
+    if (gapToCover > 30 && draftRounds.length > 0) {
+      const pick = findBalancingPick(gapToCover, draftRounds, gr);
+      if (pick) picksToAdd.push(pick);
+    }
+
+    const offerTotalValue = chosenOffer.player.erosp_raw + picksToAdd.reduce((s, p) => s + p.currentEquivalent, 0);
+    const erospGap = targetPlayer.erosp_raw - offerTotalValue;
+
+    // Build explanation
+    const theirPlayerCount = patchedPlayers
+      .filter(p => teamMap.get(p.mlbam_id) === targetTeamIdForTrade && getPositionGroup(p) === weakPosKey)
+      .length;
+
+    const posLabel = weakPosKey === 'SP' ? 'starting pitcher' : weakPosKey === 'RP' ? 'reliever' : weakPosKey === 'OF' ? 'outfield' : weakPosKey;
+
+    let explanation: string;
+    if (fillsTheirNeed) {
+      const theirWeakLabel = theirWeakPosition === 'SP' ? 'SP' : theirWeakPosition === 'OF' ? 'outfield' : theirWeakPosition;
+      explanation = `${targetTeamName} is well-stocked at ${weakPosKey} with ${theirPlayerCount} options. ` +
+        `Offering ${chosenOffer.player.name} fills their ${theirWeakLabel} need — a straightforward mutual upgrade.` +
+        (picksToAdd.length > 0
+          ? ` Add a round ${picksToAdd[0].round} pick (~${Math.round(picksToAdd[0].currentEquivalent)} pts this season) to balance the deal.`
+          : '');
+    } else {
+      const absUpgrade = Math.round(bestCandidate.upgradeAbsolute);
+      explanation = `${targetPlayer.name} is a significant upgrade at ${posLabel} (+${absUpgrade} EROSP). ` +
+        `${chosenOffer.player.name} is your most expendable depth piece.` +
+        (picksToAdd.length > 0
+          ? ` A round ${picksToAdd[0].round} pick (~${Math.round(picksToAdd[0].currentEquivalent)} pts this season) helps balance the deal.`
+          : '');
+    }
+
+    targets.push({
+      targetPlayerName:     targetPlayer.name,
+      targetPlayerMlbamId:  targetPlayer.mlbam_id,
+      targetPlayerPhotoUrl: bestCandidate.photo,
+      targetPlayerErosp:    Math.round(targetPlayer.erosp_raw * 10) / 10,
+      targetTeamId:         targetTeamIdForTrade,
+      targetTeamName,
+      targetPosition:       weakPosKey,
+      erospUpgrade:         Math.round(bestCandidate.upgradeAbsolute * 10) / 10,
+      offerPlayer: {
+        playerName: chosenOffer.player.name,
+        mlbamId:    chosenOffer.player.mlbam_id,
+        photoUrl:   chosenOffer.photo,
+        erosp:      Math.round(chosenOffer.player.erosp_raw * 10) / 10,
+        position:   chosenOffer.position,
+      },
+      fillsTheirNeed,
+      theirWeakPosition,
+      picksToAdd,
+      offerTotalValue: Math.round(offerTotalValue * 10) / 10,
+      erospGap:        Math.round(erospGap * 10) / 10,
+      explanation,
+    });
+
+    if (targets.length >= 2) break;
+  }
+
+  return targets;
+}
+
+// ─────────────────────────────────────────────────────────────────
 // Main entry point
 // ─────────────────────────────────────────────────────────────────
 
@@ -725,16 +1086,172 @@ export interface SuggestedMovesInput {
   /** top FA players from free-agents.json, with photoUrl and ESPN eligible positions */
   faList: Array<{ playerName: string; photoUrl?: string; position: string; eligiblePositions?: string[] }>;
   /** ESPN roster data — used to catch EROSP pipeline name-match failures post-draft */
-  leagueRosters?: Array<{ teamId: number; players: Array<{ playerName: string; photoUrl?: string; eligiblePositions?: string[] }> }>;
+  leagueRosters?: Array<{
+    teamId: number;
+    players: Array<{
+      playerName: string;
+      photoUrl?: string;
+      eligiblePositions?: string[];
+      totalPoints?: number;    // season pts so far (used for synthetic EROSP estimation)
+      position?: string;       // ESPN primary position e.g. '3B', 'SS', 'SP'
+    }>;
+  }>;
+  /** Games remaining in the season — used for synthetic EROSP estimation of missing players */
+  gamesRemaining?: number;
   config?: Partial<LeagueConfig>;
+  /** Draft round data for trade target pick calculations */
+  draftRounds?: Array<{ effectiveRound: number; avgPoints: number }>;
+  /** teamId → display name for trade target explanations */
+  teamNames?: Record<number, string>;
+  /** Days in the current scoring period (default 7) — for streaming SP weekly value calc */
+  daysInCurrentPeriod?: number;
 }
 
 export function getSuggestedMoves(input: SuggestedMovesInput): SuggestedMovesResult {
   const { targetTeamId, erospPlayers, keeperOverrides, faList, leagueRosters } = input;
   const config: LeagueConfig = { ...DEFAULT_CONFIG, ...input.config };
+  const gamesRemaining = input.gamesRemaining ?? 100;
+  const draftRounds = input.draftRounds ?? [];
+  const teamNames = input.teamNames ?? {};
+  const daysInCurrentPeriod = input.daysInCurrentPeriod ?? 7;
 
   // ── Step 1: Assign players to teams ──────────────────────────────
   const { teamMap, isPreDraft } = buildPlayerTeamMap(erospPlayers, keeperOverrides, leagueRosters);
+
+  // ── Step 1b: Build synthetic EROSP entries for roster players missing from EROSP ──
+  // This handles players whose names didn't match during the EROSP pipeline (missing entirely).
+  // We use their season-to-date ESPN points to estimate rest-of-season EROSP.
+  // Synthetic players get negative mlbam_ids to distinguish them from real EROSP entries.
+  const augmentedPlayers: EROSPPlayer[] = [...erospPlayers];
+
+  if (!isPreDraft && leagueRosters) {
+    // Build lookup: normalized name → { teamId, totalPoints, position, eligiblePositions }
+    const rosterByName = new Map<string, {
+      teamId: number;
+      totalPoints: number;
+      position: string;
+      eligiblePositions: string[];
+    }>();
+    for (const teamRoster of leagueRosters) {
+      for (const player of teamRoster.players) {
+        rosterByName.set(normalizeName(player.playerName), {
+          teamId:            teamRoster.teamId,
+          totalPoints:       player.totalPoints ?? 0,
+          position:          player.position ?? '',
+          eligiblePositions: player.eligiblePositions ?? [],
+        });
+      }
+    }
+
+    // Names already in EROSP (normalized)
+    const erospNameSet = new Set(erospPlayers.map(p => normalizeName(p.name)));
+
+    // Track which roster names are already covered by teamMap (assigned to a team in EROSP)
+    const assignedNames = new Set(
+      erospPlayers
+        .filter(p => teamMap.has(p.mlbam_id))
+        .map(p => normalizeName(p.name))
+    );
+
+    let syntheticId = -1;
+
+    for (const [normName, rosterData] of rosterByName) {
+      // Skip if already in EROSP (by name) or already assigned via teamMap name fallback
+      if (erospNameSet.has(normName) || assignedNames.has(normName)) continue;
+
+      // Estimate EROSP from YTD performance
+      const gamesPlayed = Math.max(1, 162 - gamesRemaining);
+      const { totalPoints, position, eligiblePositions, teamId } = rosterData;
+      const ytdRate = totalPoints / gamesPlayed;
+      const estimatedErosp = totalPoints > 10 ? Math.round(ytdRate * gamesRemaining) : 0;
+
+      // Determine EROSP position from ESPN eligibility
+      let resolvedPosition = position.toUpperCase();
+      let role: string;
+
+      const posUp = position.toUpperCase();
+      // Use ESPN primary position as authority for SP/RP — eligiblePositions alone is
+      // misleading since RPs who made occasional starts show SP eligibility in ESPN.
+      if (posUp === 'SP') {
+        resolvedPosition = 'SP';
+        role = 'SP';
+      } else if (posUp === 'RP') {
+        resolvedPosition = 'RP';
+        role = 'RP';
+      } else if (eligiblePositions.some(ep => ep === 'SP') && !eligiblePositions.some(ep => ep === 'RP')) {
+        resolvedPosition = 'SP';
+        role = 'SP';
+      } else if (eligiblePositions.some(ep => ep === 'RP')) {
+        resolvedPosition = 'RP';
+        role = 'RP';
+      } else {
+        role = 'H';
+        // Find best non-DH position from eligibility
+        resolvedPosition = resolveAmbiguousPosition('DH', eligiblePositions);
+        // If primary position is a real field position, prefer it
+        if (['C', '1B', '2B', '3B', 'SS'].includes(posUp)) {
+          resolvedPosition = posUp;
+        } else if (['OF', 'LF', 'CF', 'RF'].includes(posUp)) {
+          resolvedPosition = 'OF';
+        }
+      }
+
+      // Create synthetic EROSPPlayer
+      const synthetic: EROSPPlayer = {
+        mlbam_id:         syntheticId,
+        espn_id:          '',
+        name:             // recover original name from rosterByName iteration key
+                          // We need the original name — find it from leagueRosters
+                          (() => {
+                            for (const tr of leagueRosters) {
+                              for (const p of tr.players) {
+                                if (normalizeName(p.playerName) === normName) return p.playerName;
+                              }
+                            }
+                            return normName;
+                          })(),
+        position:         resolvedPosition,
+        mlb_team:         '',
+        role,
+        fantasy_team_id:  teamId,
+        is_fa:            false,
+        erosp_raw:        estimatedErosp,
+        erosp_startable:  estimatedErosp,
+        erosp_per_game:   estimatedErosp / Math.max(1, gamesRemaining),
+        games_remaining:  gamesRemaining,
+        start_probability: role === 'H' ? 0.9 : 0.8,
+        cap_factor:       1.0,
+      };
+
+      syntheticId--;
+      augmentedPlayers.push(synthetic);
+      // Register in teamMap so this player is NOT treated as a FA
+      teamMap.set(synthetic.mlbam_id, teamId);
+    }
+  }
+
+  // ── Step 1c: Patch DH/IF positions using ESPN eligibility ─────────
+  // For any player (real or synthetic) still showing DH or IF position,
+  // resolve to the best real position from ESPN eligibility data.
+  const allRosterEligibility = new Map<string, string[]>();
+  if (leagueRosters) {
+    for (const teamRoster of leagueRosters) {
+      for (const player of teamRoster.players) {
+        if (player.eligiblePositions?.length) {
+          allRosterEligibility.set(normalizeName(player.playerName), player.eligiblePositions);
+        }
+      }
+    }
+  }
+
+  const patchedPlayers = augmentedPlayers.map(p => {
+    const pos = p.position?.toUpperCase() ?? '';
+    if (pos !== 'DH' && pos !== 'IF') return p;
+    const espnEligible = allRosterEligibility.get(normalizeName(p.name));
+    if (!espnEligible || espnEligible.length === 0) return p;
+    const resolved = resolveAmbiguousPosition(pos, espnEligible);
+    return { ...p, position: resolved };
+  });
 
   // All team IDs in the league
   const leagueTeamIds = Array.from(
@@ -745,7 +1262,7 @@ export function getSuggestedMoves(input: SuggestedMovesInput): SuggestedMovesRes
   const allTeamStrengths = new Map<number, Record<string, TeamPositionStrength>>();
 
   for (const tid of leagueTeamIds) {
-    const roster = erospPlayers.filter(p => teamMap.get(p.mlbam_id) === tid);
+    const roster = patchedPlayers.filter(p => teamMap.get(p.mlbam_id) === tid);
     allTeamStrengths.set(tid, buildTeamPositionalStrength(roster, config));
   }
 
@@ -789,7 +1306,7 @@ export function getSuggestedMoves(input: SuggestedMovesInput): SuggestedMovesRes
   const weakPositions = detectWeakPositions(teamStrengths, leagueStats, config);
 
   if (weakPositions.length === 0) {
-    return { teamId: targetTeamId, suggestedMoves: [], positionSummary, isPreDraft };
+    return { teamId: targetTeamId, suggestedMoves: [], positionSummary, isPreDraft, streamingSPs: [], tradeTargets: [] };
   }
 
   // ── Step 6: Build FA pool ─────────────────────────────────────────
@@ -939,7 +1456,7 @@ export function getSuggestedMoves(input: SuggestedMovesInput): SuggestedMovesRes
   // Find players on target team eligible at multiple ESPN positions and check
   // if repositioning them + adding a FA at their vacated slot helps two positions at once.
   if (rosterEligibilityMap.size > 0) {
-    const targetTeamPlayers = erospPlayers.filter(p => teamMap.get(p.mlbam_id) === targetTeamId);
+    const targetTeamPlayers = patchedPlayers.filter(p => teamMap.get(p.mlbam_id) === targetTeamId);
     const swapMoves = findSlotSwaps(
       targetTeamPlayers,
       rosterEligibilityMap,
@@ -970,10 +1487,39 @@ export function getSuggestedMoves(input: SuggestedMovesInput): SuggestedMovesRes
     return b.recommendationScore - a.recommendationScore;
   });
 
+  // ── Step 10: Streaming SPs ────────────────────────────────────────
+  const streamingSPs = computeStreamingSPs(
+    leagueFAs,
+    faPhotoLookup,
+    gamesRemaining,
+    daysInCurrentPeriod,
+  );
+
+  // ── Step 11: Trade targets ────────────────────────────────────────
+  const tradeTargets = (draftRounds.length > 0 && !isPreDraft)
+    ? computeTradeTargets(
+        targetTeamId,
+        weakPositions,
+        teamStrengths,
+        allTeamStrengths,
+        leagueStats,
+        patchedPlayers,
+        teamMap,
+        draftRounds,
+        teamNames,
+        gamesRemaining,
+        config,
+        rosterPhotoLookup,
+        faPhotoLookup,
+      )
+    : [];
+
   return {
     teamId:        targetTeamId,
     suggestedMoves: sorted.slice(0, config.maxRecommendations),
     positionSummary,
     isPreDraft,
+    streamingSPs,
+    tradeTargets,
   };
 }

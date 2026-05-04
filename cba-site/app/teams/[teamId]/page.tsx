@@ -255,6 +255,10 @@ export default async function TeamPage({ params }: Props) {
         keeperOverrides: keeperOverrides as Record<string, string[]>,
         faList,
         leagueRosters: currentSeason.rosters,
+        gamesRemaining: erospMeta?.games_remaining,
+        draftRounds: draftRounds.rounds,
+        teamNames: Object.fromEntries(currentSeason.teams.map(t => [t.id, t.name])),
+        daysInCurrentPeriod: 7,
       })
     : null;
 
