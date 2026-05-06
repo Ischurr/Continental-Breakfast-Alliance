@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from 'react';
 import type { SuggestedMove, SuggestedMovesResult, UrgencyLevel, StreamingSP, TradeTarget } from '@/lib/suggested-moves';
 
 interface Props {
@@ -286,7 +289,14 @@ function StreamingSPCard({ sp }: { sp: StreamingSP }) {
 }
 
 function StreamingSPSection({ sps }: { sps: StreamingSP[] }) {
-  if (sps.length === 0) return null;
+  if (sps.length === 0) {
+    return (
+      <div className="rounded-xl border border-gray-200 bg-white p-6 text-center">
+        <p className="text-sm font-semibold text-gray-700 mb-1">No streaming SPs this week</p>
+        <p className="text-xs text-gray-400 max-w-xs mx-auto">No available free agent starters meet the quality threshold right now.</p>
+      </div>
+    );
+  }
   return (
     <div>
       <div className="flex items-end justify-between mb-3 gap-4">
@@ -429,7 +439,14 @@ function TradeTargetCard({ target }: { target: TradeTarget }) {
 }
 
 function TradeTargetsSection({ targets }: { targets: TradeTarget[] }) {
-  if (targets.length === 0) return null;
+  if (targets.length === 0) {
+    return (
+      <div className="rounded-xl border border-gray-200 bg-white p-6 text-center">
+        <p className="text-sm font-semibold text-gray-700 mb-1">No trade targets identified</p>
+        <p className="text-xs text-gray-400 max-w-xs mx-auto">Your roster depth and positional needs don&apos;t yield clear mutual-benefit trades right now.</p>
+      </div>
+    );
+  }
   return (
     <div>
       <div className="flex items-end justify-between mb-3 gap-4">
@@ -463,43 +480,70 @@ function NoMovesState({ isPreDraft }: { isPreDraft: boolean }) {
   );
 }
 
+type InnerTab = 'fa' | 'streaming' | 'trades';
+
 export default function SuggestedMoves({ result }: Props) {
   const { suggestedMoves, isPreDraft, streamingSPs, tradeTargets } = result;
+  const [activeTab, setActiveTab] = useState<InnerTab>('fa');
+
+  const tabs: Array<{ id: InnerTab; label: string; count: number }> = [
+    { id: 'fa',        label: 'FA Adds',      count: suggestedMoves.length },
+    { id: 'streaming', label: 'Streaming SPs', count: streamingSPs.length },
+    { id: 'trades',    label: 'Trade Targets', count: tradeTargets.length },
+  ];
 
   return (
-    <div className="flex flex-col gap-8">
-      {/* FA Upgrades section */}
-      <div>
-        <div className="flex items-end justify-between mb-4 gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-0.5">Suggested Moves</h2>
-            <p className="text-sm text-gray-700">
-              {'Free agent upgrades ranked by EROSP improvement'}
-            </p>
-          </div>
-          {suggestedMoves.length > 0 && (
-            <span className="flex-shrink-0 text-xs text-gray-400 bg-white border border-gray-200 rounded-full px-3 py-1">
-              {suggestedMoves.length} suggestion{suggestedMoves.length !== 1 ? 's' : ''}
-            </span>
-          )}
-        </div>
-
-        {suggestedMoves.length === 0 ? (
-          <NoMovesState isPreDraft={isPreDraft} />
-        ) : (
-          <div className="flex flex-col gap-4">
-            {suggestedMoves.map((move, i) => (
-              <MoveCard key={`${move.position}-${move.addPlayerName}-${i}`} move={move} />
-            ))}
-          </div>
-        )}
+    <div className="flex flex-col gap-4">
+      {/* Inner tab bar */}
+      <div className="flex gap-2 flex-wrap border-b border-gray-200 pb-3">
+        {tabs.map(tab => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`
+                px-3 py-1.5 rounded-lg text-sm font-semibold transition-all duration-150
+                flex items-center gap-1.5
+                ${isActive
+                  ? 'bg-gray-800 text-white shadow-sm'
+                  : 'bg-slate-100 text-gray-500 hover:bg-slate-200 hover:text-gray-700'
+                }
+              `}
+            >
+              {tab.label}
+              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none ${
+                isActive ? 'bg-white/25 text-white' : 'bg-gray-200 text-gray-500'
+              }`}>
+                {tab.count}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Streaming SPs section */}
-      <StreamingSPSection sps={streamingSPs} />
+      {/* Panel content */}
+      {activeTab === 'fa' && (
+        <div>
+          {suggestedMoves.length === 0 ? (
+            <NoMovesState isPreDraft={isPreDraft} />
+          ) : (
+            <div className="flex flex-col gap-4">
+              {suggestedMoves.map((move, i) => (
+                <MoveCard key={`${move.position}-${move.addPlayerName}-${i}`} move={move} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
-      {/* Trade Targets section */}
-      <TradeTargetsSection targets={tradeTargets} />
+      {activeTab === 'streaming' && (
+        <StreamingSPSection sps={streamingSPs} />
+      )}
+
+      {activeTab === 'trades' && (
+        <TradeTargetsSection targets={tradeTargets} />
+      )}
     </div>
   );
 }
