@@ -42,12 +42,24 @@ function formatPoints(pts: number): string {
 
 // ── PlayerRow ─────────────────────────────────────────────────────────────────
 
+function injuryBadge(player: LineupPlayer): { label: string; cls: string } | null {
+  if (player.ilType) return { label: player.ilType, cls: 'text-red-500 font-medium' };
+  const s = player.injuryStatus;
+  if (s === 'OUT') return { label: 'OUT', cls: 'text-red-600 font-bold' };
+  if (s === 'DOUBTFUL') return { label: 'DTF', cls: 'text-red-500 font-medium' };
+  if (s === 'SUSPENSION') return { label: 'SUSP', cls: 'text-red-500 font-medium' };
+  if (s === 'QUESTIONABLE') return { label: 'Q', cls: 'text-amber-600 font-medium' };
+  if (s === 'DAY_TO_DAY') return { label: 'DTD', cls: 'text-amber-600 font-medium' };
+  return null;
+}
+
 function PlayerRow({ player, index }: { player: LineupPlayer; index: number }) {
   const slot = player.slot ?? '?';
   const isPitcher = player.role === 'SP' || player.role === 'RP';
   const isOnIL = !!player.ilType;
   const noGame = !player.hasGame;
   const notStarting = player.role === 'SP' && player.hasGame && !player.isStartingToday;
+  const badge = injuryBadge(player);
 
   const rowBg = index % 2 === 0 ? 'bg-white' : 'bg-slate-50/60';
   const dimmed = noGame || notStarting || isOnIL;
@@ -62,7 +74,7 @@ function PlayerRow({ player, index }: { player: LineupPlayer; index: number }) {
       </td>
 
       {/* Player photo + name */}
-      <td className="py-2 pr-2">
+      <td className="py-2 pr-4">
         <div className="flex items-center gap-2 min-w-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -78,8 +90,8 @@ function PlayerRow({ player, index }: { player: LineupPlayer; index: number }) {
               {player.rpRole === 'closer' && (
                 <span className="ml-1 text-emerald-600 font-medium">CL</span>
               )}
-              {isOnIL && (
-                <span className="ml-1 text-red-500 font-medium">{player.ilType}</span>
+              {badge && (
+                <span className={`ml-1 ${badge.cls}`}>{badge.label}</span>
               )}
             </p>
           </div>
@@ -87,23 +99,21 @@ function PlayerRow({ player, index }: { player: LineupPlayer; index: number }) {
       </td>
 
       {/* Matchup info (opponent + pitcher) */}
-      <td className="py-2 pr-2 hidden sm:table-cell">
+      <td className="py-2 pr-2">
         {noGame ? (
           <span className="text-[11px] text-gray-400 italic">No game</span>
         ) : isPitcher ? (
           <div>
             {player.role === 'SP' && (
-              <>
-                {player.isStartingToday ? (
-                  <span className="text-[11px] font-medium text-emerald-700">
-                    ✓ Starting {player.isHome ? 'vs' : '@'} {player.opponentAbbr}
-                  </span>
-                ) : (
-                  <span className="text-[11px] text-gray-400 italic">
-                    Not starting — {player.isHome ? 'vs' : '@'} {player.opponentAbbr}
-                  </span>
-                )}
-              </>
+              player.isStartingToday ? (
+                <span className="text-[11px] font-medium text-emerald-700">
+                  ✓ Starting {player.isHome ? 'vs' : '@'} {player.opponentAbbr}
+                </span>
+              ) : (
+                <span className="text-[11px] text-gray-400 italic">
+                  Not starting — {player.isHome ? 'vs' : '@'} {player.opponentAbbr}
+                </span>
+              )
             )}
             {player.role === 'RP' && (
               <span className="text-[11px] text-gray-600">
@@ -113,26 +123,50 @@ function PlayerRow({ player, index }: { player: LineupPlayer; index: number }) {
           </div>
         ) : (
           <div>
-            <p className="text-[11px] text-gray-700 leading-tight">
-              {player.isHome ? 'vs' : '@'} {player.opponentAbbr}
-            </p>
             {player.probablePitcherName ? (
-              <p className="text-[11px] leading-tight">
-                <span className="text-gray-500">vs </span>
-                <span className="text-gray-700 font-medium">
-                  {/* Show last name only to save space */}
+              <>
+                <p className="text-sm font-bold text-gray-800 leading-tight">
                   {player.probablePitcherName.split(' ').slice(-1)[0]}
-                </span>
-                {player.probablePitcherEra != null && (
-                  <span className={`ml-1 ${eraColor(player.probablePitcherEra)}`}>
-                    {player.probablePitcherEra.toFixed(2)}
-                  </span>
-                )}
-              </p>
-            ) : (
-              <p className="text-[11px] text-gray-400">TBD starter</p>
-            )}
+                  {player.probablePitcherEra != null && (
+                    <span className={`ml-1.5 text-xs font-semibold ${eraColor(player.probablePitcherEra)}`}>
+                      {player.probablePitcherEra.toFixed(2)}
+                    </span>
+                  )}
+                </p>
+                <p className="text-[11px] text-gray-400 leading-tight">
+                  {player.isHome ? 'vs' : '@'} {player.opponentAbbr}
+                </p>
+              </>
+            ) : player.hasGame ? (
+              <>
+                <p className="text-sm font-medium text-gray-400 leading-tight italic">TBD starter</p>
+                <p className="text-[11px] text-gray-400 leading-tight">
+                  {player.isHome ? 'vs' : '@'} {player.opponentAbbr}
+                </p>
+              </>
+            ) : null}
           </div>
+        )}
+      </td>
+
+      {/* Career vs opposing starter */}
+      <td className="py-2 pr-2 hidden sm:table-cell text-center">
+        {!isPitcher && player.probablePitcherMlbamId && player.vsOpponentAB != null && player.vsOpponentAB >= 5 ? (
+          (() => {
+            const avg = player.vsOpponentHits! / player.vsOpponentAB;
+            const avgStr = avg.toFixed(3).replace(/^0/, '');
+            const avgColor = avg >= 0.300 ? 'text-emerald-600' : avg < 0.200 ? 'text-red-500' : 'text-gray-600';
+            return (
+              <div>
+                <p className={`text-sm font-bold tabular-nums leading-tight ${avgColor}`}>{avgStr}</p>
+                <p className="text-[10px] text-gray-400 leading-tight tabular-nums">
+                  {player.vsOpponentHits}/{player.vsOpponentAB}
+                </p>
+              </div>
+            );
+          })()
+        ) : (
+          <span className="text-[11px] text-gray-300">—</span>
         )}
       </td>
 
@@ -169,7 +203,11 @@ function PlayerRow({ player, index }: { player: LineupPlayer; index: number }) {
 
 function BenchRow({ player, index }: { player: LineupPlayer; index: number }) {
   const rowBg = index % 2 === 0 ? 'bg-white' : 'bg-slate-50/60';
-  const isOnIL = !!player.ilType;
+  const badge = injuryBadge(player);
+  const isUnavailable = !!player.ilType
+    || player.injuryStatus === 'OUT'
+    || player.injuryStatus === 'DOUBTFUL'
+    || player.injuryStatus === 'SUSPENSION';
 
   return (
     <tr className={`${rowBg} opacity-70`}>
@@ -189,20 +227,23 @@ function BenchRow({ player, index }: { player: LineupPlayer; index: number }) {
             <p className="text-xs font-medium text-gray-700 leading-tight">{player.name}</p>
             <p className="text-[10px] text-gray-400 leading-tight">
               {player.primaryPosition}
-              {isOnIL && <span className="ml-1 text-red-400">{player.ilType}</span>}
+              {badge && <span className={`ml-1 ${badge.cls}`}>{badge.label}</span>}
             </p>
           </div>
         </div>
       </td>
-      <td className="py-1.5 pr-2 hidden sm:table-cell">
+      <td className="py-1.5 pr-2">
         <span className="text-[11px] text-gray-400 italic">
-          {!player.hasGame
+          {isUnavailable
+            ? 'Unavailable'
+            : !player.hasGame
             ? 'No game today'
             : player.role === 'SP' && !player.isStartingToday
             ? 'Not starting'
             : 'Lower projected value'}
         </span>
       </td>
+      <td className="py-1.5 pr-2 hidden sm:table-cell" />
       <td className="py-1.5 pr-2 hidden md:table-cell" />
       <td className="py-1.5 pr-3 text-right">
         <span className="text-xs text-gray-400 tabular-nums">
@@ -239,16 +280,18 @@ function LineupSection({
       <table className="w-full text-left border-collapse">
         <colgroup>
           <col className="w-12" />
+          <col className="w-40" />
           <col />
-          <col className="hidden sm:table-column w-40" />
+          <col className="hidden sm:table-column w-20" />
           <col className="hidden md:table-column w-14" />
           <col className="w-16" />
         </colgroup>
         <thead>
           <tr className="border-b border-gray-100">
             <th className="pl-3 pr-2 py-1 text-[10px] font-medium text-gray-400 uppercase tracking-wide">Slot</th>
-            <th className="py-1 pr-2 text-[10px] font-medium text-gray-400 uppercase tracking-wide">Player</th>
-            <th className="py-1 pr-2 hidden sm:table-cell text-[10px] font-medium text-gray-400 uppercase tracking-wide">Matchup</th>
+            <th className="py-1 pr-4 text-[10px] font-medium text-gray-400 uppercase tracking-wide">Player</th>
+            <th className="py-1 pr-2 text-[10px] font-medium text-gray-400 uppercase tracking-wide">Opposing Starter</th>
+            <th className="py-1 pr-2 hidden sm:table-cell text-[10px] font-medium text-gray-400 uppercase tracking-wide text-center">vs SP</th>
             <th className="py-1 pr-2 hidden md:table-cell text-[10px] font-medium text-gray-400 uppercase tracking-wide text-center">Park</th>
             <th className="py-1 pr-3 text-[10px] font-medium text-gray-400 uppercase tracking-wide text-right">Est.</th>
           </tr>
@@ -370,8 +413,9 @@ export default function DailyLineupSuggestion({ teamId }: { teamId: number }) {
             <table className="w-full text-left border-collapse border-t border-gray-100">
               <colgroup>
                 <col className="w-12" />
+                <col className="w-40" />
                 <col />
-                <col className="hidden sm:table-column" />
+                <col className="hidden sm:table-column w-20" />
                 <col className="hidden md:table-column w-14" />
                 <col className="w-16" />
               </colgroup>

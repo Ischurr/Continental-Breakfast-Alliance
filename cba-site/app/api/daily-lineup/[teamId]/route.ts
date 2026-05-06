@@ -55,6 +55,7 @@ interface ESPNRosterPlayer {
   eligiblePositions: string[];
   photoUrl?: string;
   totalPoints?: number;
+  injuryStatus?: string; // ESPN: OUT, DOUBTFUL, QUESTIONABLE, DAY_TO_DAY, SUSPENSION, etc.
 }
 
 export interface LineupPlayer {
@@ -73,6 +74,10 @@ export interface LineupPlayer {
   ilType?: string;
   ilDaysRemaining?: number;
   injuryNote?: string;
+  injuryStatus?: string; // ESPN status: OUT, DOUBTFUL, QUESTIONABLE, DAY_TO_DAY, SUSPENSION
+  // Career batter-vs-pitcher history (only on hitters)
+  vsOpponentHits?: number;
+  vsOpponentAB?: number;
   // Schedule context
   hasGame: boolean;
   isHome: boolean;
@@ -127,6 +132,30 @@ async function fetchPitcherEra(personId: number): Promise<number | null> {
     const era = data.stats?.[0]?.splits?.[0]?.stat?.era;
     const num = era != null ? parseFloat(era) : NaN;
     return isFinite(num) ? num : null;
+  } catch {
+    return null;
+  }
+}
+
+async function fetchBatterVsPitcher(
+  batterId: number,
+  pitcherId: number,
+): Promise<{ hits: number; atBats: number } | null> {
+  try {
+    const url =
+      `${MLB_BASE}/people/${batterId}/stats` +
+      `?stats=vsPlayer&opposingPlayerId=${pitcherId}&group=hitting&sportId=1`;
+    const resp = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36' },
+      signal: AbortSignal.timeout(6_000),
+    });
+    if (!resp.ok) return null;
+    const data = await resp.json() as {
+      stats?: Array<{ splits?: Array<{ stat?: { atBats?: number; hits?: number } }> }>;
+    };
+    const stat = data.stats?.[0]?.splits?.[0]?.stat;
+    if (!stat) return null;
+    return { hits: stat.hits ?? 0, atBats: stat.atBats ?? 0 };
   } catch {
     return null;
   }
@@ -286,24 +315,37 @@ function canFillSlot(player: LineupPlayer, slot: string): boolean {
 }
 
 function computeEstimatedPoints(player: Omit<LineupPlayer, 'estimatedTodayPoints' | 'slot'>): number {
+  // IL players and definitive scratches cannot play
+  if (player.ilType) return 0;
+  const status = player.injuryStatus;
+  if (status === 'OUT' || status === 'DOUBTFUL' || status === 'SUSPENSION') return 0;
+
   if (!player.hasGame) return 0;
+
+  let pts: number;
 
   if (player.role === 'SP') {
     if (!player.isStartingToday) return 0;
     const base = player.fpPerStart ?? (player.erospPerGame / Math.max(player.startProbability, 0.1));
-    // Opponent strength: higher = weaker pitcher = better for batters, so for SP this is inverted
-    // SP's result depends on the opposing lineup quality — keep simple, no adjustment
-    return Math.max(0, base);
+    pts = Math.max(0, base);
+  } else if (player.role === 'RP') {
+    pts = Math.max(0, player.erospPerGame);
+  } else {
+    // Hitter: adjust for park factor and opponent pitcher strength
+    const pitcherMult = 0.7 + player.opponentStrength * 0.6; // 0.76 (elite) → 1.24 (bad) pitcher
+    pts = Math.max(0, player.erospPerGame * player.parkFactor * pitcherMult);
   }
 
-  if (player.role === 'RP') {
-    return Math.max(0, player.erospPerGame);
-  }
+  // Day-to-day / questionable: ~25% chance of playing full game
+  if (status === 'DAY_TO_DAY' || status === 'QUESTIONABLE') pts *= 0.25;
 
-  // Hitter: adjust for park factor and opponent pitcher strength
-  // parkFactor is centered at 1.0; opponentStrength 0.5=avg, convert to multiplier
-  const pitcherMult = 0.7 + player.opponentStrength * 0.6; // 0.76 (elite) → 1.24 (bad) pitcher
-  return Math.max(0, player.erospPerGame * player.parkFactor * pitcherMult);
+  return pts;
+}
+
+function isUnavailable(player: LineupPlayer): boolean {
+  if (player.ilType) return true;
+  const s = player.injuryStatus;
+  return s === 'OUT' || s === 'DOUBTFUL' || s === 'SUSPENSION';
 }
 
 function optimizeLineup(players: LineupPlayer[]): { starters: LineupPlayer[]; bench: LineupPlayer[] } {
@@ -314,7 +356,7 @@ function optimizeLineup(players: LineupPlayer[]): { starters: LineupPlayer[]; be
   const starters: LineupPlayer[] = [];
 
   for (const slot of SLOT_ORDER) {
-    const best = sorted.find(p => !assignedIds.has(p.espnId) && canFillSlot(p, slot));
+    const best = sorted.find(p => !assignedIds.has(p.espnId) && !isUnavailable(p) && canFillSlot(p, slot));
     if (best) {
       assignedIds.add(best.espnId);
       starters.push({ ...best, slot });
@@ -411,6 +453,7 @@ export async function GET(
       ilType: ep.il_type,
       ilDaysRemaining: ep.il_days_remaining,
       injuryNote: ep.injury_note,
+      injuryStatus: espn?.injuryStatus,
       hasGame,
       isHome: gameCtx?.isHome ?? false,
       opponentAbbr: gameCtx?.opponentAbbr,
@@ -445,6 +488,7 @@ export async function GET(
       role,
       erospPerGame: 0,
       startProbability: isPitcher ? 0.2 : 0.9,
+      injuryStatus: ep.injuryStatus,
       hasGame: false,
       isHome: false,
       parkFactor: 1.0,
@@ -456,7 +500,22 @@ export async function GET(
     seenEspnIds.add(ep.playerId);
   }
 
-  const { starters, bench } = optimizeLineup(players);
+  // Fetch career batter-vs-pitcher history in parallel for all hitters with a known probable pitcher
+  const bvpResults = await Promise.all(
+    players
+      .filter(p => p.role === 'H' && p.mlbamId && p.probablePitcherMlbamId)
+      .map(async p => {
+        const stats = await fetchBatterVsPitcher(p.mlbamId, p.probablePitcherMlbamId!);
+        return { espnId: p.espnId, stats };
+      })
+  );
+  const bvpMap = new Map(bvpResults.map(r => [r.espnId, r.stats]));
+  const playersWithBvp = players.map(p => {
+    const bvp = bvpMap.get(p.espnId);
+    return bvp ? { ...p, vsOpponentHits: bvp.hits, vsOpponentAB: bvp.atBats } : p;
+  });
+
+  const { starters, bench } = optimizeLineup(playersWithBvp);
 
   const response: DailyLineupResponse = { date: today, teamId, starters, bench };
   return NextResponse.json(response);

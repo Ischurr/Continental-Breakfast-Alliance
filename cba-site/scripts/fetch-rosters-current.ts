@@ -52,6 +52,7 @@ function extractRostersFromTeams(teams: Record<string, unknown>[]) {
       const playerId = String(player?.id ?? entry.playerId);
       const keeperValue = (playerPoolEntry?.keeperValue as number) ?? 0;
       const acquisitionType = (entry.acquisitionType as string) ?? undefined;
+      const injuryStatus = (playerPoolEntry?.injuryStatus as string | undefined) ?? undefined;
       return {
         playerId,
         playerName: (player?.fullName as string) ?? 'Unknown',
@@ -61,6 +62,7 @@ function extractRostersFromTeams(teams: Record<string, unknown>[]) {
         photoUrl: `https://a.espncdn.com/i/headshots/mlb/players/full/${playerId}.png`,
         keeperValue: keeperValue > 0 ? keeperValue : undefined,
         acquisitionType,
+        injuryStatus: injuryStatus && injuryStatus !== 'ACTIVE' ? injuryStatus : undefined,
       };
     }).filter(p => p.totalPoints > 0 || (p.keeperValue ?? 0) > 0 || p.acquisitionType === 'DRAFT' || p.acquisitionType === 'ADD');
 
