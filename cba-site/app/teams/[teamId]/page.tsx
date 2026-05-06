@@ -14,6 +14,7 @@ import EROSPTable, { type EROSPPlayer, type EROSPMeta } from '@/components/EROSP
 import SuggestedMoves from '@/components/SuggestedMoves';
 import TeamSectionTabs from '@/components/TeamSectionTabs';
 import TeamMatchupTracker from '@/components/TeamMatchupTracker';
+import LineupToggle from '@/components/LineupToggle';
 import ProspectStatusChecker from '@/components/ProspectStatusChecker';
 import PlayerName from '@/components/PlayerName';
 import WeeklyScorecard from '@/components/WeeklyScorecard';
@@ -361,6 +362,7 @@ export default async function TeamPage({ params }: Props) {
             inProgress={cwInProgress}
           />
         )}
+        <LineupToggle teamId={id} />
 
         {/* Team header */}
         <div
