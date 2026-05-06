@@ -26,30 +26,35 @@ const DEFAULT_POSITION_MAP: Record<number, string> = {
   7: 'OF', 8: 'OF', 9: 'OF', 10: 'DH', 11: 'RP',
 };
 
-// slot ID → fantasy unit label (active slots only)
-// Bench=16/17, IL=11 handled separately
+// lineupSlotId → fantasy slot label for display
+// Confirmed via live roster inspection (period 40):
+//   17 = IL (Lindor, Snell, Bieber — confirmed injured)
+//   16 = Bench
+//   11 = UTIL/DH active slot (Judge, Trout, Schwarber)
+//   12 = DH/UTIL active slot (Basallo, Paredes, McLain)
+//   IMPORTANT: eligibleSlots uses 11=IL, but lineupSlotId 11 ≠ IL
 const SLOT_LABEL_MAP: Record<number, string> = {
   0: 'C', 1: '1B', 2: '2B', 3: '3B', 4: 'SS',
-  5: 'OF',   // UTIL-OF flex
+  5: 'OF',
   6: 'MIF',  // MI flex
   7: 'CIF',  // CI flex
   8: 'OF', 9: 'OF', 10: 'OF',
+  11: 'UTIL',
   12: 'DH',
   13: 'SP', 14: 'SP',
   15: 'RP',
-  19: 'UTIL', // INF flex
+  19: 'UTIL',
 };
 
-const BENCH_SLOT_IDS = new Set([16, 17]);
-const IL_SLOT_ID = 11;
+const BENCH_SLOT_IDS = new Set([16]);
+const IL_SLOT_ID = 17;
 
 interface PerPeriodPlayerSnapshot {
   slotId: number;
-  matchupTotal: number;  // cumulative FP for the current matchup week (statSplitTypeId=5) — resets each week
+  dayScore: number;      // FP scored specifically on this scoring period (statSplitTypeId=5, scoringPeriodId===period)
   playerName: string;
   position: string;      // primary MLB position
   photoUrl: string;
-  matchupRawStats?: Record<string, number>; // statSplitTypeId=5 appliedStats (cumulative within matchup week)
 }
 
 // period → teamId → playerId → snapshot
@@ -57,6 +62,7 @@ type PeriodCache = Record<number, Record<number, Record<string, PerPeriodPlayerS
 
 function parsePeriodSnapshot(
   teams: AnyRecord[],
+  currentPeriod: number,
 ): Record<number, Record<string, PerPeriodPlayerSnapshot>> {
   const result: Record<number, Record<string, PerPeriodPlayerSnapshot>> = {};
 
@@ -75,21 +81,21 @@ function parsePeriodSnapshot(
       const defaultPositionId = player.defaultPositionId as number | undefined;
       const position = (defaultPositionId !== undefined ? DEFAULT_POSITION_MAP[defaultPositionId] : undefined) ?? 'UTIL';
 
-      // Matchup-period cumulative stats (statSplitTypeId=5) — resets each week boundary.
-      // appliedTotal gives FP for this matchup week so far; appliedStats gives raw stat breakdown.
-      // ESPN correctly returns historical matchup-period data when a historical scoringPeriodId is requested.
-      const matchupStat = (player.stats as AnyRecord[] | undefined)
-        ?.find(s => s.statSourceId === 0 && s.statSplitTypeId === 5 && s.seasonId === season);
-      const matchupTotal = (matchupStat?.appliedTotal as number) ?? 0;
-      const matchupRawStats = matchupStat?.appliedStats as Record<string, number> | undefined;
+      // ESPN returns statSplitTypeId=5 entries as per-day scores, each tagged with their scoringPeriodId.
+      // A given period query returns entries for the current and previous period.
+      // We extract only the entry matching currentPeriod — that's today's fantasy points.
+      // statSplitTypeId=0 (season cumulative) and statSplitTypeId=5 with wrong period are NOT period-aware
+      // and always reflect the current date's totals, making them useless for historical week breakdowns.
+      const dayStatEntry = (player.stats as AnyRecord[] | undefined)
+        ?.find(s => s.statSourceId === 0 && s.statSplitTypeId === 5 && s.scoringPeriodId === currentPeriod && s.seasonId === season);
+      const dayScore = (dayStatEntry?.appliedTotal as number) ?? 0;
 
       result[teamId][playerId] = {
         slotId: lineupSlotId,
-        matchupTotal,
+        dayScore,
         playerName: (player.fullName as string) ?? 'Unknown',
         position,
         photoUrl: `https://a.espncdn.com/i/headshots/mlb/players/full/${playerId}.png`,
-        matchupRawStats,
       };
     }
   }
@@ -122,10 +128,7 @@ function computeWeekBreakdowns(
     const playerEntries: WeeklyPlayerEntry[] = [];
 
     for (const playerId of playerIds) {
-      // Get the LAST snapshot for this player in the week.
-      // matchupTotal at the last period = the cumulative score for this matchup week.
-      // Note: the FIRST period of each week carries over the previous week's matchupTotal
-      // before ESPN's reset settles, so we use the last period to avoid that carryover.
+      // Get the last snapshot this week (for metadata: name, position, photo, final slot)
       let lastSnap: PerPeriodPlayerSnapshot | undefined;
       for (let i = weekPeriods.length - 1; i >= 0; i--) {
         const snap = periodCache[weekPeriods[i]]?.[teamId]?.[playerId];
@@ -133,10 +136,12 @@ function computeWeekBreakdowns(
       }
       if (!lastSnap) continue;
 
-      // Week total = matchupTotal at the last period (cumulative within this matchup week)
-      const weekPoints = Math.max(0, lastSnap.matchupTotal);
-
-      // Count active/bench/IL days from per-period slot data
+      // Sum per-day scores and attribute each day to active vs bench based on actual slot.
+      // dayScore is the FP scored specifically on that scoring period (statSplitTypeId=5,
+      // scoringPeriodId===period). This is accurate for both historical and current weeks.
+      let weekPoints = 0;
+      let activePoints = 0;
+      let benchPoints = 0;
       let activeDays = 0;
       let benchDays = 0;
       const slotCountsActive: Record<number, number> = {};
@@ -146,24 +151,20 @@ function computeWeekBreakdowns(
         if (!snap) continue;
 
         const slotId = snap.slotId;
+        const pts = snap.dayScore;
+        weekPoints += pts;
+
         if (BENCH_SLOT_IDS.has(slotId)) {
           benchDays++;
+          benchPoints += pts;
         } else if (slotId === IL_SLOT_ID) {
-          // On IL — skip
+          // On IL — points don't count toward team score; skip
         } else {
           activeDays++;
+          activePoints += pts;
           slotCountsActive[slotId] = (slotCountsActive[slotId] ?? 0) + 1;
         }
       }
-
-      // Distribute weekPoints proportionally between active and bench days.
-      // ESPN's historical mRoster API doesn't reliably give per-day deltas, so we
-      // approximate the active/bench split by day-count weights.
-      const totalDays = activeDays + benchDays;
-      const activePoints = totalDays > 0
-        ? Math.round(weekPoints * (activeDays / totalDays) * 10) / 10
-        : (activeDays > 0 ? weekPoints : 0);
-      const benchPoints = Math.round((weekPoints - activePoints) * 10) / 10;
 
       // Primary slot = most common active slot; if never active, use last known slot
       let primarySlotId = 16; // default bench
@@ -180,16 +181,6 @@ function computeWeekBreakdowns(
       // Only include players who appeared on the roster at some point this week
       if (weekPoints === 0 && activeDays === 0 && benchDays === 0) continue;
 
-      // Weekly stat totals: use last period's matchupRawStats (cumulative within the week)
-      let weeklyStats: Record<string, number> | undefined;
-      for (let i = weekPeriods.length - 1; i >= 0; i--) {
-        const snap = periodCache[weekPeriods[i]]?.[teamId]?.[playerId];
-        if (snap?.matchupRawStats && Object.keys(snap.matchupRawStats).length > 0) {
-          weeklyStats = { ...snap.matchupRawStats };
-          break;
-        }
-      }
-
       playerEntries.push({
         playerId,
         playerName: lastSnap.playerName,
@@ -202,7 +193,6 @@ function computeWeekBreakdowns(
         activeDays,
         benchDays,
         photoUrl: lastSnap.photoUrl,
-        weeklyStats,
       });
     }
 
@@ -287,7 +277,7 @@ async function main() {
     try {
       const data = await client.fetchLeagueData(['mTeam', 'mRoster'], period);
       const teams = (data.teams ?? []) as AnyRecord[];
-      periodCache[period] = parsePeriodSnapshot(teams);
+      periodCache[period] = parsePeriodSnapshot(teams, period);
       // Small delay to avoid rate limiting
       await new Promise(r => setTimeout(r, 200));
     } catch (e) {
