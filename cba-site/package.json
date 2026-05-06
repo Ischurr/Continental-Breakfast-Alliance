@@ -15,6 +15,7 @@
     "seed-kv": "tsx scripts/seed-kv.ts",
     "fetch-schedule-config": "tsx scripts/fetch-schedule-config.ts",
     "generate-descriptions": "tsx scripts/generate-player-descriptions.ts",
+    "fetch-daily-scores": "tsx scripts/fetch-daily-scores.ts",
     "fetch-weekly-scores": "tsx scripts/fetch-weekly-player-scores.ts"
   },
   "dependencies": {

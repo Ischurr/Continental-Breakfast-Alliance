@@ -199,6 +199,25 @@ export interface WeeklyScoresData {
   weeks: Record<string, WeeklyTeamBreakdown[]>;
 }
 
+// One player's snapshot for a single scoring period (day), captured while fresh.
+export interface DailyPlayerScore {
+  playerName: string;
+  position: string;   // primary MLB position label (SP, OF, C, etc.)
+  slotId: number;     // lineupSlotId — 16=bench, 17=IL, all others are active slots
+  dayScore: number;   // fantasy points earned on this day (statSplitTypeId=5, appliedTotal)
+  photoUrl: string;
+}
+
+// Accumulated daily snapshots keyed by period → teamId → playerId.
+// Built up one day at a time by fetch-daily-scores.ts; used as the authoritative
+// per-day source by fetch-weekly-player-scores.ts instead of ESPN's historical API.
+export interface DailyScoresData {
+  season: number;
+  lastUpdated: string;
+  // scoring period (string) → team id (string) → player id (string) → snapshot
+  periods: Record<string, Record<string, Record<string, DailyPlayerScore>>>;
+}
+
 // ── Live Player Points (MLB Stats API) ────────────────────────────────────────
 
 export interface LiveStatLine {

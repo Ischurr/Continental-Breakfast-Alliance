@@ -1,8 +1,11 @@
 /**
- * Fetches per-scoring-period roster data for all completed weeks of the current season.
- * For each player per team per day, captures:
- *   - lineupSlotId (which slot they were in — bench=16, DH=12, SP=13/14, etc.)
- *   - season cumulative total (statSplitTypeId=0) — diffed across periods for per-day points
+ * Aggregates per-player weekly fantasy scores from the daily snapshot cache
+ * (data/current/daily-scores-{season}.json) for completed and in-progress weeks.
+ * Falls back to the ESPN historical API for any periods not yet in the daily cache.
+ *
+ * The daily cache is populated each morning by fetch-daily-scores.ts, which captures
+ * scores while ESPN's statSplitTypeId=5 data is still fresh and reliable. Relying on
+ * that cache avoids the historical API accuracy issues documented in week 1 validation.
  *
  * Output: data/current/weekly-player-scores-{season}.json
  * Run: npx tsx scripts/fetch-weekly-player-scores.ts
@@ -14,7 +17,7 @@ dotenv.config({ path: '.env.local' });
 import { createESPNClient } from '../lib/espn-api';
 import * as fs from 'fs';
 import * as path from 'path';
-import type { WeeklyPlayerEntry, WeeklyTeamBreakdown, WeeklyScoresData } from '../lib/types';
+import type { WeeklyPlayerEntry, WeeklyTeamBreakdown, WeeklyScoresData, DailyScoresData } from '../lib/types';
 
 const season = parseInt(process.env['ESPN_SEASON_ID'] ?? '2026', 10);
 
@@ -90,13 +93,29 @@ function parsePeriodSnapshot(
         ?.find(s => s.statSourceId === 0 && s.statSplitTypeId === 5 && s.scoringPeriodId === currentPeriod && s.seasonId === season);
       const dayScore = (dayStatEntry?.appliedTotal as number) ?? 0;
 
-      result[teamId][playerId] = {
+      const incoming: PerPeriodPlayerSnapshot = {
         slotId: lineupSlotId,
         dayScore,
         playerName: (player.fullName as string) ?? 'Unknown',
         position,
         photoUrl: `https://a.espncdn.com/i/headshots/mlb/players/full/${playerId}.png`,
       };
+
+      const existing = result[teamId][playerId];
+      if (!existing) {
+        result[teamId][playerId] = incoming;
+      } else {
+        // ESPN sometimes returns a player twice for the same period (multi-position eligibility,
+        // mid-transaction state, etc.). The overwrite logic determines which entry to keep:
+        //   1. Prefer the entry in an active slot over bench/IL (correct lineup slot attribution)
+        //   2. Among same-type entries, prefer the one with a non-zero dayScore
+        const existingIsActive = !BENCH_SLOT_IDS.has(existing.slotId) && existing.slotId !== IL_SLOT_ID;
+        const incomingIsActive = !BENCH_SLOT_IDS.has(lineupSlotId) && lineupSlotId !== IL_SLOT_ID;
+        const keepIncoming =
+          (!existingIsActive && incomingIsActive) ||
+          (existingIsActive === incomingIsActive && incoming.dayScore !== 0 && existing.dayScore === 0);
+        if (keepIncoming) result[teamId][playerId] = incoming;
+      }
     }
   }
 
@@ -181,15 +200,23 @@ function computeWeekBreakdowns(
       // Only include players who appeared on the roster at some point this week
       if (weekPoints === 0 && activeDays === 0 && benchDays === 0) continue;
 
+      // Warn when a player was absent from some period snapshots — usually a mid-week
+      // add/drop transaction where ESPN's mRoster API didn't return the player for those
+      // transition periods. Their stats for missing periods will be 0 (under-counted).
+      const totalDaysPresent = activeDays + benchDays;
+      if (totalDaysPresent < weekPeriods.length && (activeDays > 0 || benchDays > 0)) {
+        console.warn(`  [gap] ${lastSnap.playerName} (team ${teamId}): only ${totalDaysPresent}/${weekPeriods.length} periods captured — ${weekPeriods.length - totalDaysPresent} day(s) missing from API response`);
+      }
+
       playerEntries.push({
         playerId,
         playerName: lastSnap.playerName,
         position: lastSnap.position,
         primarySlot,
         primarySlotId,
-        weekPoints: Math.round(weekPoints * 10) / 10,
-        activePoints: Math.round(activePoints * 10) / 10,
-        benchPoints: Math.round(benchPoints * 10) / 10,
+        weekPoints,
+        activePoints,
+        benchPoints,
         activeDays,
         benchDays,
         photoUrl: lastSnap.photoUrl,
@@ -209,8 +236,8 @@ function computeWeekBreakdowns(
     result.push({
       teamId,
       week: 0, // filled in by caller
-      totalPoints: Math.round(activeTotal * 10) / 10,
-      benchTotal: Math.round(benchTotal * 10) / 10,
+      totalPoints: activeTotal,
+      benchTotal,
       players: playerEntries,
     });
   }
@@ -267,24 +294,59 @@ async function main() {
     return;
   }
 
-  console.log(`Fetching scoring periods 1–${maxPeriod}...`);
+  // Load daily snapshot cache — this is the primary source for completed periods.
+  // Populated each morning by fetch-daily-scores.ts while ESPN's data is still fresh.
+  const dailyPath = path.join(__dirname, `../data/current/daily-scores-${season}.json`);
+  let dailyCache: DailyScoresData | null = null;
+  if (fs.existsSync(dailyPath)) {
+    dailyCache = JSON.parse(fs.readFileSync(dailyPath, 'utf-8')) as DailyScoresData;
+    const cachedPeriods = Object.keys(dailyCache.periods).length;
+    console.log(`Daily cache loaded: ${cachedPeriods} periods captured (last updated ${dailyCache.lastUpdated.slice(0, 10)})`);
+  } else {
+    console.log('No daily cache found — will fetch all periods from ESPN API.');
+  }
 
-  // Fetch all periods (including period 0 as baseline = all zeros)
+  // Build period cache: prefer daily-scores for captured periods, fall back to ESPN API.
+  const periodsFromCache = new Set(Object.keys(dailyCache?.periods ?? {}).map(Number));
+  const periodsNeedingAPI: number[] = [];
+  for (let p = 1; p <= maxPeriod; p++) {
+    if (!periodsFromCache.has(p)) periodsNeedingAPI.push(p);
+  }
+
+  if (periodsNeedingAPI.length > 0) {
+    console.log(`Fetching ${periodsNeedingAPI.length} period(s) from ESPN API (not in daily cache): ${periodsNeedingAPI.join(', ')}`);
+  } else {
+    console.log('All periods covered by daily cache — no ESPN API calls needed.');
+  }
+
   const periodCache: PeriodCache = {};
 
-  for (let period = 1; period <= maxPeriod; period++) {
-    process.stdout.write(`  Period ${period}/${maxPeriod}...\r`);
+  // Seed from daily cache first.
+  for (const [periodStr, teamMap] of Object.entries(dailyCache?.periods ?? {})) {
+    const period = Number(periodStr);
+    periodCache[period] = {};
+    for (const [teamIdStr, playerMap] of Object.entries(teamMap)) {
+      const teamId = Number(teamIdStr);
+      periodCache[period][teamId] = {};
+      for (const [playerId, snap] of Object.entries(playerMap)) {
+        periodCache[period][teamId][playerId] = snap;
+      }
+    }
+  }
+
+  // Fill gaps from ESPN API.
+  for (const period of periodsNeedingAPI) {
+    process.stdout.write(`  ESPN API period ${period}/${maxPeriod}...\r`);
     try {
       const data = await client.fetchLeagueData(['mTeam', 'mRoster'], period);
       const teams = (data.teams ?? []) as AnyRecord[];
       periodCache[period] = parsePeriodSnapshot(teams, period);
-      // Small delay to avoid rate limiting
       await new Promise(r => setTimeout(r, 200));
     } catch (e) {
       console.error(`\n  Error fetching period ${period}:`, e);
     }
   }
-  console.log('\nAll periods fetched.');
+  if (periodsNeedingAPI.length > 0) console.log('\nAll periods loaded.');
 
   // Build output
   const weeksOutput: Record<string, WeeklyTeamBreakdown[]> = {};
