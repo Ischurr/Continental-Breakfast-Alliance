@@ -573,6 +573,50 @@ def fetch_active_40man_mlbam_ids(season: int = 2026) -> set:
     return active_ids
 
 
+def fetch_active_40man_team_map(season: int = 2026) -> dict:
+    """
+    Returns Dict[mlbam_id (int) -> team_abbrev (str)] for every player on any
+    active 40-man roster.  Used to correct stale mlb_team values that the
+    FanGraphs blend may carry from a prior team after a trade or free-agent signing.
+    Cached daily alongside the IDs-only roster file.
+    """
+    today = datetime.date.today()
+    cache_path = CACHE_DIR / f"active_40man_teams_{season}_{today.strftime('%Y%m%d')}.json"
+
+    if cache_path.exists():
+        with open(cache_path) as f:
+            return {int(k): v for k, v in json.load(f).items()}
+
+    print(f"    Fetching 40-man team map ({season}) to refresh mlb_team values…")
+    import requests
+    team_map: dict = {}
+
+    for team_id in sorted(MLB_TEAM_ID_TO_ABBREV.keys()):
+        abbrev = MLB_TEAM_ID_TO_ABBREV[team_id]
+        url = (
+            f"https://statsapi.mlb.com/api/v1/teams/{team_id}/roster"
+            f"?rosterType=40Man&season={season}"
+            f"&fields=roster,person,id"
+        )
+        try:
+            resp = requests.get(url, timeout=10)
+            if resp.status_code != 200:
+                continue
+            for entry in resp.json().get("roster", []):
+                mlbam_id = entry.get("person", {}).get("id")
+                if mlbam_id:
+                    team_map[int(mlbam_id)] = abbrev
+            time.sleep(0.05)
+        except Exception as exc:
+            print(f"    WARNING: team map fetch failed for {abbrev} ({team_id}): {exc}")
+
+    with open(cache_path, "w") as f:
+        json.dump(team_map, f)
+
+    print(f"    Team map: {len(team_map):,} player→team entries cached.")
+    return team_map
+
+
 def fetch_injured_players(season: int = 2026) -> Dict[int, dict]:
     """
     Fetch current IL status for all 30 MLB teams (cached daily).

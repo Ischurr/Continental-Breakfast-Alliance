@@ -54,6 +54,7 @@ from erosp.ingest import (
     fetch_schedule_summary,
     fetch_injured_players,
     fetch_active_40man_mlbam_ids,
+    fetch_active_40man_team_map,
     fetch_mlb_ytd_pitcher_gs,
     load_espn_data,
     build_name_to_mlbam, build_name_to_mlbam_from_chadwick,
@@ -467,6 +468,36 @@ if active_40man_ids and not pitcher_talent_df.empty:
     pitcher_talent_df = pitcher_talent_df[pitcher_talent_df.index.isin(active_40man_ids)]
     print(f"  Active roster filter: {before_p:,} → {len(pitcher_talent_df):,} pitchers")
 print()
+
+
+# ---------------------------------------------------------------------------
+# STEP 9d: Correct stale mlb_team values using live 40-man roster data
+# FanGraphs team assignments lag trades/free-agent signings; MLB Stats API
+# is authoritative for current team.
+# ---------------------------------------------------------------------------
+if SEASON_STARTED:
+    print("─── Step 9d: Refresh mlb_team from live roster data ─────────────")
+    try:
+        team_map = fetch_active_40man_team_map(TARGET_SEASON)
+        updated_h = updated_p = 0
+        if "mlb_team" in hitter_talent_df.columns:
+            for mlbam_id, abbrev in team_map.items():
+                if mlbam_id in hitter_talent_df.index:
+                    old = hitter_talent_df.at[mlbam_id, "mlb_team"]
+                    if old != abbrev:
+                        hitter_talent_df.at[mlbam_id, "mlb_team"] = abbrev
+                        updated_h += 1
+        if "mlb_team" in pitcher_talent_df.columns:
+            for mlbam_id, abbrev in team_map.items():
+                if mlbam_id in pitcher_talent_df.index:
+                    old = pitcher_talent_df.at[mlbam_id, "mlb_team"]
+                    if old != abbrev:
+                        pitcher_talent_df.at[mlbam_id, "mlb_team"] = abbrev
+                        updated_p += 1
+        print(f"  Updated mlb_team: {updated_h} hitters, {updated_p} pitchers corrected.")
+    except Exception as exc:
+        print(f"  WARNING: Could not refresh mlb_team ({exc}). Proceeding with FanGraphs values.")
+    print()
 
 
 # ---------------------------------------------------------------------------
