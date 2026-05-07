@@ -203,6 +203,31 @@ export async function setAdminNotes(data: AdminNotes): Promise<void> {
   fsWrite(path.join(DATA_DIR, 'admin-notes.json'), JSON.stringify(data, null, 2));
 }
 
+// ── Email opt-outs ────────────────────────────────────────────────────────────
+
+export interface EmailOptouts {
+  optedOut: number[]; // teamIds
+}
+
+export async function getEmailOptouts(): Promise<EmailOptouts> {
+  if (useKV()) {
+    return (await kvGet<EmailOptouts>('email-optouts')) ?? { optedOut: [] };
+  }
+  try {
+    return JSON.parse(fs.readFileSync(path.join(DATA_DIR, 'email-optouts.json'), 'utf-8'));
+  } catch {
+    return { optedOut: [] };
+  }
+}
+
+export async function setEmailOptouts(data: EmailOptouts): Promise<void> {
+  if (useKV()) {
+    await kvSet('email-optouts', data);
+    return;
+  }
+  fsWrite(path.join(DATA_DIR, 'email-optouts.json'), JSON.stringify(data, null, 2));
+}
+
 // ── Win probability prediction history ────────────────────────────────────────
 
 export async function getPredictionHistory(year: string): Promise<unknown | null> {
