@@ -125,7 +125,8 @@ export function calculateAllTimeStandings(): AllTimeStandings[] {
       if (finish < stats.bestFinish) stats.bestFinish = finish;
       if (finish > stats.worstFinish) stats.worstFinish = finish;
 
-      if (season.champion === teamId) stats.championships++;
+      const effectiveChampion = season.year === 2023 ? 4 : season.champion;
+      if (effectiveChampion === teamId) stats.championships++;
       if (season.playoffTeams.includes(teamId)) stats.playoffAppearances++;
       if (season.loserBracket.includes(teamId)) stats.loserBracketAppearances++;
     });
@@ -239,7 +240,7 @@ export function getTeamSeasonHistory(teamId: number) {
       finish,
       madePlayoffs: season.playoffTeams.includes(teamId),
       inLoserBracket: season.loserBracket.includes(teamId),
-      wasChampion: season.champion === teamId,
+      wasChampion: (season.year === 2023 ? 4 : season.champion) === teamId,
     };
   });
 }

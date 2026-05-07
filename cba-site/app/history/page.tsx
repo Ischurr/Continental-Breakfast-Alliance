@@ -185,7 +185,8 @@ export default function HistoryPage() {
             <h2 className="text-2xl font-bold mb-6">Championship History</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
               {[...seasons].reverse().map(season => {
-                const champ = season.teams.find(t => t.id === season.champion);
+                const effectiveChampionId = season.year === 2023 ? 4 : season.champion;
+                const champ = season.teams.find(t => t.id === effectiveChampionId);
                 return (
                   <div key={season.year} className="bg-white p-6 rounded-xl shadow-sm border border-yellow-100">
                     <div className="text-4xl mb-3">★</div>
@@ -206,7 +207,8 @@ export default function HistoryPage() {
           const sortedStandings = [...season.standings].sort(
             (a, b) => b.wins - a.wins || b.pointsFor - a.pointsFor
           );
-          const champion = season.teams.find(t => t.id === season.champion);
+          const effectiveChampionId = season.year === 2023 ? 4 : season.champion;
+          const champion = season.teams.find(t => t.id === effectiveChampionId);
           const loserTeams = season.loserBracket.map(id => season.teams.find(t => t.id === id));
           const allScores = season.matchups.flatMap(m => [m.home.totalPoints, m.away.totalPoints]);
           const maxScore = allScores.length ? Math.max(...allScores) : 0;
@@ -256,7 +258,7 @@ export default function HistoryPage() {
                           <Link href={`/teams/${id}`} className="text-sm font-medium hover:text-teal-600 transition">
                             {team?.name}
                           </Link>
-                          {season.champion === id && (
+                          {effectiveChampionId === id && (
                             <span className="text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded">★</span>
                           )}
                         </div>
@@ -303,7 +305,8 @@ export default function HistoryPage() {
           const sortedStandings = [...season.standings].sort(
             (a, b) => b.wins - a.wins || b.pointsFor - a.pointsFor
           );
-          const champion = season.teams.find(t => t.id === season.champion);
+          const effectiveChampionId = season.year === 2023 ? 4 : season.champion;
+          const champion = season.teams.find(t => t.id === effectiveChampionId);
           const loserTeams = season.loserBracket.map(id => season.teams.find(t => t.id === id));
           const allScores = season.matchups.flatMap(m => [m.home.totalPoints, m.away.totalPoints]);
           const maxScore = allScores.length ? Math.max(...allScores) : 0;
@@ -353,7 +356,7 @@ export default function HistoryPage() {
                           <Link href={`/teams/${id}`} className="text-sm font-medium hover:text-teal-600 transition">
                             {team?.name}
                           </Link>
-                          {season.champion === id && (
+                          {effectiveChampionId === id && (
                             <span className="text-xs bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded">★</span>
                           )}
                         </div>

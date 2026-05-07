@@ -28,7 +28,7 @@ async function fetchCurrentSeason() {
   const client = createESPNClient(seasonId);
 
   // Fetch main league data
-  const data = await client.fetchLeagueData(['mTeam', 'mMatchup', 'mStandings', 'mSettings']);
+  const data = await client.fetchLeagueData(['mTeam', 'mMatchup', 'mMatchupScore', 'mStandings', 'mSettings']);
 
   const seasonData: SeasonData = {
     year: parseInt(seasonId, 10),
@@ -64,11 +64,17 @@ async function fetchCurrentSeason() {
         week: matchup.matchupPeriodId as number,
         home: {
           teamId: home?.teamId as number,
-          totalPoints: (home?.totalPoints as number) ?? 0,
+          // Sum pointsByScoringPeriod (mMatchupScore) — more reliable than totalPoints
+          // (mMatchup), which is batch-processed and can freeze mid-week.
+          totalPoints: home?.pointsByScoringPeriod
+            ? Object.values(home.pointsByScoringPeriod as Record<string, number>).reduce((s, v) => s + v, 0)
+            : (home?.totalPoints as number) ?? 0,
         },
         away: {
           teamId: away?.teamId as number,
-          totalPoints: (away?.totalPoints as number) ?? 0,
+          totalPoints: away?.pointsByScoringPeriod
+            ? Object.values(away.pointsByScoringPeriod as Record<string, number>).reduce((s, v) => s + v, 0)
+            : (away?.totalPoints as number) ?? 0,
         },
         winner:
           matchup.winner === 'HOME'

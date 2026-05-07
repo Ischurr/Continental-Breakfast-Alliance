@@ -116,7 +116,8 @@ export default function AllTimeStandingsPage() {
         <h2 className="text-2xl font-bold mb-6">Championship History</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {seasons.map(season => {
-            const champ = season.teams.find(t => t.id === season.champion);
+            const effectiveChampionId = season.year === 2023 ? 4 : season.champion;
+            const champ = season.teams.find(t => t.id === effectiveChampionId);
             return (
               <div
                 key={season.year}

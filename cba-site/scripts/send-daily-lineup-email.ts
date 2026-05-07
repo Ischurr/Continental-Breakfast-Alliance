@@ -20,7 +20,8 @@ import dotenv from 'dotenv';
 dotenv.config({ path: path.join(process.cwd(), '.env.local') });
 
 const SITE_URL = (process.env['NEWSLETTER_SITE_URL'] ?? 'https://continentalpressbox.com').replace(/\/$/, '');
-const SECRET = process.env['WIN_PROBABILITY_SECRET'] ?? '';
+// Prefer WIN_PROBABILITY_SECRET (production); fall back to RESEND_API_KEY for local testing
+const SECRET = process.env['WIN_PROBABILITY_SECRET'] || process.env['RESEND_API_KEY'] || '';
 
 async function main() {
   const args = process.argv.slice(2);
