@@ -125,65 +125,79 @@ function playerRow(player: LineupPlayer, isStarter: boolean): string {
 }
 
 function buildActionItems(starters: LineupPlayer[], bench: LineupPlayer[]): string {
-  // Players in lineup slots scoring 0 today
-  const deadStarters = starters.filter(p => p.estimatedTodayPoints === 0);
-
-  // Best bench options with meaningful projected pts
-  const topBench = bench
-    .filter(p => p.hasGame && p.estimatedTodayPoints >= 1.5)
-    .sort((a, b) => b.estimatedTodayPoints - a.estimatedTodayPoints)
-    .slice(0, 4);
-
-  if (deadStarters.length === 0 && topBench.length === 0) return '';
+  // Determine if a bench player is eligible to fill a given starter slot.
+  // slot examples: "C", "1B", "2B", "3B", "SS", "OF", "MI", "CI", "DH", "UTIL", "SP1"…"SP6", "RP1"…"RP3"
+  function canFillSlot(bench: LineupPlayer, slotRaw: string): boolean {
+    const slot = slotRaw.replace(/\d+$/, ''); // strip trailing number: "SP2" → "SP", "OF1" → "OF"
+    const pos = bench.eligiblePositions ?? [];
+    if (slot === 'SP') return bench.role === 'SP';
+    if (slot === 'RP') return bench.role === 'RP';
+    if (slot === 'MI') return pos.includes('2B') || pos.includes('SS');
+    if (slot === 'CI') return pos.includes('1B') || pos.includes('3B');
+    if (slot === 'UTIL' || slot === 'DH') return bench.role === 'H';
+    return pos.includes(slot); // C, 1B, 2B, 3B, SS, OF
+  }
 
   function deadReason(p: LineupPlayer): string {
     if (p.ilType) return `On IL (${p.ilType})`;
-    if (p.injuryStatus === 'OUT' || p.injuryStatus === 'DOUBTFUL') return `${p.injuryStatus}`;
+    if (p.injuryStatus === 'OUT' || p.injuryStatus === 'DOUBTFUL') return p.injuryStatus ?? 'Injured';
     if (!p.hasGame) return 'No game today';
     if (p.role === 'SP' && !p.isStartingToday) return 'Not starting today';
     return 'Not active';
   }
 
-  const benchRows = topBench.map(p => {
-    const ha = p.isHome ? 'vs' : '@';
-    const opp = p.opponentAbbr ?? '?';
+  // Eligible bench candidates sorted best-first; each can only be used once
+  const availableBench = bench
+    .filter(p => p.hasGame && p.estimatedTodayPoints >= 1.5)
+    .sort((a, b) => b.estimatedTodayPoints - a.estimatedTodayPoints);
+
+  const usedBenchIds = new Set<string>();
+
+  // For each dead starter, try to find the best eligible bench replacement
+  const swaps: Array<{ out: LineupPlayer; in: LineupPlayer }> = [];
+  for (const starter of starters.filter(p => p.estimatedTodayPoints === 0)) {
+    const slot = starter.slot ?? starter.primaryPosition ?? '';
+    const replacement = availableBench.find(
+      b => !usedBenchIds.has(b.espnId) && canFillSlot(b, slot)
+    );
+    if (!replacement) continue; // no valid swap — skip entirely
+    usedBenchIds.add(replacement.espnId);
+    swaps.push({ out: starter, in: replacement });
+  }
+
+  if (swaps.length === 0) return '';
+
+  const rows = swaps.map(({ out: o, in: r }) => {
+    const ha = r.isHome ? 'vs' : '@';
+    const opp = r.opponentAbbr ?? '?';
     return `
     <tr>
-      <td style="padding:7px 12px 7px 16px;vertical-align:top;">
-        <span style="color:#34d399;font-size:15px;line-height:1;">✦</span>
+      <td style="padding:8px 12px 8px 16px;vertical-align:middle;">
+        <div style="font-size:12px;color:#f87171;font-weight:600;">BENCH</div>
+        <div style="font-size:13px;font-weight:600;color:#e6edf3;">${o.name}</div>
+        <div style="font-size:11px;color:#f87171;margin-top:1px;">${deadReason(o)}</div>
       </td>
-      <td style="padding:7px 12px 7px 0;">
-        <div style="font-size:13px;font-weight:600;color:#e6edf3;">${p.name} <span style="color:#6b7280;font-weight:400;">(${p.primaryPosition})</span></div>
-        <div style="font-size:12px;color:#8b949e;margin-top:1px;">${ha} ${opp} &middot; <span style="color:#34d399;font-weight:600;">~${p.estimatedTodayPoints.toFixed(1)} pts</span></div>
+      <td style="padding:8px 8px;vertical-align:middle;text-align:center;width:28px;">
+        <span style="color:#6b7280;font-size:16px;">→</span>
       </td>
-    </tr>`;
+      <td style="padding:8px 16px 8px 4px;vertical-align:middle;">
+        <div style="font-size:12px;color:#34d399;font-weight:600;">START</div>
+        <div style="font-size:13px;font-weight:600;color:#e6edf3;">${r.name}</div>
+        <div style="font-size:11px;color:#8b949e;margin-top:1px;">${ha} ${opp} &middot; <span style="color:#34d399;">~${r.estimatedTodayPoints.toFixed(1)} pts</span></div>
+      </td>
+    </tr>
+    <tr><td colspan="3" style="padding:0 16px;"><div style="height:1px;background:#21262d;"></div></td></tr>`;
   }).join('');
-
-  const deadRows = deadStarters.map(p => `
-    <tr>
-      <td style="padding:7px 12px 7px 16px;vertical-align:top;">
-        <span style="color:#f87171;font-size:15px;line-height:1;">✕</span>
-      </td>
-      <td style="padding:7px 12px 7px 0;">
-        <div style="font-size:13px;font-weight:600;color:#e6edf3;">${p.name} <span style="color:#6b7280;font-weight:400;">(${p.slot ?? p.primaryPosition})</span></div>
-        <div style="font-size:12px;color:#f87171;margin-top:1px;">${deadReason(p)}</div>
-      </td>
-    </tr>`).join('');
 
   return `
   <tr><td style="padding:16px 28px 0;">
     <table width="100%" cellpadding="0" cellspacing="0" style="background:#161b22;border:1px solid #30363d;border-radius:10px;overflow:hidden;">
-      <tr><td style="background:#1c2128;padding:12px 16px;border-bottom:1px solid #30363d;">
+      <tr><td colspan="3" style="background:#1c2128;padding:12px 16px;border-bottom:1px solid #30363d;">
         <span style="font-size:12px;font-weight:700;letter-spacing:1px;color:#c9d1d9;text-transform:uppercase;">📋 Today's Lineup Changes</span>
       </td></tr>
-      <tr><td style="padding:4px 0 8px;">
+      <tr><td colspan="3" style="padding:4px 0 4px;">
         <table width="100%" cellpadding="0" cellspacing="0">
-          ${deadRows.length > 0 ? `
-          <tr><td colspan="2" style="padding:10px 16px 4px;font-size:11px;font-weight:700;letter-spacing:0.8px;color:#6b7280;text-transform:uppercase;">Bench these (scoring 0 today)</td></tr>
-          ${deadRows}` : ''}
-          ${topBench.length > 0 ? `
-          <tr><td colspan="2" style="padding:${deadRows.length > 0 ? '12px' : '10px'} 16px 4px;font-size:11px;font-weight:700;letter-spacing:0.8px;color:#6b7280;text-transform:uppercase;">Available off your bench</td></tr>
-          ${benchRows}` : ''}
+          ${rows}
         </table>
       </td></tr>
     </table>
