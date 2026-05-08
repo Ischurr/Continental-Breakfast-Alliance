@@ -397,6 +397,17 @@ export async function GET(
     if (p.mlbam_id) erospByMlbamId.set(p.mlbam_id, p);
   }
 
+  // Name-based fallback lookup across ALL EROSP players — used in Pass 2 to
+  // recover mlb_team and projections for rostered players whose espn_id is
+  // missing from EROSP (e.g. Jose Ramirez, Bobby Witt Jr., Tatis Jr., etc.)
+  function normName(s: string): string {
+    return s.toLowerCase().replace(/[^a-z]/g, '');
+  }
+  const erospByName = new Map<string, EROSPPlayer>();
+  for (const p of erospPlayers) {
+    erospByName.set(normName(p.name), p);
+  }
+
   // Load ESPN roster for position eligibilities
   let espnRoster: ESPNRosterPlayer[] = [];
   try {
@@ -471,32 +482,54 @@ export async function GET(
     if (ep.espn_id) seenEspnIds.add(ep.espn_id);
   }
 
-  // Pass 2: ESPN roster players not in EROSP (recently added, etc.)
+  // Pass 2: ESPN roster players not matched by espn_id.
+  // Try a name-based fallback into EROSP so players whose espn_id is missing
+  // (e.g. Jose Ramirez, Tatis Jr., Bobby Witt Jr.) still get their real
+  // mlb_team, schedule context, and projections.
   for (const ep of espnRoster) {
     if (seenEspnIds.has(ep.playerId)) continue;
-    const isPitcher = ep.position === 'SP' || ep.position === 'RP';
-    const role: 'H' | 'SP' | 'RP' = ep.position === 'SP' ? 'SP' : ep.position === 'RP' ? 'RP' : 'H';
+
+    const erospMatch = erospByName.get(normName(ep.playerName));
+    const mlbTeam = erospMatch?.mlb_team ?? '';
+    const gameCtx = mlbTeam ? schedule.get(mlbTeam) : undefined;
+    const hasGame = gameCtx?.hasGame ?? false;
+    const role: 'H' | 'SP' | 'RP' = erospMatch
+      ? erospMatch.role
+      : (ep.position === 'SP' ? 'SP' : ep.position === 'RP' ? 'RP' : 'H');
+    const isStartingToday =
+      role === 'SP' && hasGame && !!erospMatch &&
+      gameCtx?.ownProbablePitcherMlbamId === erospMatch.mlbam_id;
 
     const playerBase: Omit<LineupPlayer, 'estimatedTodayPoints' | 'slot'> = {
       name: ep.playerName,
-      mlbamId: 0,
+      mlbamId: erospMatch?.mlbam_id ?? 0,
       espnId: ep.playerId,
       photoUrl: ep.photoUrl ?? `https://a.espncdn.com/i/headshots/mlb/players/full/${ep.playerId}.png`,
       primaryPosition: ep.position,
       eligiblePositions: ep.eligiblePositions,
-      mlbTeam: '',
+      mlbTeam,
       role,
-      erospPerGame: 0,
-      startProbability: isPitcher ? 0.2 : 0.9,
+      rpRole: erospMatch?.rp_role,
+      erospPerGame: erospMatch?.erosp_per_game ?? 0,
+      fpPerStart: erospMatch?.fp_per_start,
+      startProbability: erospMatch?.start_probability ?? (role !== 'H' ? 0.2 : 0.9),
+      ilType: erospMatch?.il_type,
+      ilDaysRemaining: erospMatch?.il_days_remaining,
+      injuryNote: erospMatch?.injury_note,
       injuryStatus: ep.injuryStatus,
-      hasGame: false,
-      isHome: false,
-      parkFactor: 1.0,
-      opponentStrength: 0.5,
-      isStartingToday: false,
+      hasGame,
+      isHome: gameCtx?.isHome ?? false,
+      opponentAbbr: gameCtx?.opponentAbbr,
+      probablePitcherName: gameCtx?.probablePitcherName,
+      probablePitcherMlbamId: gameCtx?.probablePitcherMlbamId,
+      probablePitcherEra: gameCtx?.probablePitcherEra,
+      parkFactor: hasGame ? (gameCtx?.parkFactor ?? 1.0) : 1.0,
+      opponentStrength: gameCtx?.opponentStrength ?? 0.5,
+      isStartingToday,
     };
 
-    players.push({ ...playerBase, estimatedTodayPoints: 0 });
+    const estimated = computeEstimatedPoints(playerBase);
+    players.push({ ...playerBase, estimatedTodayPoints: estimated });
     seenEspnIds.add(ep.playerId);
   }
 
