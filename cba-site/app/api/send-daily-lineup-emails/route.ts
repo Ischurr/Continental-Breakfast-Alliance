@@ -111,7 +111,7 @@ function playerRow(player: LineupPlayer, isStarter: boolean): string {
   <td style="padding:11px 12px 11px 16px;width:48px;vertical-align:middle;">
     <span style="background:${slotBg};color:${slotColor};padding:3px 7px;border-radius:5px;font-size:11px;font-weight:700;letter-spacing:0.3px;white-space:nowrap;border:1px solid #30363d;">${slotLabel}</span>
   </td>
-  <td style="padding:11px 8px;width:40px;vertical-align:middle;">
+  <td class="photo-cell" style="padding:11px 8px;width:40px;vertical-align:middle;">
     <img src="${photoUrl}" width="34" height="34" style="border-radius:50%;display:block;border:2px solid #30363d;" />
   </td>
   <td style="padding:11px 6px;vertical-align:middle;">
@@ -190,10 +190,10 @@ function buildActionItems(starters: LineupPlayer[], bench: LineupPlayer[]): stri
   }).join('');
 
   return `
-  <tr><td style="padding:16px 28px 0;">
+  <tr><td class="outer-pad" style="padding:14px 16px 0;">
     <table width="100%" cellpadding="0" cellspacing="0" style="background:#161b22;border:1px solid #30363d;border-radius:10px;overflow:hidden;">
-      <tr><td colspan="3" style="background:#1c2128;padding:12px 16px;border-bottom:1px solid #30363d;">
-        <span style="font-size:12px;font-weight:700;letter-spacing:1px;color:#c9d1d9;text-transform:uppercase;">📋 Today's Lineup Changes</span>
+      <tr><td colspan="3" style="background:#1c2128;padding:10px 16px;border-bottom:1px solid #30363d;">
+        <span style="font-size:11px;font-weight:700;letter-spacing:1px;color:#c9d1d9;text-transform:uppercase;">📋 Today's Lineup Changes</span>
       </td></tr>
       <tr><td colspan="3" style="padding:4px 0 4px;">
         <table width="100%" cellpadding="0" cellspacing="0">
@@ -262,82 +262,86 @@ function buildEmailHtml(params: {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Your Daily CBA Lineup — ${formattedDate}</title>
+  <style>
+    @media only screen and (max-width: 600px) {
+      .outer-pad { padding-left: 12px !important; padding-right: 12px !important; }
+      .header-pad { padding: 20px 16px 18px !important; }
+      .score-num  { font-size: 32px !important; }
+      .team-name  { font-size: 11px !important; }
+      .btn-full   { display: block !important; text-align: center !important; }
+      .unsub-right { display: block !important; text-align: center !important; padding-top: 12px !important; }
+      .pill-wrap  { display: block !important; padding-bottom: 6px !important; }
+      .photo-cell { display: none !important; width: 0 !important; padding: 0 !important; }
+    }
+  </style>
 </head>
 <body style="margin:0;padding:0;background:#0d1117;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
 
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#0d1117;padding:24px 0 32px;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#0d1117;padding:16px 0 28px;">
 <tr><td align="center">
-<table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;">
 
   <!-- Accent bar -->
   <tr><td style="height:4px;background:${teamColor};border-radius:4px 4px 0 0;"></td></tr>
 
   <!-- Header -->
-  <tr><td style="background:#161b22;padding:28px 32px 24px;border-left:1px solid #30363d;border-right:1px solid #30363d;">
-    <table width="100%" cellpadding="0" cellspacing="0">
-      <tr>
-        <td>
-          <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:#6b7280;text-transform:uppercase;margin-bottom:8px;">Continental Breakfast Alliance</div>
-          <div style="font-size:26px;font-weight:800;color:#e6edf3;letter-spacing:-0.5px;">⚾ Daily Lineup</div>
-          <div style="font-size:16px;color:${teamColor};font-weight:700;margin-top:6px;">${teamName}</div>
-        </td>
-        <td align="right" valign="top" style="padding-left:16px;">
-          <div style="font-size:12px;color:#6b7280;white-space:nowrap;">${formattedDate}</div>
-        </td>
-      </tr>
-    </table>
+  <tr><td class="header-pad" style="background:#161b22;padding:24px 24px 20px;border-left:1px solid #30363d;border-right:1px solid #30363d;">
+    <div style="font-size:10px;font-weight:700;letter-spacing:2px;color:#6b7280;text-transform:uppercase;margin-bottom:6px;">Continental Breakfast Alliance</div>
+    <div style="font-size:22px;font-weight:800;color:#e6edf3;letter-spacing:-0.5px;">⚾ Daily Lineup</div>
+    <div style="font-size:15px;color:${teamColor};font-weight:700;margin-top:4px;">${teamName}</div>
+    <div style="font-size:12px;color:#6b7280;margin-top:6px;">${formattedDate}</div>
   </td></tr>
 
   <!-- Matchup card -->
-  <tr><td style="background:#0d1117;padding:16px 28px 0;">
+  <tr><td class="outer-pad" style="background:#0d1117;padding:14px 16px 0;">
     <table width="100%" cellpadding="0" cellspacing="0" style="background:#161b22;border:1px solid #30363d;border-radius:12px;overflow:hidden;">
-      <tr><td style="background:#1c2128;padding:11px 20px;border-bottom:1px solid #30363d;">
+      <tr><td style="background:#1c2128;padding:10px 16px;border-bottom:1px solid #30363d;">
         <span style="font-size:11px;font-weight:700;letter-spacing:1.2px;color:#8b949e;text-transform:uppercase;">Week ${week} Matchup</span>
       </td></tr>
-      <tr><td style="padding:20px 24px 18px;">
+      <tr><td style="padding:16px 20px 14px;">
         <table width="100%" cellpadding="0" cellspacing="0">
           <tr>
             <td style="text-align:center;width:42%;vertical-align:middle;">
-              <div style="font-size:12px;font-weight:700;color:${teamColor};letter-spacing:0.3px;">${teamName}</div>
-              <div style="font-size:38px;font-weight:800;color:#e6edf3;line-height:1;margin-top:6px;letter-spacing:-1px;">${myScore.toFixed(1)}</div>
-              ${myProjFinal != null ? `<div style="font-size:11px;color:#6b7280;margin-top:4px;">proj. ${myProjFinal.toFixed(1)}</div>` : ''}
+              <div class="team-name" style="font-size:12px;font-weight:700;color:${teamColor};letter-spacing:0.3px;">${teamName}</div>
+              <div class="score-num" style="font-size:36px;font-weight:800;color:#e6edf3;line-height:1;margin-top:4px;letter-spacing:-1px;">${myScore.toFixed(1)}</div>
+              ${myProjFinal != null ? `<div style="font-size:11px;color:#6b7280;margin-top:3px;">proj. ${myProjFinal.toFixed(1)}</div>` : ''}
             </td>
             <td style="text-align:center;width:16%;vertical-align:middle;">
-              <div style="font-size:12px;color:#4b5563;font-weight:800;letter-spacing:1px;">VS</div>
+              <div style="font-size:11px;color:#4b5563;font-weight:800;letter-spacing:1px;">VS</div>
             </td>
             <td style="text-align:center;width:42%;vertical-align:middle;">
-              <div style="font-size:12px;font-weight:700;color:#8b949e;letter-spacing:0.3px;">${oppTeamName}</div>
-              <div style="font-size:38px;font-weight:800;color:#e6edf3;line-height:1;margin-top:6px;letter-spacing:-1px;">${oppScore.toFixed(1)}</div>
-              ${oppProjFinal != null ? `<div style="font-size:11px;color:#6b7280;margin-top:4px;">proj. ${oppProjFinal.toFixed(1)}</div>` : ''}
+              <div class="team-name" style="font-size:12px;font-weight:700;color:#8b949e;letter-spacing:0.3px;">${oppTeamName}</div>
+              <div class="score-num" style="font-size:36px;font-weight:800;color:#e6edf3;line-height:1;margin-top:4px;letter-spacing:-1px;">${oppScore.toFixed(1)}</div>
+              ${oppProjFinal != null ? `<div style="font-size:11px;color:#6b7280;margin-top:3px;">proj. ${oppProjFinal.toFixed(1)}</div>` : ''}
             </td>
           </tr>
         </table>
         ${myWinPct != null ? `
-        <div style="margin-top:18px;">
+        <div style="margin-top:14px;">
           <div style="background:#21262d;border-radius:8px;height:8px;overflow:hidden;">
             <div style="background:${winBarColor};width:${winBarWidth}%;height:100%;border-radius:8px;"></div>
           </div>
-          <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:7px;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:6px;">
             <tr>
               <td style="font-size:12px;color:${winBarColor};font-weight:700;">${myWinPct}% win probability</td>
               <td align="right" style="font-size:12px;color:#6b7280;">${(100 - myWinPct).toFixed(1)}%</td>
             </tr>
           </table>
-        </div>` : `<div style="margin-top:14px;text-align:center;font-size:12px;color:#6b7280;">Win probability unavailable</div>`}
+        </div>` : `<div style="margin-top:12px;text-align:center;font-size:12px;color:#6b7280;">Win probability unavailable</div>`}
       </td></tr>
     </table>
   </td></tr>
 
   <!-- Summary pills -->
-  <tr><td style="padding:12px 28px 0;">
+  <tr><td class="outer-pad" style="padding:10px 16px 0;">
     <table cellpadding="0" cellspacing="0">
       <tr>
-        <td style="padding-right:8px;">
-          <span style="background:#0d2044;color:#93c5fd;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid #1e3a5f;">~${totalEstPts.toFixed(1)} est. pts today</span>
+        <td class="pill-wrap" style="padding-right:8px;">
+          <span style="background:#0d2044;color:#93c5fd;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid #1e3a5f;white-space:nowrap;">~${totalEstPts.toFixed(1)} est. pts today</span>
         </td>
         ${spStartingToday.length > 0 ? `
-        <td>
-          <span style="background:#052e16;color:#86efac;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid #14532d;">${spStartingToday.length} SP starting today</span>
+        <td class="pill-wrap">
+          <span style="background:#052e16;color:#86efac;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid #14532d;white-space:nowrap;">${spStartingToday.length} SP starting today</span>
         </td>` : ''}
       </tr>
     </table>
@@ -347,8 +351,8 @@ function buildEmailHtml(params: {
   ${actionItemsHtml}
 
   <!-- Batters section -->
-  <tr><td style="padding:20px 28px 0;">
-    <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:#6b7280;text-transform:uppercase;margin-bottom:10px;">Batters</div>
+  <tr><td class="outer-pad" style="padding:18px 16px 0;">
+    <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6b7280;text-transform:uppercase;margin-bottom:8px;">Batters</div>
     <table width="100%" cellpadding="0" cellspacing="0" style="background:#161b22;border:1px solid #30363d;border-radius:10px;overflow:hidden;">
       ${batters.map(p => playerRow(p, true)).join('')}
       ${batters.length === 0 ? '<tr><td colspan="4" style="padding:20px;text-align:center;color:#6b7280;font-size:13px;">No batters in lineup</td></tr>' : ''}
@@ -356,8 +360,8 @@ function buildEmailHtml(params: {
   </td></tr>
 
   <!-- Pitchers section -->
-  <tr><td style="padding:20px 28px 0;">
-    <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:#6b7280;text-transform:uppercase;margin-bottom:10px;">Pitchers</div>
+  <tr><td class="outer-pad" style="padding:18px 16px 0;">
+    <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6b7280;text-transform:uppercase;margin-bottom:8px;">Pitchers</div>
     <table width="100%" cellpadding="0" cellspacing="0" style="background:#161b22;border:1px solid #30363d;border-radius:10px;overflow:hidden;">
       ${pitchers.map(p => playerRow(p, true)).join('')}
       ${pitchers.length === 0 ? '<tr><td colspan="4" style="padding:20px;text-align:center;color:#6b7280;font-size:13px;">No pitchers in lineup</td></tr>' : ''}
@@ -366,34 +370,36 @@ function buildEmailHtml(params: {
 
   <!-- Bench section -->
   ${benchWithGames.length > 0 ? `
-  <tr><td style="padding:20px 28px 0;">
-    <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;color:#6b7280;text-transform:uppercase;margin-bottom:10px;">Bench — Playing Today</div>
+  <tr><td class="outer-pad" style="padding:18px 16px 0;">
+    <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:#6b7280;text-transform:uppercase;margin-bottom:8px;">Bench — Playing Today</div>
     <table width="100%" cellpadding="0" cellspacing="0" style="background:#161b22;border:1px solid #21262d;border-radius:10px;overflow:hidden;">
       ${benchWithGames.map(p => playerRow(p, false)).join('')}
     </table>
   </td></tr>` : ''}
 
   <!-- Footer -->
-  <tr><td style="padding:24px 28px 0;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:20px 24px;">
-      <tr><td style="padding:20px 24px;">
+  <tr><td class="outer-pad" style="padding:20px 16px 0;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#161b22;border:1px solid #30363d;border-radius:10px;">
+      <tr><td style="padding:18px 20px;">
         <table width="100%" cellpadding="0" cellspacing="0">
           <tr>
-            <td>
-              <a href="${siteUrl}/teams/${myTeamId}" style="background:${teamColor};color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:700;display:inline-block;">View My Team →</a>
+            <td class="btn-full">
+              <a href="${siteUrl}/teams/${myTeamId}" class="btn-full" style="background:${teamColor};color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:14px;font-weight:700;display:inline-block;">View My Team →</a>
             </td>
-            <td align="right" valign="middle">
+            <td class="unsub-right" align="right" valign="middle">
               <a href="${optOutUrl}" style="font-size:12px;color:#6b7280;text-decoration:none;">Unsubscribe</a>
             </td>
           </tr>
         </table>
-        <div style="margin-top:16px;font-size:11px;color:#4b5563;line-height:1.6;">
+        <div style="margin-top:14px;font-size:11px;color:#4b5563;line-height:1.6;">
           Hi ${ownerName} — scores as of this morning · est. pts from EROSP + today's MLB schedule<br/>
           <a href="${siteUrl}" style="color:#6b7280;text-decoration:none;">${siteUrl.replace('https://', '')}</a>
         </div>
       </td></tr>
     </table>
   </td></tr>
+
+  <tr><td style="height:28px;"></td></tr>
 
 </table>
 </td></tr>
