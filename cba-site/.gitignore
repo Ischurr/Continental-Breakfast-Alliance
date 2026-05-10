@@ -39,3 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# build artifacts
+cba-site@0.1.0
+next
+
+# vim swap files
+*.swp
+
+# python
+scripts/__pycache__/
+scripts/erosp/__pycache__/
+scripts/erosp_cache/

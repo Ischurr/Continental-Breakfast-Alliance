@@ -178,6 +178,7 @@ export interface RankingsTheme {
   mentionCount: number;
   lastSeen: string;
   currentStatus: 'new' | 'continuing' | 'fading';
+  snippets: { date: string; text: string }[];
 }
 
 // ── Weekly Detail Types ───────────────────────────────────────────────────────
@@ -333,6 +334,31 @@ export interface AdminAnalytics {
 
 function normalizeName(n: string): string {
   return n.toLowerCase().replace(/[^a-z ]/g, '').trim();
+}
+
+function stripHtml(html: string): string {
+  return html
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&nbsp;/g, ' ').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+    .replace(/\s+/g, ' ').trim();
+}
+
+function extractSnippet(plainText: string, displayName: string): string {
+  const nameLower = displayName.toLowerCase();
+  const sentences = plainText.split(/(?<=[.!?])\s+/);
+  for (const sentence of sentences) {
+    if (sentence.toLowerCase().includes(nameLower)) {
+      const s = sentence.trim();
+      return s.length > 220 ? s.slice(0, 217) + '…' : s;
+    }
+  }
+  // fallback: window around first occurrence
+  const pos = plainText.toLowerCase().indexOf(nameLower);
+  if (pos === -1) return '';
+  const start = Math.max(0, pos - 60);
+  const end = Math.min(plainText.length, pos + nameLower.length + 160);
+  return (start > 0 ? '…' : '') + plainText.slice(start, end).trim() + (end < plainText.length ? '…' : '');
 }
 
 function mean(arr: number[]): number {
@@ -984,21 +1010,24 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
       norm: normalizeName(m.displayName || m.name || ''),
     }));
 
-    const mentionCounts: Record<string, { count: number; lastSeen: string; type: 'player' | 'team'; displayName: string }> = {};
+    const mentionCounts: Record<string, { count: number; lastSeen: string; type: 'player' | 'team'; displayName: string; snippets: { date: string; text: string }[] }> = {};
 
     for (const article of sortedArticles) {
       const bodyNorm = normalizeName(article.title + ' ' + article.content);
+      const plainText = stripHtml(article.title + '. ' + article.content);
 
       for (const pn of playerNames) {
-        if (pn.norm.length < 4) continue; // skip very short names
+        if (pn.norm.length < 4) continue;
         if (bodyNorm.includes(pn.norm)) {
           if (!mentionCounts[pn.norm]) {
-            mentionCounts[pn.norm] = { count: 0, lastSeen: '', type: 'player', displayName: pn.name };
+            mentionCounts[pn.norm] = { count: 0, lastSeen: '', type: 'player', displayName: pn.name, snippets: [] };
           }
           mentionCounts[pn.norm].count++;
           if (!mentionCounts[pn.norm].lastSeen || article.createdAt > mentionCounts[pn.norm].lastSeen) {
             mentionCounts[pn.norm].lastSeen = article.createdAt;
           }
+          const snippet = extractSnippet(plainText, pn.name);
+          if (snippet) mentionCounts[pn.norm].snippets.push({ date: article.createdAt, text: snippet });
         }
       }
 
@@ -1006,12 +1035,14 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
         if (tn.norm.length < 4) continue;
         if (bodyNorm.includes(tn.norm)) {
           if (!mentionCounts[tn.norm]) {
-            mentionCounts[tn.norm] = { count: 0, lastSeen: '', type: 'team', displayName: tn.name };
+            mentionCounts[tn.norm] = { count: 0, lastSeen: '', type: 'team', displayName: tn.name, snippets: [] };
           }
           mentionCounts[tn.norm].count++;
           if (!mentionCounts[tn.norm].lastSeen || article.createdAt > mentionCounts[tn.norm].lastSeen) {
             mentionCounts[tn.norm].lastSeen = article.createdAt;
           }
+          const snippet = extractSnippet(plainText, tn.name);
+          if (snippet) mentionCounts[tn.norm].snippets.push({ date: article.createdAt, text: snippet });
         }
       }
     }
@@ -1029,6 +1060,7 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
         mentionCount: info.count,
         lastSeen: info.lastSeen,
         currentStatus,
+        snippets: [...info.snippets].sort((a, b) => b.date.localeCompare(a.date)),
       });
     }
 
