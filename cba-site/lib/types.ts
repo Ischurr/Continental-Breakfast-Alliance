@@ -67,6 +67,9 @@ export interface StandingEntry {
   pointsFor: number;
   pointsAgainst: number;
   streak?: string;
+  acquisitions?: number;
+  drops?: number;
+  trades?: number;
 }
 
 export interface PlayerStats {

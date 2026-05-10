@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useAdminMode } from '@/hooks/useAdminMode';
-import type { AdminAnalytics, PriorWeekMatchupResult } from '@/lib/admin-analytics';
+import type { AdminAnalytics, PriorWeekMatchupResult, TeamActivityStat } from '@/lib/admin-analytics';
 import type { AdminNotes } from '@/lib/store';
 import type { WeeklyScoresData, WeeklyTeamBreakdown } from '@/lib/types';
 
@@ -619,6 +619,35 @@ function UnitsTab({ analytics }: { analytics: AdminAnalytics }) {
 
 // ── Moves tab ─────────────────────────────────────────────────────────────────
 
+function ActivityLeaderboard({ stats }: { stats: TeamActivityStat[] }) {
+  if (stats.every(s => s.totalMoves === 0)) return null;
+  const max = stats[0]?.totalMoves ?? 1;
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
+      <h3 className="font-semibold text-gray-700 mb-4">Manager Activity — Season Totals</h3>
+      <div className="space-y-2">
+        {stats.map((s, i) => (
+          <div key={s.teamId} className="flex items-center gap-3">
+            <span className="w-5 text-right text-xs text-gray-400 font-mono">{i + 1}</span>
+            <span className="w-32 text-sm font-medium text-gray-800 truncate">{s.teamName}</span>
+            <div className="flex-1 bg-gray-100 rounded-full h-2 overflow-hidden">
+              <div
+                className="h-full bg-indigo-400 rounded-full"
+                style={{ width: `${Math.round((s.totalMoves / max) * 100)}%` }}
+              />
+            </div>
+            <span className="w-8 text-right text-sm font-bold text-indigo-700 tabular-nums">{s.totalMoves}</span>
+            <span className="text-xs text-gray-400 tabular-nums hidden sm:block">
+              {s.acquisitions}A / {s.drops}D / {s.trades}T
+            </span>
+          </div>
+        ))}
+      </div>
+      <p className="text-xs text-gray-400 mt-3">A=adds · D=drops · T=trades</p>
+    </div>
+  );
+}
+
 function MovesTab({ analytics }: { analytics: AdminAnalytics }) {
   const adds = analytics.rosterMoves.filter(m => m.acquisitionType === 'ADD');
   const trades = analytics.rosterMoves.filter(m => m.acquisitionType === 'TRADE');
@@ -645,6 +674,7 @@ function MovesTab({ analytics }: { analytics: AdminAnalytics }) {
 
   return (
     <div className="space-y-6">
+      <ActivityLeaderboard stats={analytics.teamActivityStats} />
       <div className="bg-white rounded-xl border border-gray-200 p-4">
         <h3 className="font-semibold text-gray-700 mb-3">Free Agent Adds</h3>
         {adds.length === 0 ? (
@@ -667,6 +697,48 @@ function MovesTab({ analytics }: { analytics: AdminAnalytics }) {
 
 // ── Storylines tab ────────────────────────────────────────────────────────────
 
+function StorylineCard({ theme }: { theme: AdminAnalytics['rankingsThemes'][number] }) {
+  const [expanded, setExpanded] = useState(false);
+  const hasSnippets = theme.snippets.length > 0;
+  const shown = expanded ? theme.snippets : theme.snippets.slice(0, 1);
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-4">
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <div className="font-medium text-gray-900 text-sm">{theme.name}</div>
+          <div className="text-xs text-gray-400 mt-0.5">
+            {theme.type === 'player' ? '🏃 Player' : '🏟️ Team'} ·{' '}
+            {theme.mentionCount} mention{theme.mentionCount !== 1 ? 's' : ''}
+          </div>
+        </div>
+        {statusBadge(theme.currentStatus)}
+      </div>
+      {hasSnippets && (
+        <div className="mt-3 space-y-2">
+          {shown.map((s, i) => (
+            <div key={i} className="bg-gray-50 rounded-lg px-3 py-2">
+              <div className="text-xs text-gray-400 mb-0.5">{formatDate(s.date)}</div>
+              <div className="text-xs text-gray-700 leading-relaxed italic">"{s.text}"</div>
+            </div>
+          ))}
+          {theme.snippets.length > 1 && (
+            <button
+              onClick={() => setExpanded(e => !e)}
+              className="text-xs text-indigo-500 hover:text-indigo-700 mt-1"
+            >
+              {expanded ? '▲ Show less' : `▼ +${theme.snippets.length - 1} more`}
+            </button>
+          )}
+        </div>
+      )}
+      {!hasSnippets && theme.lastSeen && (
+        <div className="text-xs text-gray-400 mt-2">Last: {formatDate(theme.lastSeen)}</div>
+      )}
+    </div>
+  );
+}
+
 function StorylinesTab({ analytics }: { analytics: AdminAnalytics }) {
   const { rankingsThemes } = analytics;
 
@@ -683,23 +755,7 @@ function StorylinesTab({ analytics }: { analytics: AdminAnalytics }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
       {rankingsThemes.map((theme, i) => (
-        <div key={i} className="bg-white rounded-xl border border-gray-200 p-4">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <div className="font-medium text-gray-900 text-sm">{theme.name}</div>
-              <div className="text-xs text-gray-400 mt-0.5">
-                {theme.type === 'player' ? '🏃 Player' : '🏟️ Team'} ·{' '}
-                {theme.mentionCount} mention{theme.mentionCount !== 1 ? 's' : ''}
-              </div>
-            </div>
-            {statusBadge(theme.currentStatus)}
-          </div>
-          {theme.lastSeen && (
-            <div className="text-xs text-gray-400 mt-2">
-              Last: {formatDate(theme.lastSeen)}
-            </div>
-          )}
-        </div>
+        <StorylineCard key={i} theme={theme} />
       ))}
     </div>
   );

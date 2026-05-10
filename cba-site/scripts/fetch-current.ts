@@ -46,6 +46,7 @@ async function fetchCurrentSeason() {
     standings: data.teams.map((team: Record<string, unknown>) => {
       const record = team.record as Record<string, Record<string, number>> | undefined;
       const overall = record?.overall;
+      const tc = team.transactionCounter as Record<string, number> | undefined;
       return {
         teamId: team.id,
         wins: overall?.wins ?? 0,
@@ -54,6 +55,9 @@ async function fetchCurrentSeason() {
         pointsFor: overall?.pointsFor ?? 0,
         pointsAgainst: overall?.pointsAgainst ?? 0,
         streak: overall?.streak as string | undefined,
+        acquisitions: tc?.acquisitions,
+        drops: tc?.drops,
+        trades: tc?.trades,
       };
     }),
     matchups: (data.schedule ?? []).map((matchup: Record<string, unknown>, index: number) => {

@@ -88,80 +88,110 @@
       "wins": 5,
       "losses": 0,
       "ties": 0,
-      "pointsFor": 2754.75,
-      "pointsAgainst": 2316.25
+      "pointsFor": 2863.5,
+      "pointsAgainst": 2364.25,
+      "acquisitions": 8,
+      "drops": 9,
+      "trades": 1
     },
     {
       "teamId": 2,
       "wins": 3,
       "losses": 2,
       "ties": 0,
-      "pointsFor": 2616.5,
-      "pointsAgainst": 2513.5
+      "pointsFor": 2703.25,
+      "pointsAgainst": 2568.5,
+      "acquisitions": 21,
+      "drops": 25,
+      "trades": 2
     },
     {
       "teamId": 3,
       "wins": 2,
       "losses": 3,
       "ties": 0,
-      "pointsFor": 2350.75,
-      "pointsAgainst": 2435.75
+      "pointsFor": 2398.75,
+      "pointsAgainst": 2459.75,
+      "acquisitions": 6,
+      "drops": 5,
+      "trades": 1
     },
     {
       "teamId": 4,
       "wins": 2,
       "losses": 3,
       "ties": 0,
-      "pointsFor": 2494.25,
-      "pointsAgainst": 2443.25
+      "pointsFor": 2519.5,
+      "pointsAgainst": 2489,
+      "acquisitions": 10,
+      "drops": 8,
+      "trades": 1
     },
     {
       "teamId": 6,
       "wins": 5,
       "losses": 0,
       "ties": 0,
-      "pointsFor": 2448.25,
-      "pointsAgainst": 2264.75
+      "pointsFor": 2508.5,
+      "pointsAgainst": 2357.5,
+      "acquisitions": 15,
+      "drops": 15,
+      "trades": 1
     },
     {
       "teamId": 7,
       "wins": 4,
       "losses": 1,
       "ties": 0,
-      "pointsFor": 2616.75,
-      "pointsAgainst": 2436.75
+      "pointsFor": 2640.75,
+      "pointsAgainst": 2484.75,
+      "acquisitions": 17,
+      "drops": 17,
+      "trades": 1
     },
     {
       "teamId": 8,
       "wins": 0,
       "losses": 5,
       "ties": 0,
-      "pointsFor": 2237,
-      "pointsAgainst": 2572
+      "pointsFor": 2292,
+      "pointsAgainst": 2658.75,
+      "acquisitions": 24,
+      "drops": 21,
+      "trades": 0
     },
     {
       "teamId": 9,
       "wins": 3,
       "losses": 2,
       "ties": 0,
-      "pointsFor": 2621.5,
-      "pointsAgainst": 2304.25
+      "pointsFor": 2669.5,
+      "pointsAgainst": 2413,
+      "acquisitions": 22,
+      "drops": 23,
+      "trades": 2
     },
     {
       "teamId": 10,
       "wins": 1,
       "losses": 4,
       "ties": 0,
-      "pointsFor": 2185,
-      "pointsAgainst": 2494.5
+      "pointsFor": 2277.75,
+      "pointsAgainst": 2554.75,
+      "acquisitions": 16,
+      "drops": 15,
+      "trades": 0
     },
     {
       "teamId": 11,
       "wins": 0,
       "losses": 5,
       "ties": 0,
-      "pointsFor": 2051,
-      "pointsAgainst": 2594.75
+      "pointsFor": 2096.75,
+      "pointsAgainst": 2620,
+      "acquisitions": 4,
+      "drops": 3,
+      "trades": 1
     }
   ],
   "matchups": [
@@ -495,11 +525,11 @@
       "week": 6,
       "home": {
         "teamId": 6,
-        "totalPoints": 182.5
+        "totalPoints": 242.75
       },
       "away": {
         "teamId": 10,
-        "totalPoints": 280.5
+        "totalPoints": 373.25
       }
     },
     {
@@ -507,11 +537,11 @@
       "week": 6,
       "home": {
         "teamId": 11,
-        "totalPoints": 206.25
+        "totalPoints": 252
       },
       "away": {
         "teamId": 4,
-        "totalPoints": 315.25
+        "totalPoints": 340.5
       }
     },
     {
@@ -519,11 +549,11 @@
       "week": 6,
       "home": {
         "teamId": 1,
-        "totalPoints": 290.5
+        "totalPoints": 399.25
       },
       "away": {
         "teamId": 9,
-        "totalPoints": 335.5
+        "totalPoints": 383.5
       }
     },
     {
@@ -531,11 +561,11 @@
       "week": 6,
       "home": {
         "teamId": 8,
-        "totalPoints": 290
+        "totalPoints": 345
       },
       "away": {
         "teamId": 2,
-        "totalPoints": 240.25
+        "totalPoints": 327
       }
     },
     {
@@ -543,11 +573,11 @@
       "week": 6,
       "home": {
         "teamId": 3,
-        "totalPoints": 242.75
+        "totalPoints": 290.75
       },
       "away": {
         "teamId": 7,
-        "totalPoints": 317.25
+        "totalPoints": 341.25
       }
     },
     {
@@ -1454,9 +1484,9 @@
   "weeklyStats": [],
   "playoffTeams": [
     1,
+    2,
     6,
-    7,
-    9
+    7
   ],
   "loserBracket": [],
   "rosters": [

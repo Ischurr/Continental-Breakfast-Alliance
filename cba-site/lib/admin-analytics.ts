@@ -328,6 +328,16 @@ export interface AdminAnalytics {
   weekCategories: WeekCategoryStats | null;
   seasonCatStats: TeamSeasonStats | null;
   allWeekMatchups: Record<number, PriorWeekMatchupResult[]>;
+  teamActivityStats: TeamActivityStat[];
+}
+
+export interface TeamActivityStat {
+  teamId: number;
+  teamName: string;
+  acquisitions: number;
+  drops: number;
+  trades: number;
+  totalMoves: number;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -1963,6 +1973,17 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
     if (results.length > 0) allWeekMatchups[wk] = results;
   }
 
+  const teamActivityStats: TeamActivityStat[] = standings
+    .map(s => ({
+      teamId: s.teamId,
+      teamName: teamDisplayName(s.teamId, teamMetadata),
+      acquisitions: s.acquisitions ?? 0,
+      drops: s.drops ?? 0,
+      trades: s.trades ?? 0,
+      totalMoves: (s.acquisitions ?? 0) + (s.drops ?? 0) + (s.trades ?? 0),
+    }))
+    .sort((a, b) => b.totalMoves - a.totalMoves);
+
   return {
     currentWeek,
     priorWeek,
@@ -1981,5 +2002,6 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
     weekCategories,
     seasonCatStats,
     allWeekMatchups,
+    teamActivityStats,
   };
 }
