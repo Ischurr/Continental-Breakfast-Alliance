@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { LineupPlayer, DailyLineupResponse } from '@/app/api/daily-lineup/[teamId]/route';
+import type { WeeklySpPlan, SpStartEntry } from '@/lib/fantasy/weeklySpPlan';
 
 // Slot display order (batters then pitchers)
 const BATTER_SLOTS = ['C', '1B', '2B', '3B', 'SS', 'MI', 'CI', 'OF', 'DH', 'UTIL'];
@@ -304,6 +305,92 @@ function LineupSection({
   );
 }
 
+// ── Weekly SP Plan ─────────────────────────────────────────────────────────────
+
+function dayLabel(date: string, isToday: boolean): string {
+  if (isToday) return 'Today';
+  const d = new Date(date + 'T12:00:00');
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+function SpPlanRow({ entry }: { entry: SpStartEntry }) {
+  const ha = entry.isHome ? 'vs' : '@';
+  const badge = entry.isPast
+    ? <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gray-100 text-gray-400">DONE</span>
+    : entry.recommended
+    ? <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-green-100 text-green-700">START</span>
+    : <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-50 text-red-500">SKIP</span>;
+
+  return (
+    <tr className={`border-b border-gray-50 ${entry.isToday ? 'bg-indigo-50/40' : ''}`}>
+      <td className="pl-3 pr-2 py-2 w-14">{badge}</td>
+      <td className="py-2 pr-3">
+        <p className={`text-xs font-semibold ${entry.isPast ? 'text-gray-400' : 'text-gray-800'}`}>
+          {entry.playerName}
+        </p>
+        <p className="text-[11px] text-gray-400">
+          {dayLabel(entry.date, entry.isToday)} · {ha} {entry.opponentAbbr}
+          {entry.opponentPitcherName && <span className="text-gray-300"> · {entry.opponentPitcherName}</span>}
+        </p>
+      </td>
+      <td className="py-2 pr-3 text-right w-16">
+        <span className={`text-xs font-bold tabular-nums ${entry.recommended && !entry.isPast ? 'text-green-600' : 'text-gray-400'}`}>
+          ~{entry.projectedPoints.toFixed(1)}
+        </span>
+      </td>
+    </tr>
+  );
+}
+
+function WeeklySpPlanSection({ plan }: { plan: WeeklySpPlan }) {
+  const [open, setOpen] = useState(true);
+  const future = plan.entries.filter(e => !e.isPast);
+  const past   = plan.entries.filter(e => e.isPast);
+  const urgencyWarning = plan.startsRemaining <= 1 && future.some(e => !e.recommended);
+
+  return (
+    <div className="border-t border-gray-100">
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center justify-between px-3 py-2 hover:bg-slate-50 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-sm">📅</span>
+          <span className="text-xs font-bold text-gray-700">Week {plan.matchupWeek} SP Plan</span>
+          {urgencyWarning && (
+            <span className="text-[10px] font-semibold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
+              {plan.startsRemaining} start{plan.startsRemaining === 1 ? '' : 's'} left
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-[11px] text-gray-400">
+            {plan.startsUsed} used · {plan.startsRemaining} remaining
+          </span>
+          <span className="text-[10px] text-gray-400">{open ? '▲' : '▼'}</span>
+        </div>
+      </button>
+
+      {open && (
+        <table className="w-full text-left border-collapse border-t border-gray-100">
+          <tbody>
+            {future.length > 0 && future.map(e => <SpPlanRow key={`${e.playerName}-${e.date}`} entry={e} />)}
+            {past.length > 0 && (
+              <>
+                <tr><td colSpan={3} className="px-3 pt-2 pb-1 text-[10px] font-semibold text-gray-400 uppercase tracking-wide bg-gray-50">Already used this week</td></tr>
+                {past.map(e => <SpPlanRow key={`${e.playerName}-${e.date}`} entry={e} />)}
+              </>
+            )}
+            {future.length === 0 && past.length === 0 && (
+              <tr><td colSpan={3} className="px-3 py-3 text-xs text-gray-400 text-center">No probable starters found this week yet.</td></tr>
+            )}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}
+
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export default function DailyLineupSuggestion({ teamId }: { teamId: number }) {
@@ -344,7 +431,7 @@ export default function DailyLineupSuggestion({ teamId }: { teamId: number }) {
     );
   }
 
-  const { starters, bench, date } = data;
+  const { starters, bench, date, weeklySpPlan } = data;
 
   // Split starters into batters and pitchers for display
   const batterStarters = starters.filter(p => p.role === 'H');
@@ -398,6 +485,11 @@ export default function DailyLineupSuggestion({ teamId }: { teamId: number }) {
         players={pitcherStarters}
         slotGroup={PITCHER_SLOTS}
       />
+
+      {/* Weekly SP Plan */}
+      {weeklySpPlan && (weeklySpPlan.entries.length > 0) && (
+        <WeeklySpPlanSection plan={weeklySpPlan} />
+      )}
 
       {/* Bench toggle */}
       {bench.length > 0 && (

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { buildWeeklySpPlan } from '@/lib/fantasy/weeklySpPlan';
+import type { WeeklySpPlan } from '@/lib/fantasy/weeklySpPlan';
 
 export const dynamic = 'force-dynamic';
 
@@ -101,6 +103,7 @@ export interface DailyLineupResponse {
   teamId: number;
   starters: LineupPlayer[];
   bench: LineupPlayer[];
+  weeklySpPlan?: WeeklySpPlan;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -550,6 +553,19 @@ export async function GET(
 
   const { starters, bench } = optimizeLineup(playersWithBvp);
 
-  const response: DailyLineupResponse = { date: today, teamId, starters, bench };
+  // Build weekly SP plan from all SP roster players
+  const spRoster = playersWithBvp
+    .filter(p => p.role === 'SP' && p.fpPerStart && p.fpPerStart > 0)
+    .map(p => ({
+      name: p.name,
+      mlbamId: p.mlbamId,
+      espnId: p.espnId,
+      mlbTeam: p.mlbTeam,
+      fpPerStart: p.fpPerStart!,
+    }));
+
+  const weeklySpPlan = await buildWeeklySpPlan(spRoster, today);
+
+  const response: DailyLineupResponse = { date: today, teamId, starters, bench, weeklySpPlan };
   return NextResponse.json(response);
 }

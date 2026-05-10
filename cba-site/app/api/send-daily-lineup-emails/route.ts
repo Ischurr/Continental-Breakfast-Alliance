@@ -4,6 +4,7 @@ import { getEmailOptouts, getWinProbability } from '@/lib/store';
 import type { MatchupWinProbabilityView } from '@/lib/fantasy/winProbability';
 import type { WinProbabilityStore } from '@/lib/fantasy/nightlyJob';
 import type { DailyLineupResponse, LineupPlayer } from '@/app/api/daily-lineup/[teamId]/route';
+import type { WeeklySpPlan, SpStartEntry } from '@/lib/fantasy/weeklySpPlan';
 import fs from 'fs';
 import path from 'path';
 
@@ -204,6 +205,69 @@ function buildActionItems(starters: LineupPlayer[], bench: LineupPlayer[]): stri
   </td></tr>`;
 }
 
+function buildSpPlanHtml(plan: WeeklySpPlan | undefined): string {
+  if (!plan || plan.entries.length === 0) return '';
+
+  const future = plan.entries.filter(e => !e.isPast);
+  const past   = plan.entries.filter(e => e.isPast);
+  if (future.length === 0 && past.length === 0) return '';
+
+  const todaySkips = future.filter(e => e.isToday && !e.recommended);
+  const todayStarts = future.filter(e => e.isToday && e.recommended);
+
+  function dayLabel(date: string, isToday: boolean): string {
+    if (isToday) return 'Today';
+    const d = new Date(date + 'T12:00:00');
+    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  }
+
+  function entryRow(e: SpStartEntry, showBadge: boolean): string {
+    const ha = e.isHome ? 'vs' : '@';
+    const badge = showBadge && e.recommended
+      ? `<span style="background:#052e16;color:#86efac;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:0.3px;margin-right:6px;">START</span>`
+      : showBadge
+      ? `<span style="background:#2d1515;color:#f87171;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:0.3px;margin-right:6px;">SKIP</span>`
+      : `<span style="background:#1c2128;color:#6b7280;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:0.3px;margin-right:6px;">DONE</span>`;
+    const pts = `<span style="color:${e.recommended ? '#34d399' : '#6b7280'};font-weight:700;">~${e.projectedPoints.toFixed(1)}</span>`;
+    return `
+    <tr style="border-bottom:1px solid #21262d;">
+      <td style="padding:9px 8px 9px 16px;vertical-align:middle;white-space:nowrap;">${badge}</td>
+      <td style="padding:9px 8px;vertical-align:middle;">
+        <div style="font-size:13px;font-weight:600;color:#e6edf3;">${e.playerName}</div>
+        <div style="font-size:11px;color:#8b949e;margin-top:1px;">${dayLabel(e.date, e.isToday)} · ${ha} ${e.opponentAbbr}${e.opponentPitcherName ? ` · <span style="color:#6b7280;">${e.opponentPitcherName}</span>` : ''}</div>
+      </td>
+      <td style="padding:9px 16px 9px 8px;text-align:right;vertical-align:middle;white-space:nowrap;">${pts} pts</td>
+    </tr>`;
+  }
+
+  const startsLabel = `${plan.startsUsed} used · ${plan.startsRemaining} remaining`;
+  const urgency = plan.startsRemaining <= 1 && todaySkips.length > 0
+    ? `<span style="color:#f59e0b;font-size:11px;font-weight:600;"> ⚠ Only ${plan.startsRemaining} start${plan.startsRemaining === 1 ? '' : 's'} left</span>`
+    : '';
+
+  const futureRows = future.map(e => entryRow(e, true)).join('');
+  const pastRows = past.length > 0
+    ? `<tr><td colspan="3" style="padding:8px 16px 4px;font-size:10px;font-weight:700;letter-spacing:0.8px;color:#4b5563;text-transform:uppercase;">Already started this week</td></tr>
+       ${past.map(e => entryRow(e, false)).join('')}`
+    : '';
+
+  return `
+  <tr><td class="outer-pad" style="padding:14px 16px 0;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#161b22;border:1px solid #30363d;border-radius:10px;overflow:hidden;">
+      <tr><td style="background:#1c2128;padding:10px 16px;border-bottom:1px solid #30363d;">
+        <span style="font-size:11px;font-weight:700;letter-spacing:1px;color:#c9d1d9;text-transform:uppercase;">📅 Week ${plan.matchupWeek} SP Plan</span>
+        <span style="font-size:11px;color:#6b7280;margin-left:10px;">${startsLabel}${urgency}</span>
+      </td></tr>
+      <tr><td style="padding:4px 0 4px;">
+        <table width="100%" cellpadding="0" cellspacing="0">
+          ${futureRows}
+          ${pastRows}
+        </table>
+      </td></tr>
+    </table>
+  </td></tr>`;
+}
+
 function buildEmailHtml(params: {
   teamName: string;
   teamColor: string;
@@ -255,6 +319,7 @@ function buildEmailHtml(params: {
   });
 
   const actionItemsHtml = buildActionItems(lineup.starters, lineup.bench);
+  const spPlanHtml = buildSpPlanHtml(lineup.weeklySpPlan);
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -349,6 +414,9 @@ function buildEmailHtml(params: {
 
   <!-- Action items -->
   ${actionItemsHtml}
+
+  <!-- Weekly SP plan -->
+  ${spPlanHtml}
 
   <!-- Batters section -->
   <tr><td class="outer-pad" style="padding:18px 16px 0;">
