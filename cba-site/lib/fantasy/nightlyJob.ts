@@ -122,7 +122,14 @@ export async function runNightlyWinProbabilityJob(
     if (loadHistory && saveHistory && getSeasonMatchups) {
       console.log("[nightlyJob] Loading prediction history...");
       const raw = await loadHistory();
-      history = raw ?? { seasonId, predictions: [] };
+      const loaded = raw as PredictionHistory | null;
+      // Validate shape — KV can hold stale/corrupt data from prior schema versions.
+      if (loaded && Array.isArray(loaded.predictions)) {
+        history = loaded;
+      } else {
+        if (loaded) console.warn("[nightlyJob] Prediction history has unexpected shape, resetting to empty");
+        history = { seasonId, predictions: [] };
+      }
 
       // ---- 2. Resolve outcomes from previous weeks ----
       const seasonMatchups = getSeasonMatchups();
