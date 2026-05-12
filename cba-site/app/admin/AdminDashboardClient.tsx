@@ -1290,7 +1290,7 @@ function WeekDetailTab({ analytics, weeklyScores }: { analytics: AdminAnalytics;
     0: 'C', 1: '1B', 2: '2B', 3: '3B', 4: 'SS',
     5: 'OF', 6: 'MIF', 7: 'CIF',
     8: 'OF', 9: 'OF', 10: 'OF',
-    12: 'DH', 13: 'SP', 14: 'SP', 15: 'RP', 19: 'UTIL',
+    11: 'UTIL', 12: 'DH', 13: 'SP', 14: 'SP', 15: 'RP', 19: 'UTIL',
   };
   const weekSlotByTeam: Record<number, Record<string, number>> = {};
   for (const tb of weekTeams) {

@@ -164,6 +164,7 @@ function computeWeekBreakdowns(
       let activeDays = 0;
       let benchDays = 0;
       const slotCountsActive: Record<number, number> = {};
+      const slotPtsActive: Record<number, number> = {};
 
       for (const period of weekPeriods) {
         const snap = periodCache[period]?.[teamId]?.[playerId];
@@ -182,6 +183,7 @@ function computeWeekBreakdowns(
           activeDays++;
           activePoints += pts;
           slotCountsActive[slotId] = (slotCountsActive[slotId] ?? 0) + 1;
+          slotPtsActive[slotId] = (slotPtsActive[slotId] ?? 0) + pts;
         }
       }
 
@@ -220,6 +222,7 @@ function computeWeekBreakdowns(
         activeDays,
         benchDays,
         photoUrl: lastSnap.photoUrl,
+        pointsBySlot: Object.keys(slotPtsActive).length > 0 ? slotPtsActive : undefined,
       });
     }
 
@@ -365,10 +368,41 @@ async function main() {
     console.log(`  Week ${week}: ${breakdowns.length} teams processed`);
   }
 
+  // Fetch season-to-date cumulative stats per team (statSplitTypeId=0) for admin cat stats.
+  // One ESPN API call — no scoringPeriodId → ESPN returns season cumulative stats on each player.
+  const CAT_IDS = ['1', '8', '20', '21', '23', '24', '27', '34', '45', '48', '57', '58', '60', '63'];
+  const teamCatStats: Record<string, Record<string, number>> = {};
+  try {
+    console.log('Fetching season cumulative cat stats from ESPN...');
+    const seasonData = await client.fetchLeagueData(['mRoster']);
+    const rosterTeams = (seasonData.teams ?? []) as AnyRecord[];
+    for (const team of rosterTeams) {
+      const teamId = String(team.id as number);
+      teamCatStats[teamId] = {};
+      for (const catId of CAT_IDS) teamCatStats[teamId][catId] = 0;
+      for (const entry of (team.roster?.entries ?? []) as AnyRecord[]) {
+        const ppe = entry.playerPoolEntry as AnyRecord | undefined;
+        const player = ppe?.player as AnyRecord | undefined;
+        if (!player) continue;
+        const statEntry = (player.stats as AnyRecord[] | undefined)
+          ?.find(s => s.statSourceId === 0 && s.statSplitTypeId === 0 && s.seasonId === season);
+        if (!statEntry?.stats) continue;
+        for (const catId of CAT_IDS) {
+          const val = (statEntry.stats as Record<string, number>)[catId] ?? 0;
+          teamCatStats[teamId][catId] += val;
+        }
+      }
+    }
+    console.log(`Cat stats fetched for ${Object.keys(teamCatStats).length} teams.`);
+  } catch (e) {
+    console.error('Failed to fetch season cat stats:', e);
+  }
+
   const output: WeeklyScoresData = {
     season,
     lastUpdated: new Date().toISOString(),
     weeks: weeksOutput,
+    teamCatStats: Object.keys(teamCatStats).length > 0 ? teamCatStats : undefined,
   };
 
   const outPath = path.join(__dirname, `../data/current/weekly-player-scores-${season}.json`);

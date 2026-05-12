@@ -200,6 +200,9 @@ export interface WeeklyScoresData {
   lastUpdated: string;
   // week number (string key) → array of team breakdowns
   weeks: Record<string, WeeklyTeamBreakdown[]>;
+  // teamId (string) → ESPN stat catId (string) → season-to-date cumulative value
+  // Populated by fetch-weekly-player-scores.ts from statSplitTypeId=0; used by admin-analytics for season cat stats
+  teamCatStats?: Record<string, Record<string, number>>;
 }
 
 // One player's snapshot for a single scoring period (day), captured while fresh.

@@ -107,16 +107,21 @@ export interface PlayerSignal {
   injuryNote?: string;
 }
 
-export type UnitGroup = 'SP' | 'RP' | 'C' | 'MIF' | 'CIF' | 'OF' | 'DH';
+export type UnitGroup = 'SP' | 'RP' | 'C' | '1B' | '2B' | '3B' | 'SS' | 'MIF' | 'CIF' | 'OF' | 'DH' | 'UTIL';
 
 export const UNIT_LABELS: Record<UnitGroup, string> = {
   SP: 'Starting Pitching',
   RP: 'Relief Pitching',
   C: 'Catcher',
-  MIF: 'Middle Infield',
-  CIF: 'Corner Infield',
+  '1B': 'First Base',
+  '2B': 'Second Base',
+  '3B': 'Third Base',
+  SS: 'Shortstop',
+  MIF: 'MI Flex',
+  CIF: 'CI Flex',
   OF: 'Outfield',
-  DH: 'DH / Utility',
+  DH: 'DH',
+  UTIL: 'Util',
 };
 
 export interface UnitTeamEntry {
@@ -396,7 +401,7 @@ function classifyPositionGroup(player: EROSPPlayer): PosGroup | null {
   if (pos === 'C') return 'C';
   if (['1B', '2B', '3B', 'SS', 'IF', 'MIF', 'CIF'].includes(pos)) return 'INF';
   if (['OF', 'LF', 'CF', 'RF'].includes(pos)) return 'OF';
-  if (pos === 'DH') return 'DH';
+  if (pos === 'DH' || pos === 'TWP') return 'DH'; // TWP = Ohtani two-way player
   return null;
 }
 
@@ -430,30 +435,32 @@ function classifyUnit(position: string, erospRole?: 'H' | 'SP' | 'RP'): UnitGrou
   if (position === 'SP') return 'SP';
   if (position === 'RP') return 'RP';
   if (position === 'C') return 'C';
-  if (position === '2B' || position === 'SS') return 'MIF';
-  if (position === '1B' || position === '3B') return 'CIF';
+  if (position === '2B') return '2B';
+  if (position === 'SS') return 'SS';
+  if (position === '1B') return '1B';
+  if (position === '3B') return '3B';
   if (['OF', 'LF', 'CF', 'RF'].includes(position)) return 'OF';
-  if (position === 'DH') return 'DH';
+  if (position === 'DH' || position === 'TWP') return 'DH';
   return null;
 }
 
-// Classify by actual ESPN lineup slot ID — used for slot-based unit tracking.
-// This correctly attributes DH points to whoever was in the DH slot, not just DH-primary players.
+// Classify by actual ESPN lineup slot ID — strict 1:1 slot → unit mapping.
+// Points only count toward the unit whose slot the player was physically in that day.
 const SLOT_TO_UNIT: Record<number, UnitGroup> = {
   0: 'C',
-  1: 'CIF',   // 1B
-  2: 'MIF',   // 2B
-  3: 'CIF',   // 3B
-  4: 'MIF',   // SS
-  5: 'OF',    // UTIL-OF flex
-  6: 'MIF',   // MI flex
-  7: 'CIF',   // CI flex
+  1: '1B',
+  2: '2B',
+  3: '3B',
+  4: 'SS',
+  5: 'OF',
+  6: 'MIF',
+  7: 'CIF',
   8: 'OF', 9: 'OF', 10: 'OF',
-  11: 'DH',   // UTIL hitter flex slot
+  11: 'UTIL',
   12: 'DH',
   13: 'SP', 14: 'SP',
   15: 'RP',
-  19: 'DH',   // INF/UTIL flex — treat like DH for aggregation
+  19: 'UTIL',
 };
 
 function classifySlotUnit(slotId: number): UnitGroup | null {
@@ -470,7 +477,7 @@ const SLOT_ID_LABEL: Record<number, string> = {
 
 const SLOT_DISPLAY: Record<string, string> = {
   C: 'Catcher', '1B': '1B', '2B': '2B', '3B': '3B', SS: 'SS',
-  MIF: 'Middle IF', CIF: 'Corner IF', OF: 'Outfield', DH: 'DH / Utility',
+  MIF: 'MI Flex', CIF: 'CI Flex', OF: 'Outfield', DH: 'DH', UTIL: 'Util',
   SP: 'Starting Pitching', RP: 'Relief Pitching',
 };
 
@@ -886,7 +893,7 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
     erospRoleByName[normalizeName(ep.name)] = ep.role;
   }
 
-  const unitGroups: UnitGroup[] = ['SP', 'RP', 'C', 'MIF', 'CIF', 'OF', 'DH'];
+  const unitGroups: UnitGroup[] = ['SP', 'RP', 'C', '1B', '2B', '3B', 'SS', 'MIF', 'CIF', 'OF', 'DH', 'UTIL'];
 
   const unitByTeam: Record<number, Partial<Record<UnitGroup, { total: number; players: { name: string; pts: number; position: string }[] }>>> = {};
   for (const tid of teamIds) unitByTeam[tid] = {};
@@ -1121,7 +1128,42 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
 
   let seasonCatStats: TeamSeasonStats | null = null;
 
-  if (weeklyScores && Object.keys(weeklyScores.weeks).length > 0) {
+  // Prefer teamCatStats (season-to-date cumulative from ESPN statSplitTypeId=0) when available.
+  // Falls back to summing weeklyStats across weeks (legacy path, currently always empty).
+  const rawTeamCatStats = weeklyScores?.teamCatStats;
+
+  if (rawTeamCatStats && Object.keys(rawTeamCatStats).length > 0) {
+    // Determine which ESPN stat IDs belong to pitchers vs hitters for the split.
+    // IP (catId=34) is outs — convert to innings here.
+    const PITCHER_CAT_IDS = new Set(SEASON_PITCHER_CATS.map(c => c.catId));
+
+    const buildSeasonCatFromTeamTotals = (catId: string, label: string, type: 'hitter' | 'pitcher', higherIsBetter: boolean): TeamSeasonCatStat => {
+      const teamValues = teamIds.map(tid => {
+        let val = rawTeamCatStats[String(tid)]?.[catId] ?? 0;
+        if (catId === '34') val = val / 3; // outs → innings
+        return {
+          teamId: tid,
+          teamName: teamDisplayName(tid, teamMetadata),
+          value: Math.round(val * 10) / 10,
+        };
+      });
+      const leagueTotal = teamValues.reduce((s, t) => s + t.value, 0);
+      const leagueAvg = teamIds.length > 0 ? leagueTotal / teamIds.length : 0;
+      const sorted = [...teamValues].sort((a, b) => higherIsBetter ? b.value - a.value : a.value - b.value);
+      return {
+        catId, label, type, higherIsBetter, leagueTotal,
+        leagueAvg: Math.round(leagueAvg * 10) / 10,
+        teams: sorted.map((t, i) => ({ ...t, rank: i + 1 })),
+      };
+    };
+
+    void PITCHER_CAT_IDS; // suppress unused warning — used implicitly via SEASON_PITCHER_CATS
+    const categories: TeamSeasonCatStat[] = [];
+    for (const c of SEASON_HITTER_CATS) categories.push(buildSeasonCatFromTeamTotals(c.catId, c.label, 'hitter', c.higherIsBetter));
+    for (const c of SEASON_PITCHER_CATS) categories.push(buildSeasonCatFromTeamTotals(c.catId, c.label, 'pitcher', c.higherIsBetter));
+    seasonCatStats = { categories };
+  } else if (weeklyScores && Object.keys(weeklyScores.weeks).length > 0) {
+    // Legacy path: sum weeklyStats across finalized weeks (weeklyStats is currently unpopulated in production)
     const isPitcherEntry = (p: WeeklyPlayerEntry) => p.primarySlot === 'SP' || p.primarySlot === 'RP';
     const hitterTotals: Record<number, Record<string, number>> = {};
     const pitcherTotals: Record<number, Record<string, number>> = {};
@@ -1139,7 +1181,7 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
             if (player.benchDays > 0 && player.activeDays === 0) continue;
             for (const c of SEASON_PITCHER_CATS) {
               let val = player.weeklyStats[c.catId] ?? 0;
-              if (c.catId === '34') val = val / 3; // outs → innings
+              if (c.catId === '34') val = val / 3;
               pitcherTotals[tid][c.catId] = (pitcherTotals[tid][c.catId] ?? 0) + val;
             }
           } else {
