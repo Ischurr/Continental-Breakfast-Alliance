@@ -23,6 +23,21 @@ import type { MatchupWinProbabilityView } from "./winProbability";
 
 // ---- Types ----
 
+/**
+ * One nightly snapshot of a matchup's win probability.
+ * Accumulated throughout the week so mid-week accuracy can be evaluated.
+ */
+export interface DailySnapshot {
+  /** ISO timestamp when this snapshot was recorded */
+  recordedAt: string;
+  /** Post-static-calibration probability BEFORE adaptive correction (0–100) */
+  homeWinPct: number;
+  awayWinPct: number;
+  /** Points locked in at the time of this snapshot */
+  homeCurrentPoints: number;
+  awayCurrentPoints: number;
+}
+
 export interface PredictionRecord {
   /** ESPN matchup ID (e.g. "123456" or "1-2") */
   matchupId: string;
@@ -33,14 +48,21 @@ export interface PredictionRecord {
   homeTeamName: string;
   awayTeamName: string;
   /**
-   * Post-static-calibration win probability, BEFORE adaptive correction.
-   * This is the value used to measure residual bias for learning.
+   * Post-static-calibration win probability from the FIRST snapshot (start of week).
+   * Used for the season-learning bias calculation — measuring against the pre-week
+   * baseline keeps the learning signal clean from mid-week score noise.
    * Range: 0–100.
    */
   baselineHomeWinPct: number;
   baselineAwayWinPct: number;
-  /** ISO timestamp when this prediction was recorded */
+  /** ISO timestamp when this record was first created */
   recordedAt: string;
+  /**
+   * All nightly snapshots for this matchup, oldest first.
+   * Snapshot[0] is the start-of-week prediction; later entries reflect
+   * mid-week live adjustments as actual scores accumulate.
+   */
+  snapshots: DailySnapshot[];
 
   // ---- Filled in after the week ends ----
   /** ISO timestamp when the outcome was resolved */
@@ -100,7 +122,8 @@ const MIN_SAMPLES_FOR_CORRECTION = 5;
 
 /**
  * Build prediction records from a week's simulation output.
- * Stores the baseline (pre-adaptive) calibrated probabilities for learning.
+ * Stores the baseline (pre-adaptive) calibrated probabilities for learning
+ * and seeds the snapshots array with the current reading.
  * Call this immediately after running simulations for the current week.
  */
 export function buildPredictionRecords(
@@ -108,17 +131,27 @@ export function buildPredictionRecords(
   results: MatchupWinProbabilityView[],
 ): PredictionRecord[] {
   const now = new Date().toISOString();
-  return results.map((r) => ({
-    matchupId: r.matchupId,
-    weekId,
-    homeTeamId: r.homeTeamId,
-    awayTeamId: r.awayTeamId,
-    homeTeamName: r.homeTeamName,
-    awayTeamName: r.awayTeamName,
-    baselineHomeWinPct: r.baselineHomeWinPct,
-    baselineAwayWinPct: r.baselineAwayWinPct,
-    recordedAt: now,
-  }));
+  return results.map((r) => {
+    const snapshot: DailySnapshot = {
+      recordedAt: now,
+      homeWinPct: r.baselineHomeWinPct,
+      awayWinPct: r.baselineAwayWinPct,
+      homeCurrentPoints: r.homeCurrentPoints,
+      awayCurrentPoints: r.awayCurrentPoints,
+    };
+    return {
+      matchupId: r.matchupId,
+      weekId,
+      homeTeamId: r.homeTeamId,
+      awayTeamId: r.awayTeamId,
+      homeTeamName: r.homeTeamName,
+      awayTeamName: r.awayTeamName,
+      baselineHomeWinPct: r.baselineHomeWinPct,
+      baselineAwayWinPct: r.baselineAwayWinPct,
+      recordedAt: now,
+      snapshots: [snapshot],
+    };
+  });
 }
 
 /**
@@ -231,17 +264,59 @@ export function computeSeasonStats(history: PredictionHistory): SeasonLearningSt
  *
  * Mutates `history.predictions` in-place.
  */
+function matchupKey(r: { weekId: number; homeTeamId: string; awayTeamId: string }): string {
+  return `${r.weekId}:${r.homeTeamId}:${r.awayTeamId}`;
+}
+
+/**
+ * Merge new prediction records into the history.
+ *
+ * For unresolved matchups that already have a record:
+ *   - Append the new snapshot to the existing `snapshots` array.
+ *   - Preserve the original `baselineHomeWinPct` (start-of-week baseline).
+ *   - Do NOT replace the whole record — we want the full daily history.
+ *
+ * For matchups with no existing record, create a new one.
+ * Resolved records (outcome known) are never modified.
+ *
+ * Deduplication key: weekId + homeTeamId + awayTeamId — immune to
+ * matchupId differences between runs.
+ */
 export function mergePredictions(
   history: PredictionHistory,
   newRecords: PredictionRecord[],
 ): void {
-  const newIds = new Set(newRecords.map((r) => r.matchupId));
+  const newByKey = new Map(newRecords.map((r) => [matchupKey(r), r]));
+  const appended = new Set<string>();
 
-  // Keep: (a) resolved records from any week, (b) unresolved records for other matchups
-  history.predictions = history.predictions.filter(
-    (p) => p.actualHomeWon !== undefined || !newIds.has(p.matchupId),
-  );
+  history.predictions = history.predictions.map((p) => {
+    // Resolved records are immutable
+    if (p.actualHomeWon !== undefined) return p;
 
-  // Add the fresh predictions for the current week
-  history.predictions.push(...newRecords);
+    const incoming = newByKey.get(matchupKey(p));
+    if (!incoming) return p;
+
+    appended.add(matchupKey(p));
+
+    // Append the latest reading as a new snapshot
+    const newSnapshot: DailySnapshot = incoming.snapshots[0] ?? {
+      recordedAt: incoming.recordedAt,
+      homeWinPct: incoming.baselineHomeWinPct,
+      awayWinPct: incoming.baselineAwayWinPct,
+      homeCurrentPoints: 0,
+      awayCurrentPoints: 0,
+    };
+
+    return {
+      ...p,
+      snapshots: [...(p.snapshots ?? []), newSnapshot],
+    };
+  });
+
+  // Add records for matchups we haven't seen before
+  for (const [key, r] of newByKey) {
+    if (!appended.has(key)) {
+      history.predictions.push(r);
+    }
+  }
 }
