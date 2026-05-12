@@ -249,6 +249,7 @@ function computeWeekBreakdowns(
 }
 
 async function main() {
+  const force = process.argv.includes('--force');
   const client = createESPNClient(String(season));
 
   // Load schedule config
@@ -258,11 +259,19 @@ async function main() {
   };
   const matchupPeriods = scheduleJson.matchupPeriods;
 
-  // Load current season to identify completed weeks
+  // Load current season to identify completed weeks + official team totals for validation
   const currentPath = path.join(__dirname, `../data/current/${season}.json`);
   const currentSeason = JSON.parse(fs.readFileSync(currentPath, 'utf-8')) as {
-    matchups: { week: number; winner?: unknown }[];
+    matchups: { week: number; winner?: unknown; home: { teamId: number; totalPoints: number }; away: { teamId: number; totalPoints: number } }[];
   };
+
+  // Official team totals per week from ESPN matchup data (gold standard)
+  const officialTotals: Record<number, Record<number, number>> = {};
+  for (const m of currentSeason.matchups) {
+    if (!officialTotals[m.week]) officialTotals[m.week] = {};
+    officialTotals[m.week][m.home.teamId] = m.home.totalPoints;
+    officialTotals[m.week][m.away.teamId] = m.away.totalPoints;
+  }
 
   const weeksByNum: Record<number, typeof currentSeason.matchups> = {};
   for (const m of currentSeason.matchups) {
@@ -282,19 +291,42 @@ async function main() {
     }
   }
 
+  // Load existing output to check which finalized weeks are already computed.
+  // Finalized weeks already present are skipped (preserves manual corrections) unless --force.
+  const outPath = path.join(__dirname, `../data/current/weekly-player-scores-${season}.json`);
+  let existingOutput: WeeklyScoresData | null = null;
+  if (!force && fs.existsSync(outPath)) {
+    existingOutput = JSON.parse(fs.readFileSync(outPath, 'utf-8')) as WeeklyScoresData;
+  }
+
+  const weeksAlreadyDone = new Set(
+    Object.keys(existingOutput?.weeks ?? {})
+      .map(Number)
+      .filter(w => completedWeeks.has(w)),
+  );
+
   // Process all completed weeks + the current in-progress week
   const weeksToProcess = new Set([...completedWeeks]);
   if (highestActiveWeek > 0) weeksToProcess.add(highestActiveWeek);
 
-  console.log(`Processing weeks: ${[...weeksToProcess].sort((a, b) => a - b).join(', ')}`);
+  // Skip finalized weeks already in the output file (they may have been manually corrected).
+  // Re-process only: new weeks (not yet in output) OR in-progress weeks (not yet finalized).
+  const weeksToReprocess = new Set(
+    [...weeksToProcess].filter(w => !weeksAlreadyDone.has(w) || !completedWeeks.has(w)),
+  );
 
-  // Determine which scoring periods we need (all periods up through last period of highest active week)
-  const maxWeek = Math.max(...weeksToProcess);
-  const maxPeriod = Math.max(...(matchupPeriods[String(maxWeek)] ?? [0]));
+  if (weeksAlreadyDone.size > 0 && !force) {
+    console.log(`Skipping already-computed finalized weeks: ${[...weeksAlreadyDone].sort((a, b) => a - b).join(', ')} (pass --force to reprocess)`);
+  }
+  console.log(`Processing weeks: ${[...weeksToReprocess].sort((a, b) => a - b).join(', ')}`);
+
+  // Determine which scoring periods we need — only for weeks being reprocessed.
+  const maxWeek = weeksToReprocess.size > 0 ? Math.max(...weeksToReprocess) : 0;
+  const maxPeriod = maxWeek > 0 ? Math.max(...(matchupPeriods[String(maxWeek)] ?? [0])) : 0;
 
   if (maxPeriod === 0) {
-    console.log('No scoring periods found — season not started?');
-    return;
+    console.log('No weeks to reprocess — all finalized weeks already computed.');
+    // Still update cat stats and lastUpdated below, but skip period fetching.
   }
 
   // Load daily snapshot cache — this is the primary source for completed periods.
@@ -310,23 +342,27 @@ async function main() {
   }
 
   // Build period cache: prefer daily-scores for captured periods, fall back to ESPN API.
-  const periodsFromCache = new Set(Object.keys(dailyCache?.periods ?? {}).map(Number));
-  const periodsNeedingAPI: number[] = [];
-  for (let p = 1; p <= maxPeriod; p++) {
-    if (!periodsFromCache.has(p)) periodsNeedingAPI.push(p);
+  // Only fetch periods needed for weeks being reprocessed.
+  const neededPeriods = new Set<number>();
+  for (const week of weeksToReprocess) {
+    for (const p of matchupPeriods[String(week)] ?? []) neededPeriods.add(p);
   }
+
+  const periodsFromCache = new Set(Object.keys(dailyCache?.periods ?? {}).map(Number));
+  const periodsNeedingAPI: number[] = [...neededPeriods].filter(p => !periodsFromCache.has(p)).sort((a, b) => a - b);
 
   if (periodsNeedingAPI.length > 0) {
     console.log(`Fetching ${periodsNeedingAPI.length} period(s) from ESPN API (not in daily cache): ${periodsNeedingAPI.join(', ')}`);
-  } else {
+  } else if (neededPeriods.size > 0) {
     console.log('All periods covered by daily cache — no ESPN API calls needed.');
   }
 
   const periodCache: PeriodCache = {};
 
-  // Seed from daily cache first.
+  // Seed from daily cache (only periods we actually need).
   for (const [periodStr, teamMap] of Object.entries(dailyCache?.periods ?? {})) {
     const period = Number(periodStr);
+    if (!neededPeriods.has(period)) continue;
     periodCache[period] = {};
     for (const [teamIdStr, playerMap] of Object.entries(teamMap)) {
       const teamId = Number(teamIdStr);
@@ -339,7 +375,7 @@ async function main() {
 
   // Fill gaps from ESPN API.
   for (const period of periodsNeedingAPI) {
-    process.stdout.write(`  ESPN API period ${period}/${maxPeriod}...\r`);
+    process.stdout.write(`  ESPN API period ${period}/${Math.max(...neededPeriods)}...\r`);
     try {
       const data = await client.fetchLeagueData(['mTeam', 'mRoster'], period);
       const teams = (data.teams ?? []) as AnyRecord[];
@@ -351,13 +387,10 @@ async function main() {
   }
   if (periodsNeedingAPI.length > 0) console.log('\nAll periods loaded.');
 
-  // Build output
-  const weeksOutput: Record<string, WeeklyTeamBreakdown[]> = {};
+  // Build output: start from existing data, then overwrite weeks being reprocessed.
+  const weeksOutput: Record<string, WeeklyTeamBreakdown[]> = { ...(existingOutput?.weeks ?? {}) };
 
-  // Sort weeks in ascending order
-  const sortedWeeks = [...weeksToProcess].sort((a, b) => a - b);
-
-  for (const week of sortedWeeks) {
+  for (const week of [...weeksToReprocess].sort((a, b) => a - b)) {
     const weekPeriods = matchupPeriods[String(week)];
     if (!weekPeriods || weekPeriods.length === 0) continue;
 
@@ -367,6 +400,27 @@ async function main() {
     weeksOutput[String(week)] = breakdowns;
     console.log(`  Week ${week}: ${breakdowns.length} teams processed`);
   }
+
+  // Validate: compare per-player active sums against official ESPN matchup totals.
+  // Large discrepancies indicate the mRoster API fallback returned stale/wrong data.
+  const VALIDATION_THRESHOLD = 3.0;
+  let validationWarnings = 0;
+  for (const [weekStr, teams] of Object.entries(weeksOutput)) {
+    const week = Number(weekStr);
+    const weekOfficial = officialTotals[week];
+    if (!weekOfficial) continue;
+    for (const tb of teams) {
+      const ourSum = tb.players.reduce((s, p) => s + (p.activeDays > 0 ? p.activePoints : 0), 0);
+      const official = weekOfficial[tb.teamId];
+      if (official === undefined) continue;
+      const diff = Math.abs(ourSum - official);
+      if (diff > VALIDATION_THRESHOLD) {
+        console.warn(`  [WARN] Week ${week} team ${tb.teamId}: per-player sum=${ourSum.toFixed(2)} vs official=${official.toFixed(2)} (diff ${diff > 0 ? '+' : ''}${(ourSum - official).toFixed(2)}) — may need manual correction`);
+        validationWarnings++;
+      }
+    }
+  }
+  if (validationWarnings === 0) console.log('Validation: all team sums match official totals ✓');
 
   // Fetch season-to-date cumulative stats per team (statSplitTypeId=0) for admin cat stats.
   // One ESPN API call — no scoringPeriodId → ESPN returns season cumulative stats on each player.
@@ -402,10 +456,9 @@ async function main() {
     season,
     lastUpdated: new Date().toISOString(),
     weeks: weeksOutput,
-    teamCatStats: Object.keys(teamCatStats).length > 0 ? teamCatStats : undefined,
+    teamCatStats: Object.keys(teamCatStats).length > 0 ? teamCatStats : (existingOutput?.teamCatStats ?? undefined),
   };
 
-  const outPath = path.join(__dirname, `../data/current/weekly-player-scores-${season}.json`);
   fs.writeFileSync(outPath, JSON.stringify(output, null, 2));
   console.log(`\nSaved to ${outPath}`);
 

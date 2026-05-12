@@ -147,8 +147,11 @@ async function main() {
       .filter(p => force || !(String(p) in dailyData.periods));
     console.log(`Backfill mode: ${periodsToCapture.length} periods to fetch (out of ${currentPeriod} total)${force ? ' [force re-fetch]' : ''}.`);
   } else {
+    // Always re-fetch yesterday (currentPeriod - 1) even if cached: the cron runs at 5-6 AM before
+    // that day's games, so a period first captured as "current" has all-0 scores. The next morning
+    // it's "yesterday" and finally has real scores — we must overwrite the stale 0s.
     periodsToCapture = [currentPeriod - 2, currentPeriod - 1, currentPeriod].filter(
-      p => p >= 1 && !(String(p) in dailyData.periods),
+      p => p >= 1 && (p >= currentPeriod - 1 || !(String(p) in dailyData.periods)),
     );
   }
 
