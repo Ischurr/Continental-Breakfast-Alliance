@@ -19,6 +19,10 @@ import { setWinProbability, getPredictionHistory, setPredictionHistory } from "@
 import type { PredictionHistory } from "@/lib/fantasy/outcomeTracking";
 import type { Matchup } from "@/lib/types";
 
+// Vercel function timeout: 60 seconds (default is 10s, too short for
+// the MLB schedule fetch + pitcher ERA fetches + ESPN API calls).
+export const maxDuration = 60;
+
 export async function POST(req: NextRequest) {
   const secret = process.env["WIN_PROBABILITY_SECRET"];
   if (secret) {

@@ -18,13 +18,14 @@ jobs:
       - name: Trigger win-probability refresh
         run: |
           echo "Triggering nightly win-probability update at $(date)"
-          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+          HTTP=$(curl -s -o /tmp/wp_response.json -w "%{http_code}" --max-time 90 \
             -X POST \
             -H "Authorization: Bearer ${{ secrets.WIN_PROBABILITY_SECRET }}" \
             "${{ vars.SITE_URL || 'https://continental-breakfast-alliance.vercel.app' }}/api/win-probability/refresh")
-          echo "Response status: $RESPONSE"
-          if [ "$RESPONSE" != "200" ]; then
-            echo "ERROR: Expected 200, got $RESPONSE"
+          echo "Response status: $HTTP"
+          echo "Response body: $(cat /tmp/wp_response.json)"
+          if [ "$HTTP" != "200" ]; then
+            echo "ERROR: Expected 200, got $HTTP"
             exit 1
           fi
           echo "✓ Win probability updated successfully"
