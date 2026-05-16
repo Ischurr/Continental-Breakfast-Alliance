@@ -2,8 +2,10 @@ name: Daily Lineup Email
 
 on:
   schedule:
-    # 10:00 AM EST = 15:00 UTC
-    - cron: '0 15 * * *'
+    # 9:45 AM EDT (UTC-4, mid-Mar to early-Nov): 13:45 UTC
+    - cron: '45 13 * * *'
+    # 9:45 AM EST (UTC-5, early-Nov to mid-Mar): 14:45 UTC
+    - cron: '45 14 * * *'
   workflow_dispatch: # Allow manual trigger from Actions tab
 
 jobs:
@@ -13,7 +15,50 @@ jobs:
       contents: read
 
     steps:
+      - name: Check time and season
+        id: check
+        run: |
+          EASTERN_HOUR=$(TZ=America/New_York date +%H)
+          YEAR=$(TZ=America/New_York date +%Y)
+          TODAY=$(TZ=America/New_York date +%Y-%m-%d)
+
+          # Skip time/season checks for manual triggers
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "skip=false" >> $GITHUB_OUTPUT
+            echo "Manual trigger — bypassing time and season checks."
+            exit 0
+          fi
+
+          # Only fire during the 9 AM Eastern hour (handles DST: wrong cron fires at 8 AM and is skipped)
+          if [ "$EASTERN_HOUR" != "09" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "Not 9 AM Eastern (hour=$EASTERN_HOUR) — wrong DST cron, skipping."
+            exit 0
+          fi
+
+          # Fetch Opening Day from MLB Stats API
+          OPENING_DAY=$(curl -s "https://statsapi.mlb.com/api/v1/schedule?sportId=1&season=${YEAR}&gameType=R" | \
+            jq -r '.dates[0].date // empty')
+
+          if [ -z "$OPENING_DAY" ]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "Could not fetch Opening Day from MLB API, skipping as precaution."
+            exit 0
+          fi
+
+          SEASON_END="${YEAR}-09-29"
+
+          if [[ "$TODAY" < "$OPENING_DAY" ]] || [[ "$TODAY" > "$SEASON_END" ]]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "Outside season window ($OPENING_DAY to $SEASON_END), skipping."
+            exit 0
+          fi
+
+          echo "skip=false" >> $GITHUB_OUTPUT
+          echo "In season ($OPENING_DAY to $SEASON_END), 9 AM Eastern — sending emails."
+
       - name: Send daily lineup emails
+        if: steps.check.outputs.skip != 'true'
         run: |
           echo "Sending daily lineup emails at $(date)"
           RESPONSE=$(curl -s -w "\n%{http_code}" \
