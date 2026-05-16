@@ -31,17 +31,17 @@
       "mlb_team": "HOU",
       "role": "SP",
       "fantasy_team_id": 1,
-      "gs_per_162": 28,
-      "ip_per_gs": 6.0,
+      "gs_per_162": 20,
+      "ip_per_gs": 5.5,
       "rates": {
-        "era": 2.37,
-        "k_per_9": 8.46,
-        "bb_per_9": 2.45,
-        "h_per_9": 7.71,
-        "w_per_gs": 0.37,
-        "qs_per_gs": 0.60
+        "era": 5.20,
+        "k_per_9": 7.50,
+        "bb_per_9": 4.20,
+        "h_per_9": 9.50,
+        "w_per_gs": 0.28,
+        "qs_per_gs": 0.30
       },
-      "_source": "NPB 3yr weighted (0.60/0.25/0.15): 2025 1.92 ERA/178K/163.7IP/0.89WHIP, 2024 2.34 ERA/187K/173.1IP/1.17WHIP, 2023 2.30 ERA/130K/133IP/1.11WHIP. MLB translation: ERA /0.88, K/9 x0.88, BB/9 /0.88, H/9 /0.88. MLBAM 837227 confirmed (mlb.com/player/tatsuya-imai-837227). ESPN ID 5330833 confirmed (espn.com/mlb/player/_/id/5330833). Signed HOU 3yr $54M Jan 2026."
+      "_source": "UPDATED 2026-05-16: 2026 YTD ERA 9.24 over ~14 IP (arm fatigue IL stint Apr 12 + rough return start). Blended ~60/40 YTD/NPB as best estimate while FanGraphs historical mapping fails. gs_per_162 reduced to 20 for IL time already missed. Revisit when FanGraphs accumulates enough IP (>20) for real pipeline to process. Original NPB-only: era 2.37, gs 28."
     },
     {
       "mlbam_id": 672960,
