@@ -40,9 +40,14 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/prospect-protections.json
+          # Stage EROSP recompute flag if a new call-up was detected.
+          # Omit [skip ci] so the path-filtered update-erosp-oncallup.yml fires.
+          if [ -f data/erosp/pending_callup_recompute.json ]; then
+            git add data/erosp/pending_callup_recompute.json
+          fi
           if git diff --staged --quiet; then
             echo "No call-up changes"
           else
-            git commit -m "chore: update prospect call-up status [skip ci]"
+            git commit -m "chore: update prospect call-up status"
             git push
           fi

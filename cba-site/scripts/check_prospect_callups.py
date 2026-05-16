@@ -18,10 +18,11 @@ import sys
 import datetime
 import requests
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_FILE  = os.path.normpath(os.path.join(SCRIPT_DIR, '..', 'data', 'prospect-protections.json'))
-MLB_BASE   = 'https://statsapi.mlb.com/api/v1'
-HEADERS    = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'}
+SCRIPT_DIR         = os.path.dirname(os.path.abspath(__file__))
+DATA_FILE          = os.path.normpath(os.path.join(SCRIPT_DIR, '..', 'data', 'prospect-protections.json'))
+RECOMPUTE_FLAG     = os.path.normpath(os.path.join(SCRIPT_DIR, '..', 'data', 'erosp', 'pending_callup_recompute.json'))
+MLB_BASE           = 'https://statsapi.mlb.com/api/v1'
+HEADERS            = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'}
 
 
 def get_active_roster(mlb_team_id: int) -> set:
@@ -73,8 +74,9 @@ def main():
     with open(DATA_FILE, 'r') as f:
         data = json.load(f)
 
-    today   = datetime.date.today().isoformat()
-    changed = False
+    today       = datetime.date.today().isoformat()
+    changed     = False
+    new_callups = []  # track first-time call-ups to trigger EROSP recompute
 
     for team_id, entry in data.items():
         prospect = entry.get('prospect', {})
@@ -108,6 +110,7 @@ def main():
             prospect['calledUp']     = True
             prospect['calledUpDate'] = today
             changed = True
+            new_callups.append({'name': name, 'mlbamId': mlbam_id})
         else:
             print('still in minors')
 
@@ -118,6 +121,18 @@ def main():
         print(f'\nUpdated {DATA_FILE}')
     else:
         print('\nNo changes — all prospects still in the minors.')
+
+    # Write recompute flag when a prospect is newly called up so the
+    # update-erosp-oncallup.yml workflow triggers and rebuilds latest.json.
+    if new_callups:
+        os.makedirs(os.path.dirname(RECOMPUTE_FLAG), exist_ok=True)
+        with open(RECOMPUTE_FLAG, 'w') as f:
+            json.dump({
+                'triggered_at': today,
+                'new_callups':  new_callups,
+            }, f, indent=2)
+            f.write('\n')
+        print(f'Wrote EROSP recompute flag ({len(new_callups)} call-up(s)): {RECOMPUTE_FLAG}')
 
 
 if __name__ == '__main__':

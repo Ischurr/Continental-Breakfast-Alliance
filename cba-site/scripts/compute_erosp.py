@@ -62,7 +62,7 @@ from erosp.ingest import (
 )
 from erosp.talent import estimate_hitter_talent, estimate_pitcher_talent, LG_AVG_PITCH, PITCH_RATE_COLS
 from erosp.playing_time import build_playing_time
-from erosp.projection import compute_all_erosp_raw
+from erosp.projection import compute_all_erosp_raw, fp_per_pa as _fp_per_pa, fp_per_start as _fp_per_start
 from erosp.startability import compute_replacement_levels, compute_erosp_startable
 
 
@@ -112,7 +112,8 @@ fg_to_mlbam    = build_fangraphs_to_mlbam(id_map_df)
 # but FanGraphs has assigned them an ID. Add new entries as they appear.
 # Format: {fangraphs_playerid: mlbam_id}
 _FG_MANUAL_OVERRIDES = {
-    37120: 808959,   # Munetaka Murakami (CWS 1B, 2026 debutant)
+    37120: 808959,   # Munetaka Murakami (CWS 3B, 2026 debutant)
+    37124: 837227,   # Tatsuya Imai (HOU SP, 2026 debutant) — Chadwick lacks this mapping
 }
 fg_to_mlbam.update(_FG_MANUAL_OVERRIDES)
 # Use raw Chadwick (no key_fangraphs dedup) so players with key_fangraphs=-1
@@ -713,6 +714,174 @@ for mlbam_id, row in projection_df.sort_values("erosp_startable", ascending=Fals
         player["rp_role"] = str(row.get("rp_role", "middle"))
 
     output_players.append(player)
+
+# ---------------------------------------------------------------------------
+# STEP 13b: International player overrides
+# ---------------------------------------------------------------------------
+# Merges manual projections for international debutants (NPB/KBO etc.) who
+# have no FanGraphs historical data and are absent from the main pipeline.
+# Skipped for any player already present in seen_mlbam.
+_intl_path = DATA_DIR / "international_overrides.json"
+if _intl_path.exists():
+    print("─── Step 13b: International player overrides ────────────────────")
+
+    # Build abbrev → schedule info (same pattern as projection.py internal logic)
+    _abbrev_to_sched = {
+        _info.get("abbrev", ""): _info
+        for _info in schedule_summary.values()
+        if _info.get("abbrev")
+    }
+
+    def _intl_hitter_rates(rates: dict) -> dict:
+        """Convert avg/obp/slg/k_rate/bb_rate/hr_rate to per-PA rates for fp_per_pa()."""
+        avg      = float(rates.get("avg",      0.250))
+        obp      = float(rates.get("obp",      0.320))
+        slg      = float(rates.get("slg",      0.400))
+        k_rate   = float(rates.get("k_rate",   0.220))
+        bb_rate  = float(rates.get("bb_rate",  0.090))
+        hr_rate  = float(rates.get("hr_rate",  0.025))  # per PA
+        sb_rate  = float(rates.get("sb_rate",  0.005))
+        hbp_rate = float(rates.get("hbp_rate", 0.010))
+
+        ab_per_pa   = max(0.01, 1.0 - bb_rate - hbp_rate)
+        hit_per_pa  = avg * ab_per_pa
+        tb_per_pa   = slg * ab_per_pa
+        # xb_per_pa = 1×2B + 2×3B + 3×HR; solve for 2B and 3B assuming 3B≈0.176×2B
+        xb_per_pa   = max(0.0, tb_per_pa - hit_per_pa)
+        remaining   = max(0.0, xb_per_pa - 3.0 * hr_rate)
+        double_rate = remaining / 1.353
+        triple_rate = double_rate * 0.176
+        single_rate = max(0.0, hit_per_pa - hr_rate - double_rate - triple_rate)
+
+        return {
+            "single_rate": single_rate,
+            "double_rate": double_rate,
+            "triple_rate": triple_rate,
+            "hr_rate":     hr_rate,
+            "r_per_pa":    obp * 0.67,   # empirical correlation
+            "rbi_per_pa":  slg * 0.28,   # empirical correlation
+            "bb_rate":     bb_rate,
+            "hbp_rate":    hbp_rate,
+            "k_rate":      k_rate,
+            "sb_rate":     sb_rate,
+            "cs_rate":     sb_rate * 0.20,
+            "gidp_rate":   0.035,
+        }
+
+    def _intl_sp_rates(rates: dict) -> dict:
+        """Convert ERA/K9/BB9/H9 to per-IP rates for fp_per_start()."""
+        era     = float(rates.get("era",     4.00))
+        k_per_9 = float(rates.get("k_per_9", 8.00))
+        bb_per_9 = float(rates.get("bb_per_9", 3.00))
+        h_per_9  = float(rates.get("h_per_9",  9.00 - k_per_9 * 0.35))
+        return {
+            "h_per_ip":  h_per_9  / 9.0,
+            "er_per_ip": era      / 9.0,
+            "bb_per_ip": bb_per_9 / 9.0,
+            "k_per_ip":  k_per_9  / 9.0,
+            "w_per_gs":  float(rates.get("w_per_gs",  0.33)),
+            "qs_per_gs": float(rates.get("qs_per_gs", 0.44)),
+        }
+
+    with open(_intl_path) as _f:
+        _intl_data = json.load(_f)
+
+    _intl_added = 0
+    for _ovr in _intl_data.get("players", []):
+        _mid = int(_ovr.get("mlbam_id", 0))
+        if not _mid or _mid in seen_mlbam:
+            continue  # already produced by main pipeline — skip
+
+        _name    = _ovr.get("name", "Unknown")
+        _role    = _ovr.get("role", "H")
+        _team    = _ovr.get("mlb_team", "")
+        _pos     = _ovr.get("position", "—")
+        _ftid    = int(_ovr.get("fantasy_team_id", 0))
+        _espnid  = str(_ovr.get("espn_id", ""))
+        _rates   = _ovr.get("rates", {})
+
+        _sched      = _abbrev_to_sched.get(_team, {})
+        _games_rem  = int(_sched.get("games_remaining", FULL_SEASON_GAMES))
+        _park_factor = float(_sched.get("avg_park_factor_remaining",
+                                        PARK_FACTORS.get(_team, 1.0)))
+
+        # Apply IL discount if player is on injured list
+        _il_info = (injury_map or {}).get(_mid, {})
+        if _il_info:
+            _games_rem = max(0, _games_rem - int(_il_info.get("games_missed_est", 0)))
+
+        _is_fa = mlbam_to_fa_status.get(_mid, _ftid == 0)
+
+        if _role == "H":
+            _pr   = _intl_hitter_rates(_rates)
+            _fp_pp = _fp_per_pa(_pr)
+            _pa_per_162 = float(_ovr.get("pa_per_162", 500))
+            _pa_per_game = _pa_per_162 / 162.0
+            _daily_ev    = _fp_pp * _pa_per_game * 0.85 * _park_factor
+            _erosp_raw   = round(_daily_ev * _games_rem, 1)
+
+            _player: dict = {
+                "mlbam_id":          _mid,
+                "espn_id":           _espnid,
+                "name":              _name,
+                "position":          _pos,
+                "mlb_team":          _team,
+                "role":              "H",
+                "fantasy_team_id":   _ftid,
+                "is_fa":             _is_fa,
+                "erosp_raw":         _erosp_raw,
+                "erosp_startable":   _erosp_raw,  # rostered star: start_probability = 1.0
+                "erosp_per_game":    round(_daily_ev, 3),
+                "games_remaining":   _games_rem,
+                "start_probability": 1.0,
+                "cap_factor":        1.0,
+                "fp_per_pa":         round(_fp_pp, 3),
+            }
+
+        elif _role == "SP":
+            _pr        = _intl_sp_rates(_rates)
+            _ip_per_gs = float(_ovr.get("ip_per_gs", 5.8))
+            _fp_ps     = _fp_per_start(_pr, _ip_per_gs)
+            _gs_per_162 = float(_ovr.get("gs_per_162", 25))
+            _p_start_day = _gs_per_162 / 162.0
+            _daily_ev    = _fp_ps * _p_start_day * _park_factor
+            _erosp_raw   = round(_daily_ev * _games_rem, 1)
+
+            _player = {
+                "mlbam_id":          _mid,
+                "espn_id":           _espnid,
+                "name":              _name,
+                "position":          "SP",
+                "mlb_team":          _team,
+                "role":              "SP",
+                "fantasy_team_id":   _ftid,
+                "is_fa":             _is_fa,
+                "erosp_raw":         _erosp_raw,
+                "erosp_startable":   _erosp_raw,
+                "erosp_per_game":    round(_daily_ev, 3),
+                "games_remaining":   _games_rem,
+                "start_probability": 1.0,
+                "cap_factor":        1.0,
+                "projected_starts":  round(_gs_per_162 * _games_rem / 162.0, 1),
+                "fp_per_start":      round(_fp_ps, 2),
+            }
+
+        else:
+            print(f"  Skipping {_name}: unsupported role '{_role}'")
+            continue
+
+        # Attach IL status if applicable
+        if _il_info:
+            _player["il_type"]           = _il_info["il_type"]
+            _player["il_days_remaining"] = int(_il_info.get("games_missed_est", 0))
+
+        output_players.append(_player)
+        seen_mlbam.add(_mid)
+        _intl_added += 1
+        print(f"  Override added: {_name} ({_pos}, {_team})"
+              f"  EROSP_R={_erosp_raw:.0f}  games_rem={_games_rem}")
+
+    print(f"  International overrides: {_intl_added} player(s) added.\n")
 
 # Season games remaining (average across all teams)
 avg_games_remaining = int(

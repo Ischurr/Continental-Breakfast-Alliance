@@ -1,0 +1,68 @@
+{
+  "_doc": "Manual MLB-equivalent projections for international debutants with no FanGraphs/Chadwick history. Loaded by compute_erosp.py Step 13b and merged into latest.json only if the player is absent from the main pipeline output. Delete or comment out a player entry once the main pipeline can resolve them (typically after 20+ PA or 5+ IP of FanGraphs YTD data).",
+  "_npb_translation": "All rate stats are already translated to MLB equivalents using the NPB->MLB adjustment factor (approximately 0.88 for offensive production: avg/obp/slg scale down ~12%, K rate scales up ~15%, ERA scales up ~14%). Do NOT double-apply this factor in code.",
+  "players": [
+    {
+      "mlbam_id": 808959,
+      "espn_id": "4872595",
+      "name": "Munetaka Murakami",
+      "position": "3B",
+      "mlb_team": "CWS",
+      "role": "H",
+      "fantasy_team_id": 1,
+      "pa_per_162": 530,
+      "rates": {
+        "avg": 0.228,
+        "obp": 0.375,
+        "slg": 0.485,
+        "k_rate": 0.265,
+        "bb_rate": 0.140,
+        "hr_rate": 0.057,
+        "sb_rate": 0.003,
+        "hbp_rate": 0.010
+      },
+      "_source": "NPB 3yr weighted (0.60/0.25/0.15): 2024 .244/.435/~.533 33HR, 2023 .256/.375/.500 31HR, 2022 .318/.458/.710 56HR. MLB translation x0.88; K rate adjusted x1.18 for stronger MLB pitching; HR retention ~88% of weighted rate. MLBAM 808959 confirmed (mlb.com). ESPN ID 4872595 confirmed (espn.com)."
+    },
+    {
+      "mlbam_id": 837227,
+      "espn_id": "5330833",
+      "name": "Tatsuya Imai",
+      "position": "SP",
+      "mlb_team": "HOU",
+      "role": "SP",
+      "fantasy_team_id": 1,
+      "gs_per_162": 28,
+      "ip_per_gs": 6.0,
+      "rates": {
+        "era": 2.37,
+        "k_per_9": 8.46,
+        "bb_per_9": 2.45,
+        "h_per_9": 7.71,
+        "w_per_gs": 0.37,
+        "qs_per_gs": 0.60
+      },
+      "_source": "NPB 3yr weighted (0.60/0.25/0.15): 2025 1.92 ERA/178K/163.7IP/0.89WHIP, 2024 2.34 ERA/187K/173.1IP/1.17WHIP, 2023 2.30 ERA/130K/133IP/1.11WHIP. MLB translation: ERA /0.88, K/9 x0.88, BB/9 /0.88, H/9 /0.88. MLBAM 837227 confirmed (mlb.com/player/tatsuya-imai-837227). ESPN ID 5330833 confirmed (espn.com/mlb/player/_/id/5330833). Signed HOU 3yr $54M Jan 2026."
+    },
+    {
+      "mlbam_id": 672960,
+      "espn_id": "5134636",
+      "name": "Kazuma Okamoto",
+      "position": "3B",
+      "mlb_team": "TOR",
+      "role": "H",
+      "fantasy_team_id": 7,
+      "pa_per_162": 520,
+      "rates": {
+        "avg": 0.252,
+        "obp": 0.316,
+        "slg": 0.453,
+        "k_rate": 0.210,
+        "bb_rate": 0.080,
+        "hr_rate": 0.040,
+        "sb_rate": 0.012,
+        "hbp_rate": 0.010
+      },
+      "_source": "NPB career .277 avg 248 HR in 11 seasons (2015-2025), 6x All-Star, led CL in HR 2020/2021/2023. 2025 final: .327/15HR in 69G. 3yr weighted NPB: ~.286/.360/.515 ~0.046 HR/PA. MLB translation x0.88; K rate adjusted x1.15. MLBAM 672960 confirmed (mlb.com/bluejays/player/kazuma-okamoto-672960). ESPN ID 5134636 confirmed (espn.com/mlb/player/_/id/5134636). Signed TOR 4yr $60M Jan 2026."
+    }
+  ]
+}
