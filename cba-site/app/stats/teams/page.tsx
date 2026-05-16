@@ -15,7 +15,7 @@ export default function TeamStatsPage() {
       <Header />
 
       <main className="container mx-auto px-4 py-12">
-        <h1 className="text-4xl font-bold mb-2">Team Stats</h1>
+        <h1 className="text-2xl md:text-4xl font-bold mb-2">Team Stats</h1>
         <p className="text-gray-500 mb-10">Historical records, rivalries, and memorable moments</p>
 
         {/* Leader cards */}

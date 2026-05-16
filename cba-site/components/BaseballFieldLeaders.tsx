@@ -452,7 +452,7 @@ export default function BaseballFieldLeaders({ rosteredPlayers, freeAgents, rpNa
           ref={sidebarRef}
           className={sideBySide
             ? 'absolute top-0 right-0 bottom-0 w-[165px] xl:w-[185px] flex flex-col gap-2'
-            : 'mt-3 grid grid-cols-2 gap-2'
+            : 'mt-3 grid grid-cols-1 md:grid-cols-2 gap-2'
           }
         >
           {ohtani && <OhtaniCard player={ohtani} />}

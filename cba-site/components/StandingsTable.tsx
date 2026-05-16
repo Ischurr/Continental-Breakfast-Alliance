@@ -96,7 +96,7 @@ export default function StandingsTable({
     e.stopPropagation();
     if (tooltip?.col === col) { setTooltip(null); return; }
     const rect = e.currentTarget.getBoundingClientRect();
-    setTooltip({ col, x: Math.min(rect.left, window.innerWidth - 340), y: rect.bottom + 6 });
+    setTooltip({ col, x: Math.max(8, Math.min(rect.left, window.innerWidth - 360)), y: rect.bottom + 6 });
   }
 
   useEffect(() => {

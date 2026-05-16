@@ -79,7 +79,7 @@ export default function StandingsPage() {
       <main className="container mx-auto px-4 py-12">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
           <div>
-            <h1 className="text-4xl font-bold mb-1">Standings</h1>
+            <h1 className="text-2xl md:text-4xl font-bold mb-1">Standings</h1>
             <p className="text-gray-500">{currentSeason.year} Season</p>
           </div>
           <Link

@@ -311,7 +311,7 @@ export default async function TeamPage({ params }: Props) {
       {/* Full-height background player photos */}
       {bgLeft && (
         <div
-          className="fixed left-0 top-0 bottom-0 w-1/2 pointer-events-none select-none z-0"
+          className="hidden md:block fixed left-0 top-0 bottom-0 w-1/2 pointer-events-none select-none z-0"
           aria-hidden="true"
           style={{
             WebkitMaskImage: 'linear-gradient(to right, black 75%, rgba(0,0,0,0.2) 100%)',
@@ -324,7 +324,7 @@ export default async function TeamPage({ params }: Props) {
       )}
       {bgRight && (
         <div
-          className="fixed right-0 top-0 bottom-0 w-1/2 pointer-events-none select-none z-0"
+          className="hidden md:block fixed right-0 top-0 bottom-0 w-1/2 pointer-events-none select-none z-0"
           aria-hidden="true"
           style={{
             WebkitMaskImage: 'linear-gradient(to left, black 75%, rgba(0,0,0,0.2) 100%)',
@@ -382,7 +382,7 @@ export default async function TeamPage({ params }: Props) {
               />
             )}
             <div className="flex-1 min-w-0">
-              <h1 className="text-4xl font-bold mb-1">{team.name}</h1>
+              <h1 className="text-2xl md:text-4xl font-bold mb-1">{team.name}</h1>
               <p className="text-lg opacity-80 mb-4">{meta?.owner ?? team.owner}</p>
               {id === 3 && (
                 <span className="inline-block bg-[#C91920] text-white text-xs font-bold px-3 py-1 rounded-full mb-3 tracking-wide">#LETSGETBAKED</span>

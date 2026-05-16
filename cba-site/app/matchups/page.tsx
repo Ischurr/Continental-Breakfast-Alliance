@@ -64,7 +64,7 @@ export default async function MatchupsPage() {
       <Header />
 
       <main className="container mx-auto px-4 py-12">
-        <h1 className="text-4xl font-bold mb-2">Matchups</h1>
+        <h1 className="text-2xl md:text-4xl font-bold mb-2">Matchups</h1>
         <p className="text-gray-500 mb-10">{currentSeason.year} Season &mdash; Week by Week</p>
 
         {weeks.length === 0 ? (

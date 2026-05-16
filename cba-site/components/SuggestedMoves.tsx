@@ -503,7 +503,7 @@ export default function SuggestedMoves({ result }: Props) {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`
-                px-3 py-1.5 rounded-lg text-sm font-semibold transition-all duration-150
+                px-3 py-2.5 md:py-1.5 rounded-lg text-sm font-semibold transition-all duration-150
                 flex items-center gap-1.5
                 ${isActive
                   ? 'bg-gray-800 text-white shadow-sm'

@@ -202,12 +202,12 @@ export default function EROSPTable({
       <div className="flex flex-col md:flex-row gap-3 md:items-start">
 
         {/* Position sidebar — horizontal pill row on mobile, vertical column on desktop */}
-        <div className="flex flex-row flex-wrap gap-1 md:flex-col md:flex-shrink-0 md:w-14">
+        <div className="flex flex-row overflow-x-auto gap-1 flex-nowrap md:flex-col md:overflow-x-visible md:flex-wrap md:flex-shrink-0 md:w-14">
           {ALL_POSITIONS.map(pos => (
             <button
               key={pos}
               onClick={() => setPosFilter(pos)}
-              className={`text-xs font-semibold px-2 py-1.5 rounded-lg text-center transition ${
+              className={`text-xs font-semibold px-2 py-2.5 md:py-1.5 rounded-lg text-center transition ${
                 posFilter === pos
                   ? 'bg-gray-800 text-white'
                   : 'bg-white border border-gray-200 text-gray-500 hover:border-gray-400 hover:text-gray-700'
