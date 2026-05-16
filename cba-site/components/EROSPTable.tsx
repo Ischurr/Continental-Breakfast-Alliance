@@ -134,12 +134,23 @@ export default function EROSPTable({
     return list;
   }, [players, faFilter, posFilter, fantasyTeamId, sortCol, sortDir]);
 
-  // Format timestamp
-  const generatedAt = meta.generated_at
-    ? new Date(meta.generated_at).toLocaleDateString('en-US', {
+  // Format timestamp + staleness / season checks
+  const generatedDate = meta.generated_at ? new Date(meta.generated_at) : null;
+  const generatedAt = generatedDate
+    ? generatedDate.toLocaleDateString('en-US', {
         month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
         timeZoneName: 'short',
       })
+    : null;
+
+  const isStale = !generatedDate || (Date.now() - generatedDate.getTime()) > 24 * 60 * 60 * 1000;
+  const isWrongSeason = meta.season < new Date().getFullYear();
+  const dataWarning: string | null = isWrongSeason
+    ? `Data is from ${meta.season} season`
+    : isStale && !generatedDate
+    ? 'Update time unknown'
+    : isStale
+    ? 'Data may be outdated'
     : null;
 
   const thClass = (col: SortCol) =>
@@ -175,11 +186,16 @@ export default function EROSPTable({
         </div>
 
         {/* Metadata */}
-        {generatedAt && (
+        <div className="flex items-center gap-2 flex-wrap">
           <p className="text-xs text-gray-700">
-            Updated {generatedAt} · Updates daily
+            {generatedAt ? `Updated ${generatedAt} · Updates daily` : 'Update time unknown'}
           </p>
-        )}
+          {dataWarning && (
+            <span className="text-xs bg-amber-100 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full font-medium">
+              ⚠ {dataWarning}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* ── Sidebar + Table ── */}

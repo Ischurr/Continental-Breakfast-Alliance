@@ -31,9 +31,12 @@ export default function MatchupsClient({ matchupsByWeek, weeks, teams, currentWe
   const [liveScores, setLiveScores] = useState<Record<string, LiveScore>>({});
   const [todayDeltaByTeamId, setTodayDeltaByTeamId] = useState<Record<number, number>>({});
   const [liveWinProbByTeamId, setLiveWinProbByTeamId] = useState<Record<number, number> | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastFetched, setLastFetched] = useState<Date | null>(null);
 
   useEffect(() => {
     async function fetchLive() {
+      setIsRefreshing(true);
       // 1. ESPN batch scores
       try {
         const res = await fetch('/api/live-scores', { cache: 'no-store' });
@@ -79,6 +82,9 @@ export default function MatchupsClient({ matchupsByWeek, weeks, teams, currentWe
           }
         }
       } catch { /* silent */ }
+
+      setIsRefreshing(false);
+      setLastFetched(new Date());
     }
     fetchLive();
     const interval = setInterval(fetchLive, 5 * 60 * 1000);
@@ -124,10 +130,20 @@ export default function MatchupsClient({ matchupsByWeek, weeks, teams, currentWe
     if (filtered.length === 0) return null;
     return (
       <div className="mb-8">
-        <h2 className="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
+        <h2 className="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2 flex-wrap">
           <span className="bg-teal-600 text-white text-sm px-3 py-1 rounded-full">
             {label ?? `Week ${week}`}
           </span>
+          {isCurrentWeek && lastFetched && (
+            <span className="flex items-center gap-1 text-xs font-normal text-gray-400">
+              {isRefreshing && (
+                <span className="inline-block w-2 h-2 border border-gray-300 border-t-teal-500 rounded-full animate-spin" />
+              )}
+              {isRefreshing
+                ? 'Refreshing…'
+                : `Updated ${lastFetched.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`}
+            </span>
+          )}
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map(matchup => {

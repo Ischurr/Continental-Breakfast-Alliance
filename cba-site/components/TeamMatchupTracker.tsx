@@ -60,6 +60,8 @@ export default function TeamMatchupTracker({
   const [inProgress, setInProgress] = useState(initialInProgress);
   const [myWinPct, setMyWinPct] = useState<number | undefined>(undefined);
   const [showGames, setShowGames] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastFetched, setLastFetched] = useState<Date | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [dims, setDims] = useState<{ w: number; h: number } | null>(null);
@@ -76,6 +78,7 @@ export default function TeamMatchupTracker({
 
   useEffect(() => {
     async function fetchAll() {
+      setIsRefreshing(true);
       // 1. ESPN batch scores — determines finality and gives us the opponent teamId
       let currentlyFinal = initialIsFinal;
       let espnMyScore = initialMyScore;
@@ -128,21 +131,28 @@ export default function TeamMatchupTracker({
       setInProgress(!currentlyFinal && (espnMyScore + myDelta > 0 || espnOppScore + oppDelta > 0));
 
       // 3. Live win probability (re-simulated with today's MLB scores)
-      if (currentlyFinal) return;
-      try {
-        const res = await fetch('/api/win-probability/live', { cache: 'no-store' });
-        if (!res.ok) return;
-        const json = await res.json() as { matchupPeriodId?: number; matchups?: WinProbMatchup[] };
-        if (json.matchupPeriodId !== undefined && json.matchupPeriodId !== weekNum) return;
-        const matchup = json.matchups?.find(
-          m => m.homeTeamId === String(teamId) || m.awayTeamId === String(teamId)
-        );
-        if (!matchup) return;
-        const pct = matchup.homeTeamId === String(teamId)
-          ? matchup.homeWinPct
-          : matchup.awayWinPct;
-        setMyWinPct(pct);
-      } catch { /* silently fail */ }
+      if (!currentlyFinal) {
+        try {
+          const res = await fetch('/api/win-probability/live', { cache: 'no-store' });
+          if (res.ok) {
+            const json = await res.json() as { matchupPeriodId?: number; matchups?: WinProbMatchup[] };
+            if (json.matchupPeriodId === undefined || json.matchupPeriodId === weekNum) {
+              const matchup = json.matchups?.find(
+                m => m.homeTeamId === String(teamId) || m.awayTeamId === String(teamId)
+              );
+              if (matchup) {
+                const pct = matchup.homeTeamId === String(teamId)
+                  ? matchup.homeWinPct
+                  : matchup.awayWinPct;
+                setMyWinPct(pct);
+              }
+            }
+          }
+        } catch { /* silently fail */ }
+      }
+
+      setIsRefreshing(false);
+      setLastFetched(new Date());
     }
 
     fetchAll();
@@ -226,7 +236,7 @@ export default function TeamMatchupTracker({
               <div className="flex items-center gap-3 flex-1">
                 {myLogo && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={myLogo} alt="" className="w-9 h-9 rounded-full object-cover bg-white/30 flex-shrink-0" />
+                  <img src={myLogo} alt={`${myName} logo`} className="w-9 h-9 rounded-full object-cover bg-white/30 flex-shrink-0" />
                 )}
                 <div className="min-w-0">
                   <p className="font-semibold text-gray-900 text-sm truncate">{myName}</p>
@@ -252,14 +262,14 @@ export default function TeamMatchupTracker({
                 </div>
                 {oppLogo && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={oppLogo} alt="" className="w-9 h-9 rounded-full object-cover bg-white/30 flex-shrink-0" />
+                  <img src={oppLogo} alt={`${oppName} logo`} className="w-9 h-9 rounded-full object-cover bg-white/30 flex-shrink-0" />
                 )}
               </div>
             </div>
 
             {/* Win probability row — w-20 center column aligns with "vs" above */}
             {showWinProb && (
-              <div className="flex items-center gap-4 mt-2 pt-2 border-t border-gray-200/60 text-sm font-semibold">
+              <div className={`flex items-center gap-4 mt-2 pt-2 border-t border-gray-200/60 text-sm font-semibold transition-opacity duration-300 ${isRefreshing ? 'opacity-50' : 'opacity-100'}`}>
                 <span className="text-emerald-700 flex-1">{myWinPct!.toFixed(1)}%</span>
                 <span className="text-gray-400 font-normal flex-shrink-0 w-20 text-center">win probability</span>
                 <span className="text-red-500 flex-1 text-right">{oppWinPct!.toFixed(1)}%</span>
@@ -280,9 +290,16 @@ export default function TeamMatchupTracker({
 
       {showGames && <TonightGamesWidget teamId={teamId} />}
 
-      {inProgress && (
-        <p className="text-xs text-gray-400 text-center mt-1">
-          Scores updated as of morning of {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+      {!isFinal && lastFetched && (
+        <p className="text-xs text-gray-400 text-center mt-1 flex items-center justify-center gap-1.5">
+          {isRefreshing && (
+            <span className="inline-block w-2.5 h-2.5 border-2 border-gray-300 border-t-teal-500 rounded-full animate-spin" />
+          )}
+          <span>
+            {isRefreshing
+              ? 'Refreshing…'
+              : `Scores as of ${lastFetched.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`}
+          </span>
         </p>
       )}
     </div>

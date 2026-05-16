@@ -25,6 +25,9 @@ interface Props {
   /** When provided, shows an EROSP tab with league-wide position leaders ranked by EROSP raw score.
    *  Suspended (SUSP) and D60 players with >21 days remaining are filtered out. */
   erospPlayers?: EROSPPlayer[];
+  /** When true, shows a disabled grayed-out EROSP tab instead of hiding it entirely,
+   *  so users know the feature exists but data is temporarily unavailable. */
+  erospUnavailable?: boolean;
 }
 
 // MLB headshot CDN — has generic fallback image built in
@@ -217,7 +220,7 @@ const FIELD_SLOTS: Record<string, [string, string]> = {
 
 // ─── Main component ────────────────────────────────────────────────────────────
 
-export default function BaseballFieldLeaders({ rosteredPlayers, freeAgents, rpNames, draftBoardMode, erospPlayers }: Props) {
+export default function BaseballFieldLeaders({ rosteredPlayers, freeAgents, rpNames, draftBoardMode, erospPlayers, erospUnavailable }: Props) {
   const [view, setView] = useState<'rostered' | 'fa' | 'erosp'>('rostered');
   const wrapperRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -322,7 +325,7 @@ export default function BaseballFieldLeaders({ rosteredPlayers, freeAgents, rpNa
               {v === 'rostered' ? 'Rostered Leaders' : 'Free Agents'}
             </button>
           ))}
-          {erospPlayers && erospPlayers.length > 0 && (
+          {erospPlayers && erospPlayers.length > 0 ? (
             <button
               onClick={() => setView('erosp')}
               className={`px-4 py-2 rounded-full text-sm font-semibold border transition ${
@@ -333,7 +336,14 @@ export default function BaseballFieldLeaders({ rosteredPlayers, freeAgents, rpNa
             >
               EROSP Leaders
             </button>
-          )}
+          ) : erospUnavailable ? (
+            <span
+              title="EROSP data is temporarily unavailable — check back after the daily pipeline runs"
+              className="px-4 py-2 rounded-full text-sm font-semibold border border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed select-none"
+            >
+              EROSP Leaders ⚠
+            </span>
+          ) : null}
         </div>
       )}
 

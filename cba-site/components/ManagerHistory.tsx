@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import TeamLogoImage from './TeamLogoImage';
 import { TeamRecords, TeamBestPickup, getAllSeasons } from '@/lib/data-processor';
 
 import { TrashTalkPost } from '@/lib/types';
@@ -21,7 +22,7 @@ const TEAM_LOGOS: Record<number, string> = {
   7:  'https://1000logos.net/wp-content/uploads/2018/08/Syracuse-Chiefs-Logo-1997.png',
   8:  'https://i.pinimg.com/564x/4e/2e/88/4e2e880d6aa675473a8d3eb73b2064f1.jpg',
   9:  'https://i.postimg.cc/sgycxWDX/North-Georgia-3.png',
-  10: 'https://mystique-api.fantasy.espn.com/apis/v1/domains/lm/images/bc893190-2775-11f0-bf52-473646e3de99',
+  10: '/banshees-logo.png',
   11: 'https://i.imgur.com/cNtQjIA.png',
 };
 
@@ -401,13 +402,11 @@ export default function ManagerHistory({ records, trades, totalPlayersEmployed, 
                     {/* This team receives */}
                     <div className="p-3 flex gap-3">
                       {TEAM_LOGOS[thisMeta?.id ?? -1] ? (
-                        <Image
+                        <TeamLogoImage
                           src={TEAM_LOGOS[thisMeta!.id]}
                           alt={thisMeta!.displayName}
-                          width={56}
-                          height={56}
-                          className="w-14 h-14 min-w-[56px] rounded-full object-cover bg-white border-2 border-gray-200 shadow-sm flex-shrink-0 self-center"
-                          unoptimized
+                          initial={thisMeta!.displayName[0]}
+                          primaryColor={(thisMeta as { primaryColor?: string } | undefined)?.primaryColor}
                         />
                       ) : (
                         <div
@@ -435,13 +434,11 @@ export default function ManagerHistory({ records, trades, totalPlayersEmployed, 
                     {/* Other team receives */}
                     <div className="p-3 flex gap-3">
                       {TEAM_LOGOS[otherMeta?.id ?? -1] ? (
-                        <Image
+                        <TeamLogoImage
                           src={TEAM_LOGOS[otherMeta!.id]}
                           alt={otherMeta!.displayName}
-                          width={56}
-                          height={56}
-                          className="w-14 h-14 min-w-[56px] rounded-full object-cover bg-white border-2 border-gray-200 shadow-sm flex-shrink-0 self-center"
-                          unoptimized
+                          initial={otherMeta!.displayName[0]}
+                          primaryColor={(otherMeta as { primaryColor?: string } | undefined)?.primaryColor}
                         />
                       ) : (
                         <div

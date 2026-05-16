@@ -3,10 +3,10 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useRef, useEffect } from 'react';
-import season2025 from '@/data/historical/2025.json';
+import teamsData from '@/data/teams.json';
 import { useAdminMode } from '@/hooks/useAdminMode';
 
-const TEAMS = season2025.teams;
+const TEAMS = teamsData.teams;
 
 function NavDropdown({
   label,
@@ -72,7 +72,7 @@ export default function Header() {
   const { isAdmin } = useAdminMode();
 
   const teamItems = [
-    ...TEAMS.map(team => ({ href: `/teams/${team.id}`, label: team.name, dimmed: false })),
+    ...TEAMS.map(team => ({ href: `/teams/${team.id}`, label: team.displayName, dimmed: false })),
     { href: '/dinos', label: '† Dinwiddie Dinos', dimmed: true },
   ];
   const statsItems = [
@@ -166,7 +166,7 @@ export default function Header() {
                     className="hover:text-teal-200 transition"
                     onClick={() => setMenuOpen(false)}
                   >
-                    {team.name}
+                    {team.displayName}
                   </Link>
                 ))}
                 <div className="border-t border-teal-700 pt-2">
