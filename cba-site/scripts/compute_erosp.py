@@ -108,6 +108,13 @@ print(f"{'='*65}\n")
 print("─── Step 1: ID mapping ───────────────────────────────────────────")
 id_map_df      = fetch_id_map()
 fg_to_mlbam    = build_fangraphs_to_mlbam(id_map_df)
+# Manual FG ID overrides for players whose Chadwick key_fangraphs is still -1
+# but FanGraphs has assigned them an ID. Add new entries as they appear.
+# Format: {fangraphs_playerid: mlbam_id}
+_FG_MANUAL_OVERRIDES = {
+    37120: 808959,   # Munetaka Murakami (CWS 1B, 2026 debutant)
+}
+fg_to_mlbam.update(_FG_MANUAL_OVERRIDES)
 # Use raw Chadwick (no key_fangraphs dedup) so players with key_fangraphs=-1
 # (e.g. James Wood, Paul Skenes, Nick Kurtz, Roman Anthony) are included.
 name_to_mlbam  = build_name_to_mlbam_from_chadwick()

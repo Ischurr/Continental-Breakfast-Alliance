@@ -10,12 +10,22 @@ const MLB_BASE = 'https://statsapi.mlb.com/api/v1';
 const DATA_DIR = path.join(process.cwd(), 'data');
 const LEAGUE_AVG_ERA = 4.20;
 
+// MLB team ID → abbreviation (from /api/v1/teams?sportId=1&season=2026)
+const MLB_TEAM_ID_TO_ABBR: Record<number, string> = {
+  108: 'LAA', 109: 'ARI', 110: 'BAL', 111: 'BOS', 112: 'CHC',
+  113: 'CIN', 114: 'CLE', 115: 'COL', 116: 'DET', 117: 'HOU',
+  118: 'KC',  119: 'LAD', 120: 'WSH', 121: 'NYM', 133: 'ATH',
+  134: 'PIT', 135: 'SD',  136: 'SEA', 137: 'SF',  138: 'STL',
+  139: 'TB',  140: 'TEX', 141: 'TOR', 142: 'MIN', 143: 'PHI',
+  144: 'ATL', 145: 'CWS', 146: 'MIA', 147: 'NYY', 158: 'MIL',
+};
+
 // Park factors by home team abbreviation (hitter perspective)
 const PARK_FACTORS: Record<string, number> = {
   COL: 1.13, BOS: 1.07, CIN: 1.06, CHC: 1.05, NYY: 1.04, TEX: 1.03, ATL: 1.03,
   PHI: 1.02, BAL: 1.01, HOU: 1.01, MIL: 1.00, STL: 1.00, DET: 1.00, MIA: 0.99,
   CLE: 0.99, MIN: 0.99, NYM: 0.98, TOR: 0.98, TB: 0.97, LAD: 0.97, SEA: 0.97,
-  ARI: 0.97, KC: 0.96, SD: 0.96, PIT: 0.96, CWS: 0.96, SF: 0.95, LAA: 0.95,
+  ARI: 0.97, AZ: 0.97, KC: 0.96, SD: 0.96, PIT: 0.96, CWS: 0.96, SF: 0.95, LAA: 0.95,
   OAK: 0.95, ATH: 0.95, WSH: 0.94,
 };
 
@@ -162,6 +172,41 @@ async function fetchBatterVsPitcher(
   } catch {
     return null;
   }
+}
+
+interface PlayerLookup { abbr: string; mlbamId: number; }
+
+async function fetchPlayerMlbTeam(playerName: string): Promise<PlayerLookup> {
+  try {
+    const url =
+      `${MLB_BASE}/people/search?names=${encodeURIComponent(playerName)}&sportId=1&hydrate=currentTeam`;
+    const resp = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36' },
+      signal: AbortSignal.timeout(6_000),
+    });
+    if (!resp.ok) return { abbr: '', mlbamId: 0 };
+    const data = await resp.json() as {
+      people?: Array<{ id?: number; currentTeam?: { id?: number } }>;
+    };
+    const person = data.people?.[0];
+    const teamId = person?.currentTeam?.id;
+    return {
+      abbr: teamId ? (MLB_TEAM_ID_TO_ABBR[teamId] ?? '') : '',
+      mlbamId: person?.id ?? 0,
+    };
+  } catch {
+    return { abbr: '', mlbamId: 0 };
+  }
+}
+
+// EROSP uses different abbreviations than MLB Stats API for two teams
+const EROSP_TO_MLB_ABBR: Record<string, string> = {
+  OAK: 'ATH', // Athletics relocated; EROSP still uses OAK
+  ARI: 'AZ',  // MLB API uses AZ, EROSP uses ARI
+};
+
+function toMlbAbbr(erospTeam: string): string {
+  return EROSP_TO_MLB_ABBR[erospTeam] ?? erospTeam;
 }
 
 // ── Schedule fetch ─────────────────────────────────────────────────────────────
@@ -442,7 +487,7 @@ export async function GET(
       ? `https://a.espncdn.com/i/headshots/mlb/players/full/${ep.espn_id}.png`
       : '');
 
-    const gameCtx = schedule.get(ep.mlb_team);
+    const gameCtx = schedule.get(toMlbAbbr(ep.mlb_team));
     const hasGame = gameCtx?.hasGame ?? false;
 
     // For SP: check if they're the probable starter today
@@ -485,6 +530,22 @@ export async function GET(
     if (ep.espn_id) seenEspnIds.add(ep.espn_id);
   }
 
+  // Pre-resolution: for ESPN players with no EROSP name match, fetch their
+  // current MLB team from the Stats API so they get correct schedule context.
+  // (e.g. Munetaka Murakami, new 2026 debutants missing from EROSP entirely)
+  const unmatchedEspnPlayers = espnRoster.filter(
+    ep => !seenEspnIds.has(ep.playerId) && !erospByName.get(normName(ep.playerName))
+  );
+  const resolvedTeams = new Map<string, PlayerLookup>(); // espn playerId → { abbr, mlbamId }
+  if (unmatchedEspnPlayers.length > 0) {
+    await Promise.all(
+      unmatchedEspnPlayers.map(async ep => {
+        const result = await fetchPlayerMlbTeam(ep.playerName);
+        if (result.abbr) resolvedTeams.set(ep.playerId, result);
+      })
+    );
+  }
+
   // Pass 2: ESPN roster players not matched by espn_id.
   // Try a name-based fallback into EROSP so players whose espn_id is missing
   // (e.g. Jose Ramirez, Tatis Jr., Bobby Witt Jr.) still get their real
@@ -493,19 +554,21 @@ export async function GET(
     if (seenEspnIds.has(ep.playerId)) continue;
 
     const erospMatch = erospByName.get(normName(ep.playerName));
-    const mlbTeam = erospMatch?.mlb_team ?? '';
-    const gameCtx = mlbTeam ? schedule.get(mlbTeam) : undefined;
+    const resolved = resolvedTeams.get(ep.playerId);
+    const mlbTeam = erospMatch?.mlb_team || resolved?.abbr || '';
+    const gameCtx = mlbTeam ? schedule.get(toMlbAbbr(mlbTeam)) : undefined;
     const hasGame = gameCtx?.hasGame ?? false;
     const role: 'H' | 'SP' | 'RP' = erospMatch
       ? erospMatch.role
       : (ep.position === 'SP' ? 'SP' : ep.position === 'RP' ? 'RP' : 'H');
+    const mlbamId = erospMatch?.mlbam_id ?? resolved?.mlbamId ?? 0;
     const isStartingToday =
-      role === 'SP' && hasGame && !!erospMatch &&
-      gameCtx?.ownProbablePitcherMlbamId === erospMatch.mlbam_id;
+      role === 'SP' && hasGame && mlbamId > 0 &&
+      gameCtx?.ownProbablePitcherMlbamId === mlbamId;
 
     const playerBase: Omit<LineupPlayer, 'estimatedTodayPoints' | 'slot'> = {
       name: ep.playerName,
-      mlbamId: erospMatch?.mlbam_id ?? 0,
+      mlbamId,
       espnId: ep.playerId,
       photoUrl: ep.photoUrl ?? `https://a.espncdn.com/i/headshots/mlb/players/full/${ep.playerId}.png`,
       primaryPosition: ep.position,

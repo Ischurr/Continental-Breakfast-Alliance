@@ -88,6 +88,11 @@ print(f"{'='*65}\n")
 print("─── Step 1: ID mapping ───────────────────────────────────────────")
 id_map_df     = fetch_id_map()
 fg_to_mlbam   = build_fangraphs_to_mlbam(id_map_df)
+# Manual FG ID overrides — keep in sync with compute_erosp.py
+_FG_MANUAL_OVERRIDES = {
+    37120: 808959,   # Munetaka Murakami (CWS 1B, 2026 debutant)
+}
+fg_to_mlbam.update(_FG_MANUAL_OVERRIDES)
 name_to_mlbam = build_name_to_mlbam_from_chadwick()
 print()
 

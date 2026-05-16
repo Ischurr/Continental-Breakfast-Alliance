@@ -31,6 +31,7 @@ export interface SpStartEntry {
   opponentAbbr: string;
   isHome: boolean;
   opponentPitcherName?: string;
+  opponentPitcherMlbamId?: number;
   opponentPitcherEra?: number;
   projectedPoints: number;
   recommended: boolean;   // within the top SP_WEEKLY_CAP starts for the week
@@ -232,7 +233,8 @@ export async function buildWeeklySpPlan(
             opponentAbbr: oppAbbr,
             isHome: true,
             opponentPitcherName: game.awayPitcher?.fullName,
-            projectedPoints: sp.fpPerStart * parkAdj, // ERA adj added after ERA fetch
+            opponentPitcherMlbamId: game.awayPitcher?.mlbamId,
+            projectedPoints: sp.fpPerStart * parkAdj, // ERA adj applied after ERA fetch
             recommended: false,
             fpPerStart: sp.fpPerStart,
           });
@@ -259,6 +261,7 @@ export async function buildWeeklySpPlan(
             opponentAbbr: oppAbbr,
             isHome: false,
             opponentPitcherName: game.homePitcher?.fullName,
+            opponentPitcherMlbamId: game.homePitcher?.mlbamId,
             projectedPoints: sp.fpPerStart * parkAdj,
             recommended: false,
             fpPerStart: sp.fpPerStart,
@@ -278,14 +281,18 @@ export async function buildWeeklySpPlan(
     })
   );
 
-  // Apply ERA adjustment: opponent ERA < league avg → harder matchup for pitcher
+  // Apply ERA adjustment: low-ERA opponent → harder start → reduce projected pts.
+  // Factor: 1 + (era - leagueAvg) * 0.05, clamped to [0.75, 1.25].
+  // e.g. facing a 2.00 ERA ace → ×0.89; facing a 6.00 ERA arm → ×1.09.
   const LEAGUE_AVG_ERA = 4.20;
   for (const entry of allEntries) {
-    // We stored opponentPitcherName; find their ERA via the eraFetches map
-    // For now apply a simple ERA factor if available
-    // (The ERA fetch is keyed by mlbamId but we don't store it on entry — skip for now)
-    // projectedPoints already has park adj; ERA will be layered in future iteration
-    void eraMap; // used in future — suppress unused warning
+    const oppId = entry.opponentPitcherMlbamId;
+    if (!oppId) continue;
+    const era = eraMap.get(oppId);
+    if (era == null) continue;
+    const eraAdj = Math.max(0.75, Math.min(1.25, 1 + (era - LEAGUE_AVG_ERA) * 0.05));
+    entry.projectedPoints *= eraAdj;
+    entry.opponentPitcherEra = era;
   }
 
   // Sort: past starts first (chronological), then future by projectedPoints desc

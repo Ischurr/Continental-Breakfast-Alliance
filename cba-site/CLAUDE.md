@@ -40,6 +40,7 @@ npm run fetch-free-agents  # Pull free agent list
 npm run fetch-weekly-scores  # Per-player weekly scoring data (~2 min)
 npm run send-newsletter  # Generate + send email via Claude + Resend
 npm run build            # Production build
+npx tsx scripts/editorial-dump.ts  # Editorial brief: team standings, player standouts, EROSP pace, rankings posts — run then analyze here
 ```
 
 ## Data Conventions
