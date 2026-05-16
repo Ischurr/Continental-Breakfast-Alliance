@@ -102,6 +102,8 @@ export interface LineupPlayer {
   opponentStrength: number; // 0.5 = average (higher = weaker pitcher = better for hitter)
   // For SPs: are they the probable starter today?
   isStartingToday: boolean;
+  // True when EROSP has no projection for this player (call-ups, international debuts)
+  noErospProjection?: boolean;
   // Computed for optimizer
   estimatedTodayPoints: number;
   // Assigned by optimizer
@@ -221,9 +223,8 @@ interface GameContext {
   probablePitcherEra?: number;
   opponentStrength: number;
   parkFactor: number;
-  // mlbamId of this team's probable SP (to identify who is starting)
-  ownProbablePitcherMlbamId?: number;
-  ownProbablePitcherName?: string;
+  // mlbamIds of this team's probable SPs — Set so doubleheader Game 1 + Game 2 starters both detected
+  ownProbablePitcherMlbamIds: Set<number>;
 }
 
 async function fetchTodayGameContexts(today: string): Promise<Map<string, GameContext>> {
@@ -304,31 +305,39 @@ async function fetchTodayGameContexts(today: string): Promise<Map<string, GameCo
           ? eraToOpponentStrength(awayFacesPitcherEra)
           : 0.5;
 
-        result.set(homeAbbr, {
-          hasGame: true,
-          isHome: true,
-          opponentAbbr: awayAbbr,
-          probablePitcherName: homeFacesPitcherName,
-          probablePitcherMlbamId: homeFacesPitcherId,
-          probablePitcherEra: homeFacesPitcherEra ?? undefined,
-          opponentStrength: homeOpponentStrength,
-          parkFactor,
-          ownProbablePitcherMlbamId: homePitcher?.id,
-          ownProbablePitcherName: homePitcher?.fullName,
-        });
+        // Doubleheader: if team already has a context from Game 1, don't overwrite batter info —
+        // just add the Game 2 starter to the pitcher ID set so both starters are detected.
+        if (result.has(homeAbbr)) {
+          if (homePitcher?.id) result.get(homeAbbr)!.ownProbablePitcherMlbamIds.add(homePitcher.id);
+        } else {
+          result.set(homeAbbr, {
+            hasGame: true,
+            isHome: true,
+            opponentAbbr: awayAbbr,
+            probablePitcherName: homeFacesPitcherName,
+            probablePitcherMlbamId: homeFacesPitcherId,
+            probablePitcherEra: homeFacesPitcherEra ?? undefined,
+            opponentStrength: homeOpponentStrength,
+            parkFactor,
+            ownProbablePitcherMlbamIds: new Set(homePitcher?.id ? [homePitcher.id] : []),
+          });
+        }
 
-        result.set(awayAbbr, {
-          hasGame: true,
-          isHome: false,
-          opponentAbbr: homeAbbr,
-          probablePitcherName: awayFacesPitcherName,
-          probablePitcherMlbamId: awayFacesPitcherId,
-          probablePitcherEra: awayFacesPitcherEra ?? undefined,
-          opponentStrength: awayOpponentStrength,
-          parkFactor,
-          ownProbablePitcherMlbamId: awayPitcher?.id,
-          ownProbablePitcherName: awayPitcher?.fullName,
-        });
+        if (result.has(awayAbbr)) {
+          if (awayPitcher?.id) result.get(awayAbbr)!.ownProbablePitcherMlbamIds.add(awayPitcher.id);
+        } else {
+          result.set(awayAbbr, {
+            hasGame: true,
+            isHome: false,
+            opponentAbbr: homeAbbr,
+            probablePitcherName: awayFacesPitcherName,
+            probablePitcherMlbamId: awayFacesPitcherId,
+            probablePitcherEra: awayFacesPitcherEra ?? undefined,
+            opponentStrength: awayOpponentStrength,
+            parkFactor,
+            ownProbablePitcherMlbamIds: new Set(awayPitcher?.id ? [awayPitcher.id] : []),
+          });
+        }
       }
     }
   } catch {
@@ -362,6 +371,11 @@ function canFillSlot(player: LineupPlayer, slot: string): boolean {
   }
 }
 
+// Replacement-level floor for players with no EROSP projection (call-ups, international debuts).
+// Low enough that any EROSP-tracked player beats them, but non-zero so they compete for a slot
+// over players with no game at all.
+const REPLACEMENT_PTS: Record<'H' | 'SP' | 'RP', number> = { H: 2.5, SP: 10.0, RP: 1.5 };
+
 function computeEstimatedPoints(player: Omit<LineupPlayer, 'estimatedTodayPoints' | 'slot'>): number {
   // IL players and definitive scratches cannot play
   if (player.ilType) return 0;
@@ -369,6 +383,14 @@ function computeEstimatedPoints(player: Omit<LineupPlayer, 'estimatedTodayPoints
   if (status === 'OUT' || status === 'DOUBTFUL' || status === 'SUSPENSION') return 0;
 
   if (!player.hasGame) return 0;
+
+  // No EROSP data (recent call-up, international debut, etc.) — use replacement-level floor
+  // so they can still fill a slot rather than being permanently auto-benched.
+  if (player.noErospProjection) {
+    if (player.role === 'SP' && !player.isStartingToday) return 0;
+    const base = REPLACEMENT_PTS[player.role];
+    return status === 'DAY_TO_DAY' || status === 'QUESTIONABLE' ? base * 0.25 : base;
+  }
 
   let pts: number;
 
@@ -439,10 +461,8 @@ export async function GET(
 
   const teamEROSP = erospPlayers.filter(p => p.fantasy_team_id === teamId);
   const erospByEspnId = new Map<string, EROSPPlayer>();
-  const erospByMlbamId = new Map<number, EROSPPlayer>();
   for (const p of teamEROSP) {
     if (p.espn_id) erospByEspnId.set(p.espn_id, p);
-    if (p.mlbam_id) erospByMlbamId.set(p.mlbam_id, p);
   }
 
   // Name-based fallback lookup across ALL EROSP players — used in Pass 2 to
@@ -494,7 +514,7 @@ export async function GET(
     const isStartingToday =
       ep.role === 'SP' &&
       hasGame &&
-      gameCtx?.ownProbablePitcherMlbamId === ep.mlbam_id;
+      (gameCtx?.ownProbablePitcherMlbamIds.has(ep.mlbam_id) ?? false);
 
     const playerBase: Omit<LineupPlayer, 'estimatedTodayPoints' | 'slot'> = {
       name: ep.name,
@@ -564,7 +584,7 @@ export async function GET(
     const mlbamId = erospMatch?.mlbam_id ?? resolved?.mlbamId ?? 0;
     const isStartingToday =
       role === 'SP' && hasGame && mlbamId > 0 &&
-      gameCtx?.ownProbablePitcherMlbamId === mlbamId;
+      (gameCtx?.ownProbablePitcherMlbamIds.has(mlbamId) ?? false);
 
     const playerBase: Omit<LineupPlayer, 'estimatedTodayPoints' | 'slot'> = {
       name: ep.playerName,
@@ -583,6 +603,7 @@ export async function GET(
       ilDaysRemaining: erospMatch?.il_days_remaining,
       injuryNote: erospMatch?.injury_note,
       injuryStatus: ep.injuryStatus,
+      noErospProjection: !erospMatch,
       hasGame,
       isHome: gameCtx?.isHome ?? false,
       opponentAbbr: gameCtx?.opponentAbbr,
@@ -616,15 +637,17 @@ export async function GET(
 
   const { starters, bench } = optimizeLineup(playersWithBvp);
 
-  // Build weekly SP plan from all SP roster players
+  // Build weekly SP plan from all SP roster players.
+  // Include no-EROSP pitchers (call-ups, international debuts) using replacement-level fpPerStart
+  // so they appear in the plan on days MLB lists them as the probable starter.
   const spRoster = playersWithBvp
-    .filter(p => p.role === 'SP' && p.fpPerStart && p.fpPerStart > 0)
+    .filter(p => p.role === 'SP' && !!p.mlbamId && ((p.fpPerStart ?? 0) > 0 || !!p.noErospProjection))
     .map(p => ({
       name: p.name,
       mlbamId: p.mlbamId,
       espnId: p.espnId,
       mlbTeam: p.mlbTeam,
-      fpPerStart: p.fpPerStart!,
+      fpPerStart: p.fpPerStart ?? REPLACEMENT_PTS.SP,
     }));
 
   const weeklySpPlan = await buildWeeklySpPlan(spRoster, today);

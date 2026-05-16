@@ -57,12 +57,9 @@ interface MlbProbablePitcher {
 
 interface MlbGameSlot {
   homeTeamId: number;
-  homeTeamName: string;
   awayTeamId: number;
-  awayTeamName: string;
   homePitcher?: MlbProbablePitcher;
   awayPitcher?: MlbProbablePitcher;
-  isFinal: boolean;
 }
 
 // MLB team id → abbreviation
@@ -76,7 +73,7 @@ const MLB_ID_TO_ABBREV: Record<number, string> = {
 
 async function fetchDaySchedule(date: string): Promise<MlbGameSlot[]> {
   try {
-    const url = `${MLB_BASE}/schedule?sportId=1&date=${date}&hydrate=probablePitcher(note),linescore`;
+    const url = `${MLB_BASE}/schedule?sportId=1&gameType=R&date=${date}&hydrate=probablePitcher`;
     const res = await fetch(url, { signal: AbortSignal.timeout(8_000) });
     if (!res.ok) return [];
     const data = await res.json() as { dates?: Array<{ games?: unknown[] }> };
@@ -86,19 +83,15 @@ async function fetchDaySchedule(date: string): Promise<MlbGameSlot[]> {
       const teams = g['teams'] as Record<string, Record<string, unknown>>;
       const home = teams['home'];
       const away = teams['away'];
-      const status = (g['status'] as Record<string, string>)?.['detailedState'] ?? '';
       const homeTeam = home['team'] as Record<string, unknown>;
       const awayTeam = away['team'] as Record<string, unknown>;
       const hp = home['probablePitcher'] as Record<string, unknown> | undefined;
       const ap = away['probablePitcher'] as Record<string, unknown> | undefined;
       return {
         homeTeamId: homeTeam['id'] as number,
-        homeTeamName: homeTeam['name'] as string,
         awayTeamId: awayTeam['id'] as number,
-        awayTeamName: awayTeam['name'] as string,
         homePitcher: hp ? { mlbamId: hp['id'] as number, fullName: hp['fullName'] as string } : undefined,
         awayPitcher: ap ? { mlbamId: ap['id'] as number, fullName: ap['fullName'] as string } : undefined,
-        isFinal: status === 'Final' || status === 'Game Over',
       };
     });
   } catch {
