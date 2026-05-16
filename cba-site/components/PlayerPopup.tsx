@@ -278,7 +278,7 @@ export default function PlayerPopup({ data, loading, mlbamId, onClose }: Props) 
             {(data.fantasyPoints2025 != null || data.fantasyPoints2026 != null || data.erospRaw != null) && (
               <div className="mx-5 mt-4">
                 <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Fantasy Points</h3>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-1.5">
                   {data.fantasyPoints2025 != null && (
                     <div className="bg-gray-50 rounded-xl p-3 text-center">
                       <div className="text-base font-bold text-gray-800">{Math.round(data.fantasyPoints2025).toLocaleString()}</div>

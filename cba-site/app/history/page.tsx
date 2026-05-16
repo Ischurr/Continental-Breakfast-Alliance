@@ -59,7 +59,7 @@ export default function HistoryPage() {
       <Header />
 
       <main className="container mx-auto px-4 py-12">
-        <h1 className="text-4xl font-bold mb-2">League History</h1>
+        <h1 className="text-2xl md:text-4xl font-bold mb-2">League History</h1>
         <p className="text-gray-500 mb-8">All-time records and season-by-season breakdowns</p>
 
         {/* Selector */}
@@ -220,7 +220,7 @@ export default function HistoryPage() {
               <div className="bg-gradient-to-r from-teal-700 to-teal-900 text-white rounded-xl p-7 mb-6 shadow">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                   <div>
-                    <h2 className="text-3xl font-bold mb-1">{season.year} Season</h2>
+                    <h2 className="text-xl md:text-3xl font-bold mb-1">{season.year} Season</h2>
                     <p className="text-teal-200 text-sm">
                       {season.teams.length} teams &bull; {season.matchups.length} matchups recorded
                     </p>
@@ -282,13 +282,13 @@ export default function HistoryPage() {
               </div>
 
               {allScores.length > 0 && (
-                <div className="mt-5 grid grid-cols-3 gap-4 text-center">
+                <div className="mt-5 grid grid-cols-3 gap-2 md:gap-4 text-center">
                   {[
                     { label: 'High Score', value: maxScore.toFixed(1) },
                     { label: 'Low Score', value: minScore.toFixed(1) },
                     { label: 'Avg Score', value: avgScore.toFixed(1) },
                   ].map(({ label, value }) => (
-                    <div key={label} className="bg-white rounded-xl p-4 shadow-sm border">
+                    <div key={label} className="bg-white rounded-xl p-2 md:p-4 shadow-sm border">
                       <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-1">{label}</p>
                       <p className="text-xl font-bold text-teal-600">{value}</p>
                     </div>
@@ -318,7 +318,7 @@ export default function HistoryPage() {
               <div className="bg-gradient-to-r from-teal-700 to-teal-900 text-white rounded-xl p-7 mb-6 shadow">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                   <div>
-                    <h2 className="text-3xl font-bold mb-1">{season.year} Season</h2>
+                    <h2 className="text-xl md:text-3xl font-bold mb-1">{season.year} Season</h2>
                     <p className="text-teal-200 text-sm">
                       {season.teams.length} teams &bull; {season.matchups.length} matchups recorded
                     </p>
@@ -381,13 +381,13 @@ export default function HistoryPage() {
               </div>
 
               {allScores.length > 0 && (
-                <div className="mt-5 grid grid-cols-3 gap-4 text-center">
+                <div className="mt-5 grid grid-cols-3 gap-2 md:gap-4 text-center">
                   {[
                     { label: 'High Score', value: maxScore.toFixed(1) },
                     { label: 'Low Score', value: minScore.toFixed(1) },
                     { label: 'Avg Score', value: avgScore.toFixed(1) },
                   ].map(({ label, value }) => (
-                    <div key={label} className="bg-white rounded-xl p-4 shadow-sm border">
+                    <div key={label} className="bg-white rounded-xl p-2 md:p-4 shadow-sm border">
                       <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-1">{label}</p>
                       <p className="text-xl font-bold text-teal-600">{value}</p>
                     </div>

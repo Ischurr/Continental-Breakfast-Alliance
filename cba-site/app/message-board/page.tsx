@@ -27,8 +27,8 @@ export default async function MessageBoardPage() {
     <div className="min-h-screen bg-sky-50">
       <Header />
 
-      <main className="w-[70%] mx-auto py-12">
-        <h1 className="text-4xl font-bold mb-1">Message Board</h1>
+      <main className="w-full max-w-5xl mx-auto px-4 py-12">
+        <h1 className="text-2xl md:text-4xl font-bold mb-1">Message Board</h1>
         <p className="text-gray-500 mb-10">The league bulletin board — polls, messages, and trash talk.</p>
 
         {/* ── Polls ──────────────────────────────────────────────── */}

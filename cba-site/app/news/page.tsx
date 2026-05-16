@@ -21,7 +21,7 @@ export default async function NewsPage() {
 
       <main className="container mx-auto px-4 py-12">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-1">Baseball News</h1>
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900 mb-1">Baseball News</h1>
           <p className="text-gray-500 text-sm">Latest headlines from MLB.com, ESPN, CBS Sports, Yahoo Sports, Bleacher Report, and Baseball Prospectus</p>
         </div>
 

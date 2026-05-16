@@ -134,7 +134,7 @@ export default async function DinoMemorialPage() {
               className="w-20 h-20 object-cover rounded-full bg-white/10 flex-shrink-0 grayscale opacity-70"
             />
             <div className="flex-1 min-w-0">
-              <h1 className="text-4xl font-bold mb-1 text-white/90">Dinwiddie Dinos</h1>
+              <h1 className="text-2xl md:text-4xl font-bold mb-1 text-white/90">Dinwiddie Dinos</h1>
               <p className="text-lg text-stone-400 mb-4">Andrew Sharpe · Dinwiddie, VA</p>
               <DinosBioEditor initialValue={content.bio ?? DEFAULT_BIO} />
             </div>
