@@ -176,10 +176,14 @@ export async function postRanking(title: string, content: string, password: stri
   if (!resendKey || !fromEmail) return;
 
   const resend = new Resend(resendKey);
-  const bodyHtml = content.trim()
-    .split('\n')
-    .map(line => line.trim() ? `<p style="margin:0 0 12px">${line}</p>` : '<br>')
-    .join('');
+
+  // Build a short preview: take the first 2 non-empty paragraphs, cap at 300 chars
+  const nonEmptyLines = content.trim().split('\n').map(l => l.trim()).filter(Boolean);
+  const previewLines = nonEmptyLines.slice(0, 2);
+  let previewText = previewLines.join(' ');
+  const truncated = previewText.length > 300;
+  if (truncated) previewText = previewText.slice(0, 297) + '…';
+  const previewHtml = `<p style="margin:0 0 12px">${previewText}</p>`;
 
   const html = `
     <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#1e293b">
@@ -191,10 +195,12 @@ export async function postRanking(title: string, content: string, password: stri
         <p style="color:#d8b4fe;font-size:13px;margin:0">Continental Breakfast Alliance</p>
       </div>
       <div style="background:#fff;border:1px solid #e2e8f0;border-top:none;padding:24px;border-radius:0 0 8px 8px;font-size:15px;line-height:1.7">
-        ${bodyHtml}
-        <div style="margin-top:24px;padding-top:20px;border-top:1px solid #e2e8f0">
+        ${previewHtml}
+        <div style="position:relative;height:32px;margin-bottom:4px;background:linear-gradient(to bottom,rgba(255,255,255,0),#fff)"></div>
+        <p style="margin:0 0 20px;font-size:13px;color:#64748b;font-style:italic">Read the full rankings on the site…</p>
+        <div style="margin-top:8px;padding-top:20px;border-top:1px solid #e2e8f0">
           <a href="${siteUrl}/rankings" style="display:inline-block;background:#581c87;color:#e9d5ff;font-weight:600;font-size:14px;padding:10px 20px;border-radius:6px;text-decoration:none">
-            Read on the site →
+            Read full rankings →
           </a>
         </div>
       </div>
