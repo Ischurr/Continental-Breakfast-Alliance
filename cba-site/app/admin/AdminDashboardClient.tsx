@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useAdminMode } from '@/hooks/useAdminMode';
-import type { AdminAnalytics, PriorWeekMatchupResult, TeamActivityStat } from '@/lib/admin-analytics';
+import type { AdminAnalytics, PriorWeekMatchupResult, TeamActivityStat, WaiverEffEntry } from '@/lib/admin-analytics';
 import type { AdminNotes } from '@/lib/store';
 import type { WeeklyScoresData, WeeklyTeamBreakdown } from '@/lib/types';
 
@@ -15,7 +15,7 @@ interface Props {
   weeklyScores?: WeeklyScoresData;
 }
 
-type Tab = 'bullets' | 'teams' | 'players' | 'positions' | 'units' | 'moves' | 'week' | 'categories' | 'storylines' | 'notes' | 'export';
+type Tab = 'bullets' | 'teams' | 'players' | 'positions' | 'units' | 'moves' | 'week' | 'categories' | 'storylines' | 'manager' | 'previews' | 'notes' | 'export';
 
 const CATEGORY_COLORS: Record<string, string> = {
   trend: 'border-blue-400',
@@ -25,6 +25,11 @@ const CATEGORY_COLORS: Record<string, string> = {
   roster: 'border-teal-400',
   injury: 'border-red-400',
   season_stats: 'border-cyan-400',
+  streak: 'border-amber-400',
+  luck: 'border-sky-400',
+  player_milestone: 'border-emerald-400',
+  manager: 'border-violet-400',
+  preview: 'border-rose-400',
 };
 
 const CATEGORY_BG: Record<string, string> = {
@@ -35,6 +40,11 @@ const CATEGORY_BG: Record<string, string> = {
   roster: 'bg-teal-50',
   injury: 'bg-red-50',
   season_stats: 'bg-cyan-50',
+  streak: 'bg-amber-50',
+  luck: 'bg-sky-50',
+  player_milestone: 'bg-emerald-50',
+  manager: 'bg-violet-50',
+  preview: 'bg-rose-50',
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -388,6 +398,37 @@ function TeamsTab({ analytics }: { analytics: AdminAnalytics }) {
       <p className="text-xs text-gray-400">
         🏆 = all-time franchise high this week · 💀 = all-time franchise low · 📈/📉 = season high/low · Banshees records from 2025 only
       </p>
+      {analytics.categoryProfiles.length > 0 && (
+        <div className="mt-6">
+          <h3 className="font-semibold text-gray-700 mb-3">🧬 Team DNA — Category Identity</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            {analytics.categoryProfiles.map(profile => (
+              <div key={profile.teamId} className="rounded-xl border border-gray-200 bg-white p-3">
+                <div className="font-semibold text-gray-900 text-sm truncate mb-1">{profile.teamName.split(' ').slice(-1)[0]}</div>
+                <div className="text-xs font-medium text-indigo-600 mb-2">{profile.identityLabel}</div>
+                {profile.strengths.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mb-1">
+                    {profile.strengths.map(s => (
+                      <span key={s.label} className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-semibold">
+                        #{s.rank} {s.label}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {profile.weaknesses.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {profile.weaknesses.map(w => (
+                      <span key={w.label} className="text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-semibold">
+                        #{w.rank} {w.label}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -470,6 +511,47 @@ function PlayersTab({ analytics }: { analytics: AdminAnalytics }) {
       <Section title="⭐ Outperforming Pace" signals={over} empty="Not enough data yet" />
       <Section title="🧊 Underperforming Pace" signals={under} empty="Not enough data yet" />
       <Section title="🚨 Injury Watch" signals={injury} empty="No significant IL players flagged" />
+      {analytics.playerOutliers.length > 0 && (
+        <div>
+          <h3 className="font-semibold text-gray-700 mb-3">⭐ Season Milestones (vs Own History)</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {analytics.playerOutliers.slice(0, 12).map((o, i) => (
+              <div key={i} className={`rounded-xl border-2 bg-white p-4 ${o.hotStreak ? 'border-emerald-300' : o.isSeasonHigh ? 'border-amber-300' : 'border-red-200'}`}>
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <span className="font-semibold text-gray-900 text-sm">{o.playerName}</span>
+                    <span className="ml-2 text-xs text-gray-400">{o.position}</span>
+                  </div>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-semibold flex-shrink-0 ${
+                    o.hotStreak ? 'bg-emerald-100 text-emerald-800' :
+                    o.isSeasonHigh ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-700'
+                  }`}>
+                    {o.hotStreak ? `🔥 ${o.hotStreak}-wk streak` : o.isSeasonHigh ? '↑ Season best' : '↓ Season worst'}
+                  </span>
+                </div>
+                <div className="text-xs text-gray-500 mt-0.5">{o.teamName}</div>
+                <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
+                  <div className="text-center">
+                    <div className="font-mono font-bold text-gray-900">{o.thisWeekPts.toFixed(1)}</div>
+                    <div className="text-gray-400">this week</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-mono text-green-600 font-semibold">{o.seasonHigh.toFixed(1)}</div>
+                    <div className="text-gray-400">season hi</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-mono text-red-400 font-semibold">{o.seasonLow.toFixed(1)}</div>
+                    <div className="text-gray-400">season lo</div>
+                  </div>
+                </div>
+                {o.hotStreak !== null && (
+                  <div className="mt-1 text-[10px] text-emerald-600">{o.hotStreak} straight weeks ≥ {o.hotStreakThreshold} pts</div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -753,10 +835,47 @@ function StorylinesTab({ analytics }: { analytics: AdminAnalytics }) {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-      {rankingsThemes.map((theme, i) => (
-        <StorylineCard key={i} theme={theme} />
-      ))}
+    <div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {rankingsThemes.map((theme, i) => (
+          <StorylineCard key={i} theme={theme} />
+        ))}
+      </div>
+      {analytics.storylineCheckIns.length > 0 && (
+        <div className="mt-8">
+          <h3 className="font-semibold text-gray-700 mb-1">📋 Storyline Check-Ins — Did We Get It Right?</h3>
+          <p className="text-xs text-gray-400 mb-4">Compares what was written in the prior rankings post against current data signals.</p>
+          <div className="space-y-3">
+            {analytics.storylineCheckIns.map((ci, i) => {
+              const verdictColors: Record<string, string> = {
+                on_track: 'bg-green-100 text-green-800',
+                reversed: 'bg-red-100 text-red-700',
+                mixed: 'bg-yellow-100 text-yellow-700',
+                unknown: 'bg-gray-100 text-gray-500',
+              };
+              return (
+                <div key={i} className="rounded-xl border border-gray-200 bg-white p-4">
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div>
+                      <span className="font-semibold text-gray-900">{ci.name}</span>
+                      <span className="ml-2 text-xs text-gray-400">{ci.type}</span>
+                    </div>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-semibold flex-shrink-0 ${verdictColors[ci.verdict] ?? 'bg-gray-100 text-gray-500'}`}>
+                      {ci.verdictLabel}
+                    </span>
+                  </div>
+                  <div className="text-xs text-gray-500 italic mb-1 border-l-2 border-gray-200 pl-2">
+                    &ldquo;{ci.lastClaim}&rdquo;
+                  </div>
+                  <div className="text-xs text-gray-700 mt-1">
+                    <span className="font-semibold text-gray-500">Now: </span>{ci.currentSignal}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -954,6 +1073,250 @@ function CategoriesTab({ analytics }: { analytics: AdminAnalytics }) {
   );
 }
 
+// ── Manager tab ───────────────────────────────────────────────────────────────
+
+function ManagerTab({ analytics }: { analytics: AdminAnalytics }) {
+  const { waiverEff, benchPatterns } = analytics;
+
+  function gradeColor(grade: string) {
+    if (grade === 'elite') return 'bg-emerald-100 text-emerald-800';
+    if (grade === 'good') return 'bg-green-100 text-green-700';
+    if (grade === 'average') return 'bg-yellow-100 text-yellow-700';
+    return 'bg-red-100 text-red-700';
+  }
+
+  return (
+    <div className="space-y-8">
+      <section>
+        <h3 className="font-semibold text-gray-700 mb-1">🎯 Waiver Wire Effectiveness</h3>
+        <p className="text-xs text-gray-400 mb-4">Avg pts/week from players added off waivers (active lineup slots only, finalized weeks).</p>
+        {waiverEff.length === 0 ? (
+          <p className="text-sm text-gray-400 italic">No waiver add data yet — need ≥1 week of player scoring.</p>
+        ) : (
+          <div className="space-y-3">
+            {waiverEff.map((entry: WaiverEffEntry, i: number) => (
+              <div key={i} className="rounded-xl border border-gray-200 bg-white p-4">
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <div>
+                    <span className="font-semibold text-gray-900">{entry.teamName}</span>
+                    <span className="ml-2 text-xs text-gray-400">{entry.recentAdds.length} add{entry.recentAdds.length !== 1 ? 's' : ''} tracked</span>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className="text-sm font-bold text-gray-700 tabular-nums">{entry.avgAddValue.toFixed(1)} avg pts/wk</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${gradeColor(entry.grade)}`}>
+                      {entry.grade.charAt(0).toUpperCase() + entry.grade.slice(1)}
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  {entry.recentAdds.map((add, j: number) => (
+                    <div key={j} className="flex items-center gap-2 text-xs">
+                      <span className="text-gray-600 flex-1 truncate">{add.playerName}</span>
+                      <span className="text-gray-400">{add.weeksActive} wk{add.weeksActive !== 1 ? 's' : ''}</span>
+                      <span className={`font-semibold tabular-nums ${add.avgPtsPerWeek >= 30 ? 'text-emerald-600' : add.avgPtsPerWeek >= 15 ? 'text-green-600' : add.avgPtsPerWeek < 8 ? 'text-red-500' : 'text-gray-600'}`}>
+                        {add.avgPtsPerWeek.toFixed(1)}/wk
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section>
+        <h3 className="font-semibold text-gray-700 mb-1">💺 Bench Patterns — Points Left on the Table</h3>
+        <p className="text-xs text-gray-400 mb-4">Average bench points per week across all completed weeks.</p>
+        {benchPatterns.length === 0 ? (
+          <p className="text-sm text-gray-400 italic">No bench data yet.</p>
+        ) : (
+          <div className="overflow-x-auto rounded-xl border border-gray-200">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-200">
+                  <th className="text-left px-4 py-3 font-semibold text-gray-700">Rank</th>
+                  <th className="text-left px-4 py-3 font-semibold text-gray-700">Team</th>
+                  <th className="text-right px-3 py-3 font-semibold text-gray-700">Avg bench/wk</th>
+                  <th className="text-right px-3 py-3 font-semibold text-gray-700">Total bench pts</th>
+                  <th className="text-right px-3 py-3 font-semibold text-gray-700">Best week</th>
+                  <th className="text-right px-3 py-3 font-semibold text-gray-700">Wks tracked</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {benchPatterns.map(bp => (
+                  <tr key={bp.teamId} className={`hover:bg-gray-50 ${bp.leagueRank === 1 ? 'bg-amber-50' : ''}`}>
+                    <td className="px-4 py-3 font-mono text-gray-500">#{bp.leagueRank}</td>
+                    <td className="px-4 py-3 font-medium text-gray-900">{bp.teamName}</td>
+                    <td className={`px-3 py-3 text-right font-mono font-semibold ${bp.leagueRank === 1 ? 'text-amber-600' : 'text-gray-700'}`}>
+                      {bp.avgBenchPerWeek.toFixed(1)}
+                    </td>
+                    <td className="px-3 py-3 text-right font-mono text-gray-600">{bp.totalBenchPts.toFixed(0)}</td>
+                    <td className="px-3 py-3 text-right text-xs text-gray-500">
+                      {bp.bestBenchWeek ? `${bp.bestBenchWeek.pts.toFixed(0)} pts (W${bp.bestBenchWeek.week})` : '—'}
+                    </td>
+                    <td className="px-3 py-3 text-right text-gray-500">{bp.weeksTracked}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+// ── Previews tab ──────────────────────────────────────────────────────────────
+
+function PreviewsTab({ analytics }: { analytics: AdminAnalytics }) {
+  const { currentWeekPreviews, currentWeek, scheduleLuck, teamStreaks } = analytics;
+
+  function h2hLabel(homeWins: number, awayWins: number, homeName: string, awayName: string) {
+    const total = homeWins + awayWins;
+    if (total === 0) return 'First meeting all-time';
+    if (homeWins === awayWins) return `${total} meetings all-time — dead even`;
+    const leader = homeWins > awayWins ? homeName : awayName;
+    const wins = homeWins > awayWins ? homeWins : awayWins;
+    const losses = homeWins > awayWins ? awayWins : homeWins;
+    return `${leader} leads all-time ${wins}-${losses}`;
+  }
+
+  return (
+    <div className="space-y-8">
+      <section>
+        <h3 className="font-semibold text-gray-700 mb-1">👀 Week {currentWeek} Matchup Previews</h3>
+        <p className="text-xs text-gray-400 mb-4">Current scores + all-time H2H records + context. Scores lag ESPN by ~24h (batch processed).</p>
+        {currentWeekPreviews.length === 0 ? (
+          <p className="text-sm text-gray-400 italic">No current week matchup data available.</p>
+        ) : (
+          <div className="space-y-4">
+            {[...currentWeekPreviews].sort((a, b) => b.margin - a.margin).map((prev, i) => {
+              const homeLeading = prev.leaderId === prev.homeTeamId;
+              const homeStreak = teamStreaks.find(s => s.teamId === prev.homeTeamId);
+              const awayStreak = teamStreaks.find(s => s.teamId === prev.awayTeamId);
+              const homeLuck = scheduleLuck.find(s => s.teamId === prev.homeTeamId);
+              const awayLuck = scheduleLuck.find(s => s.teamId === prev.awayTeamId);
+
+              return (
+                <div key={i} className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+                  <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
+                    <div className="flex flex-col flex-1 min-w-0">
+                      <span className={`font-bold text-sm truncate ${homeLeading ? 'text-teal-700' : 'text-gray-500'}`}>
+                        {homeLeading ? '▲ ' : ''}{prev.homeTeamName}
+                      </span>
+                      <span className={`text-2xl font-bold tabular-nums ${homeLeading ? 'text-teal-700' : 'text-gray-400'}`}>
+                        {prev.homePoints.toFixed(1)}
+                      </span>
+                    </div>
+                    <div className="flex flex-col items-center flex-shrink-0 px-4 text-center">
+                      <span className="text-xs text-gray-400">vs</span>
+                      {prev.isInProgress
+                        ? <span className="text-[10px] bg-sky-100 text-sky-700 rounded-full px-2 py-0.5 font-semibold mt-0.5">LIVE</span>
+                        : <span className="text-[10px] bg-gray-100 text-gray-500 rounded-full px-2 py-0.5 mt-0.5">Final</span>
+                      }
+                      <span className="text-xs font-semibold text-gray-500 mt-1">Margin: {prev.margin.toFixed(1)}</span>
+                    </div>
+                    <div className="flex flex-col flex-1 min-w-0 items-end">
+                      <span className={`font-bold text-sm truncate ${!homeLeading ? 'text-teal-700' : 'text-gray-500'}`}>
+                        {!homeLeading ? '▲ ' : ''}{prev.awayTeamName}
+                      </span>
+                      <span className={`text-2xl font-bold tabular-nums ${!homeLeading ? 'text-teal-700' : 'text-gray-400'}`}>
+                        {prev.awayPoints.toFixed(1)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="px-4 py-2 flex flex-wrap gap-2 text-xs">
+                    <span className="bg-indigo-50 text-indigo-700 px-2 py-1 rounded-lg font-medium">
+                      {h2hLabel(prev.h2hAllTimeHomeWins, prev.h2hAllTimeAwayWins, prev.homeTeamName, prev.awayTeamName)}
+                    </span>
+                    {homeStreak && homeStreak.streakLength >= 2 && (
+                      <span className={`px-2 py-1 rounded-lg font-medium ${homeStreak.streakType === 'W' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
+                        {prev.homeTeamName.split(' ').pop()} {homeStreak.streakLength}-{homeStreak.streakType} streak
+                      </span>
+                    )}
+                    {awayStreak && awayStreak.streakLength >= 2 && (
+                      <span className={`px-2 py-1 rounded-lg font-medium ${awayStreak.streakType === 'W' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
+                        {prev.awayTeamName.split(' ').pop()} {awayStreak.streakLength}-{awayStreak.streakType} streak
+                      </span>
+                    )}
+                    {homeLuck && Math.abs(homeLuck.luckDelta) >= 2 && (
+                      <span className={`px-2 py-1 rounded-lg font-medium ${homeLuck.luckDelta < 0 ? 'bg-sky-50 text-sky-700' : 'bg-amber-50 text-amber-600'}`}>
+                        {prev.homeTeamName.split(' ').pop()} {homeLuck.luckDelta > 0 ? '+' : ''}{homeLuck.luckDelta} luck
+                      </span>
+                    )}
+                    {awayLuck && Math.abs(awayLuck.luckDelta) >= 2 && (
+                      <span className={`px-2 py-1 rounded-lg font-medium ${awayLuck.luckDelta < 0 ? 'bg-sky-50 text-sky-700' : 'bg-amber-50 text-amber-600'}`}>
+                        {prev.awayTeamName.split(' ').pop()} {awayLuck.luckDelta > 0 ? '+' : ''}{awayLuck.luckDelta} luck
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      <section>
+        <h3 className="font-semibold text-gray-700 mb-1">🍀 Schedule Luck — Actual vs Expected W-L</h3>
+        <p className="text-xs text-gray-400 mb-4">Expected wins if each team played the league median each week. Negative luck delta = unlucky.</p>
+        {scheduleLuck.length === 0 ? (
+          <p className="text-sm text-gray-400 italic">Not enough completed weeks yet.</p>
+        ) : (
+          <div className="overflow-x-auto rounded-xl border border-gray-200">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-200">
+                  <th className="text-left px-4 py-3 font-semibold text-gray-700">Team</th>
+                  <th className="text-center px-3 py-3 font-semibold text-gray-700">Actual W-L</th>
+                  <th className="text-center px-3 py-3 font-semibold text-gray-700">Expected W-L</th>
+                  <th className="text-center px-3 py-3 font-semibold text-gray-700">Luck Δ</th>
+                  <th className="text-center px-3 py-3 font-semibold text-gray-700">PF Rank</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {scheduleLuck.map(entry => {
+                  const luckColor = entry.luckDelta <= -2 ? 'text-sky-600 font-bold' : entry.luckDelta >= 2 ? 'text-amber-600 font-bold' : 'text-gray-700';
+                  const luckEmoji = entry.luckDelta <= -2 ? '😤' : entry.luckDelta >= 2 ? '🎲' : '';
+                  return (
+                    <tr key={entry.teamId} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 font-medium text-gray-900">{entry.teamName}</td>
+                      <td className="px-3 py-3 text-center font-mono">{entry.actualWins}-{entry.actualLosses}</td>
+                      <td className="px-3 py-3 text-center font-mono text-gray-500">{entry.expectedWins}-{entry.expectedLosses}</td>
+                      <td className={`px-3 py-3 text-center font-mono ${luckColor}`}>
+                        {entry.luckDelta > 0 ? '+' : ''}{entry.luckDelta} {luckEmoji}
+                      </td>
+                      <td className="px-3 py-3 text-center text-gray-500">#{entry.pointsForRank}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <section>
+        <h3 className="font-semibold text-gray-700 mb-3">🔥 Current Streaks</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          {[...teamStreaks].sort((a, b) => b.streakLength - a.streakLength).map((s, i) => (
+            <div key={i} className={`rounded-xl border-2 p-3 text-center ${s.streakType === 'W' ? 'border-green-300 bg-green-50' : 'border-red-200 bg-red-50'}`}>
+              <div className={`text-2xl font-bold ${s.streakType === 'W' ? 'text-green-700' : 'text-red-500'}`}>
+                {s.streakType === 'W' ? '🔥' : '❄️'} {s.streakLength}
+              </div>
+              <div className="text-xs font-semibold text-gray-700 mt-1 truncate">{s.teamName.split(' ').slice(-1)[0]}</div>
+              <div className={`text-xs mt-0.5 ${s.streakType === 'W' ? 'text-green-600' : 'text-red-400'}`}>
+                {s.streakLength}-game {s.streakType === 'W' ? 'win' : 'loss'} streak
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
 // ── Main Dashboard ────────────────────────────────────────────────────────────
 
 export default function AdminDashboardClient({ analytics, adminNotes, weeklyScores }: Props) {
@@ -1059,6 +1422,53 @@ export default function AdminDashboardClient({ analytics, adminNotes, weeklyScor
       }
     }
 
+    // Team streaks
+    for (const s of analytics.teamStreaks.filter(s => s.streakLength >= 2)) {
+      b(`${s.teamName}: ${s.streakLength}-game ${s.streakType === 'W' ? 'win' : 'loss'} streak`);
+    }
+
+    // Schedule luck
+    for (const entry of analytics.scheduleLuck) {
+      if (Math.abs(entry.luckDelta) >= 2) {
+        b(`${entry.teamName}: ${entry.actualWins}-${entry.actualLosses} actual vs ${entry.expectedWins}-${entry.expectedLosses} expected (luck delta ${entry.luckDelta > 0 ? '+' : ''}${entry.luckDelta}; PF rank #${entry.pointsForRank})`);
+      }
+    }
+
+    // Current week previews
+    for (const prev of analytics.currentWeekPreviews) {
+      if (prev.isInProgress) {
+        const h2hDesc = prev.h2hAllTimeMeetings > 0
+          ? ` — H2H all-time: ${prev.homeTeamName} ${prev.h2hAllTimeHomeWins}-${prev.h2hAllTimeAwayWins} ${prev.awayTeamName}`
+          : ' — First meeting all-time';
+        b(`Week ${week} in progress: ${prev.homeTeamName} ${prev.homePoints.toFixed(1)} vs ${prev.awayTeamName} ${prev.awayPoints.toFixed(1)} (margin: ${prev.margin.toFixed(1)})${h2hDesc}`);
+      }
+    }
+
+    // Player outliers
+    for (const o of analytics.playerOutliers.slice(0, 8)) {
+      if (o.hotStreak !== null) b(`${o.playerName} (${o.teamName}): ${o.hotStreak}-week hot streak, scoring ${o.hotStreakThreshold}+ pts each week`);
+      else if (o.isSeasonHigh) b(`${o.playerName} (${o.teamName}): season-best week — ${o.thisWeekPts.toFixed(1)} pts in Week ${analytics.priorWeek}`);
+    }
+
+    // Waiver wire
+    for (const entry of analytics.waiverEff) {
+      if (entry.recentAdds.length > 0) {
+        b(`${entry.teamName} waiver wire: avg ${entry.avgAddValue.toFixed(1)} pts/wk from ${entry.recentAdds.length} adds (grade: ${entry.grade}) — best: ${entry.topAddName} at ${entry.topAddAvg.toFixed(1)}/wk`);
+      }
+    }
+
+    // Bench patterns
+    for (const bp of analytics.benchPatterns.slice(0, 5)) {
+      b(`${bp.teamName}: avg ${bp.avgBenchPerWeek.toFixed(1)} bench pts/wk (rank #${bp.leagueRank})`);
+    }
+
+    // Category profiles
+    for (const profile of analytics.categoryProfiles) {
+      if (profile.identityLabel !== 'Balanced') {
+        b(`${profile.teamName} team identity: ${profile.identityLabel}${profile.distinctiveStat ? ` (${profile.distinctiveStat})` : ''}${profile.strengths.length > 0 ? ` — strong: ${profile.strengths.map(s => s.label).join(', ')}` : ''}${profile.weaknesses.length > 0 ? ` — weak: ${profile.weaknesses.map(w => w.label).join(', ')}` : ''}`);
+      }
+    }
+
     return bullets.join('\n');
   }
 
@@ -1069,6 +1479,8 @@ export default function AdminDashboardClient({ analytics, adminNotes, weeklyScor
     { id: 'positions', label: 'Positions (EROSP)' },
     { id: 'units', label: 'Units (Actual)' },
     { id: 'moves', label: 'Moves' },
+    { id: 'manager', label: '🎯 Manager' },
+    { id: 'previews', label: '👀 Previews' },
     { id: 'week', label: '📅 Week Detail' },
     { id: 'categories', label: '📈 Categories' },
     { id: 'storylines', label: 'Storylines' },
@@ -1135,6 +1547,8 @@ export default function AdminDashboardClient({ analytics, adminNotes, weeklyScor
         {activeTab === 'positions' && <PositionsTab analytics={analytics} />}
         {activeTab === 'units' && <UnitsTab analytics={analytics} />}
         {activeTab === 'moves' && <MovesTab analytics={analytics} />}
+        {activeTab === 'manager' && <ManagerTab analytics={analytics} />}
+        {activeTab === 'previews' && <PreviewsTab analytics={analytics} />}
         {activeTab === 'week' && <WeekDetailTab analytics={analytics} weeklyScores={weeklyScores} />}
         {activeTab === 'categories' && <CategoriesTab analytics={analytics} />}
         {activeTab === 'storylines' && <StorylinesTab analytics={analytics} />}

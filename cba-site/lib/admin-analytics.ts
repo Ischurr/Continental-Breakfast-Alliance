@@ -169,7 +169,7 @@ export interface RosterMoveSignal {
 
 export interface StorylineBullet {
   priority: number;
-  category: 'trend' | 'player_over' | 'player_under' | 'position' | 'roster' | 'injury' | 'season_stats';
+  category: 'trend' | 'player_over' | 'player_under' | 'position' | 'roster' | 'injury' | 'season_stats' | 'streak' | 'luck' | 'player_milestone' | 'manager' | 'preview';
   emoji: string;
   headline: string;
   detail?: string;
@@ -334,6 +334,14 @@ export interface AdminAnalytics {
   seasonCatStats: TeamSeasonStats | null;
   allWeekMatchups: Record<number, PriorWeekMatchupResult[]>;
   teamActivityStats: TeamActivityStat[];
+  teamStreaks: TeamStreak[];
+  scheduleLuck: ScheduleLuckEntry[];
+  playerOutliers: PlayerOutlierSignal[];
+  waiverEff: WaiverEffEntry[];
+  benchPatterns: BenchPattern[];
+  categoryProfiles: TeamCategoryProfile[];
+  currentWeekPreviews: CurrentWeekPreview[];
+  storylineCheckIns: StorylineCheckIn[];
 }
 
 export interface TeamActivityStat {
@@ -343,6 +351,98 @@ export interface TeamActivityStat {
   drops: number;
   trades: number;
   totalMoves: number;
+}
+
+export interface TeamStreak {
+  teamId: number;
+  teamName: string;
+  streakType: 'W' | 'L';
+  streakLength: number;
+}
+
+export interface ScheduleLuckEntry {
+  teamId: number;
+  teamName: string;
+  actualWins: number;
+  actualLosses: number;
+  expectedWins: number;
+  expectedLosses: number;
+  luckDelta: number;
+  pointsForRank: number;
+}
+
+export interface PlayerOutlierSignal {
+  playerName: string;
+  teamId: number;
+  teamName: string;
+  position: string;
+  thisWeekPts: number;
+  seasonHigh: number;
+  seasonHighWeek: number;
+  seasonLow: number;
+  seasonLowWeek: number;
+  isSeasonHigh: boolean;
+  isSeasonLow: boolean;
+  hotStreak: number | null;
+  hotStreakThreshold: number;
+  weeksPlayed: number;
+}
+
+export interface WaiverEffEntry {
+  teamId: number;
+  teamName: string;
+  recentAdds: { playerName: string; erospRaw: number; avgPtsPerWeek: number; weeksActive: number }[];
+  avgAddValue: number;
+  topAddName: string;
+  topAddAvg: number;
+  grade: 'elite' | 'good' | 'average' | 'poor';
+}
+
+export interface BenchPattern {
+  teamId: number;
+  teamName: string;
+  avgBenchPerWeek: number;
+  totalBenchPts: number;
+  weeksTracked: number;
+  bestBenchWeek: { week: number; pts: number } | null;
+  leagueRank: number;
+}
+
+export interface TeamCategoryProfile {
+  teamId: number;
+  teamName: string;
+  identityLabel: string;
+  strengths: { label: string; rank: number }[];
+  weaknesses: { label: string; rank: number }[];
+  distinctiveStat: string;
+}
+
+export interface CurrentWeekPreview {
+  homeTeamId: number;
+  homeTeamName: string;
+  homePoints: number;
+  awayTeamId: number;
+  awayTeamName: string;
+  awayPoints: number;
+  margin: number;
+  leaderId: number;
+  leaderName: string;
+  trailerId: number;
+  trailerName: string;
+  h2hAllTimeHomeWins: number;
+  h2hAllTimeAwayWins: number;
+  h2hAllTimeMeetings: number;
+  isInProgress: boolean;
+}
+
+export interface StorylineCheckIn {
+  name: string;
+  type: 'player' | 'team';
+  lastClaim: string;
+  claimDate: string;
+  currentSignal: string;
+  verdict: 'on_track' | 'reversed' | 'mixed' | 'unknown';
+  verdictLabel: string;
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -758,6 +858,45 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
     };
   });
 
+  // ── TEAM STREAKS ──────────────────────────────────────────────────────────────
+
+  const teamStreaks: TeamStreak[] = teamIds.flatMap(teamId => {
+    const results: { week: number; won: boolean }[] = [];
+    for (const wk of [...finalizedWeeks].sort((a, b) => a - b)) {
+      const mu = matchups.find(m => m.week === wk && (m.home.teamId === teamId || m.away.teamId === teamId));
+      if (mu) results.push({ week: wk, won: mu.winner === teamId });
+    }
+    if (results.length === 0) return [];
+    const last = results[results.length - 1];
+    const streakType: 'W' | 'L' = last.won ? 'W' : 'L';
+    let streakLength = 0;
+    for (let i = results.length - 1; i >= 0; i--) {
+      if (results[i].won === last.won) streakLength++;
+      else break;
+    }
+    return [{ teamId, teamName: teamDisplayName(teamId, teamMetadata), streakType, streakLength }];
+  });
+
+  // ── SCHEDULE LUCK ─────────────────────────────────────────────────────────────
+
+  const sortedByPtsFor = [...standings].sort((a, b) => b.pointsFor - a.pointsFor);
+  const scheduleLuck: ScheduleLuckEntry[] = teamIds.map(teamId => {
+    const s = standings.find(st => st.teamId === teamId)!;
+    const expW = xWins.get(teamId) ?? 0;
+    const expL = xLosses.get(teamId) ?? 0;
+    const ptsRank = sortedByPtsFor.findIndex(x => x.teamId === teamId) + 1;
+    return {
+      teamId,
+      teamName: teamDisplayName(teamId, teamMetadata),
+      actualWins: s.wins,
+      actualLosses: s.losses,
+      expectedWins: expW,
+      expectedLosses: expL,
+      luckDelta: s.wins - expW,
+      pointsForRank: ptsRank,
+    };
+  }).sort((a, b) => a.luckDelta - b.luckDelta);
+
   // ── PLAYER SIGNALS ────────────────────────────────────────────────────────────
 
   // Build name → EROSP player map
@@ -841,6 +980,79 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
 
   // Sort by priority
   playerSignals.sort((a, b) => b.priorityScore - a.priorityScore);
+
+  // ── PLAYER OUTLIERS ───────────────────────────────────────────────────────────
+
+  const playerOutliers: PlayerOutlierSignal[] = [];
+
+  if (weeklyScores && Object.keys(weeklyScores.weeks).length > 0) {
+    const HOT_THRESHOLD = 30;
+    const playerHistMap: Map<string, { week: number; pts: number; teamId: number; position: string }[]> = new Map();
+
+    for (const [wkStr, wkTeams] of Object.entries(weeklyScores.weeks)) {
+      const wkNum = Number(wkStr);
+      if (!finalizedWeeks.includes(wkNum)) continue;
+      for (const tb of wkTeams) {
+        for (const p of tb.players) {
+          if (p.activeDays === 0) continue;
+          if (!playerHistMap.has(p.playerName)) playerHistMap.set(p.playerName, []);
+          playerHistMap.get(p.playerName)!.push({ week: wkNum, pts: p.activePoints, teamId: tb.teamId, position: p.position });
+        }
+      }
+    }
+
+    for (const [playerName, history] of playerHistMap.entries()) {
+      if (history.length < 2) continue;
+      const sorted = [...history].sort((a, b) => a.week - b.week);
+      const lastEntry = sorted.find(h => h.week === priorWeek);
+      if (!lastEntry) continue;
+
+      const thisWeekPts = lastEntry.pts;
+      const allPts = sorted.map(h => h.pts);
+      const seasonHigh = Math.max(...allPts);
+      const seasonLow = Math.min(...allPts);
+      const seasonHighEntry = sorted.find(h => h.pts === seasonHigh)!;
+      const seasonLowEntry = sorted.find(h => h.pts === seasonLow)!;
+
+      const isSeasonHigh = thisWeekPts >= seasonHigh && sorted.length >= 3 && thisWeekPts >= 30;
+      const isSeasonLow = thisWeekPts <= seasonLow && sorted.length >= 3 && thisWeekPts < 10;
+
+      let hotStreak: number | null = null;
+      if (sorted.length >= 3) {
+        let streak = 0;
+        for (let i = sorted.length - 1; i >= 0; i--) {
+          if (sorted[i].pts >= HOT_THRESHOLD) streak++;
+          else break;
+        }
+        if (streak >= 3) hotStreak = streak;
+      }
+
+      if (isSeasonHigh || isSeasonLow || hotStreak !== null) {
+        playerOutliers.push({
+          playerName,
+          teamId: lastEntry.teamId,
+          teamName: teamDisplayName(lastEntry.teamId, teamMetadata),
+          position: lastEntry.position,
+          thisWeekPts,
+          seasonHigh,
+          seasonHighWeek: seasonHighEntry.week,
+          seasonLow,
+          seasonLowWeek: seasonLowEntry.week,
+          isSeasonHigh,
+          isSeasonLow,
+          hotStreak,
+          hotStreakThreshold: HOT_THRESHOLD,
+          weeksPlayed: sorted.length,
+        });
+      }
+    }
+
+    playerOutliers.sort((a, b) => {
+      const scoreA = (a.hotStreak ?? 0) * 100 + (a.isSeasonHigh ? 50 : 0) + (a.isSeasonLow ? 30 : 0);
+      const scoreB = (b.hotStreak ?? 0) * 100 + (b.isSeasonHigh ? 50 : 0) + (b.isSeasonLow ? 30 : 0);
+      return scoreB - scoreA;
+    });
+  }
 
   // ── POSITION GROUPS ───────────────────────────────────────────────────────────
 
@@ -1007,6 +1219,103 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
     rosterMoves.sort((a, b) => b.erospRaw - a.erospRaw);
   }
 
+  // ── WAIVER WIRE EFFECTIVENESS ─────────────────────────────────────────────────
+
+  const waiverEff: WaiverEffEntry[] = [];
+
+  if (weeklyScores && rosters && rosters.length > 0) {
+    const playerWeeklyAvg: Map<string, { total: number; weeks: number }> = new Map();
+    for (const [wkStr, wkTeams] of Object.entries(weeklyScores.weeks)) {
+      const wkNum = Number(wkStr);
+      if (!finalizedWeeks.includes(wkNum)) continue;
+      for (const tb of wkTeams) {
+        for (const p of tb.players) {
+          if (p.activeDays === 0) continue;
+          if (!playerWeeklyAvg.has(p.playerName)) playerWeeklyAvg.set(p.playerName, { total: 0, weeks: 0 });
+          const entry = playerWeeklyAvg.get(p.playerName)!;
+          entry.total += p.activePoints;
+          entry.weeks++;
+        }
+      }
+    }
+
+    for (const roster of rosters) {
+      const { teamId, players } = roster;
+      const addedPlayers = players.filter(p => p.acquisitionType === 'ADD');
+      if (addedPlayers.length === 0) continue;
+
+      const addStats = addedPlayers
+        .map(p => {
+          const hist = playerWeeklyAvg.get(p.playerName);
+          const ep = erospByNormName[normalizeName(p.playerName)];
+          return {
+            playerName: p.playerName,
+            erospRaw: ep?.erosp_raw ?? 0,
+            avgPtsPerWeek: hist && hist.weeks > 0 ? hist.total / hist.weeks : 0,
+            weeksActive: hist?.weeks ?? 0,
+          };
+        })
+        .filter(a => a.weeksActive >= 1)
+        .sort((a, b) => b.avgPtsPerWeek - a.avgPtsPerWeek);
+
+      if (addStats.length === 0) continue;
+
+      const avgAddVal = addStats.reduce((s, a) => s + a.avgPtsPerWeek, 0) / addStats.length;
+      const topAdd = addStats[0];
+      const grade: WaiverEffEntry['grade'] =
+        avgAddVal >= 35 ? 'elite' : avgAddVal >= 22 ? 'good' : avgAddVal >= 12 ? 'average' : 'poor';
+
+      waiverEff.push({
+        teamId,
+        teamName: teamDisplayName(teamId, teamMetadata),
+        recentAdds: addStats.slice(0, 6),
+        avgAddValue: avgAddVal,
+        topAddName: topAdd.playerName,
+        topAddAvg: topAdd.avgPtsPerWeek,
+        grade,
+      });
+    }
+    waiverEff.sort((a, b) => b.avgAddValue - a.avgAddValue);
+  }
+
+  // ── BENCH PATTERNS ────────────────────────────────────────────────────────────
+
+  const benchPatterns: BenchPattern[] = [];
+
+  if (weeklyScores && Object.keys(weeklyScores.weeks).length > 0) {
+    const benchByTeam: Record<number, { total: number; weeks: { week: number; pts: number }[] }> = {};
+
+    for (const [wkStr, wkTeams] of Object.entries(weeklyScores.weeks)) {
+      const wkNum = Number(wkStr);
+      if (!finalizedWeeks.includes(wkNum)) continue;
+      for (const tb of wkTeams) {
+        if (!benchByTeam[tb.teamId]) benchByTeam[tb.teamId] = { total: 0, weeks: [] };
+        benchByTeam[tb.teamId].total += tb.benchTotal;
+        benchByTeam[tb.teamId].weeks.push({ week: wkNum, pts: tb.benchTotal });
+      }
+    }
+
+    for (const teamId of teamIds) {
+      const data = benchByTeam[teamId];
+      if (!data || data.weeks.length === 0) continue;
+      const weeksTracked = data.weeks.length;
+      const avgBench = data.total / weeksTracked;
+      const bestBenchWeek = data.weeks.reduce((a, b) => (b.pts > a.pts ? b : a));
+      benchPatterns.push({
+        teamId,
+        teamName: teamDisplayName(teamId, teamMetadata),
+        avgBenchPerWeek: avgBench,
+        totalBenchPts: data.total,
+        weeksTracked,
+        bestBenchWeek,
+        leagueRank: 0,
+      });
+    }
+
+    benchPatterns.sort((a, b) => b.avgBenchPerWeek - a.avgBenchPerWeek);
+    benchPatterns.forEach((bp, i) => { bp.leagueRank = i + 1; });
+  }
+
   // ── RANKINGS THEMES ───────────────────────────────────────────────────────────
 
   const rankingsThemes: RankingsTheme[] = [];
@@ -1083,6 +1392,81 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
     }
 
     rankingsThemes.sort((a, b) => b.mentionCount - a.mentionCount || b.lastSeen.localeCompare(a.lastSeen));
+  }
+
+  // ── STORYLINE CHECK-INS ───────────────────────────────────────────────────────
+
+  const storylineCheckIns: StorylineCheckIn[] = [];
+
+  if (rankingsArticles.length >= 2) {
+    const sortedArticlesForCheckIn = [...rankingsArticles].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+    const articleToCheck = sortedArticlesForCheckIn[1];
+
+    if (articleToCheck) {
+      const checkDate = articleToCheck.createdAt;
+      const positiveWords = ['hot', 'rising', 'strong', 'dominating', 'surging', 'rolling', 'elite', 'top', 'leading', 'best', 'fire', 'dominant'];
+      const negativeWords = ['struggling', 'falling', 'cold', 'underperforming', 'slumping', 'worst', 'bottom', 'concerning', 'weak', 'limping', 'slide'];
+
+      for (const theme of rankingsThemes.filter(t => t.currentStatus === 'continuing')) {
+        const snippet = theme.snippets.find(s => s.date === checkDate) ?? theme.snippets[0];
+        if (!snippet) continue;
+
+        const snippetLower = snippet.text.toLowerCase();
+        const wasPositive = positiveWords.some(w => snippetLower.includes(w));
+        const wasNegative = negativeWords.some(w => snippetLower.includes(w));
+
+        let currentSignal = '';
+        let verdict: StorylineCheckIn['verdict'] = 'unknown';
+        let verdictLabel = 'No clear signal';
+
+        if (theme.type === 'team') {
+          const teamTrend = teamTrends.find(t => normalizeName(t.teamName) === normalizeName(theme.name));
+          if (teamTrend) {
+            const streak = teamStreaks.find(s => s.teamId === teamTrend.teamId);
+            const streakNote = streak && streak.streakLength >= 2 ? ` · ${streak.streakLength}-game ${streak.streakType} streak` : '';
+            currentSignal = `${teamTrend.record} · Trend: ${teamTrend.trendDirection} · vs EROSP: ${teamTrend.vsErospPacePct >= 0 ? '+' : ''}${Math.round(teamTrend.vsErospPacePct)}%${streakNote}`;
+            const isCurrentlyPositive = teamTrend.trendDirection === 'rising' || teamTrend.vsErospPacePct > 10;
+            const isCurrentlyNegative = teamTrend.trendDirection === 'falling' || teamTrend.vsErospPacePct < -10;
+
+            if (wasPositive && isCurrentlyPositive) { verdict = 'on_track'; verdictLabel = 'Still hot — confirmed'; }
+            else if (wasPositive && isCurrentlyNegative) { verdict = 'reversed'; verdictLabel = 'Cooled off — reversed'; }
+            else if (wasNegative && isCurrentlyNegative) { verdict = 'on_track'; verdictLabel = 'Still struggling — confirmed'; }
+            else if (wasNegative && isCurrentlyPositive) { verdict = 'reversed'; verdictLabel = 'Bounced back — reversed'; }
+            else { verdict = 'mixed'; verdictLabel = 'Mixed signals'; }
+          }
+        } else {
+          const playerSig = playerSignals.find(s => normalizeName(s.playerName) === normalizeName(theme.name));
+          const outlier = playerOutliers.find(o => normalizeName(o.playerName) === normalizeName(theme.name));
+          if (playerSig || outlier) {
+            const isCurrentlyPositive = playerSig?.signalType === 'overperforming' || (outlier?.hotStreak != null && outlier.hotStreak >= 2);
+            const isCurrentlyNegative = playerSig?.signalType === 'underperforming' || playerSig?.signalType === 'injury_watch';
+            currentSignal = playerSig
+              ? `${playerSig.totalPoints.toFixed(1)} pts vs ${playerSig.erospPace.toFixed(1)} pace (${playerSig.signalType.replace('_', ' ')})`
+              : `${outlier!.hotStreak} consecutive strong weeks`;
+
+            if (wasPositive && isCurrentlyPositive) { verdict = 'on_track'; verdictLabel = 'Keeping it up — confirmed'; }
+            else if (wasPositive && isCurrentlyNegative) { verdict = 'reversed'; verdictLabel = 'Slumped — reversed'; }
+            else if (wasNegative && isCurrentlyNegative) { verdict = 'on_track'; verdictLabel = 'Still cold — confirmed'; }
+            else if (wasNegative && isCurrentlyPositive) { verdict = 'reversed'; verdictLabel = 'Bounced back — reversed'; }
+            else { verdict = 'mixed'; verdictLabel = 'Mixed signals'; }
+          }
+        }
+
+        if (currentSignal) {
+          storylineCheckIns.push({
+            name: theme.name,
+            type: theme.type,
+            lastClaim: snippet.text.slice(0, 220),
+            claimDate: checkDate,
+            currentSignal,
+            verdict,
+            verdictLabel,
+          });
+        }
+      }
+    }
   }
 
   // ── SEASON STATS ──────────────────────────────────────────────────────────────
@@ -1215,6 +1599,131 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
     for (const c of SEASON_HITTER_CATS) categories.push(buildSeasonCat(c.catId, c.label, 'hitter', c.higherIsBetter));
     for (const c of SEASON_PITCHER_CATS) categories.push(buildSeasonCat(c.catId, c.label, 'pitcher', c.higherIsBetter));
     seasonCatStats = { categories };
+  }
+
+  // ── TEAM CATEGORY PROFILES ────────────────────────────────────────────────────
+
+  const categoryProfiles: TeamCategoryProfile[] = [];
+
+  if (seasonCatStats && seasonCatStats.categories.length >= 4) {
+    for (const teamId of teamIds) {
+      const ranks: { label: string; rank: number; higherIsBetter: boolean }[] = [];
+      for (const cat of seasonCatStats.categories) {
+        const entry = cat.teams.find(t => t.teamId === teamId);
+        if (!entry || entry.value === 0) continue;
+        ranks.push({ label: cat.label, rank: entry.rank, higherIsBetter: cat.higherIsBetter });
+      }
+      if (ranks.length < 3) continue;
+
+      const nTeams = teamIds.length;
+      const strengths = ranks
+        .filter(r => r.higherIsBetter && r.rank <= Math.ceil(nTeams * 0.35))
+        .sort((a, b) => a.rank - b.rank)
+        .slice(0, 3)
+        .map(r => ({ label: r.label, rank: r.rank }));
+
+      const weaknesses = ranks
+        .filter(r => r.higherIsBetter && r.rank >= Math.floor(nTeams * 0.65))
+        .sort((a, b) => b.rank - a.rank)
+        .slice(0, 3)
+        .map(r => ({ label: r.label, rank: r.rank }));
+
+      const strengthLabels = strengths.map(s => s.label);
+      let identityLabel = 'Balanced';
+      if (strengthLabels.some(l => l === 'TB') && strengthLabels.some(l => l === 'RBI')) identityLabel = 'Power & Production';
+      else if (strengthLabels.some(l => l === 'SB') && strengthLabels.some(l => l === 'R')) identityLabel = 'Speed & Table-setters';
+      else if (strengthLabels.some(l => l === 'K') && strengthLabels.some(l => l === 'QS')) identityLabel = 'Pitching-dominant';
+      else if (strengthLabels.some(l => l === 'SV') && strengthLabels.some(l => l === 'HD')) identityLabel = 'Bullpen specialists';
+      else if (strengthLabels.some(l => l === 'K') && strengthLabels.some(l => l === 'IP')) identityLabel = 'Deep rotation';
+      else if (strengthLabels.some(l => l === 'TB') || strengthLabels.some(l => l === 'RBI')) identityLabel = 'Power offense';
+      else if (strengthLabels.some(l => l === 'SB')) identityLabel = 'Speed-first';
+      else if (strengthLabels.some(l => l === 'H')) identityLabel = 'Contact hitters';
+      else if (strengthLabels.some(l => l === 'K')) identityLabel = 'Strikeout arms';
+      else if (strengthLabels.some(l => l === 'QS') || strengthLabels.some(l => l === 'IP')) identityLabel = 'Rotation-reliant';
+      else if (strengths.length >= 2) identityLabel = `Strong in ${strengths.slice(0, 2).map(s => s.label).join('/')}`;
+
+      const best = ranks.filter(r => r.higherIsBetter).sort((a, b) => a.rank - b.rank)[0];
+      const worst = ranks.filter(r => r.higherIsBetter).sort((a, b) => b.rank - a.rank)[0];
+      const distinctiveStat = best && best.rank === 1
+        ? `#1 in ${best.label}`
+        : worst && worst.rank === nTeams
+        ? `Last in ${worst.label}`
+        : best
+        ? `Top ${best.rank} in ${best.label}`
+        : '';
+
+      categoryProfiles.push({
+        teamId,
+        teamName: teamDisplayName(teamId, teamMetadata),
+        identityLabel,
+        strengths,
+        weaknesses,
+        distinctiveStat,
+      });
+    }
+  }
+
+  // ── CURRENT WEEK PREVIEWS ─────────────────────────────────────────────────────
+
+  const currentWeekPreviews: CurrentWeekPreview[] = [];
+
+  const cwMatchups = matchups.filter(m => m.week === currentWeek);
+  for (const mu of cwMatchups) {
+    const hPts = mu.home.totalPoints;
+    const aPts = mu.away.totalPoints;
+    const diff = hPts - aPts;
+    const leaderId = diff >= 0 ? mu.home.teamId : mu.away.teamId;
+    const trailerId = diff >= 0 ? mu.away.teamId : mu.home.teamId;
+
+    const isThisPair = (hId: number, aId: number) =>
+      (hId === mu.home.teamId && aId === mu.away.teamId) ||
+      (hId === mu.away.teamId && aId === mu.home.teamId);
+
+    let h2hAllTimeHome = 0;
+    let h2hAllTimeAway = 0;
+
+    for (const hm of matchups) {
+      if (hm.week === currentWeek || !hm.winner) continue;
+      if (!isThisPair(hm.home.teamId, hm.away.teamId)) continue;
+      if (hm.winner === hm.home.teamId) {
+        if (hm.home.teamId === mu.home.teamId) h2hAllTimeHome++;
+        else h2hAllTimeAway++;
+      } else {
+        if (hm.away.teamId === mu.home.teamId) h2hAllTimeHome++;
+        else h2hAllTimeAway++;
+      }
+    }
+    for (const season of (historicalSeasons ?? [])) {
+      for (const hm of season.matchups) {
+        if (!hm.winner) continue;
+        if (!isThisPair(hm.home.teamId, hm.away.teamId)) continue;
+        if (hm.winner === hm.home.teamId) {
+          if (hm.home.teamId === mu.home.teamId) h2hAllTimeHome++;
+          else h2hAllTimeAway++;
+        } else {
+          if (hm.away.teamId === mu.home.teamId) h2hAllTimeHome++;
+          else h2hAllTimeAway++;
+        }
+      }
+    }
+
+    currentWeekPreviews.push({
+      homeTeamId: mu.home.teamId,
+      homeTeamName: teamDisplayName(mu.home.teamId, teamMetadata),
+      homePoints: hPts,
+      awayTeamId: mu.away.teamId,
+      awayTeamName: teamDisplayName(mu.away.teamId, teamMetadata),
+      awayPoints: aPts,
+      margin: Math.abs(diff),
+      leaderId,
+      leaderName: teamDisplayName(leaderId, teamMetadata),
+      trailerId,
+      trailerName: teamDisplayName(trailerId, teamMetadata),
+      h2hAllTimeHomeWins: h2hAllTimeHome,
+      h2hAllTimeAwayWins: h2hAllTimeAway,
+      h2hAllTimeMeetings: h2hAllTimeHome + h2hAllTimeAway,
+      isInProgress: mu.winner === undefined,
+    });
   }
 
   // ── STORYLINE BULLETS ─────────────────────────────────────────────────────────
@@ -1411,6 +1920,114 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
     }
   }
 
+  // Streak bullets
+  const longestStreakLen = Math.max(...teamStreaks.map(s => s.streakLength), 0);
+  for (const streak of teamStreaks) {
+    if (streak.streakLength < 3) continue;
+    const isLongest = streak.streakLength >= longestStreakLen && longestStreakLen >= 4;
+    bullets.push({
+      priority: streak.streakType === 'W' ? Math.min(88, 50 + streak.streakLength * 6) : Math.min(82, 45 + streak.streakLength * 5),
+      category: 'streak',
+      emoji: streak.streakType === 'W' ? '🔥' : '❄️',
+      headline: streak.streakType === 'W'
+        ? `**${streak.teamName}** is on a ${streak.streakLength}-game win streak${isLongest ? ' — best active streak in the league' : ''}`
+        : `**${streak.teamName}** has dropped ${streak.streakLength} straight — something has to give`,
+      teamIds: [streak.teamId],
+    });
+  }
+
+  // Schedule luck bullets
+  const mostUnlucky = scheduleLuck[0];
+  const mostLucky = scheduleLuck[scheduleLuck.length - 1];
+  if (mostUnlucky && mostUnlucky.luckDelta <= -2 && (mostUnlucky.actualWins + mostUnlucky.actualLosses) >= 4) {
+    bullets.push({
+      priority: 83,
+      category: 'luck',
+      emoji: '🍀',
+      headline: `**${mostUnlucky.teamName}** is the most snakebitten team in the league — ${mostUnlucky.actualWins}-${mostUnlucky.actualLosses} actual but ${mostUnlucky.expectedWins}-${mostUnlucky.expectedLosses} expected`,
+      detail: `They rank #${mostUnlucky.pointsForRank} in points scored — their record doesn't reflect their output.`,
+      teamIds: [mostUnlucky.teamId],
+    });
+  }
+  if (mostLucky && mostLucky.luckDelta >= 2 && (mostLucky.actualWins + mostLucky.actualLosses) >= 4) {
+    bullets.push({
+      priority: 79,
+      category: 'luck',
+      emoji: '🎲',
+      headline: `**${mostLucky.teamName}** has been the luckiest team in the league — ${mostLucky.actualWins}-${mostLucky.actualLosses} actual vs ${mostLucky.expectedWins}-${mostLucky.expectedLosses} expected`,
+      teamIds: [mostLucky.teamId],
+    });
+  }
+
+  // Player outlier bullets
+  for (const outlier of playerOutliers.slice(0, 6)) {
+    if (outlier.hotStreak !== null && outlier.hotStreak >= 3) {
+      bullets.push({
+        priority: 80,
+        category: 'player_milestone',
+        emoji: '🔥',
+        headline: `**${outlier.playerName}** (${outlier.teamName}) has scored ${outlier.hotStreakThreshold}+ pts in ${outlier.hotStreak} straight weeks`,
+        teamIds: [outlier.teamId],
+        playerName: outlier.playerName,
+      });
+    } else if (outlier.isSeasonHigh) {
+      bullets.push({
+        priority: 74,
+        category: 'player_milestone',
+        emoji: '⭐',
+        headline: `**${outlier.playerName}** (${outlier.teamName}) had their best week of the season in Week ${priorWeek} — ${outlier.thisWeekPts.toFixed(1)} pts`,
+        teamIds: [outlier.teamId],
+        playerName: outlier.playerName,
+      });
+    } else if (outlier.isSeasonLow) {
+      bullets.push({
+        priority: 64,
+        category: 'player_milestone',
+        emoji: '📉',
+        headline: `**${outlier.playerName}** (${outlier.teamName}) had their worst week of the season in Week ${priorWeek} — only ${outlier.thisWeekPts.toFixed(1)} pts`,
+        teamIds: [outlier.teamId],
+        playerName: outlier.playerName,
+      });
+    }
+  }
+
+  // Bench pattern bullet
+  if (benchPatterns.length > 0 && benchPatterns[0].weeksTracked >= 3) {
+    const worstBench = benchPatterns[0];
+    bullets.push({
+      priority: 62,
+      category: 'manager',
+      emoji: '💺',
+      headline: `**${worstBench.teamName}** is averaging ${worstBench.avgBenchPerWeek.toFixed(1)} bench pts per week — most in the league`,
+      detail: `${worstBench.totalBenchPts.toFixed(0)} total pts left on the table over ${worstBench.weeksTracked} weeks.`,
+      teamIds: [worstBench.teamId],
+    });
+  }
+
+  // Current week preview bullets
+  for (const prev of currentWeekPreviews) {
+    if (!prev.isInProgress) continue;
+    if (prev.h2hAllTimeMeetings >= 3) {
+      const leaderH2H = prev.leaderId === prev.homeTeamId ? prev.h2hAllTimeHomeWins : prev.h2hAllTimeAwayWins;
+      const trailerH2H = prev.leaderId === prev.homeTeamId ? prev.h2hAllTimeAwayWins : prev.h2hAllTimeHomeWins;
+      bullets.push({
+        priority: 76,
+        category: 'preview',
+        emoji: '👀',
+        headline: `Current week: **${prev.leaderName}** leads **${prev.trailerName}** by ${prev.margin.toFixed(1)} pts — H2H all-time: ${leaderH2H}-${trailerH2H} in ${prev.leaderName}'s favor`,
+        teamIds: [prev.leaderId, prev.trailerId],
+      });
+    } else if (prev.margin >= 80) {
+      bullets.push({
+        priority: 71,
+        category: 'preview',
+        emoji: '👀',
+        headline: `**${prev.leaderName}** is running away with Week ${currentWeek} — leads **${prev.trailerName}** by ${prev.margin.toFixed(1)} pts`,
+        teamIds: [prev.leaderId, prev.trailerId],
+      });
+    }
+  }
+
   // ── PER-TEAM COVERAGE: at least 1 positive + 1 negative per team ─────────────
 
   // For each team, figure out what we can say positive/negative based on available data.
@@ -1443,7 +2060,16 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
     if (!hasPositive) {
       // Try: player overperformer for this team
       const overSig = playerSignals.find(s => s.teamId === tid && s.signalType === 'overperforming');
-      if (overSig) {
+      const teamStreakPos = teamStreaks.find(s => s.teamId === tid);
+      if (teamStreakPos && teamStreakPos.streakType === 'W' && teamStreakPos.streakLength >= 2) {
+        bullets.push({
+          priority: 43,
+          category: 'streak',
+          emoji: '📈',
+          headline: `**${tName}** has won ${teamStreakPos.streakLength} in a row — building momentum heading into Week ${currentWeek}`,
+          teamIds: [tid],
+        });
+      } else if (overSig) {
         bullets.push({
           priority: 42,
           category: 'player_over',
@@ -1498,7 +2124,16 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
       // Try: player underperformer
       const underSig = playerSignals.find(s => s.teamId === tid && s.signalType === 'underperforming');
       const injSig = playerSignals.find(s => s.teamId === tid && s.signalType === 'injury_watch');
-      if (injSig) {
+      const teamStreakNeg = teamStreaks.find(s => s.teamId === tid);
+      if (teamStreakNeg && teamStreakNeg.streakType === 'L' && teamStreakNeg.streakLength >= 2 && !injSig) {
+        bullets.push({
+          priority: 41,
+          category: 'streak',
+          emoji: '📉',
+          headline: `**${tName}** has lost ${teamStreakNeg.streakLength} in a row — under pressure entering Week ${currentWeek}`,
+          teamIds: [tid],
+        });
+      } else if (injSig) {
         const daysStr = injSig.ilDaysRemaining ? `~${injSig.ilDaysRemaining}d` : 'timeline unknown';
         bullets.push({
           priority: 44,
@@ -2046,5 +2681,13 @@ export function computeAdminAnalytics(input: AdminAnalyticsInput): AdminAnalytic
     seasonCatStats,
     allWeekMatchups,
     teamActivityStats,
+    teamStreaks,
+    scheduleLuck,
+    playerOutliers,
+    waiverEff,
+    benchPatterns,
+    categoryProfiles,
+    currentWeekPreviews,
+    storylineCheckIns,
   };
 }

@@ -331,6 +331,155 @@ async function main() {
     line(`  ${p.name.padEnd(26)} ${p.position.padEnd(5)} ${tn.padEnd(22)} ${fmt(p.seasonAvg).padEnd(14)} ${fmt(p.erosp!.erosp_raw).padEnd(10)} ${pace}%`);
   }
 
+  // ── 5b. TEAM STREAKS ──────────────────────────────────────────────────────────
+  line('\n\n5b. TEAM STREAKS (current win/loss run heading into this week)');
+  line('─'.repeat(90));
+
+  const streakByTeam: Map<number, { type: 'W' | 'L'; length: number }> = new Map();
+  for (const s of sortedStandings) {
+    const results: boolean[] = [];
+    for (const wk of completeWeeks) {
+      const mu = matchups.find(m => m.week === wk && (m.home.teamId === s.teamId || m.away.teamId === s.teamId));
+      if (mu) results.push(mu.winner === s.teamId);
+    }
+    if (results.length === 0) continue;
+    const lastWon = results[results.length - 1];
+    let streakLen = 0;
+    for (let i = results.length - 1; i >= 0; i--) {
+      if (results[i] === lastWon) streakLen++;
+      else break;
+    }
+    streakByTeam.set(s.teamId, { type: lastWon ? 'W' : 'L', length: streakLen });
+  }
+
+  const streaksSorted = [...streakByTeam.entries()].sort((a, b) => b[1].length - a[1].length);
+  for (const [teamId, streak] of streaksSorted) {
+    const tn = teamName(teamId, teams);
+    const emoji = streak.type === 'W' ? '🔥' : '❄️';
+    line(`  ${emoji} ${tn.padEnd(28)} ${streak.length}-game ${streak.type === 'W' ? 'WIN' : 'LOSS'} streak`);
+  }
+
+  // ── 5c. SCHEDULE LUCK ─────────────────────────────────────────────────────────
+  line('\n\n5c. SCHEDULE LUCK — ACTUAL vs EXPECTED W-L');
+  line('   (Expected wins = how many weeks each team scored above the weekly median)');
+  line('─'.repeat(90));
+
+  const xWinMap2: Map<number, number> = new Map();
+  const xLossMap2: Map<number, number> = new Map();
+  for (const wk of completeWeeks) {
+    const wkMatchups2 = matchups.filter(m => m.week === wk);
+    const scores2 = wkMatchups2.flatMap(m => [m.home.totalPoints, m.away.totalPoints]).sort((a, b) => a - b);
+    const mid2 = Math.floor(scores2.length / 2);
+    const median2 = scores2.length % 2 === 0 ? (scores2[mid2 - 1] + scores2[mid2]) / 2 : scores2[mid2];
+    for (const m of wkMatchups2) {
+      for (const side of [m.home, m.away]) {
+        if (side.totalPoints >= median2) xWinMap2.set(side.teamId, (xWinMap2.get(side.teamId) ?? 0) + 1);
+        else xLossMap2.set(side.teamId, (xLossMap2.get(side.teamId) ?? 0) + 1);
+      }
+    }
+  }
+
+  const ptsRankMap2 = new Map([...sortedStandings].sort((a, b) => b.pointsFor - a.pointsFor).map((s, i) => [s.teamId, i + 1]));
+  const luckEntries = sortedStandings.map(s => ({
+    teamId: s.teamId,
+    tn: teamName(s.teamId, teams),
+    actual: `${s.wins}-${s.losses}`,
+    expected: `${xWinMap2.get(s.teamId) ?? 0}-${xLossMap2.get(s.teamId) ?? 0}`,
+    delta: s.wins - (xWinMap2.get(s.teamId) ?? 0),
+    pfRank: ptsRankMap2.get(s.teamId) ?? 0,
+  })).sort((a, b) => a.delta - b.delta);
+
+  line(`  ${'Team'.padEnd(28)} ${'Actual'.padEnd(9)} ${'Expected'.padEnd(10)} ${'LuckΔ'.padEnd(8)} PF Rank`);
+  for (const e of luckEntries) {
+    const flag = e.delta >= 2 ? ' 🎲 LUCKY' : e.delta <= -2 ? ' 😤 SNAKEBITTEN' : '';
+    line(`  ${e.tn.padEnd(28)} ${e.actual.padEnd(9)} ${e.expected.padEnd(10)} ${((e.delta >= 0 ? '+' : '') + e.delta).padEnd(7)} #${e.pfRank}${flag}`);
+  }
+
+  // ── 5d. CURRENT WEEK MATCHUP PREVIEWS ─────────────────────────────────────────
+  if (currentWeek) {
+    line(`\n\n5d. CURRENT WEEK ${currentWeek} MATCHUP PREVIEWS`);
+    line('─'.repeat(90));
+
+    const cwMatchups2 = matchups.filter(m => m.week === currentWeek);
+    const shown2 = new Set<number>();
+    for (const mu of cwMatchups2) {
+      if (shown2.has(mu.home.teamId) || shown2.has(mu.away.teamId)) continue;
+      shown2.add(mu.home.teamId);
+      shown2.add(mu.away.teamId);
+      const hPts2 = mu.home.totalPoints;
+      const aPts2 = mu.away.totalPoints;
+      const margin2 = hPts2 - aPts2;
+      const leadId2 = margin2 >= 0 ? mu.home.teamId : mu.away.teamId;
+
+      // H2H this season
+      const h2hMus2 = matchups.filter(m =>
+        m.week !== currentWeek && m.winner !== undefined &&
+        ((m.home.teamId === mu.home.teamId && m.away.teamId === mu.away.teamId) ||
+         (m.home.teamId === mu.away.teamId && m.away.teamId === mu.home.teamId))
+      );
+      const homeWins2 = h2hMus2.filter(m => m.winner === mu.home.teamId).length;
+      const awayWins2 = h2hMus2.filter(m => m.winner === mu.away.teamId).length;
+      const h2hNote2 = h2hMus2.length > 0
+        ? `H2H this season: ${teamName(mu.home.teamId, teams).split(' ').pop()} ${homeWins2}-${awayWins2} ${teamName(mu.away.teamId, teams).split(' ').pop()}`
+        : 'No prior meetings this season';
+
+      const streak1 = streakByTeam.get(mu.home.teamId);
+      const streak2 = streakByTeam.get(mu.away.teamId);
+
+      line(`  ${teamName(mu.home.teamId, teams).padEnd(28)} ${fmt(hPts2).padEnd(9)} vs  ${teamName(mu.away.teamId, teams).padEnd(28)} ${fmt(aPts2).padEnd(9)}`);
+      line(`    Leader: ${teamName(leadId2, teams)} +${fmt(Math.abs(margin2))} | ${h2hNote2}`);
+      if (streak1 && streak1.length >= 2) line(`    ${teamName(mu.home.teamId, teams).split(' ').pop()} on ${streak1.length}-game ${streak1.type === 'W' ? 'win' : 'loss'} streak`);
+      if (streak2 && streak2.length >= 2) line(`    ${teamName(mu.away.teamId, teams).split(' ').pop()} on ${streak2.length}-game ${streak2.type === 'W' ? 'win' : 'loss'} streak`);
+    }
+  }
+
+  // ── 5e. WAIVER WIRE EFFECTIVENESS ─────────────────────────────────────────────
+  line('\n\n5e. WAIVER WIRE EFFECTIVENESS');
+  line('   (players with acquisitionType=ADD; avg pts/week in active slots)');
+  line('─'.repeat(90));
+
+  interface SeasonRosterPlayer { playerName: string; acquisitionType?: string }
+  interface SeasonRosterTeam { teamId: number; players: SeasonRosterPlayer[] }
+  const seasonRosters2: SeasonRosterTeam[] = (season as unknown as { rosters?: SeasonRosterTeam[] }).rosters ?? [];
+
+  if (seasonRosters2.length === 0) {
+    line('  No roster data — run npm run fetch-current first.');
+  } else {
+    // Build player weekly avg from allWeeks
+    const playerAvg2: Map<string, { total: number; weeks: number }> = new Map();
+    for (const [wkStr, wkTeamArr] of Object.entries(allWeeks)) {
+      if (!completeWeeks.includes(Number(wkStr))) continue;
+      for (const wt of wkTeamArr) {
+        for (const p of wt.players) {
+          if (p.activeDays === 0) continue;
+          if (!playerAvg2.has(p.playerName)) playerAvg2.set(p.playerName, { total: 0, weeks: 0 });
+          const e3 = playerAvg2.get(p.playerName)!;
+          e3.total += p.weekPoints;
+          e3.weeks++;
+        }
+      }
+    }
+
+    const waiverTeams = seasonRosters2.map(roster => {
+      const adds = roster.players
+        .filter(p => p.acquisitionType === 'ADD')
+        .map(p => {
+          const hist = playerAvg2.get(p.playerName);
+          return { name: p.playerName, avg: hist && hist.weeks > 0 ? hist.total / hist.weeks : 0, weeks: hist?.weeks ?? 0 };
+        })
+        .filter(a => a.weeks >= 1)
+        .sort((a, b) => b.avg - a.avg);
+      const totalAvg = adds.length ? adds.reduce((s, a) => s + a.avg, 0) / adds.length : 0;
+      return { teamId: roster.teamId, tn: teamName(roster.teamId, teams), adds, totalAvg };
+    }).filter(w => w.adds.length > 0).sort((a, b) => b.totalAvg - a.totalAvg);
+
+    line(`  ${'Team'.padEnd(28)} ${'Avg pts/add'.padEnd(14)} Best add`);
+    for (const wd of waiverTeams) {
+      const top = wd.adds[0];
+      line(`  ${wd.tn.padEnd(28)} ${fmt(wd.totalAvg).padEnd(14)} ${top.name} (${fmt(top.avg)}/wk, ${top.weeks} wk${top.weeks !== 1 ? 's' : ''})`);
+    }
+  }
+
   // ── 6. RANKING POSTS — KEY CLAIMS ─────────────────────────────────────────
   line('\n\n6. RANKINGS POSTS — CHRONOLOGICAL SUMMARY');
   line('   (For cross-referencing claims against data above)');
