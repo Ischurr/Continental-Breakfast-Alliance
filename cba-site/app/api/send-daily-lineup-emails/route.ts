@@ -125,7 +125,7 @@ function playerRow(player: LineupPlayer, isStarter: boolean): string {
 </tr>`;
 }
 
-function buildActionItems(starters: LineupPlayer[], bench: LineupPlayer[]): string {
+function buildActionItems(starters: LineupPlayer[], bench: LineupPlayer[], weeklySpPlan?: WeeklySpPlan): string {
   // Determine if a bench player is eligible to fill a given starter slot.
   // slot examples: "C", "1B", "2B", "3B", "SS", "OF", "MI", "CI", "DH", "UTIL", "SP1"…"SP6", "RP1"…"RP3"
   function canFillSlot(bench: LineupPlayer, slotRaw: string): boolean {
@@ -166,7 +166,95 @@ function buildActionItems(starters: LineupPlayer[], bench: LineupPlayer[]): stri
     swaps.push({ out: starter, in: replacement });
   }
 
-  if (swaps.length === 0) return '';
+  // SP starting today but marked SKIP — better starts are coming later this week
+  const skipAlerts: Array<{ sp: LineupPlayer; entry: SpStartEntry; betterStarts: SpStartEntry[] }> = [];
+  if (weeklySpPlan) {
+    const todaySkips = weeklySpPlan.entries.filter(e => e.isToday && !e.recommended && !e.isPast);
+    for (const skippedEntry of todaySkips) {
+      const sp = starters.find(p => p.role === 'SP' && p.espnId === skippedEntry.espnId);
+      if (!sp) continue;
+      const betterStarts = weeklySpPlan.entries
+        .filter(e => !e.isToday && !e.isPast && e.recommended && e.projectedPoints > skippedEntry.projectedPoints)
+        .sort((a, b) => b.projectedPoints - a.projectedPoints);
+      skipAlerts.push({ sp, entry: skippedEntry, betterStarts });
+    }
+  }
+
+  // Bench hitter who projects meaningfully better than a live starter they could replace
+  const HITTER_UPGRADE_MIN_DIFF = 2.5;
+  const hitterUpgrades: Array<{ out: LineupPlayer; in: LineupPlayer; diff: number }> = [];
+  const usedUpgradeIds = new Set<string>();
+  const liveHitterStarters = starters
+    .filter(p => p.role === 'H' && p.estimatedTodayPoints > 0)
+    .sort((a, b) => a.estimatedTodayPoints - b.estimatedTodayPoints); // weakest first
+  const benchHitters = bench
+    .filter(p => p.role === 'H' && p.hasGame && p.estimatedTodayPoints > 0)
+    .sort((a, b) => b.estimatedTodayPoints - a.estimatedTodayPoints); // best first
+  for (const benchPlayer of benchHitters) {
+    for (const starter of liveHitterStarters) {
+      const slot = starter.slot ?? starter.primaryPosition ?? '';
+      const diff = benchPlayer.estimatedTodayPoints - starter.estimatedTodayPoints;
+      if (diff < HITTER_UPGRADE_MIN_DIFF) continue;
+      if (usedUpgradeIds.has(benchPlayer.espnId) || usedUpgradeIds.has(starter.espnId)) continue;
+      if (!canFillSlot(benchPlayer, slot)) continue;
+      usedUpgradeIds.add(benchPlayer.espnId);
+      usedUpgradeIds.add(starter.espnId);
+      hitterUpgrades.push({ out: starter, in: benchPlayer, diff });
+      break; // each bench player can only displace one starter
+    }
+    if (hitterUpgrades.length >= 2) break; // cap at 2 to avoid email noise
+  }
+
+  if (swaps.length === 0 && skipAlerts.length === 0 && hitterUpgrades.length === 0) return '';
+
+  const skipRows = skipAlerts.map(({ sp, entry, betterStarts }) => {
+    const ha = entry.isHome ? 'vs' : '@';
+    const topBetter = betterStarts.slice(0, 2);
+    const betterDesc = topBetter.map(e => {
+      const d = new Date(e.date + 'T12:00:00');
+      const dayLabel = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+      const eha = e.isHome ? 'vs' : '@';
+      return `${e.playerName} (${dayLabel} ${eha} ${e.opponentAbbr}, ~${e.projectedPoints.toFixed(1)} pts)`;
+    }).join(' · ');
+    return `
+    <tr>
+      <td style="padding:8px 12px 8px 16px;vertical-align:middle;">
+        <div style="font-size:12px;color:#f59e0b;font-weight:600;">CONSIDER BENCHING</div>
+        <div style="font-size:13px;font-weight:600;color:#e6edf3;">${sp.name}</div>
+        <div style="font-size:11px;color:#8b949e;margin-top:1px;">${ha} ${entry.opponentAbbr} today · ~${entry.projectedPoints.toFixed(1)} pts</div>
+      </td>
+      <td style="padding:8px 8px;vertical-align:middle;text-align:center;width:28px;">
+        <span style="color:#6b7280;font-size:14px;">→</span>
+      </td>
+      <td style="padding:8px 16px 8px 4px;vertical-align:middle;">
+        <div style="font-size:12px;color:#f59e0b;font-weight:600;">BETTER STARTS COMING</div>
+        <div style="font-size:11px;color:#8b949e;margin-top:2px;line-height:1.5;">${betterDesc || 'Higher-projected starts later this week'}</div>
+      </td>
+    </tr>
+    <tr><td colspan="3" style="padding:0 16px;"><div style="height:1px;background:#21262d;"></div></td></tr>`;
+  }).join('');
+
+  const hitterUpgradeRows = hitterUpgrades.map(({ out: o, in: r, diff }) => {
+    const oHa = o.isHome ? 'vs' : '@';
+    const rHa = r.isHome ? 'vs' : '@';
+    return `
+    <tr>
+      <td style="padding:8px 12px 8px 16px;vertical-align:middle;">
+        <div style="font-size:12px;color:#f59e0b;font-weight:600;">CONSIDER BENCHING</div>
+        <div style="font-size:13px;font-weight:600;color:#e6edf3;">${o.name}</div>
+        <div style="font-size:11px;color:#8b949e;margin-top:1px;">${oHa} ${o.opponentAbbr ?? '?'} · ~${o.estimatedTodayPoints.toFixed(1)} pts</div>
+      </td>
+      <td style="padding:8px 8px;vertical-align:middle;text-align:center;width:28px;">
+        <span style="color:#6b7280;font-size:14px;">→</span>
+      </td>
+      <td style="padding:8px 16px 8px 4px;vertical-align:middle;">
+        <div style="font-size:12px;color:#34d399;font-weight:600;">START INSTEAD (+${diff.toFixed(1)} pts)</div>
+        <div style="font-size:13px;font-weight:600;color:#e6edf3;">${r.name}</div>
+        <div style="font-size:11px;color:#8b949e;margin-top:1px;">${rHa} ${r.opponentAbbr ?? '?'} · <span style="color:#34d399;">~${r.estimatedTodayPoints.toFixed(1)} pts</span></div>
+      </td>
+    </tr>
+    <tr><td colspan="3" style="padding:0 16px;"><div style="height:1px;background:#21262d;"></div></td></tr>`;
+  }).join('');
 
   const rows = swaps.map(({ out: o, in: r }) => {
     const ha = r.isHome ? 'vs' : '@';
@@ -190,14 +278,22 @@ function buildActionItems(starters: LineupPlayer[], bench: LineupPlayer[]): stri
     <tr><td colspan="3" style="padding:0 16px;"><div style="height:1px;background:#21262d;"></div></td></tr>`;
   }).join('');
 
+  const hasHardSwaps = swaps.length > 0;
+  const hasSoftAlerts = skipAlerts.length > 0 || hitterUpgrades.length > 0;
+  const sectionTitle = hasSoftAlerts && !hasHardSwaps
+    ? '📋 Lineup Heads-Up'
+    : '📋 Today\'s Lineup Changes';
+
   return `
   <tr><td class="outer-pad" style="padding:14px 16px 0;">
     <table width="100%" cellpadding="0" cellspacing="0" style="background:#161b22;border:1px solid #30363d;border-radius:10px;overflow:hidden;">
       <tr><td colspan="3" style="background:#1c2128;padding:10px 16px;border-bottom:1px solid #30363d;">
-        <span style="font-size:11px;font-weight:700;letter-spacing:1px;color:#c9d1d9;text-transform:uppercase;">📋 Today's Lineup Changes</span>
+        <span style="font-size:11px;font-weight:700;letter-spacing:1px;color:#c9d1d9;text-transform:uppercase;">${sectionTitle}</span>
       </td></tr>
       <tr><td colspan="3" style="padding:4px 0 4px;">
         <table width="100%" cellpadding="0" cellspacing="0">
+          ${skipRows}
+          ${hitterUpgradeRows}
           ${rows}
         </table>
       </td></tr>
@@ -318,7 +414,7 @@ function buildEmailHtml(params: {
     weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
   });
 
-  const actionItemsHtml = buildActionItems(lineup.starters, lineup.bench);
+  const actionItemsHtml = buildActionItems(lineup.starters, lineup.bench, lineup.weeklySpPlan);
   const spPlanHtml = buildSpPlanHtml(lineup.weeklySpPlan);
 
   return `<!DOCTYPE html>
