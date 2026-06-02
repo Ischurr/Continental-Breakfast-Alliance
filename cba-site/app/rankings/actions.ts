@@ -3,9 +3,14 @@
 import { revalidatePath } from 'next/cache';
 import { getRankings, setRankings } from '@/lib/store';
 
-export async function postArticle(title: string, content: string, password: string) {
+function isAuthorized(password: string) {
   const adminPin = process.env.NEXT_PUBLIC_ADMIN_PIN ?? '';
-  if (!adminPin || password !== adminPin) {
+  const editorialPin = process.env.NEXT_PUBLIC_EDITORIAL_PIN ?? '';
+  return (adminPin && password === adminPin) || (editorialPin && password === editorialPin);
+}
+
+export async function postArticle(title: string, content: string, password: string) {
+  if (!isAuthorized(password)) {
     throw new Error('Unauthorized');
   }
 
@@ -28,7 +33,7 @@ export async function postArticle(title: string, content: string, password: stri
 export async function deleteArticle(id: string, password: string) {
   const adminPin = process.env.NEXT_PUBLIC_ADMIN_PIN ?? '';
   if (!adminPin || password !== adminPin) {
-    throw new Error('Unauthorized');
+    throw new Error('Unauthorized'); // delete is admin-only
   }
   const store = await getRankings();
   store.articles = store.articles.filter(a => a.id !== id);
@@ -37,8 +42,7 @@ export async function deleteArticle(id: string, password: string) {
 }
 
 export async function editArticle(id: string, title: string, content: string, password: string) {
-  const adminPin = process.env.NEXT_PUBLIC_ADMIN_PIN ?? '';
-  if (!adminPin || password !== adminPin) {
+  if (!isAuthorized(password)) {
     throw new Error('Unauthorized');
   }
   const store = await getRankings();
