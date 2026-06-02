@@ -69,7 +69,7 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [teamsExpanded, setTeamsExpanded] = useState(false);
   const [statsExpanded, setStatsExpanded] = useState(false);
-  const { isAdmin } = useAdminMode();
+  const { isAdmin, unlock } = useAdminMode();
 
   const teamItems = [
     ...TEAMS.map(team => ({ href: `/teams/${team.id}`, label: team.displayName, dimmed: false })),
@@ -114,10 +114,19 @@ export default function Header() {
             <Link href="/history" className="hover:text-teal-200 transition">History</Link>
             <Link href="/news" className="hover:text-teal-200 transition">News</Link>
             <Link href="/message-board" className="hover:text-teal-200 transition">Message Board</Link>
-            {isAdmin && (
+            {isAdmin ? (
               <Link href="/admin" className="text-amber-300 hover:text-amber-100 transition font-medium">
                 ⚙ Admin
               </Link>
+            ) : (
+              <button
+                onClick={unlock}
+                className="text-teal-400 hover:text-teal-200 transition"
+                title="Editorial login"
+                aria-label="Editorial login"
+              >
+                🔒
+              </button>
             )}
           </nav>
 
@@ -211,10 +220,18 @@ export default function Header() {
             <Link href="/history" className="hover:text-teal-200 transition" onClick={() => setMenuOpen(false)}>History</Link>
             <Link href="/news" className="hover:text-teal-200 transition" onClick={() => setMenuOpen(false)}>News</Link>
             <Link href="/message-board" className="hover:text-teal-200 transition" onClick={() => setMenuOpen(false)}>Message Board</Link>
-            {isAdmin && (
+            {isAdmin ? (
               <Link href="/admin" className="text-amber-300 hover:text-amber-100 transition font-medium" onClick={() => setMenuOpen(false)}>
                 ⚙ Admin
               </Link>
+            ) : (
+              <button
+                onClick={() => { unlock(); setMenuOpen(false); }}
+                className="text-teal-400 hover:text-teal-200 transition text-left"
+                aria-label="Editorial login"
+              >
+                🔒 Editorial Login
+              </button>
             )}
           </nav>
         )}
