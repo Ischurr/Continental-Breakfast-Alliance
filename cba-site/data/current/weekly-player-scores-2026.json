@@ -1,6 +1,6 @@
 {
   "season": 2026,
-  "lastUpdated": "2026-08-20T10:55:58.609Z",
+  "lastUpdated": "2026-08-21T10:56:26.415Z",
   "weeks": {
     "1": [
       {
@@ -90157,8 +90157,8 @@
       {
         "teamId": 1,
         "week": 20,
-        "totalPoints": 206.25,
-        "benchTotal": 35.25,
+        "totalPoints": 231.25,
+        "benchTotal": 63.25,
         "players": [
           {
             "playerId": "4717833",
@@ -90225,6 +90225,22 @@
             }
           },
           {
+            "playerId": "32078",
+            "playerName": "George Springer",
+            "position": "DH",
+            "primarySlot": "OF",
+            "primarySlotId": 5,
+            "weekPoints": 16,
+            "activePoints": 16,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32078.png",
+            "pointsBySlot": {
+              "5": 16
+            }
+          },
+          {
             "playerId": "4433874",
             "playerName": "Nolan McLean",
             "position": "SP",
@@ -90238,6 +90254,22 @@
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4433874.png",
             "pointsBySlot": {
               "14": 15
+            }
+          },
+          {
+            "playerId": "4917869",
+            "playerName": "Jackson Chourio",
+            "position": "OF",
+            "primarySlot": "OF",
+            "primarySlotId": 10,
+            "weekPoints": 15,
+            "activePoints": 15,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4917869.png",
+            "pointsBySlot": {
+              "10": 15
             }
           },
           {
@@ -90257,22 +90289,6 @@
             }
           },
           {
-            "playerId": "32078",
-            "playerName": "George Springer",
-            "position": "DH",
-            "primarySlot": "OF",
-            "primarySlotId": 5,
-            "weekPoints": 12,
-            "activePoints": 12,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32078.png",
-            "pointsBySlot": {
-              "5": 12
-            }
-          },
-          {
             "playerId": "41169",
             "playerName": "Alec Bohm",
             "position": "3B",
@@ -90286,6 +90302,22 @@
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41169.png",
             "pointsBySlot": {
               "12": 12
+            }
+          },
+          {
+            "playerId": "32801",
+            "playerName": "Jose Ramirez",
+            "position": "3B",
+            "primarySlot": "3B",
+            "primarySlotId": 3,
+            "weekPoints": 11,
+            "activePoints": 11,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32801.png",
+            "pointsBySlot": {
+              "3": 11
             }
           },
           {
@@ -90305,35 +90337,35 @@
             }
           },
           {
+            "playerId": "5016968",
+            "playerName": "Ben Rice",
+            "position": "1B",
+            "primarySlot": "C",
+            "primarySlotId": 0,
+            "weekPoints": 11,
+            "activePoints": 11,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5016968.png",
+            "pointsBySlot": {
+              "0": 11
+            }
+          },
+          {
             "playerId": "4872595",
             "playerName": "Munetaka Murakami",
             "position": "3B",
             "primarySlot": "1B",
             "primarySlotId": 1,
-            "weekPoints": 10.25,
-            "activePoints": 10.25,
+            "weekPoints": 9.25,
+            "activePoints": 9.25,
             "benchPoints": 0,
             "activeDays": 7,
             "benchDays": 0,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4872595.png",
             "pointsBySlot": {
-              "1": 10.25
-            }
-          },
-          {
-            "playerId": "4917869",
-            "playerName": "Jackson Chourio",
-            "position": "OF",
-            "primarySlot": "OF",
-            "primarySlotId": 10,
-            "weekPoints": 10,
-            "activePoints": 10,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4917869.png",
-            "pointsBySlot": {
-              "10": 10
+              "1": 9.25
             }
           },
           {
@@ -90369,22 +90401,6 @@
             }
           },
           {
-            "playerId": "32801",
-            "playerName": "Jose Ramirez",
-            "position": "3B",
-            "primarySlot": "3B",
-            "primarySlotId": 3,
-            "weekPoints": 7,
-            "activePoints": 7,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32801.png",
-            "pointsBySlot": {
-              "3": 7
-            }
-          },
-          {
             "playerId": "39712",
             "playerName": "Oneil Cruz",
             "position": "OF",
@@ -90401,19 +90417,35 @@
             }
           },
           {
-            "playerId": "5016968",
-            "playerName": "Ben Rice",
-            "position": "1B",
-            "primarySlot": "C",
-            "primarySlotId": 0,
-            "weekPoints": 6,
-            "activePoints": 6,
+            "playerId": "36018",
+            "playerName": "Yordan Alvarez",
+            "position": "DH",
+            "primarySlot": "OF",
+            "primarySlotId": 8,
+            "weekPoints": 5,
+            "activePoints": 5,
             "benchPoints": 0,
             "activeDays": 7,
             "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5016968.png",
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36018.png",
             "pointsBySlot": {
-              "0": 6
+              "8": 5
+            }
+          },
+          {
+            "playerId": "4917888",
+            "playerName": "Louis Varland",
+            "position": "RP",
+            "primarySlot": "RP",
+            "primarySlotId": 15,
+            "weekPoints": 2,
+            "activePoints": 2,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4917888.png",
+            "pointsBySlot": {
+              "15": 2
             }
           },
           {
@@ -90482,22 +90514,6 @@
             }
           },
           {
-            "playerId": "36018",
-            "playerName": "Yordan Alvarez",
-            "position": "DH",
-            "primarySlot": "OF",
-            "primarySlotId": 8,
-            "weekPoints": 0,
-            "activePoints": 0,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36018.png",
-            "pointsBySlot": {
-              "8": 0
-            }
-          },
-          {
             "playerId": "42417",
             "playerName": "Bryson Stott",
             "position": "2B",
@@ -90530,22 +90546,6 @@
             }
           },
           {
-            "playerId": "4917888",
-            "playerName": "Louis Varland",
-            "position": "RP",
-            "primarySlot": "RP",
-            "primarySlotId": 15,
-            "weekPoints": 0,
-            "activePoints": 0,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4917888.png",
-            "pointsBySlot": {
-              "15": 0
-            }
-          },
-          {
             "playerId": "5134581",
             "playerName": "Cam Schlittler",
             "position": "SP",
@@ -90567,14 +90567,14 @@
             "position": "2B",
             "primarySlot": "2B",
             "primarySlotId": 2,
-            "weekPoints": -1.75,
-            "activePoints": -1.75,
+            "weekPoints": -0.75,
+            "activePoints": -0.75,
             "benchPoints": 0,
             "activeDays": 7,
             "benchDays": 0,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5080641.png",
             "pointsBySlot": {
-              "2": -1.75
+              "2": -0.75
             }
           },
           {
@@ -90599,9 +90599,9 @@
             "position": "SP",
             "primarySlot": "SP",
             "primarySlotId": 16,
-            "weekPoints": 0,
+            "weekPoints": 28,
             "activePoints": 0,
-            "benchPoints": 0,
+            "benchPoints": 28,
             "activeDays": 0,
             "benchDays": 7,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40912.png"
@@ -90611,7 +90611,7 @@
       {
         "teamId": 2,
         "week": 20,
-        "totalPoints": 186.5,
+        "totalPoints": 185.5,
         "benchTotal": 4,
         "players": [
           {
@@ -90670,14 +90670,14 @@
             "position": "RP",
             "primarySlot": "RP",
             "primarySlotId": 15,
-            "weekPoints": 20,
-            "activePoints": 20,
+            "weekPoints": 23,
+            "activePoints": 23,
             "benchPoints": 0,
             "activeDays": 7,
             "benchDays": 0,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41509.png",
             "pointsBySlot": {
-              "15": 20
+              "15": 23
             }
           },
           {
@@ -90702,14 +90702,30 @@
             "position": "C",
             "primarySlot": "C",
             "primarySlotId": 0,
-            "weekPoints": 13,
-            "activePoints": 13,
+            "weekPoints": 12,
+            "activePoints": 12,
             "benchPoints": 0,
             "activeDays": 7,
             "benchDays": 0,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4810190.png",
             "pointsBySlot": {
-              "0": 13
+              "0": 12
+            }
+          },
+          {
+            "playerId": "4987924",
+            "playerName": "Cade Smith",
+            "position": "RP",
+            "primarySlot": "RP",
+            "primarySlotId": 15,
+            "weekPoints": 12,
+            "activePoints": 12,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4987924.png",
+            "pointsBySlot": {
+              "15": 12
             }
           },
           {
@@ -90729,6 +90745,23 @@
             }
           },
           {
+            "playerId": "3210625",
+            "playerName": "Jacob Latz",
+            "position": "RP",
+            "primarySlot": "SP",
+            "primarySlotId": 14,
+            "weekPoints": 10,
+            "activePoints": 10,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/3210625.png",
+            "pointsBySlot": {
+              "14": 10,
+              "15": 0
+            }
+          },
+          {
             "playerId": "41221",
             "playerName": "Logan Gilbert",
             "position": "SP",
@@ -90742,23 +90775,6 @@
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41221.png",
             "pointsBySlot": {
               "14": 9
-            }
-          },
-          {
-            "playerId": "32767",
-            "playerName": "Matt Olson",
-            "position": "1B",
-            "primarySlot": "1B",
-            "primarySlotId": 1,
-            "weekPoints": 8,
-            "activePoints": 8,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32767.png",
-            "pointsBySlot": {
-              "1": 8,
-              "7": 0
             }
           },
           {
@@ -90794,6 +90810,23 @@
               "5": 2,
               "9": 4,
               "12": 0
+            }
+          },
+          {
+            "playerId": "32767",
+            "playerName": "Matt Olson",
+            "position": "1B",
+            "primarySlot": "1B",
+            "primarySlotId": 1,
+            "weekPoints": 6,
+            "activePoints": 6,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32767.png",
+            "pointsBySlot": {
+              "1": 6,
+              "7": 0
             }
           },
           {
@@ -90833,39 +90866,6 @@
             }
           },
           {
-            "playerId": "4987924",
-            "playerName": "Cade Smith",
-            "position": "RP",
-            "primarySlot": "RP",
-            "primarySlotId": 15,
-            "weekPoints": 5,
-            "activePoints": 5,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4987924.png",
-            "pointsBySlot": {
-              "15": 5
-            }
-          },
-          {
-            "playerId": "36488",
-            "playerName": "Randy Arozarena",
-            "position": "OF",
-            "primarySlot": "OF",
-            "primarySlotId": 8,
-            "weekPoints": 3.75,
-            "activePoints": 3.75,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36488.png",
-            "pointsBySlot": {
-              "5": 0,
-              "8": 3.75
-            }
-          },
-          {
             "playerId": "40635",
             "playerName": "Royce Lewis",
             "position": "3B",
@@ -90883,19 +90883,20 @@
             }
           },
           {
-            "playerId": "4719511",
-            "playerName": "Dylan Crews",
+            "playerId": "36488",
+            "playerName": "Randy Arozarena",
             "position": "OF",
             "primarySlot": "OF",
-            "primarySlotId": 9,
-            "weekPoints": 3,
-            "activePoints": 3,
+            "primarySlotId": 8,
+            "weekPoints": 2.75,
+            "activePoints": 2.75,
             "benchPoints": 0,
-            "activeDays": 3,
-            "benchDays": 4,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4719511.png",
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36488.png",
             "pointsBySlot": {
-              "9": 3
+              "5": 0,
+              "8": 2.75
             }
           },
           {
@@ -90915,6 +90916,38 @@
             }
           },
           {
+            "playerId": "34923",
+            "playerName": "Taylor Ward",
+            "position": "OF",
+            "primarySlot": "OF",
+            "primarySlotId": 5,
+            "weekPoints": 3,
+            "activePoints": 1,
+            "benchPoints": 2,
+            "activeDays": 5,
+            "benchDays": 2,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/34923.png",
+            "pointsBySlot": {
+              "5": 1
+            }
+          },
+          {
+            "playerId": "4719511",
+            "playerName": "Dylan Crews",
+            "position": "OF",
+            "primarySlot": "OF",
+            "primarySlotId": 9,
+            "weekPoints": 1,
+            "activePoints": 1,
+            "benchPoints": 0,
+            "activeDays": 3,
+            "benchDays": 4,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4719511.png",
+            "pointsBySlot": {
+              "9": 1
+            }
+          },
+          {
             "playerId": "32082",
             "playerName": "Sonny Gray",
             "position": "SP",
@@ -90928,55 +90961,6 @@
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32082.png",
             "pointsBySlot": {
               "14": 0
-            }
-          },
-          {
-            "playerId": "34923",
-            "playerName": "Taylor Ward",
-            "position": "OF",
-            "primarySlot": "OF",
-            "primarySlotId": 5,
-            "weekPoints": 2,
-            "activePoints": 0,
-            "benchPoints": 2,
-            "activeDays": 5,
-            "benchDays": 2,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/34923.png",
-            "pointsBySlot": {
-              "5": 0
-            }
-          },
-          {
-            "playerId": "42406",
-            "playerName": "George Kirby",
-            "position": "SP",
-            "primarySlot": "SP",
-            "primarySlotId": 14,
-            "weekPoints": 0,
-            "activePoints": 0,
-            "benchPoints": 0,
-            "activeDays": 1,
-            "benchDays": 6,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42406.png",
-            "pointsBySlot": {
-              "14": 0
-            }
-          },
-          {
-            "playerId": "3210625",
-            "playerName": "Jacob Latz",
-            "position": "RP",
-            "primarySlot": "SP",
-            "primarySlotId": 14,
-            "weekPoints": 0,
-            "activePoints": 0,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/3210625.png",
-            "pointsBySlot": {
-              "14": 0,
-              "15": 0
             }
           },
           {
@@ -91028,37 +91012,53 @@
             }
           },
           {
+            "playerId": "41292",
+            "playerName": "Cal Raleigh",
+            "position": "C",
+            "primarySlot": "UTIL",
+            "primarySlotId": 11,
+            "weekPoints": -2,
+            "activePoints": -2,
+            "benchPoints": 0,
+            "activeDays": 3,
+            "benchDays": 4,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41292.png",
+            "pointsBySlot": {
+              "11": -2
+            }
+          },
+          {
             "playerId": "4917889",
             "playerName": "Daylen Lile",
             "position": "OF",
             "primarySlot": "UTIL",
             "primarySlotId": 11,
-            "weekPoints": -1,
-            "activePoints": -1,
+            "weekPoints": -5,
+            "activePoints": -5,
             "benchPoints": 0,
             "activeDays": 7,
             "benchDays": 0,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4917889.png",
             "pointsBySlot": {
               "5": 1,
-              "10": -2,
+              "10": -6,
               "11": 0
             }
           },
           {
-            "playerId": "41292",
-            "playerName": "Cal Raleigh",
-            "position": "C",
-            "primarySlot": "UTIL",
-            "primarySlotId": 11,
-            "weekPoints": -3,
-            "activePoints": -3,
+            "playerId": "42406",
+            "playerName": "George Kirby",
+            "position": "SP",
+            "primarySlot": "SP",
+            "primarySlotId": 14,
+            "weekPoints": -13,
+            "activePoints": -13,
             "benchPoints": 0,
-            "activeDays": 3,
-            "benchDays": 4,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41292.png",
+            "activeDays": 1,
+            "benchDays": 6,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42406.png",
             "pointsBySlot": {
-              "11": -3
+              "14": -13
             }
           },
           {
@@ -91079,8 +91079,8 @@
       {
         "teamId": 3,
         "week": 20,
-        "totalPoints": 137.75,
-        "benchTotal": 9.75,
+        "totalPoints": 203.5,
+        "benchTotal": 16.75,
         "players": [
           {
             "playerId": "5134630",
@@ -91104,14 +91104,78 @@
             "position": "DH",
             "primarySlot": "UTIL",
             "primarySlotId": 11,
-            "weekPoints": 16,
-            "activePoints": 16,
+            "weekPoints": 18.75,
+            "activePoints": 18.75,
             "benchPoints": 0,
             "activeDays": 7,
             "benchDays": 0,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31283.png",
             "pointsBySlot": {
-              "11": 16
+              "11": 18.75
+            }
+          },
+          {
+            "playerId": "5134636",
+            "playerName": "Kazuma Okamoto",
+            "position": "3B",
+            "primarySlot": "3B",
+            "primarySlotId": 3,
+            "weekPoints": 18.5,
+            "activePoints": 18.5,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5134636.png",
+            "pointsBySlot": {
+              "3": 18.5
+            }
+          },
+          {
+            "playerId": "31127",
+            "playerName": "Salvador Perez",
+            "position": "C",
+            "primarySlot": "C",
+            "primarySlotId": 0,
+            "weekPoints": 18.25,
+            "activePoints": 18.25,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31127.png",
+            "pointsBySlot": {
+              "0": 18.25
+            }
+          },
+          {
+            "playerId": "37498",
+            "playerName": "Pete Alonso",
+            "position": "1B",
+            "primarySlot": "1B",
+            "primarySlotId": 1,
+            "weekPoints": 17.75,
+            "activePoints": 17.75,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/37498.png",
+            "pointsBySlot": {
+              "1": 17.75
+            }
+          },
+          {
+            "playerId": "42470",
+            "playerName": "Michael Harris II",
+            "position": "OF",
+            "primarySlot": "OF",
+            "primarySlotId": 5,
+            "weekPoints": 15,
+            "activePoints": 15,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42470.png",
+            "pointsBySlot": {
+              "5": 15
             }
           },
           {
@@ -91131,19 +91195,19 @@
             }
           },
           {
-            "playerId": "37498",
-            "playerName": "Pete Alonso",
+            "playerId": "35013",
+            "playerName": "Jake Bauers",
             "position": "1B",
-            "primarySlot": "1B",
-            "primarySlotId": 1,
-            "weekPoints": 14,
-            "activePoints": 14,
+            "primarySlot": "OF",
+            "primarySlotId": 5,
+            "weekPoints": 13,
+            "activePoints": 13,
             "benchPoints": 0,
             "activeDays": 7,
             "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/37498.png",
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35013.png",
             "pointsBySlot": {
-              "1": 14
+              "5": 13
             }
           },
           {
@@ -91163,22 +91227,6 @@
             }
           },
           {
-            "playerId": "42470",
-            "playerName": "Michael Harris II",
-            "position": "OF",
-            "primarySlot": "OF",
-            "primarySlotId": 5,
-            "weekPoints": 12,
-            "activePoints": 12,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42470.png",
-            "pointsBySlot": {
-              "5": 12
-            }
-          },
-          {
             "playerId": "41917",
             "playerName": "Otto Lopez",
             "position": "SS",
@@ -91195,51 +91243,83 @@
             }
           },
           {
-            "playerId": "31127",
-            "playerName": "Salvador Perez",
-            "position": "C",
-            "primarySlot": "C",
-            "primarySlotId": 0,
-            "weekPoints": 10,
-            "activePoints": 10,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31127.png",
-            "pointsBySlot": {
-              "0": 10
-            }
-          },
-          {
-            "playerId": "5134636",
-            "playerName": "Kazuma Okamoto",
-            "position": "3B",
-            "primarySlot": "3B",
-            "primarySlotId": 3,
-            "weekPoints": 9.5,
-            "activePoints": 9.5,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5134636.png",
-            "pointsBySlot": {
-              "3": 9.5
-            }
-          },
-          {
-            "playerId": "35013",
-            "playerName": "Jake Bauers",
-            "position": "1B",
-            "primarySlot": "OF",
-            "primarySlotId": 5,
+            "playerId": "40080",
+            "playerName": "Trevor Megill",
+            "position": "RP",
+            "primarySlot": "RP",
+            "primarySlotId": 15,
             "weekPoints": 9,
             "activePoints": 9,
             "benchPoints": 0,
             "activeDays": 7,
             "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35013.png",
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40080.png",
             "pointsBySlot": {
-              "5": 9
+              "15": 9
+            }
+          },
+          {
+            "playerId": "4424141",
+            "playerName": "Michael McGreevy",
+            "position": "SP",
+            "primarySlot": "SP",
+            "primarySlotId": 14,
+            "weekPoints": 9,
+            "activePoints": 9,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4424141.png",
+            "pointsBySlot": {
+              "14": 9
+            }
+          },
+          {
+            "playerId": "4941056",
+            "playerName": "JJ Wetherholt",
+            "position": "SS",
+            "primarySlot": "MIF",
+            "primarySlotId": 6,
+            "weekPoints": 9,
+            "activePoints": 9,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4941056.png",
+            "pointsBySlot": {
+              "6": 9
+            }
+          },
+          {
+            "playerId": "4719324",
+            "playerName": "Wyatt Langford",
+            "position": "OF",
+            "primarySlot": "OF",
+            "primarySlotId": 9,
+            "weekPoints": 6.75,
+            "activePoints": 6.75,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4719324.png",
+            "pointsBySlot": {
+              "9": 6.75
+            }
+          },
+          {
+            "playerId": "30836",
+            "playerName": "Mike Trout",
+            "position": "DH",
+            "primarySlot": "OF",
+            "primarySlotId": 10,
+            "weekPoints": 4,
+            "activePoints": 4,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/30836.png",
+            "pointsBySlot": {
+              "10": 4
             }
           },
           {
@@ -91275,22 +91355,6 @@
             }
           },
           {
-            "playerId": "4941056",
-            "playerName": "JJ Wetherholt",
-            "position": "SS",
-            "primarySlot": "MIF",
-            "primarySlotId": 6,
-            "weekPoints": 4,
-            "activePoints": 4,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4941056.png",
-            "pointsBySlot": {
-              "6": 4
-            }
-          },
-          {
             "playerId": "5182933",
             "playerName": "Keider Montero",
             "position": "SP",
@@ -91304,38 +91368,6 @@
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5182933.png",
             "pointsBySlot": {
               "14": 4
-            }
-          },
-          {
-            "playerId": "4719324",
-            "playerName": "Wyatt Langford",
-            "position": "OF",
-            "primarySlot": "OF",
-            "primarySlotId": 9,
-            "weekPoints": 3.75,
-            "activePoints": 3.75,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4719324.png",
-            "pointsBySlot": {
-              "9": 3.75
-            }
-          },
-          {
-            "playerId": "30836",
-            "playerName": "Mike Trout",
-            "position": "DH",
-            "primarySlot": "OF",
-            "primarySlotId": 10,
-            "weekPoints": 2,
-            "activePoints": 2,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/30836.png",
-            "pointsBySlot": {
-              "10": 2
             }
           },
           {
@@ -91371,35 +91403,19 @@
             }
           },
           {
-            "playerId": "40080",
-            "playerName": "Trevor Megill",
-            "position": "RP",
-            "primarySlot": "RP",
-            "primarySlotId": 15,
+            "playerId": "4917694",
+            "playerName": "Elly De La Cruz",
+            "position": "SS",
+            "primarySlot": "SS",
+            "primarySlotId": 4,
             "weekPoints": 0,
             "activePoints": 0,
             "benchPoints": 0,
             "activeDays": 7,
             "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40080.png",
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4917694.png",
             "pointsBySlot": {
-              "15": 0
-            }
-          },
-          {
-            "playerId": "4424141",
-            "playerName": "Michael McGreevy",
-            "position": "SP",
-            "primarySlot": "SP",
-            "primarySlotId": 14,
-            "weekPoints": 0,
-            "activePoints": 0,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4424141.png",
-            "pointsBySlot": {
-              "14": 0
+              "4": 0
             }
           },
           {
@@ -91424,30 +91440,14 @@
             "position": "OF",
             "primarySlot": "DH",
             "primarySlotId": 12,
-            "weekPoints": -4,
-            "activePoints": -4,
+            "weekPoints": -3,
+            "activePoints": -3,
             "benchPoints": 0,
             "activeDays": 7,
             "benchDays": 0,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41044.png",
             "pointsBySlot": {
-              "12": -4
-            }
-          },
-          {
-            "playerId": "4917694",
-            "playerName": "Elly De La Cruz",
-            "position": "SS",
-            "primarySlot": "SS",
-            "primarySlotId": 4,
-            "weekPoints": -6,
-            "activePoints": -6,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4917694.png",
-            "pointsBySlot": {
-              "4": -6
+              "12": -3
             }
           },
           {
@@ -91456,9 +91456,9 @@
             "position": "3B",
             "primarySlot": "3B",
             "primarySlotId": 16,
-            "weekPoints": -1,
+            "weekPoints": 5,
             "activePoints": 0,
-            "benchPoints": -1,
+            "benchPoints": 5,
             "activeDays": 0,
             "benchDays": 7,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/34982.png"
@@ -91482,9 +91482,9 @@
             "position": "OF",
             "primarySlot": "OF",
             "primarySlotId": 16,
-            "weekPoints": -1,
+            "weekPoints": 0,
             "activePoints": 0,
-            "benchPoints": -1,
+            "benchPoints": 0,
             "activeDays": 0,
             "benchDays": 7,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42135.png"
@@ -91520,23 +91520,39 @@
       {
         "teamId": 4,
         "week": 20,
-        "totalPoints": 164.75,
+        "totalPoints": 205,
         "benchTotal": 17.75,
         "players": [
+          {
+            "playerId": "4666100",
+            "playerName": "Zach Neto",
+            "position": "SS",
+            "primarySlot": "SS",
+            "primarySlotId": 4,
+            "weekPoints": 31.25,
+            "activePoints": 31.25,
+            "benchPoints": 0,
+            "activeDays": 6,
+            "benchDays": 1,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4666100.png",
+            "pointsBySlot": {
+              "4": 31.25
+            }
+          },
           {
             "playerId": "33481",
             "playerName": "Yandy Diaz",
             "position": "DH",
             "primarySlot": "1B",
             "primarySlotId": 1,
-            "weekPoints": 26,
-            "activePoints": 26,
+            "weekPoints": 28,
+            "activePoints": 28,
             "benchPoints": 0,
             "activeDays": 7,
             "benchDays": 0,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33481.png",
             "pointsBySlot": {
-              "1": 26
+              "1": 28
             }
           },
           {
@@ -91553,6 +91569,22 @@
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35983.png",
             "pointsBySlot": {
               "2": 21.75
+            }
+          },
+          {
+            "playerId": "5080771",
+            "playerName": "Sal Stewart",
+            "position": "1B",
+            "primarySlot": "DH",
+            "primarySlotId": 12,
+            "weekPoints": 18.5,
+            "activePoints": 18.5,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5080771.png",
+            "pointsBySlot": {
+              "12": 18.5
             }
           },
           {
@@ -91604,22 +91636,6 @@
             }
           },
           {
-            "playerId": "5080771",
-            "playerName": "Sal Stewart",
-            "position": "1B",
-            "primarySlot": "DH",
-            "primarySlotId": 12,
-            "weekPoints": 15.25,
-            "activePoints": 15.25,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5080771.png",
-            "pointsBySlot": {
-              "12": 15.25
-            }
-          },
-          {
             "playerId": "35135",
             "playerName": "Tanner Scott",
             "position": "RP",
@@ -91652,6 +91668,22 @@
             }
           },
           {
+            "playerId": "33618",
+            "playerName": "Raisel Iglesias",
+            "position": "RP",
+            "primarySlot": "RP",
+            "primarySlotId": 15,
+            "weekPoints": 10,
+            "activePoints": 10,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33618.png",
+            "pointsBySlot": {
+              "15": 10
+            }
+          },
+          {
             "playerId": "39817",
             "playerName": "Ranger Suarez",
             "position": "SP",
@@ -91668,35 +91700,19 @@
             }
           },
           {
-            "playerId": "4666100",
-            "playerName": "Zach Neto",
-            "position": "SS",
-            "primarySlot": "SS",
-            "primarySlotId": 4,
-            "weekPoints": 9,
-            "activePoints": 9,
-            "benchPoints": 0,
-            "activeDays": 6,
-            "benchDays": 1,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4666100.png",
-            "pointsBySlot": {
-              "4": 9
-            }
-          },
-          {
             "playerId": "4905921",
             "playerName": "Junior Caminero",
             "position": "3B",
             "primarySlot": "3B",
             "primarySlotId": 3,
-            "weekPoints": 7,
-            "activePoints": 7,
+            "weekPoints": 9,
+            "activePoints": 9,
             "benchPoints": 0,
             "activeDays": 7,
             "benchDays": 0,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4905921.png",
             "pointsBySlot": {
-              "3": 7
+              "3": 9
             }
           },
           {
@@ -91705,14 +91721,30 @@
             "position": "1B",
             "primarySlot": "CIF",
             "primarySlotId": 7,
-            "weekPoints": 5,
-            "activePoints": 5,
+            "weekPoints": 5.25,
+            "activePoints": 5.25,
             "benchPoints": 0,
             "activeDays": 7,
             "benchDays": 0,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40810.png",
             "pointsBySlot": {
-              "7": 5
+              "7": 5.25
+            }
+          },
+          {
+            "playerId": "39642",
+            "playerName": "Heliot Ramos",
+            "position": "OF",
+            "primarySlot": "OF",
+            "primarySlotId": 8,
+            "weekPoints": 3.5,
+            "activePoints": 3.5,
+            "benchPoints": 0,
+            "activeDays": 6,
+            "benchDays": 1,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39642.png",
+            "pointsBySlot": {
+              "8": 3.5
             }
           },
           {
@@ -91732,22 +91764,6 @@
             }
           },
           {
-            "playerId": "36185",
-            "playerName": "Ronald Acuna Jr.",
-            "position": "OF",
-            "primarySlot": "OF",
-            "primarySlotId": 10,
-            "weekPoints": 2,
-            "activePoints": 2,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36185.png",
-            "pointsBySlot": {
-              "10": 2
-            }
-          },
-          {
             "playerId": "40700",
             "playerName": "Gavin Sheets",
             "position": "OF",
@@ -91764,35 +91780,19 @@
             }
           },
           {
-            "playerId": "39642",
-            "playerName": "Heliot Ramos",
+            "playerId": "36185",
+            "playerName": "Ronald Acuna Jr.",
             "position": "OF",
             "primarySlot": "OF",
-            "primarySlotId": 8,
+            "primarySlotId": 10,
             "weekPoints": 1,
             "activePoints": 1,
             "benchPoints": 0,
-            "activeDays": 6,
-            "benchDays": 1,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39642.png",
-            "pointsBySlot": {
-              "8": 1
-            }
-          },
-          {
-            "playerId": "33618",
-            "playerName": "Raisel Iglesias",
-            "position": "RP",
-            "primarySlot": "RP",
-            "primarySlotId": 15,
-            "weekPoints": 0,
-            "activePoints": 0,
-            "benchPoints": 0,
             "activeDays": 7,
             "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33618.png",
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36185.png",
             "pointsBySlot": {
-              "15": 0
+              "10": 1
             }
           },
           {
@@ -91844,22 +91844,6 @@
             }
           },
           {
-            "playerId": "4918251",
-            "playerName": "Robert Gasser",
-            "position": "SP",
-            "primarySlot": "SP",
-            "primarySlotId": 14,
-            "weekPoints": 0,
-            "activePoints": 0,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4918251.png",
-            "pointsBySlot": {
-              "14": 0
-            }
-          },
-          {
             "playerId": "4629081",
             "playerName": "Brooks Lee",
             "position": "SS",
@@ -91873,6 +91857,22 @@
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4629081.png",
             "pointsBySlot": {
               "4": -1
+            }
+          },
+          {
+            "playerId": "4918251",
+            "playerName": "Robert Gasser",
+            "position": "SP",
+            "primarySlot": "SP",
+            "primarySlotId": 14,
+            "weekPoints": -1,
+            "activePoints": -1,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4918251.png",
+            "pointsBySlot": {
+              "14": -1
             }
           },
           {
@@ -91954,15 +91954,15 @@
       {
         "teamId": 6,
         "week": 20,
-        "totalPoints": 231.25,
+        "totalPoints": 241,
         "benchTotal": 1.75,
         "players": [
           {
             "playerId": "39832",
             "playerName": "Shohei Ohtani",
             "position": "DH",
-            "primarySlot": "UTIL",
-            "primarySlotId": 11,
+            "primarySlot": "DH",
+            "primarySlotId": 12,
             "weekPoints": 27,
             "activePoints": 27,
             "benchPoints": 0,
@@ -91970,15 +91970,32 @@
             "benchDays": 0,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39832.png",
             "pointsBySlot": {
-              "11": 27
+              "11": 27,
+              "12": 0
+            }
+          },
+          {
+            "playerId": "4684778",
+            "playerName": "Jordan Walker",
+            "position": "OF",
+            "primarySlot": "OF",
+            "primarySlotId": 10,
+            "weekPoints": 24,
+            "activePoints": 24,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4684778.png",
+            "pointsBySlot": {
+              "10": 24
             }
           },
           {
             "playerId": "32532",
             "playerName": "Willson Contreras",
             "position": "1B",
-            "primarySlot": "1B",
-            "primarySlotId": 1,
+            "primarySlot": "CIF",
+            "primarySlotId": 7,
             "weekPoints": 23.25,
             "activePoints": 23.25,
             "benchPoints": 0,
@@ -91986,7 +92003,8 @@
             "benchDays": 0,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32532.png",
             "pointsBySlot": {
-              "1": 23.25
+              "1": 23.25,
+              "7": 0
             }
           },
           {
@@ -92022,36 +92040,36 @@
             }
           },
           {
+            "playerId": "33303",
+            "playerName": "Max Muncy",
+            "position": "3B",
+            "primarySlot": "3B",
+            "primarySlotId": 3,
+            "weekPoints": 15,
+            "activePoints": 15,
+            "benchPoints": 0,
+            "activeDays": 3,
+            "benchDays": 4,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33303.png",
+            "pointsBySlot": {
+              "3": 15,
+              "12": 0
+            }
+          },
+          {
             "playerId": "40854",
             "playerName": "Jo Adell",
             "position": "OF",
             "primarySlot": "OF",
             "primarySlotId": 5,
-            "weekPoints": 16,
-            "activePoints": 16,
-            "benchPoints": 0,
-            "activeDays": 2,
-            "benchDays": 5,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40854.png",
-            "pointsBySlot": {
-              "5": 16
-            }
-          },
-          {
-            "playerId": "33303",
-            "playerName": "Max Muncy",
-            "position": "3B",
-            "primarySlot": "DH",
-            "primarySlotId": 12,
             "weekPoints": 15,
             "activePoints": 15,
             "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33303.png",
+            "activeDays": 6,
+            "benchDays": 1,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40854.png",
             "pointsBySlot": {
-              "3": 15,
-              "12": 0
+              "5": 15
             }
           },
           {
@@ -92063,27 +92081,43 @@
             "weekPoints": 13,
             "activePoints": 13,
             "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
+            "activeDays": 3,
+            "benchDays": 4,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41610.png",
             "pointsBySlot": {
               "9": 13
             }
           },
           {
-            "playerId": "4684778",
-            "playerName": "Jordan Walker",
-            "position": "OF",
-            "primarySlot": "OF",
-            "primarySlotId": 10,
-            "weekPoints": 13,
-            "activePoints": 13,
+            "playerId": "41287",
+            "playerName": "Ernie Clement",
+            "position": "3B",
+            "primarySlot": "2B",
+            "primarySlotId": 2,
+            "weekPoints": 11,
+            "activePoints": 11,
             "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4684778.png",
+            "activeDays": 5,
+            "benchDays": 2,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41287.png",
             "pointsBySlot": {
-              "10": 13
+              "2": 11
+            }
+          },
+          {
+            "playerId": "4905884",
+            "playerName": "Maikel Garcia",
+            "position": "3B",
+            "primarySlot": "3B",
+            "primarySlotId": 3,
+            "weekPoints": 15.25,
+            "activePoints": 10.75,
+            "benchPoints": 0.75,
+            "activeDays": 5,
+            "benchDays": 1,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4905884.png",
+            "pointsBySlot": {
+              "3": 10.75
             }
           },
           {
@@ -92091,7 +92125,7 @@
             "playerName": "Teoscar Hernandez",
             "position": "OF",
             "primarySlot": "OF",
-            "primarySlotId": 5,
+            "primarySlotId": 8,
             "weekPoints": 10,
             "activePoints": 10,
             "benchPoints": 0,
@@ -92107,33 +92141,17 @@
             "playerId": "39907",
             "playerName": "Tommy Edman",
             "position": "2B",
-            "primarySlot": "2B",
-            "primarySlotId": 2,
+            "primarySlot": "MIF",
+            "primarySlotId": 6,
             "weekPoints": 9,
             "activePoints": 9,
             "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
+            "activeDays": 3,
+            "benchDays": 4,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39907.png",
             "pointsBySlot": {
               "2": 0,
               "6": 9
-            }
-          },
-          {
-            "playerId": "41287",
-            "playerName": "Ernie Clement",
-            "position": "3B",
-            "primarySlot": "2B",
-            "primarySlotId": 2,
-            "weekPoints": 9,
-            "activePoints": 9,
-            "benchPoints": 0,
-            "activeDays": 1,
-            "benchDays": 6,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41287.png",
-            "pointsBySlot": {
-              "2": 9
             }
           },
           {
@@ -92169,19 +92187,20 @@
             }
           },
           {
-            "playerId": "4905884",
-            "playerName": "Maikel Garcia",
-            "position": "3B",
-            "primarySlot": "3B",
-            "primarySlotId": 3,
-            "weekPoints": 12.25,
-            "activePoints": 7.75,
-            "benchPoints": 0.75,
+            "playerId": "33859",
+            "playerName": "Rafael Devers",
+            "position": "DH",
+            "primarySlot": "UTIL",
+            "primarySlotId": 11,
+            "weekPoints": 5,
+            "activePoints": 8,
+            "benchPoints": -3,
             "activeDays": 5,
-            "benchDays": 1,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4905884.png",
+            "benchDays": 2,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33859.png",
             "pointsBySlot": {
-              "3": 7.75
+              "7": 3,
+              "11": 5
             }
           },
           {
@@ -92189,15 +92208,16 @@
             "playerName": "Joshua Baez",
             "position": "OF",
             "primarySlot": "OF",
-            "primarySlotId": 5,
-            "weekPoints": 7,
-            "activePoints": 7,
+            "primarySlotId": 9,
+            "weekPoints": 8,
+            "activePoints": 8,
             "benchPoints": 0,
             "activeDays": 5,
             "benchDays": 2,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4920835.png",
             "pointsBySlot": {
-              "5": 7
+              "5": 7,
+              "9": 1
             }
           },
           {
@@ -92217,20 +92237,19 @@
             }
           },
           {
-            "playerId": "32159",
-            "playerName": "Brandon Nimmo",
-            "position": "OF",
-            "primarySlot": "OF",
-            "primarySlotId": 8,
+            "playerId": "31095",
+            "playerName": "Gary Sanchez",
+            "position": "C",
+            "primarySlot": "C",
+            "primarySlotId": 0,
             "weekPoints": 5,
             "activePoints": 5,
             "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32159.png",
+            "activeDays": 4,
+            "benchDays": 3,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31095.png",
             "pointsBySlot": {
-              "5": 6,
-              "8": -1
+              "0": 5
             }
           },
           {
@@ -92251,19 +92270,37 @@
             }
           },
           {
-            "playerId": "33859",
-            "playerName": "Rafael Devers",
-            "position": "DH",
-            "primarySlot": "CIF",
-            "primarySlotId": 7,
-            "weekPoints": 0,
-            "activePoints": 3,
-            "benchPoints": -3,
-            "activeDays": 5,
-            "benchDays": 2,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33859.png",
+            "playerId": "39706",
+            "playerName": "Isaac Paredes",
+            "position": "3B",
+            "primarySlot": "1B",
+            "primarySlotId": 1,
+            "weekPoints": 8.75,
+            "activePoints": 4.75,
+            "benchPoints": 4,
+            "activeDays": 6,
+            "benchDays": 1,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39706.png",
             "pointsBySlot": {
-              "7": 3
+              "1": 2.75,
+              "7": 2
+            }
+          },
+          {
+            "playerId": "32159",
+            "playerName": "Brandon Nimmo",
+            "position": "OF",
+            "primarySlot": "OF",
+            "primarySlotId": 5,
+            "weekPoints": 4,
+            "activePoints": 4,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32159.png",
+            "pointsBySlot": {
+              "5": 5,
+              "8": -1
             }
           },
           {
@@ -92275,43 +92312,11 @@
             "weekPoints": 2,
             "activePoints": 2,
             "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
+            "activeDays": 3,
+            "benchDays": 4,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33229.png",
             "pointsBySlot": {
               "0": 2
-            }
-          },
-          {
-            "playerId": "39706",
-            "playerName": "Isaac Paredes",
-            "position": "3B",
-            "primarySlot": "CIF",
-            "primarySlotId": 7,
-            "weekPoints": 6,
-            "activePoints": 2,
-            "benchPoints": 4,
-            "activeDays": 2,
-            "benchDays": 5,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39706.png",
-            "pointsBySlot": {
-              "7": 2
-            }
-          },
-          {
-            "playerId": "5136929",
-            "playerName": "Chase Meidroth",
-            "position": "SS",
-            "primarySlot": "SS",
-            "primarySlotId": 4,
-            "weekPoints": 0.25,
-            "activePoints": 0.25,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5136929.png",
-            "pointsBySlot": {
-              "4": 0.25
             }
           },
           {
@@ -92328,22 +92333,6 @@
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32512.png",
             "pointsBySlot": {
               "2": 0
-            }
-          },
-          {
-            "playerId": "39898",
-            "playerName": "Peter Lambert",
-            "position": "RP",
-            "primarySlot": "SP",
-            "primarySlotId": 14,
-            "weekPoints": 0,
-            "activePoints": 0,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39898.png",
-            "pointsBySlot": {
-              "14": 0
             }
           },
           {
@@ -92395,24 +92384,43 @@
             }
           },
           {
-            "playerId": "31095",
-            "playerName": "Gary Sanchez",
-            "position": "C",
-            "primarySlot": "C",
-            "primarySlotId": 16,
-            "weekPoints": 0,
-            "activePoints": 0,
+            "playerId": "5136929",
+            "playerName": "Chase Meidroth",
+            "position": "SS",
+            "primarySlot": "SS",
+            "primarySlotId": 4,
+            "weekPoints": -0.75,
+            "activePoints": -0.75,
             "benchPoints": 0,
-            "activeDays": 0,
-            "benchDays": 7,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31095.png"
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5136929.png",
+            "pointsBySlot": {
+              "4": -0.75
+            }
+          },
+          {
+            "playerId": "39898",
+            "playerName": "Peter Lambert",
+            "position": "RP",
+            "primarySlot": "SP",
+            "primarySlotId": 14,
+            "weekPoints": -17,
+            "activePoints": -17,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39898.png",
+            "pointsBySlot": {
+              "14": -17
+            }
           }
         ]
       },
       {
         "teamId": 7,
         "week": 20,
-        "totalPoints": 196.75,
+        "totalPoints": 240.75,
         "benchTotal": 17,
         "players": [
           {
@@ -92421,14 +92429,30 @@
             "position": "C",
             "primarySlot": "C",
             "primarySlotId": 0,
-            "weekPoints": 25,
-            "activePoints": 25,
+            "weekPoints": 29,
+            "activePoints": 29,
             "benchPoints": 0,
             "activeDays": 7,
             "benchDays": 0,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42081.png",
             "pointsBySlot": {
-              "0": 25
+              "0": 29
+            }
+          },
+          {
+            "playerId": "32081",
+            "playerName": "Gerrit Cole",
+            "position": "SP",
+            "primarySlot": "SP",
+            "primarySlotId": 14,
+            "weekPoints": 25,
+            "activePoints": 25,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32081.png",
+            "pointsBySlot": {
+              "14": 25
             }
           },
           {
@@ -92440,8 +92464,8 @@
             "weekPoints": 16,
             "activePoints": 16,
             "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
+            "activeDays": 3,
+            "benchDays": 4,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5149072.png",
             "pointsBySlot": {
               "6": 16
@@ -92472,8 +92496,8 @@
             "weekPoints": 14.75,
             "activePoints": 14.75,
             "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
+            "activeDays": 3,
+            "benchDays": 4,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/30951.png",
             "pointsBySlot": {
               "5": 14.75
@@ -92501,14 +92525,14 @@
             "position": "OF",
             "primarySlot": "OF",
             "primarySlotId": 5,
-            "weekPoints": 13,
-            "activePoints": 13,
+            "weekPoints": 14,
+            "activePoints": 14,
             "benchPoints": 0,
             "activeDays": 6,
             "benchDays": 1,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4345621.png",
             "pointsBySlot": {
-              "5": 13
+              "5": 14
             }
           },
           {
@@ -92560,6 +92584,23 @@
             }
           },
           {
+            "playerId": "4679983",
+            "playerName": "Chandler Simpson",
+            "position": "OF",
+            "primarySlot": "OF",
+            "primarySlotId": 8,
+            "weekPoints": 9.75,
+            "activePoints": 9.75,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4679983.png",
+            "pointsBySlot": {
+              "8": 9,
+              "9": 0.75
+            }
+          },
+          {
             "playerId": "40939",
             "playerName": "Andres Munoz",
             "position": "RP",
@@ -92573,6 +92614,23 @@
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40939.png",
             "pointsBySlot": {
               "15": 9
+            }
+          },
+          {
+            "playerId": "41773",
+            "playerName": "Brendan Donovan",
+            "position": "2B",
+            "primarySlot": "CIF",
+            "primarySlotId": 7,
+            "weekPoints": 16,
+            "activePoints": 9,
+            "benchPoints": 7,
+            "activeDays": 5,
+            "benchDays": 2,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41773.png",
+            "pointsBySlot": {
+              "7": 8,
+              "12": 1
             }
           },
           {
@@ -92649,28 +92707,11 @@
             "weekPoints": 6.75,
             "activePoints": 6.75,
             "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
+            "activeDays": 3,
+            "benchDays": 4,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42415.png",
             "pointsBySlot": {
               "7": 6.75
-            }
-          },
-          {
-            "playerId": "4679983",
-            "playerName": "Chandler Simpson",
-            "position": "OF",
-            "primarySlot": "OF",
-            "primarySlotId": 8,
-            "weekPoints": 6.75,
-            "activePoints": 6.75,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4679983.png",
-            "pointsBySlot": {
-              "8": 6,
-              "9": 0.75
             }
           },
           {
@@ -92687,6 +92728,22 @@
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/36950.png",
             "pointsBySlot": {
               "11": 5.5
+            }
+          },
+          {
+            "playerId": "41179",
+            "playerName": "Brice Turang",
+            "position": "2B",
+            "primarySlot": "DH",
+            "primarySlotId": 12,
+            "weekPoints": 11.25,
+            "activePoints": 5.25,
+            "benchPoints": 6,
+            "activeDays": 5,
+            "benchDays": 2,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41179.png",
+            "pointsBySlot": {
+              "12": 5.25
             }
           },
           {
@@ -92722,51 +92779,19 @@
             }
           },
           {
-            "playerId": "41179",
-            "playerName": "Brice Turang",
-            "position": "2B",
-            "primarySlot": "DH",
-            "primarySlotId": 12,
-            "weekPoints": 9.25,
-            "activePoints": 3.25,
-            "benchPoints": 6,
-            "activeDays": 5,
-            "benchDays": 2,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41179.png",
-            "pointsBySlot": {
-              "12": 3.25
-            }
-          },
-          {
-            "playerId": "41773",
-            "playerName": "Brendan Donovan",
-            "position": "2B",
-            "primarySlot": "DH",
-            "primarySlotId": 12,
-            "weekPoints": 8,
+            "playerId": "5134621",
+            "playerName": "Jung Hoo Lee",
+            "position": "OF",
+            "primarySlot": "OF",
+            "primarySlotId": 10,
+            "weekPoints": 5,
             "activePoints": 1,
-            "benchPoints": 7,
-            "activeDays": 1,
-            "benchDays": 6,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41773.png",
+            "benchPoints": 4,
+            "activeDays": 4,
+            "benchDays": 3,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5134621.png",
             "pointsBySlot": {
-              "12": 1
-            }
-          },
-          {
-            "playerId": "32081",
-            "playerName": "Gerrit Cole",
-            "position": "SP",
-            "primarySlot": "SP",
-            "primarySlotId": 14,
-            "weekPoints": 0,
-            "activePoints": 0,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32081.png",
-            "pointsBySlot": {
-              "14": 0
+              "10": 1
             }
           },
           {
@@ -92774,14 +92799,15 @@
             "playerName": "Chase DeLauter",
             "position": "OF",
             "primarySlot": "OF",
-            "primarySlotId": 8,
+            "primarySlotId": 5,
             "weekPoints": 0,
             "activePoints": 0,
             "benchPoints": 0,
-            "activeDays": 1,
-            "benchDays": 6,
+            "activeDays": 5,
+            "benchDays": 2,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4619649.png",
             "pointsBySlot": {
+              "5": 0,
               "8": 0
             }
           },
@@ -92805,15 +92831,16 @@
             "playerId": "4719300",
             "playerName": "Jacob Wilson",
             "position": "SS",
-            "primarySlot": "DH",
-            "primarySlotId": 12,
+            "primarySlot": "MIF",
+            "primarySlotId": 6,
             "weekPoints": 0,
             "activePoints": 0,
             "benchPoints": 0,
-            "activeDays": 1,
-            "benchDays": 6,
+            "activeDays": 5,
+            "benchDays": 2,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4719300.png",
             "pointsBySlot": {
+              "6": 0,
               "12": 0
             }
           },
@@ -92826,40 +92853,78 @@
             "weekPoints": -6,
             "activePoints": -6,
             "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
+            "activeDays": 3,
+            "benchDays": 4,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5137200.png",
             "pointsBySlot": {
               "10": -6
             }
-          },
-          {
-            "playerId": "5134621",
-            "playerName": "Jung Hoo Lee",
-            "position": "OF",
-            "primarySlot": "OF",
-            "primarySlotId": 16,
-            "weekPoints": 4,
-            "activePoints": 0,
-            "benchPoints": 4,
-            "activeDays": 0,
-            "benchDays": 7,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5134621.png"
           }
         ]
       },
       {
         "teamId": 8,
         "week": 20,
-        "totalPoints": 80,
+        "totalPoints": 127.25,
         "benchTotal": 18.25,
         "players": [
+          {
+            "playerId": "4422899",
+            "playerName": "Matt McLain",
+            "position": "2B",
+            "primarySlot": "2B",
+            "primarySlotId": 2,
+            "weekPoints": 24.75,
+            "activePoints": 13.75,
+            "benchPoints": 11,
+            "activeDays": 5,
+            "benchDays": 2,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4422899.png",
+            "pointsBySlot": {
+              "2": 12.5,
+              "4": 1.25
+            }
+          },
+          {
+            "playerId": "41996",
+            "playerName": "Steven Kwan",
+            "position": "OF",
+            "primarySlot": "OF",
+            "primarySlotId": 8,
+            "weekPoints": 13,
+            "activePoints": 13,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41996.png",
+            "pointsBySlot": {
+              "5": 0,
+              "8": 13
+            }
+          },
+          {
+            "playerId": "4109223",
+            "playerName": "Michael Massey",
+            "position": "2B",
+            "primarySlot": "MIF",
+            "primarySlotId": 6,
+            "weekPoints": 17,
+            "activePoints": 13,
+            "benchPoints": 4,
+            "activeDays": 5,
+            "benchDays": 2,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4109223.png",
+            "pointsBySlot": {
+              "2": 3.75,
+              "6": 9.25
+            }
+          },
           {
             "playerId": "41197",
             "playerName": "Jake McCarthy",
             "position": "OF",
             "primarySlot": "OF",
-            "primarySlotId": 5,
+            "primarySlotId": 9,
             "weekPoints": 12,
             "activePoints": 12,
             "benchPoints": 0,
@@ -92867,20 +92932,21 @@
             "benchDays": 0,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41197.png",
             "pointsBySlot": {
-              "5": 12
+              "5": 12,
+              "9": 0
             }
           },
           {
             "playerId": "41219",
             "playerName": "Nico Hoerner",
             "position": "2B",
-            "primarySlot": "2B",
-            "primarySlotId": 2,
+            "primarySlot": "MIF",
+            "primarySlotId": 6,
             "weekPoints": 12,
             "activePoints": 12,
             "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
+            "activeDays": 3,
+            "benchDays": 4,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41219.png",
             "pointsBySlot": {
               "2": -0.75,
@@ -92891,8 +92957,8 @@
             "playerId": "42453",
             "playerName": "Miguel Vargas",
             "position": "3B",
-            "primarySlot": "1B",
-            "primarySlotId": 1,
+            "primarySlot": "DH",
+            "primarySlotId": 12,
             "weekPoints": 12,
             "activePoints": 12,
             "benchPoints": 0,
@@ -92900,7 +92966,8 @@
             "benchDays": 0,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42453.png",
             "pointsBySlot": {
-              "1": 12
+              "1": 12,
+              "12": 0
             }
           },
           {
@@ -92908,7 +92975,7 @@
             "playerName": "Mickey Moniak",
             "position": "OF",
             "primarySlot": "OF",
-            "primarySlotId": 5,
+            "primarySlotId": 10,
             "weekPoints": 11,
             "activePoints": 11,
             "benchPoints": 0,
@@ -92929,8 +92996,8 @@
             "weekPoints": 10,
             "activePoints": 10,
             "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
+            "activeDays": 3,
+            "benchDays": 4,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33804.png",
             "pointsBySlot": {
               "11": 10
@@ -92940,8 +93007,8 @@
             "playerId": "39895",
             "playerName": "William Contreras",
             "position": "C",
-            "primarySlot": "DH",
-            "primarySlotId": 12,
+            "primarySlot": "C",
+            "primarySlotId": 0,
             "weekPoints": 10,
             "activePoints": 10,
             "benchPoints": 0,
@@ -92949,7 +93016,41 @@
             "benchDays": 0,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39895.png",
             "pointsBySlot": {
+              "0": 0,
               "12": 10
+            }
+          },
+          {
+            "playerId": "41889",
+            "playerName": "Ivan Herrera",
+            "position": "DH",
+            "primarySlot": "UTIL",
+            "primarySlotId": 11,
+            "weekPoints": 9,
+            "activePoints": 9,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41889.png",
+            "pointsBySlot": {
+              "0": 2,
+              "11": 7
+            }
+          },
+          {
+            "playerId": "4739755",
+            "playerName": "Nolan Schanuel",
+            "position": "1B",
+            "primarySlot": "CIF",
+            "primarySlotId": 7,
+            "weekPoints": 8.5,
+            "activePoints": 8.5,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4739755.png",
+            "pointsBySlot": {
+              "7": 8.5
             }
           },
           {
@@ -92969,52 +93070,38 @@
             }
           },
           {
-            "playerId": "41996",
-            "playerName": "Steven Kwan",
-            "position": "OF",
-            "primarySlot": "OF",
-            "primarySlotId": 8,
-            "weekPoints": 6,
-            "activePoints": 6,
+            "playerId": "5291189",
+            "playerName": "Didier Fuentes",
+            "position": "SP",
+            "primarySlot": "RP",
+            "primarySlotId": 15,
+            "weekPoints": 7,
+            "activePoints": 7,
             "benchPoints": 0,
             "activeDays": 7,
             "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41996.png",
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5291189.png",
             "pointsBySlot": {
-              "5": 0,
-              "8": 6
+              "14": -2,
+              "15": 9
             }
           },
           {
-            "playerId": "4739755",
-            "playerName": "Nolan Schanuel",
-            "position": "1B",
-            "primarySlot": "CIF",
-            "primarySlotId": 7,
-            "weekPoints": 6,
-            "activePoints": 6,
+            "playerId": "41217",
+            "playerName": "Brayan Rocchio",
+            "position": "SS",
+            "primarySlot": "SS",
+            "primarySlotId": 4,
+            "weekPoints": 4,
+            "activePoints": 4,
             "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4739755.png",
+            "activeDays": 6,
+            "benchDays": 1,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41217.png",
             "pointsBySlot": {
-              "7": 6
-            }
-          },
-          {
-            "playerId": "5207167",
-            "playerName": "Sam Antonacci",
-            "position": "2B",
-            "primarySlot": "3B",
-            "primarySlotId": 3,
-            "weekPoints": 5,
-            "activePoints": 5,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5207167.png",
-            "pointsBySlot": {
-              "3": 5
+              "2": 1.25,
+              "4": 3,
+              "6": -0.25
             }
           },
           {
@@ -93034,22 +93121,6 @@
             }
           },
           {
-            "playerId": "4109223",
-            "playerName": "Michael Massey",
-            "position": "2B",
-            "primarySlot": "2B",
-            "primarySlotId": 2,
-            "weekPoints": 7.75,
-            "activePoints": 3.75,
-            "benchPoints": 4,
-            "activeDays": 1,
-            "benchDays": 6,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4109223.png",
-            "pointsBySlot": {
-              "2": 3.75
-            }
-          },
-          {
             "playerId": "33403",
             "playerName": "Emilio Pagan",
             "position": "RP",
@@ -93063,22 +93134,6 @@
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/33403.png",
             "pointsBySlot": {
               "15": 2
-            }
-          },
-          {
-            "playerId": "41889",
-            "playerName": "Ivan Herrera",
-            "position": "DH",
-            "primarySlot": "C",
-            "primarySlotId": 0,
-            "weekPoints": 2,
-            "activePoints": 2,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41889.png",
-            "pointsBySlot": {
-              "0": 2
             }
           },
           {
@@ -93098,52 +93153,36 @@
             }
           },
           {
-            "playerId": "4422899",
-            "playerName": "Matt McLain",
+            "playerId": "5149064",
+            "playerName": "Bryce Eldridge",
+            "position": "DH",
+            "primarySlot": "1B",
+            "primarySlotId": 1,
+            "weekPoints": 5.25,
+            "activePoints": 2,
+            "benchPoints": 3.25,
+            "activeDays": 4,
+            "benchDays": 3,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5149064.png",
+            "pointsBySlot": {
+              "1": 2
+            }
+          },
+          {
+            "playerId": "5207167",
+            "playerName": "Sam Antonacci",
             "position": "2B",
-            "primarySlot": "SS",
-            "primarySlotId": 4,
-            "weekPoints": 12.25,
-            "activePoints": 1.25,
-            "benchPoints": 11,
-            "activeDays": 1,
-            "benchDays": 6,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4422899.png",
-            "pointsBySlot": {
-              "4": 1.25
-            }
-          },
-          {
-            "playerId": "41217",
-            "playerName": "Brayan Rocchio",
-            "position": "SS",
-            "primarySlot": "MIF",
-            "primarySlotId": 6,
-            "weekPoints": 1,
-            "activePoints": 1,
+            "primarySlot": "OF",
+            "primarySlotId": 5,
+            "weekPoints": 2,
+            "activePoints": 2,
             "benchPoints": 0,
-            "activeDays": 6,
-            "benchDays": 1,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41217.png",
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5207167.png",
             "pointsBySlot": {
-              "2": 1.25,
-              "6": -0.25
-            }
-          },
-          {
-            "playerId": "42474",
-            "playerName": "Osleivis Basabe",
-            "position": "SS",
-            "primarySlot": "SS",
-            "primarySlotId": 4,
-            "weekPoints": 0.25,
-            "activePoints": 0.25,
-            "benchPoints": 0,
-            "activeDays": 6,
-            "benchDays": 1,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42474.png",
-            "pointsBySlot": {
-              "4": 0.25
+              "3": 5,
+              "5": -3
             }
           },
           {
@@ -93199,7 +93238,7 @@
             "playerName": "Cole Carrigg",
             "position": "OF",
             "primarySlot": "OF",
-            "primarySlotId": 9,
+            "primarySlotId": 5,
             "weekPoints": 0,
             "activePoints": 0,
             "benchPoints": 0,
@@ -93207,24 +93246,25 @@
             "benchDays": 0,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5149102.png",
             "pointsBySlot": {
+              "5": 0,
               "9": 0
             }
           },
           {
-            "playerId": "5291189",
-            "playerName": "Didier Fuentes",
-            "position": "SP",
-            "primarySlot": "RP",
-            "primarySlotId": 15,
-            "weekPoints": -2,
-            "activePoints": -2,
+            "playerId": "42474",
+            "playerName": "Osleivis Basabe",
+            "position": "SS",
+            "primarySlot": "3B",
+            "primarySlotId": 3,
+            "weekPoints": -1.75,
+            "activePoints": -1.75,
             "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5291189.png",
+            "activeDays": 6,
+            "benchDays": 1,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42474.png",
             "pointsBySlot": {
-              "14": -2,
-              "15": 0
+              "3": -2,
+              "4": 0.25
             }
           },
           {
@@ -93236,8 +93276,8 @@
             "weekPoints": -3.25,
             "activePoints": -3.25,
             "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
+            "activeDays": 3,
+            "benchDays": 4,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41205.png",
             "pointsBySlot": {
               "8": 0,
@@ -93276,26 +93316,13 @@
             "pointsBySlot": {
               "14": -12
             }
-          },
-          {
-            "playerId": "5149064",
-            "playerName": "Bryce Eldridge",
-            "position": "DH",
-            "primarySlot": "DH",
-            "primarySlotId": 16,
-            "weekPoints": 3.25,
-            "activePoints": 0,
-            "benchPoints": 3.25,
-            "activeDays": 0,
-            "benchDays": 7,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5149064.png"
           }
         ]
       },
       {
         "teamId": 9,
         "week": 20,
-        "totalPoints": 149.5,
+        "totalPoints": 276.25,
         "benchTotal": 30.75,
         "players": [
           {
@@ -93304,14 +93331,46 @@
             "position": "SS",
             "primarySlot": "SS",
             "primarySlotId": 4,
-            "weekPoints": 27.75,
-            "activePoints": 27.75,
+            "weekPoints": 42,
+            "activePoints": 42,
             "benchPoints": 0,
             "activeDays": 7,
             "benchDays": 0,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42403.png",
             "pointsBySlot": {
-              "4": 27.75
+              "4": 42
+            }
+          },
+          {
+            "playerId": "32796",
+            "playerName": "Jacob deGrom",
+            "position": "SP",
+            "primarySlot": "SP",
+            "primarySlotId": 14,
+            "weekPoints": 32,
+            "activePoints": 32,
+            "benchPoints": 0,
+            "activeDays": 5,
+            "benchDays": 2,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32796.png",
+            "pointsBySlot": {
+              "14": 32
+            }
+          },
+          {
+            "playerId": "4345076",
+            "playerName": "Gavin Williams",
+            "position": "SP",
+            "primarySlot": "SP",
+            "primarySlotId": 14,
+            "weekPoints": 20,
+            "activePoints": 20,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4345076.png",
+            "pointsBySlot": {
+              "14": 20
             }
           },
           {
@@ -93366,6 +93425,40 @@
             }
           },
           {
+            "playerId": "4313442",
+            "playerName": "Garrett Mitchell",
+            "position": "OF",
+            "primarySlot": "OF",
+            "primarySlotId": 9,
+            "weekPoints": 25,
+            "activePoints": 15,
+            "benchPoints": 10,
+            "activeDays": 5,
+            "benchDays": 2,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4313442.png",
+            "pointsBySlot": {
+              "5": 0,
+              "9": 15
+            }
+          },
+          {
+            "playerId": "4345070",
+            "playerName": "Alec Burleson",
+            "position": "OF",
+            "primarySlot": "1B",
+            "primarySlotId": 1,
+            "weekPoints": 14.25,
+            "activePoints": 14.25,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4345070.png",
+            "pointsBySlot": {
+              "1": 3.25,
+              "8": 11
+            }
+          },
+          {
             "playerId": "5014349",
             "playerName": "TJ Rumfield",
             "position": "3B",
@@ -93383,20 +93476,39 @@
             }
           },
           {
-            "playerId": "4345070",
-            "playerName": "Alec Burleson",
-            "position": "OF",
-            "primarySlot": "1B",
-            "primarySlotId": 1,
-            "weekPoints": 11,
-            "activePoints": 11,
+            "playerId": "42457",
+            "playerName": "Ezequiel Duran",
+            "position": "SS",
+            "primarySlot": "OF",
+            "primarySlotId": 10,
+            "weekPoints": 10,
+            "activePoints": 10,
+            "benchPoints": 0,
+            "activeDays": 6,
+            "benchDays": 1,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42457.png",
+            "pointsBySlot": {
+              "3": -2,
+              "5": 1,
+              "10": 11
+            }
+          },
+          {
+            "playerId": "40459",
+            "playerName": "Luis Garcia Jr.",
+            "position": "2B",
+            "primarySlot": "2B",
+            "primarySlotId": 2,
+            "weekPoints": 9.75,
+            "activePoints": 9.75,
             "benchPoints": 0,
             "activeDays": 7,
             "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4345070.png",
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40459.png",
             "pointsBySlot": {
-              "1": 0,
-              "8": 11
+              "2": 9,
+              "6": 0.75,
+              "12": 0
             }
           },
           {
@@ -93405,14 +93517,14 @@
             "position": "1B",
             "primarySlot": "UTIL",
             "primarySlotId": 11,
-            "weekPoints": 9.25,
-            "activePoints": 9.25,
+            "weekPoints": 9.5,
+            "activePoints": 9.5,
             "benchPoints": 0,
             "activeDays": 6,
             "benchDays": 1,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35066.png",
             "pointsBySlot": {
-              "11": 9.25
+              "11": 9.5
             }
           },
           {
@@ -93429,6 +93541,24 @@
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5197476.png",
             "pointsBySlot": {
               "14": 8
+            }
+          },
+          {
+            "playerId": "35304",
+            "playerName": "Mauricio Dubon",
+            "position": "OF",
+            "primarySlot": "3B",
+            "primarySlotId": 3,
+            "weekPoints": 8.5,
+            "activePoints": 7.5,
+            "benchPoints": 1,
+            "activeDays": 6,
+            "benchDays": 1,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35304.png",
+            "pointsBySlot": {
+              "3": 7,
+              "7": 0.5,
+              "9": 0
             }
           },
           {
@@ -93497,6 +93627,22 @@
             }
           },
           {
+            "playerId": "41455",
+            "playerName": "Dylan Lee",
+            "position": "RP",
+            "primarySlot": "RP",
+            "primarySlotId": 15,
+            "weekPoints": 5,
+            "activePoints": 5,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41455.png",
+            "pointsBySlot": {
+              "15": 5
+            }
+          },
+          {
             "playerId": "32985",
             "playerName": "Ildemaro Vargas",
             "position": "2B",
@@ -93546,21 +93692,20 @@
             }
           },
           {
-            "playerId": "35304",
-            "playerName": "Mauricio Dubon",
+            "playerId": "42410",
+            "playerName": "JJ Bleday",
             "position": "OF",
-            "primarySlot": "3B",
-            "primarySlotId": 3,
-            "weekPoints": 1.5,
-            "activePoints": 0.5,
-            "benchPoints": 1,
-            "activeDays": 6,
-            "benchDays": 1,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/35304.png",
+            "primarySlot": "OF",
+            "primarySlotId": 8,
+            "weekPoints": 1,
+            "activePoints": 1,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42410.png",
             "pointsBySlot": {
-              "3": 0,
-              "7": 0.5,
-              "9": 0
+              "8": 5,
+              "10": -4
             }
           },
           {
@@ -93596,22 +93741,6 @@
             }
           },
           {
-            "playerId": "32796",
-            "playerName": "Jacob deGrom",
-            "position": "SP",
-            "primarySlot": "SP",
-            "primarySlotId": 14,
-            "weekPoints": 0,
-            "activePoints": 0,
-            "benchPoints": 0,
-            "activeDays": 5,
-            "benchDays": 2,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32796.png",
-            "pointsBySlot": {
-              "14": 0
-            }
-          },
-          {
             "playerId": "4297897",
             "playerName": "Emerson Hancock",
             "position": "SP",
@@ -93623,39 +93752,6 @@
             "activeDays": 7,
             "benchDays": 0,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4297897.png",
-            "pointsBySlot": {
-              "14": 0
-            }
-          },
-          {
-            "playerId": "4313442",
-            "playerName": "Garrett Mitchell",
-            "position": "OF",
-            "primarySlot": "OF",
-            "primarySlotId": 9,
-            "weekPoints": 10,
-            "activePoints": 0,
-            "benchPoints": 10,
-            "activeDays": 5,
-            "benchDays": 2,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4313442.png",
-            "pointsBySlot": {
-              "5": 0,
-              "9": 0
-            }
-          },
-          {
-            "playerId": "4345076",
-            "playerName": "Gavin Williams",
-            "position": "SP",
-            "primarySlot": "SP",
-            "primarySlotId": 14,
-            "weekPoints": 0,
-            "activePoints": 0,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4345076.png",
             "pointsBySlot": {
               "14": 0
             }
@@ -93675,82 +93771,13 @@
             "pointsBySlot": {
               "14": 0
             }
-          },
-          {
-            "playerId": "42457",
-            "playerName": "Ezequiel Duran",
-            "position": "SS",
-            "primarySlot": "OF",
-            "primarySlotId": 10,
-            "weekPoints": -1,
-            "activePoints": -1,
-            "benchPoints": 0,
-            "activeDays": 6,
-            "benchDays": 1,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42457.png",
-            "pointsBySlot": {
-              "3": -2,
-              "5": 1,
-              "10": 0
-            }
-          },
-          {
-            "playerId": "40459",
-            "playerName": "Luis Garcia Jr.",
-            "position": "2B",
-            "primarySlot": "2B",
-            "primarySlotId": 2,
-            "weekPoints": -1.25,
-            "activePoints": -1.25,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40459.png",
-            "pointsBySlot": {
-              "2": -2,
-              "6": 0.75,
-              "12": 0
-            }
-          },
-          {
-            "playerId": "41455",
-            "playerName": "Dylan Lee",
-            "position": "RP",
-            "primarySlot": "RP",
-            "primarySlotId": 15,
-            "weekPoints": -3,
-            "activePoints": -3,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41455.png",
-            "pointsBySlot": {
-              "15": -3
-            }
-          },
-          {
-            "playerId": "42410",
-            "playerName": "JJ Bleday",
-            "position": "OF",
-            "primarySlot": "OF",
-            "primarySlotId": 8,
-            "weekPoints": -4,
-            "activePoints": -4,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42410.png",
-            "pointsBySlot": {
-              "8": 0,
-              "10": -4
-            }
           }
         ]
       },
       {
         "teamId": 10,
         "week": 20,
-        "totalPoints": 214.75,
+        "totalPoints": 231.5,
         "benchTotal": 15.75,
         "players": [
           {
@@ -93775,14 +93802,14 @@
             "position": "1B",
             "primarySlot": "UTIL",
             "primarySlotId": 11,
-            "weekPoints": 24.75,
-            "activePoints": 24.75,
+            "weekPoints": 27.75,
+            "activePoints": 27.75,
             "benchPoints": 0,
             "activeDays": 7,
             "benchDays": 0,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4109109.png",
             "pointsBySlot": {
-              "11": 24.75
+              "11": 27.75
             }
           },
           {
@@ -93835,6 +93862,23 @@
             }
           },
           {
+            "playerId": "34995",
+            "playerName": "Trent Grisham",
+            "position": "OF",
+            "primarySlot": "OF",
+            "primarySlotId": 9,
+            "weekPoints": 13.75,
+            "activePoints": 13.75,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/34995.png",
+            "pointsBySlot": {
+              "5": 1,
+              "9": 12.75
+            }
+          },
+          {
             "playerId": "4987382",
             "playerName": "Ceddanne Rafaela",
             "position": "OF",
@@ -93852,20 +93896,21 @@
             }
           },
           {
-            "playerId": "34995",
-            "playerName": "Trent Grisham",
+            "playerId": "42497",
+            "playerName": "Angel Martinez",
             "position": "OF",
             "primarySlot": "OF",
-            "primarySlotId": 9,
+            "primarySlotId": 5,
             "weekPoints": 12,
             "activePoints": 12,
             "benchPoints": 0,
             "activeDays": 7,
             "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/34995.png",
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42497.png",
             "pointsBySlot": {
-              "5": 1,
-              "9": 11
+              "2": 5,
+              "5": 5,
+              "8": 2
             }
           },
           {
@@ -93887,39 +93932,37 @@
             }
           },
           {
+            "playerId": "41325",
+            "playerName": "Aaron Ashby",
+            "position": "RP",
+            "primarySlot": "RP",
+            "primarySlotId": 15,
+            "weekPoints": 11,
+            "activePoints": 11,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41325.png",
+            "pointsBySlot": {
+              "15": 11
+            }
+          },
+          {
             "playerId": "42507",
             "playerName": "Gunnar Henderson",
             "position": "SS",
             "primarySlot": "DH",
             "primarySlotId": 12,
-            "weekPoints": 10.75,
-            "activePoints": 10.75,
+            "weekPoints": 10.5,
+            "activePoints": 10.5,
             "benchPoints": 0,
             "activeDays": 7,
             "benchDays": 0,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42507.png",
             "pointsBySlot": {
               "4": 5.25,
-              "6": 0,
+              "6": -0.25,
               "12": 5.5
-            }
-          },
-          {
-            "playerId": "4950345",
-            "playerName": "Braden Montgomery",
-            "position": "OF",
-            "primarySlot": "OF",
-            "primarySlotId": 9,
-            "weekPoints": 9.25,
-            "activePoints": 10.25,
-            "benchPoints": -1,
-            "activeDays": 3,
-            "benchDays": 4,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4950345.png",
-            "pointsBySlot": {
-              "9": 8.25,
-              "10": 0,
-              "12": 2
             }
           },
           {
@@ -93939,41 +93982,6 @@
             }
           },
           {
-            "playerId": "42497",
-            "playerName": "Angel Martinez",
-            "position": "OF",
-            "primarySlot": "OF",
-            "primarySlotId": 5,
-            "weekPoints": 10,
-            "activePoints": 10,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/42497.png",
-            "pointsBySlot": {
-              "2": 5,
-              "5": 5,
-              "8": 0
-            }
-          },
-          {
-            "playerId": "5149070",
-            "playerName": "George Lombard Jr.",
-            "position": "SS",
-            "primarySlot": "MIF",
-            "primarySlotId": 6,
-            "weekPoints": 10,
-            "activePoints": 10,
-            "benchPoints": 0,
-            "activeDays": 6,
-            "benchDays": 1,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5149070.png",
-            "pointsBySlot": {
-              "4": 0,
-              "6": 10
-            }
-          },
-          {
             "playerId": "38904",
             "playerName": "Bo Bichette",
             "position": "SS",
@@ -93987,6 +93995,41 @@
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/38904.png",
             "pointsBySlot": {
               "3": 9.25
+            }
+          },
+          {
+            "playerId": "4950345",
+            "playerName": "Braden Montgomery",
+            "position": "OF",
+            "primarySlot": "OF",
+            "primarySlotId": 9,
+            "weekPoints": 8.25,
+            "activePoints": 9.25,
+            "benchPoints": -1,
+            "activeDays": 3,
+            "benchDays": 4,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4950345.png",
+            "pointsBySlot": {
+              "9": 8.25,
+              "10": -1,
+              "12": 2
+            }
+          },
+          {
+            "playerId": "5149070",
+            "playerName": "George Lombard Jr.",
+            "position": "SS",
+            "primarySlot": "MIF",
+            "primarySlotId": 6,
+            "weekPoints": 8,
+            "activePoints": 8,
+            "benchPoints": 0,
+            "activeDays": 6,
+            "benchDays": 1,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5149070.png",
+            "pointsBySlot": {
+              "4": -2,
+              "6": 10
             }
           },
           {
@@ -94020,6 +94063,22 @@
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/30442.png",
             "pointsBySlot": {
               "15": 3
+            }
+          },
+          {
+            "playerId": "5007707",
+            "playerName": "Travis Bazzana",
+            "position": "2B",
+            "primarySlot": "2B",
+            "primarySlotId": 2,
+            "weekPoints": 5,
+            "activePoints": 3,
+            "benchPoints": 2,
+            "activeDays": 1,
+            "benchDays": 6,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5007707.png",
+            "pointsBySlot": {
+              "2": 3
             }
           },
           {
@@ -94089,38 +94148,6 @@
             }
           },
           {
-            "playerId": "39882",
-            "playerName": "Jake Burger",
-            "position": "1B",
-            "primarySlot": "1B",
-            "primarySlotId": 1,
-            "weekPoints": -0.25,
-            "activePoints": 0,
-            "benchPoints": -0.25,
-            "activeDays": 1,
-            "benchDays": 6,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39882.png",
-            "pointsBySlot": {
-              "1": 0
-            }
-          },
-          {
-            "playerId": "41325",
-            "playerName": "Aaron Ashby",
-            "position": "RP",
-            "primarySlot": "RP",
-            "primarySlotId": 15,
-            "weekPoints": 0,
-            "activePoints": 0,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41325.png",
-            "pointsBySlot": {
-              "15": 0
-            }
-          },
-          {
             "playerId": "42409",
             "playerName": "Tarik Skubal",
             "position": "SP",
@@ -94169,22 +94196,6 @@
             }
           },
           {
-            "playerId": "5007707",
-            "playerName": "Travis Bazzana",
-            "position": "2B",
-            "primarySlot": "2B",
-            "primarySlotId": 2,
-            "weekPoints": 2,
-            "activePoints": 0,
-            "benchPoints": 2,
-            "activeDays": 1,
-            "benchDays": 6,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/5007707.png",
-            "pointsBySlot": {
-              "2": 0
-            }
-          },
-          {
             "playerId": "5294127",
             "playerName": "Troy Melton",
             "position": "RP",
@@ -94199,13 +94210,29 @@
             "pointsBySlot": {
               "14": 0
             }
+          },
+          {
+            "playerId": "39882",
+            "playerName": "Jake Burger",
+            "position": "1B",
+            "primarySlot": "1B",
+            "primarySlotId": 1,
+            "weekPoints": -1,
+            "activePoints": -0.75,
+            "benchPoints": -0.25,
+            "activeDays": 1,
+            "benchDays": 6,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/39882.png",
+            "pointsBySlot": {
+              "1": -0.75
+            }
           }
         ]
       },
       {
         "teamId": 11,
         "week": 20,
-        "totalPoints": 61.5,
+        "totalPoints": 70.5,
         "benchTotal": 19,
         "players": [
           {
@@ -94241,19 +94268,19 @@
             }
           },
           {
-            "playerId": "4872685",
-            "playerName": "Colson Montgomery",
-            "position": "SS",
-            "primarySlot": "SS",
-            "primarySlotId": 4,
+            "playerId": "41433",
+            "playerName": "Jazz Chisholm Jr.",
+            "position": "2B",
+            "primarySlot": "3B",
+            "primarySlotId": 3,
             "weekPoints": 8,
             "activePoints": 8,
             "benchPoints": 0,
             "activeDays": 7,
             "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4872685.png",
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41433.png",
             "pointsBySlot": {
-              "4": 8
+              "3": 8
             }
           },
           {
@@ -94270,6 +94297,22 @@
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32760.png",
             "pointsBySlot": {
               "15": 7
+            }
+          },
+          {
+            "playerId": "4872685",
+            "playerName": "Colson Montgomery",
+            "position": "SS",
+            "primarySlot": "SS",
+            "primarySlotId": 4,
+            "weekPoints": 7,
+            "activePoints": 7,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4872685.png",
+            "pointsBySlot": {
+              "4": 7
             }
           },
           {
@@ -94294,14 +94337,14 @@
             "position": "2B",
             "primarySlot": "OF",
             "primarySlotId": 5,
-            "weekPoints": 5.25,
-            "activePoints": 5.25,
+            "weekPoints": 4.25,
+            "activePoints": 4.25,
             "benchPoints": 0,
             "activeDays": 7,
             "benchDays": 0,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/31662.png",
             "pointsBySlot": {
-              "5": 5.25
+              "5": 4.25
             }
           },
           {
@@ -94321,22 +94364,6 @@
             }
           },
           {
-            "playerId": "41433",
-            "playerName": "Jazz Chisholm Jr.",
-            "position": "2B",
-            "primarySlot": "3B",
-            "primarySlotId": 3,
-            "weekPoints": 4,
-            "activePoints": 4,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/41433.png",
-            "pointsBySlot": {
-              "3": 4
-            }
-          },
-          {
             "playerId": "32667",
             "playerName": "Kevin Gausman",
             "position": "SP",
@@ -94348,6 +94375,38 @@
             "activeDays": 7,
             "benchDays": 0,
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/32667.png",
+            "pointsBySlot": {
+              "14": 3
+            }
+          },
+          {
+            "playerId": "40963",
+            "playerName": "Daulton Varsho",
+            "position": "OF",
+            "primarySlot": "OF",
+            "primarySlotId": 9,
+            "weekPoints": 3,
+            "activePoints": 3,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40963.png",
+            "pointsBySlot": {
+              "9": 3
+            }
+          },
+          {
+            "playerId": "4311625",
+            "playerName": "Kyle Bradish",
+            "position": "SP",
+            "primarySlot": "SP",
+            "primarySlotId": 14,
+            "weekPoints": 3,
+            "activePoints": 3,
+            "benchPoints": 0,
+            "activeDays": 7,
+            "benchDays": 0,
+            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4311625.png",
             "pointsBySlot": {
               "14": 3
             }
@@ -94497,22 +94556,6 @@
             }
           },
           {
-            "playerId": "4311625",
-            "playerName": "Kyle Bradish",
-            "position": "SP",
-            "primarySlot": "SP",
-            "primarySlotId": 14,
-            "weekPoints": 0,
-            "activePoints": 0,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4311625.png",
-            "pointsBySlot": {
-              "14": 0
-            }
-          },
-          {
             "playerId": "4345278",
             "playerName": "Tanner Bibee",
             "position": "SP",
@@ -94542,22 +94585,6 @@
             "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/4416591.png",
             "pointsBySlot": {
               "0": 0
-            }
-          },
-          {
-            "playerId": "40963",
-            "playerName": "Daulton Varsho",
-            "position": "OF",
-            "primarySlot": "OF",
-            "primarySlotId": 9,
-            "weekPoints": -1,
-            "activePoints": -1,
-            "benchPoints": 0,
-            "activeDays": 7,
-            "benchDays": 0,
-            "photoUrl": "https://a.espncdn.com/i/headshots/mlb/players/full/40963.png",
-            "pointsBySlot": {
-              "9": -1
             }
           },
           {
@@ -94647,160 +94674,160 @@
   },
   "teamCatStats": {
     "1": {
-      "1": 1860,
-      "8": 3286,
-      "20": 1136,
-      "21": 1059,
-      "23": 195,
+      "1": 1866,
+      "8": 3293,
+      "20": 1140,
+      "21": 1063,
+      "23": 196,
       "24": 39,
-      "27": 1737,
-      "34": 3091,
-      "45": 333,
-      "48": 1163,
+      "27": 1742,
+      "34": 3115,
+      "45": 334,
+      "48": 1171,
       "57": 71,
       "58": 9,
       "60": 14,
-      "63": 75
+      "63": 76
     },
     "2": {
-      "1": 1772,
-      "8": 2940,
-      "20": 1032,
+      "1": 1773,
+      "8": 2941,
+      "20": 1033,
       "21": 873,
       "23": 153,
       "24": 39,
-      "27": 1633,
-      "34": 3987,
-      "45": 447,
-      "48": 1421,
-      "57": 87,
+      "27": 1648,
+      "34": 4004,
+      "45": 453,
+      "48": 1428,
+      "57": 90,
       "58": 13,
       "60": 3,
       "63": 105
     },
     "3": {
-      "1": 1776,
-      "8": 3076,
-      "20": 1052,
-      "21": 960,
-      "23": 167,
+      "1": 1791,
+      "8": 3097,
+      "20": 1063,
+      "21": 965,
+      "23": 169,
       "24": 40,
-      "27": 1953,
-      "34": 3623,
-      "45": 440,
-      "48": 1192,
-      "57": 57,
+      "27": 1964,
+      "34": 3642,
+      "45": 443,
+      "48": 1197,
+      "57": 58,
       "58": 8,
       "60": 40,
       "63": 79
     },
     "4": {
-      "1": 1841,
-      "8": 3135,
-      "20": 1016,
-      "21": 1007,
+      "1": 1852,
+      "8": 3151,
+      "20": 1019,
+      "21": 1018,
       "23": 155,
-      "24": 59,
-      "27": 1761,
-      "34": 2835,
-      "45": 352,
-      "48": 981,
-      "57": 58,
+      "24": 60,
+      "27": 1769,
+      "34": 2849,
+      "45": 356,
+      "48": 987,
+      "57": 59,
       "58": 10,
       "60": 17,
       "63": 62
     },
     "6": {
-      "1": 1973,
-      "8": 3380,
-      "20": 1070,
-      "21": 1103,
+      "1": 1980,
+      "8": 3393,
+      "20": 1074,
+      "21": 1110,
       "23": 106,
-      "24": 31,
-      "27": 1871,
-      "34": 3265,
-      "45": 410,
-      "48": 1063,
+      "24": 32,
+      "27": 1879,
+      "34": 3276,
+      "45": 419,
+      "48": 1066,
       "57": 42,
       "58": 10,
       "60": 47,
       "63": 71
     },
     "7": {
-      "1": 1826,
-      "8": 2936,
-      "20": 952,
-      "21": 892,
+      "1": 1833,
+      "8": 2944,
+      "20": 954,
+      "21": 895,
       "23": 143,
       "24": 57,
-      "27": 1370,
-      "34": 3168,
-      "45": 401,
-      "48": 1105,
+      "27": 1375,
+      "34": 3186,
+      "45": 402,
+      "48": 1113,
       "57": 54,
       "58": 9,
       "60": 22,
-      "63": 81
+      "63": 82
     },
     "8": {
-      "1": 1749,
-      "8": 2821,
-      "20": 963,
-      "21": 877,
+      "1": 1758,
+      "8": 2834,
+      "20": 970,
+      "21": 885,
       "23": 148,
       "24": 38,
-      "27": 1382,
-      "34": 2894,
+      "27": 1387,
+      "34": 2897,
       "45": 400,
-      "48": 895,
+      "48": 898,
       "57": 19,
       "58": 12,
-      "60": 29,
+      "60": 30,
       "63": 69
     },
     "9": {
-      "1": 1955,
-      "8": 3169,
-      "20": 982,
-      "21": 1061,
-      "23": 149,
+      "1": 1970,
+      "8": 3197,
+      "20": 993,
+      "21": 1068,
+      "23": 150,
       "24": 48,
-      "27": 1370,
-      "34": 3098,
-      "45": 344,
-      "48": 1095,
+      "27": 1374,
+      "34": 3136,
+      "45": 346,
+      "48": 1118,
       "57": 9,
       "58": 7,
-      "60": 54,
-      "63": 74
+      "60": 55,
+      "63": 75
     },
     "10": {
-      "1": 1745,
-      "8": 2942,
-      "20": 945,
+      "1": 1750,
+      "8": 2947,
+      "20": 946,
       "21": 929,
       "23": 142,
       "24": 43,
-      "27": 1557,
-      "34": 2676,
-      "45": 307,
-      "48": 960,
+      "27": 1564,
+      "34": 2682,
+      "45": 305,
+      "48": 964,
       "57": 42,
       "58": 13,
-      "60": 19,
+      "60": 20,
       "63": 69
     },
     "11": {
-      "1": 1378,
-      "8": 2378,
-      "20": 837,
-      "21": 747,
+      "1": 1380,
+      "8": 2383,
+      "20": 838,
+      "21": 748,
       "23": 108,
       "24": 28,
-      "27": 1450,
-      "34": 4324,
-      "45": 609,
-      "48": 1375,
+      "27": 1454,
+      "34": 4341,
+      "45": 612,
+      "48": 1380,
       "57": 51,
       "58": 12,
       "60": 34,
